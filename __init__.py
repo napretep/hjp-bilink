@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from enum import Enum
 from operator import itemgetter
 from typing import Callable, List, Optional, Sequence, Tuple, Union
-helpSite= "https://gitee.com/huangjipan/hjp-bilink/blob/master/README.md"
+helpSite= "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName="test.txt"
 configFileName="config.json"
 helpFileName="README.md"
