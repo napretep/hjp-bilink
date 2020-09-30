@@ -57,9 +57,9 @@
 ![0n3JOO.gif](https://s1.ax1x.com/2020/09/30/0n3JOO.gif)
 
 ## 未来计划
--[] 实现unlink功能
--[] 代码转移到gitee
--[] 实现UI界面
+- [] 实现unlink功能
+- [] 代码转移到gitee
+- [] 实现UI界面
 
 ## 更新记录
 20200929
