@@ -54,7 +54,7 @@
 单向链接的使用
   ![](https://www.jianguoyun.com/c/dl-file/%E6%88%90%E6%96%87%E4%BD%9C%E5%93%81/myscripts/hjp-bilink/link_addon_how_to_use_1.gif?dt=qhgbom&kv=NTY0Mjk4MzM5QHFxLmNvbQ&sd=azgih&ud=BFSfxnPc0AsG7tTyQthJw-yQBmx5wSdNmCXfP7A7nwU&vr=1) (gif图片12M)
 双向链接的设置
-  ![](https://www.jianguoyun.com/c/dl-file/%E6%88%90%E6%96%87%E4%BD%9C%E5%93%81/myscripts/hjp-bilink/link_addon_how_to_use_2.gif?dt=qhgbse&kv=NTY0Mjk4MzM5QHFxLmNvbQ&sd=azgih&ud=F78eZEKoHbIAxYtTWlplcM5-PYTLKF485woVnVODmCM&vr=1)  (gif图片4M)
+![0n1jQf.gif](https://s1.ax1x.com/2020/09/30/0n1jQf.gif)
 以上若无法显示,下方是图片的下载地址
 https://www.jianguoyun.com/p/DZGFalUQ2ZDmCBjX_r8D
 https://www.jianguoyun.com/p/DamL6qoQ2ZDmCBjY_r8D
