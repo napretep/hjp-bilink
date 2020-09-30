@@ -5,7 +5,7 @@
 - 依赖的插件代码 1423933177 ,他提供了核心的卡片单向链接功能.
 - 本插件将单向链接自动化实现链过去的同时又链回来,并且提供两种链接算法.
 - 讨论QQ群:891730352
-- ![输入图片描述](https://www.jianguoyun.com/c/tblv2/Rc8g6qDMyLRfXN_DfH18DsmGrNYQvG3KSBbPDM9ToC-Va6p25PAHOBwuqfvru898GGbmphrx/pLeZAJRx8EaWRT7gE0MZIw/l)
+- ![0nlpjS.jpg](https://s1.ax1x.com/2020/09/30/0nlpjS.jpg)
 ## 插件的安装
 ### `hjp-bilink`的安装
 把文件夹`hjp-bilink`复制到anki的插件文件夹下,这个位置一般是`C:\Users\Administrator\AppData\Roaming\Anki2\addons21`
