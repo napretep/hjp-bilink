@@ -1,6 +1,6 @@
 # hjp-bilink使用介绍
 - 插件版本:20200929144015 (请校对你手上获取的版本是否对应)
-- [插件地址](https://www.jianguoyun.com/p/Ddrue-AQ2ZDmCBji_r8D)
+- [插件地址](https://gitee.com/huangjipan/hjp-bilink)
 - 本插件实现在anki上简易的手动双向绑定.
 - 依赖的插件代码 1423933177 ,他提供了核心的卡片单向链接功能.
 - 本插件将单向链接自动化实现链过去的同时又链回来,并且提供两种链接算法.
