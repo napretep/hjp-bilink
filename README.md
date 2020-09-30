@@ -57,8 +57,11 @@
 ![0n3JOO.gif](https://s1.ax1x.com/2020/09/30/0n3JOO.gif)
 
 ## 未来计划
-- [ ] 实现unlink功能
+### 近期
+- [ ] 实现各种方案转为tag(deck路径转tag,卡片内容转tag)
+- [ ] 实现unlink功能(若选中的卡片存在link关系,则删除)
 - [x] 代码转移到gitee
+### 长期
 - [ ] 实现UI界面
 
 ## 更新记录
