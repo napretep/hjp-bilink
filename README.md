@@ -8,7 +8,7 @@
 - ![0nlpjS.jpg](https://s1.ax1x.com/2020/09/30/0nlpjS.jpg)
 ## 插件的安装
 ### `hjp-bilink`的安装
-下载这个插件仓库到本地,把文件夹`hjp-bilink`复制到anki的插件文件夹下,这个位置一般是`C:\Users\Administrator\AppData\Roaming\Anki2\addons21`
+下载克隆这个插件仓库到本地,把文件夹`hjp-bilink`复制到anki的插件文件夹下,这个位置一般是`C:\Users\Administrator\AppData\Roaming\Anki2\addons21`
 如果不知道插件文件夹在哪里,打开anki的`工具>附加组件>查看文件`也可以打开
 ### 依赖插件`link Cards`的安装
 到`工具>附加组件>获取插件`输入1423933177  即可安装依赖插件
