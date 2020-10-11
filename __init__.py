@@ -93,10 +93,12 @@ class Link(object):
         for BcardId in cidli[posi+1:]:
             Bnote=self.getCardNoteFromStr(BcardId)
             for AcardId in cidli[0:posi]:
-                if not (AcardId in Bnote.fields[fieldPosi]):
+                if re.search(AcardId,Bnote.fields[fieldPosi]) is None:
+                #if not (AcardId in Bnote.fields[fieldPosi]):
                     self.appendIDtoNote(Bnote,AcardId)
                 Anote=self.getCardNoteFromStr(AcardId)
-                if not (BcardId in Anote.fields[fieldPosi]):
+                if re.search(BcardId,Anote.fields[fieldPosi]) is None:
+                #if not (BcardId in Anote.fields[fieldPosi]):
                     self.appendIDtoNote(Anote,BcardId)              
     def completemap(self):
         '''
@@ -110,7 +112,7 @@ class Link(object):
             note=self.getCardNoteFromStr(cid)
             for linkcid in cidli:
                 #怎样才能访问到fields,需要用数字下标,访问到的是HTML模式
-                if cid != linkcid and not (linkcid  in note.fields[fieldPosi]):
+                if cid != linkcid and (re.search(linkcid,note.fields[fieldPosi]) is None): #(linkcid  in note.fields[fieldPosi]):
                     self.appendIDtoNote(note,linkcid)       
     def safeCheck(self):
         #cardIDCheck
