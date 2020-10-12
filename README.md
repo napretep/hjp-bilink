@@ -29,6 +29,7 @@
 3. ### (如果需要)打开`input.json`编辑卡片ID和描述desc,
 - 在你把想双链的卡的id都插入到这个`input.json`中后,你可以点击菜单栏上的`hjp_link>show`打开`input.json`
 - `input.json`里面都是你在第二步操作中输入的`card_id`还有程序默认提取的描述`desc`,你这时候可以修改默认的描述内容,你也可以不追加解释,走下一步操作.
+![0Rd6yj.png](https://s1.ax1x.com/2020/10/12/0Rd6yj.png)
 4. ### 建立双向连接
 - 选择`hjp_link>linkDefault`就会根据配置自动建立双向连接 
 - 选择`hjp_link>linkAll`调用完全图算法链接每个记录
