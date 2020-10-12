@@ -8,7 +8,7 @@
 - 插件版本:0.2.1
 - [插件地址](https://gitee.com/huangjipan/hjp-bilink)
 - ## 提醒:
-    - 本插件只适用于windows和桌面linux系统,不适用于苹果系统和iphone,ipad等移动端
+    - 本插件只适用于windows和桌面linux系统,不适用于mac系统,安卓手机,iphone,ipad等移动端
 ## 插件的安装
 ### `hjp-bilink`的安装
 下载克隆这个插件仓库到本地,把文件夹`hjp-bilink`复制到anki的插件文件夹下,这个位置windows上一般是`C:\Users\Administrator\AppData\Roaming\Anki2\addons21`
