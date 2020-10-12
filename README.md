@@ -16,30 +16,30 @@
 ## 使用教程
 目前这个工具用起来还是有一点繁琐的,将来会加入对话框功能,简化操作.
 1. ### 打开`browser`
-- 就是在主界面点击`浏览/browse`弹出的那个窗口
+    - 就是在主界面点击`浏览/browse`弹出的那个窗口
 2. ### 选取卡片记录插入`input.json`
-- 在`browser`窗口中选中几条你要双链的记录,
-- 根据模式不同,有以下两种录入的方式
-    1. 当你需要使用 1 **`linkall`完全链接模式**, 2 **`unlinkNode`按结点取消链接模式** , 3 **`unlinkPath`按路径取消链接模式** 时
-        - 点击右键,选择`hjpCopyCidAlltoInputJson`,就能把你选的这几条记录的`card_id`插入到`input.json`中
-        - 你可以反复执行这个过程,把所有需要的卡片ID都录入到`input.json`中
-    2. 当你需要使用 **`linkGroupToGroup` 按组链接模式** 时
-        - 选择`hjpAsGroupCopytoInputJson`,把所有选中的记录作为一个组录入到`input.json`中,
-        - 注意 组链接至少需要两个组才能正常工作
+    - 在`browser`窗口中选中几条你要双链的记录,
+    - 根据模式不同,有以下两种录入的方式
+        1. 当你需要使用 1 **`linkall`完全链接模式**, 2 **`unlinkNode`按结点取消链接模式** , 3 **`unlinkPath`按路径取消链接模式** 时
+            - 点击右键,选择`hjpCopyCidAlltoInputJson`,就能把你选的这几条记录的`card_id`插入到`input.json`中
+            - 你可以反复执行这个过程,把所有需要的卡片ID都录入到`input.json`中
+        2. 当你需要使用 **`linkGroupToGroup` 按组链接模式** 时
+            - 选择`hjpAsGroupCopytoInputJson`,把所有选中的记录作为一个组录入到`input.json`中,
+            - 注意 组链接至少需要两个组才能正常工作
 3. ### (如果需要)打开`input.json`编辑卡片ID和描述desc,
-- 在你把想双链的卡的id都插入到这个`input.json`中后,你可以点击菜单栏上的`hjp_link>show`打开`input.json`
-- `input.json`里面都是你在第二步操作中输入的`card_id`还有程序默认提取的描述`desc`,你这时候可以修改默认的描述内容,你也可以不追加解释,走下一步操作.
-- ![0Rd6yj.png](https://s1.ax1x.com/2020/10/12/0Rd6yj.png)
+    - 在你把想双链的卡的id都插入到这个`input.json`中后,你可以点击菜单栏上的`hjp_link>show`打开`input.json`
+    - `input.json`里面都是你在第二步操作中输入的`card_id`还有程序默认提取的描述`desc`,你这时候可以修改默认的描述内容,你也可以不追加解释,走下一步操作.
+    - ![0Rd6yj.png](https://s1.ax1x.com/2020/10/12/0Rd6yj.png)
 4. ### 建立双向连接
-- 选择`hjp_link>linkDefault`就会根据配置自动建立双向连接 
-- 选择`hjp_link>linkAll`调用完全图算法链接每个记录
-- 选择`hjp_link>linkGroupToGroup`调用组链接算法链接各个组的记录.
-- 选择`hjp_link>unlinkNode`调用取消结点链接算法
-- 选择`hjp_link>unlinkPath`调用取消路径链接算法
+    - 选择`hjp_link>linkDefault`就会根据配置自动建立双向连接 
+    - 选择`hjp_link>linkAll`调用完全图算法链接每个记录
+    - 选择`hjp_link>linkGroupToGroup`调用组链接算法链接各个组的记录.
+    - 选择`hjp_link>unlinkNode`调用取消结点链接算法
+    - 选择`hjp_link>unlinkPath`调用取消路径链接算法
 5. ### (如果需要)清除json中的记录
-- 选择`hjp_link`->`clear`就能删掉之前的全部记录.
--  **如果不熟悉json的语法,千万别自己删json的结构,最好用clear清除记录,不容易破坏json结构,否则会频繁报错.** 
-- 如果你熟悉json的语法,以上操作也可以打开`input.json`手工完成录入.
+    - 选择`hjp_link`->`clear`就能删掉之前的全部记录.
+    -  **如果不熟悉json的语法,千万别自己删json的结构,最好用clear清除记录,不容易破坏json结构,否则会频繁报错.** 
+    - 如果你熟悉json的语法,以上操作也可以打开`input.json`手工完成录入.
 
 ## 配置指导
 配置文件名为`config.json`,可以在ANKI插件页面做修改,也可以通过`hjp_link->config`打开,可修改的值有
