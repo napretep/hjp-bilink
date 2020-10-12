@@ -19,8 +19,12 @@
 目前这个工具用起来还是有一点繁琐的,将来会加入对话框功能,简化操作.
 1. ### 打开`browser`
     - 就是在主界面点击`浏览/browse`弹出的那个窗口
+    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034448_bbf2a1fc_332584.png "屏幕截图.png")
 2. ### 选取卡片记录插入`input.json`
-    - 在`browser`窗口中选中几条你要双链的记录，在任何一条被选中的记录上点击鼠标右键，弹出上下文菜单，其中有`hjpCopyCidAlltoInputJson`，`hjpAsGroupCopytoInputJson`两个选项
+    - 在`browser`窗口中选中几条你要双链的记录，在任何一条被选中的记录上点击鼠标右键，弹出上下文菜单，其中有
+        - `hjpCopyCidAlltoInputJson`，
+        - `hjpAsGroupCopytoInputJson`两个选项
+    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034558_0ef8a51b_332584.png "屏幕截图.png")
     - 根据模式不同,选择不同的选项
         1. 当你需要使用 1 **`linkall`完全链接模式**, 2 **`unlinkNode`按结点取消链接模式** , 3 **`unlinkPath`按路径取消链接模式** 时
             - 选择`hjpCopyCidAlltoInputJson`,就能把你选的这几条记录的`card_id`插入到`input.json`中
@@ -39,11 +43,12 @@
         - 选择`hjp_link>linkGroupToGroup`调用组链接算法链接各个组的记录.在`input.json>IdDescGroups`中会分成几个组,前一个组的每一张卡双向连接到后一个组的每一张卡.比如ABC是一个组，DEF是一个组，那么组间链接就是第一组：A到DEF,B到DEF,C到DEF，第二组：D到ABC，E到ABC,F到ABC。
         - 选择`hjp_link>unlinkNode`调用取消结点链接算法,相当于将`input.json>IdDescPairs`中列出的每个节点孤立，比如`input.json>IdDescPairs`中有节点A，那么程序会查询A卡片，并发现A连接到BCD，那么就会解除到BCD的链接，并且反向解除BCD到A的链接。
         - 选择`hjp_link>unlinkPath`调用取消路径链接算法,相当于将`input.json>IdDescPairs`中的彼此相连的节点按顺序解除绑定，比如输入`input.json>IdDescPairs`中的ABCD是彼此有链接的节点，那么程序就会从A节点开始，从A到B解除链接，B到C解除链接以此类推，但是不会解除A到其他结点的链接,比如A连接到BCD,但是你输入`input.json>IdDescPairs`的顺序是ABCD,那么A只会解除从A到B的链接,A到CD的链接保持不动。
+    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034730_38b2b795_332584.png "屏幕截图.png")
 5. ### (如果需要)清除json中的记录
     - 选择`hjp_link`->`clear`就能删掉之前的全部记录.
     -  **如果不熟悉json的语法,千万别自己删json的结构,最好用clear清除记录,不容易破坏json结构,否则会频繁报错.** 
     - 如果你熟悉json的语法,以上操作也可以打开`input.json`手工完成录入.
-
+- ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034926_1c9e8e3d_332584.png "屏幕截图.png")
 ## 配置指导
 配置文件名为`config.json`,可以在ANKI插件页面做修改,也可以通过`hjp_link->config`打开,可修改的值有
 1. ### linkMode (重点必看)
