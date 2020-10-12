@@ -26,7 +26,10 @@
         - `hjpAsGroupCopytoInputJson`两个选项
     - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034558_0ef8a51b_332584.png "屏幕截图.png")
     - 根据模式不同,选择不同的选项
-        1. 当你需要使用 1 **`linkall`完全链接模式**, 2 **`unlinkNode`按结点取消链接模式** , 3 **`unlinkPath`按路径取消链接模式** 时
+        1. 当你需要使用 
+            1 **`linkall`完全链接模式**, 
+            2 **`unlinkNode`按结点取消链接模式** , 
+            3 **`unlinkPath`按路径取消链接模式** 时
             - 选择`hjpCopyCidAlltoInputJson`,就能把你选的这几条记录的`card_id`插入到`input.json`中
             - 你可以反复执行这个过程,把所有需要的卡片ID都录入到`input.json`中
         2. 当你需要使用 **`linkGroupToGroup` 按组链接模式** 时
@@ -48,7 +51,7 @@
     - 选择`hjp_link`->`clear`就能删掉之前的全部记录.
     -  **如果不熟悉json的语法,千万别自己删json的结构,最好用clear清除记录,不容易破坏json结构,否则会频繁报错.** 
     - 如果你熟悉json的语法,以上操作也可以打开`input.json`手工完成录入.
-- ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034926_1c9e8e3d_332584.png "屏幕截图.png")
+    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034926_1c9e8e3d_332584.png "屏幕截图.png")
 ## 配置指导
 配置文件名为`config.json`,可以在ANKI插件页面做修改,也可以通过`hjp_link->config`打开,可修改的值有
 1. ### linkMode (重点必看)
