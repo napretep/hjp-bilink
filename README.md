@@ -46,7 +46,7 @@
 1. ### linkMode (重点必看)
     - `linkMode`影响默认的链接多张卡片的算法,就是你点击`hjp_link>linkDefault`时会调用的算法,值为0或1,2,3,默认为0.
     - 0表示完全链接`linkAll`，在`input.json>IdDescPairs`中的每一张卡双向连接到每一张卡,比如输入ABC,那么A中有BC,B中有AC,C中有BA的ID链接.
-    - 1表示按组链接`linkGroupToGroup`，在`input.json>IdDescGroups`中会分成几个组,前一个组的每一张卡双向连接到后一个组的每一张卡.
+    - 1表示按组链接`linkGroupToGroup`，在`input.json>IdDescGroups`中会分成几个组,前一个组的每一张卡双向连接到后一个组的每一张卡.比如ABC是一个组，DEF是一个组，那么组间链接就是第一组：A到DEF,B到DEF,C到DEF，第二组：D到ABC，E到ABC,F到ABC。
     - 2表示按结点取消链接`unlinknode`，相当于将`input.json>IdDescPairs`中列出的每个节点孤立，比如`input.json>IdDescPairs`中有节点A，那么程序会查询A卡片，并发现A连接到BCD，那么就会解除到BCD的链接，并且反向解除BCD到A的链接。
     - 3表示按路径取消链接`unlinkpath`，相当于将`input.json>IdDescPairs`中的彼此相连的节点按顺序解除绑定，比如输入`input.json>IdDescPairs`中的ABCD是彼此有链接的节点，那么程序就会从A节点开始，从A到B解除链接，B到C解除链接以此类推，但是不会解除A到其他结点的链接,比如A连接到BCD,但是你输入`input.json>IdDescPairs`的顺序是ABCD,那么A只会解除从A到B的链接,A到CD的链接保持不动。
 4. ### cidPrefix
