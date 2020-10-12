@@ -58,7 +58,7 @@
 3. ### colSeparator（已经废弃）
 - colSeparator控制每一条记录中不同字段的区分,在本插件中就是卡ID与描述内容的区分,
 4. ### cidPrefix
-- 表示每个卡ID的默认前缀,可以为空,但如果装了最后请注意标识符在txt中的含义必须是唯一确定的,不能在插入的正文中使用标识符
+- 表示每个卡ID的默认前缀,用于让依赖的link插件识别这是可点的链接,可以为空,请注意标识符在txt中的含义必须是唯一确定的,不能在插入的正文中使用标识符
 5. ### appendNoteFieldPosition
 - 这个属性控制双链的标记插入到anki卡片的第几个字段,取值从0开始,所以第一个字段为0,默认为2,也就是第三个字段
 6. ### readDescFieldPosition
@@ -66,7 +66,7 @@
 7. ### regexForDescContent
 - 这个属性控制程序从卡片提取描述字符的方法，默认为0的话，会调用`DEFAULT>regexForDescContent`中的正则表达式来提取描述字符.如果你想按自己的正则表达式提取描述字符,可以改外层的`regexForDescContent`的值.
 
-## 动画指导
+## 动画指导 
 单向链接的使用
 ![0n1jQf.gif](https://s1.ax1x.com/2020/09/30/0n1jQf.gif)
 双向链接的设置
