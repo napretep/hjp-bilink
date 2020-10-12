@@ -35,8 +35,6 @@ class Link(object):
         self.cfgpath = cfgpath
         self.confg = json.load(open(cfgpath, "r", encoding="utf-8"))
         self.relycfg = json.load(open(relycfgpath, "r", encoding="utf-8"))
-        self.rowSep = self.confg["rowSeparator"]
-        self.colSep = self.confg["colSeparator"]
         if defaultMode == 999:
             self.mode = self.confg["linkMode"]
         else:
