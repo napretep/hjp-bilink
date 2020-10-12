@@ -29,8 +29,7 @@
 3. ### (如果需要)打开`input.json`编辑卡片ID和描述desc,
 - 在你把想双链的卡的id都插入到这个`input.json`中后,你可以点击菜单栏上的`hjp_link>show`打开`input.json`
 - `input.json`里面都是你在第二步操作中输入的`card_id`还有程序默认提取的描述`desc`,你这时候可以修改默认的描述内容,你也可以不追加解释,走下一步操作.
-
-![0Rd6yj.png](https://s1.ax1x.com/2020/10/12/0Rd6yj.png)
+- ![0Rd6yj.png](https://s1.ax1x.com/2020/10/12/0Rd6yj.png)
 4. ### 建立双向连接
 - 选择`hjp_link>linkDefault`就会根据配置自动建立双向连接 
 - 选择`hjp_link>linkAll`调用完全图算法链接每个记录
@@ -44,19 +43,13 @@
 
 ## 配置指导
 配置文件名为`config.json`,可以在ANKI插件页面做修改,也可以通过`hjp_link->config`打开,可修改的值有
-1. ### linkMode
-- 链接多张卡片的算法,值为0或1,2,3,默认为0
+1. ### linkMode (重点必看)
+- `linkMode`影响默认的链接多张卡片的算法,就是你点击`hjp_link>linkDefault`时会调用的算法,值为0或1,2,3,默认为0.
 - 0表示完全链接`linkAll`，在`input.json>IdDescPairs`中的每一张卡双向连接到每一张卡,比如输入ABC,那么A中有BC,B中有AC,C中有BA的ID链接.
 - 1表示按组链接`linkGroupToGroup`，在`input.json>IdDescGroups`中会分成几个组,前一个组的每一张卡双向连接到后一个组的每一张卡.
 - 2表示按结点取消链接`unlinknode`，相当于将`input.json>IdDescPairs`中列出的每个节点孤立，比如`input.json>IdDescPairs`中有节点A，那么程序会查询A卡片，并发现A连接到BCD，那么就会解除到BCD的链接，并且反向解除BCD到A的链接。
 - 3表示按路径取消链接`unlinkpath`，相当于将`input.json>IdDescPairs`中的彼此相连的节点按顺序解除绑定，比如输入`input.json>IdDescPairs`中的ABCD是彼此有链接的节点，那么程序就会从A节点开始，从A到B解除链接，B到C解除链接以此类推，但是不会解除A到其他结点的链接,比如A连接到BCD,但是你输入`input.json>IdDescPairs`的顺序是ABCD,那么A只会解除从A到B的链接,到CD的链接保持不动。
 两个组.比如`ABC回车DEF`,那么A,B,C都会连接到DEF,但A,B,C彼此不相连,同理DEF也会连接到ABC但彼此不相连.
-2. ### rowSeparator（已经废弃）
-- 默认为"\n",表示一行一条链接,rowSeparator控制每一条记录的区分
-- 也是分组的标识符,此时不能后面跟内容,直到下一个rowSeparator为止
-- 标识符不能落到某条记录的内部,必须在外部
-3. ### colSeparator（已经废弃）
-- colSeparator控制每一条记录中不同字段的区分,在本插件中就是卡ID与描述内容的区分,
 4. ### cidPrefix
 - 表示每个卡ID的默认前缀,用于让依赖的link插件识别这是可点的链接,可以为空,请注意标识符在txt中的含义必须是唯一确定的,不能在插入的正文中使用标识符
 5. ### appendNoteFieldPosition
