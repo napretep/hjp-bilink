@@ -44,26 +44,25 @@
 ## 配置指导
 配置文件名为`config.json`,可以在ANKI插件页面做修改,也可以通过`hjp_link->config`打开,可修改的值有
 1. ### linkMode (重点必看)
-- `linkMode`影响默认的链接多张卡片的算法,就是你点击`hjp_link>linkDefault`时会调用的算法,值为0或1,2,3,默认为0.
-- 0表示完全链接`linkAll`，在`input.json>IdDescPairs`中的每一张卡双向连接到每一张卡,比如输入ABC,那么A中有BC,B中有AC,C中有BA的ID链接.
-- 1表示按组链接`linkGroupToGroup`，在`input.json>IdDescGroups`中会分成几个组,前一个组的每一张卡双向连接到后一个组的每一张卡.
-- 2表示按结点取消链接`unlinknode`，相当于将`input.json>IdDescPairs`中列出的每个节点孤立，比如`input.json>IdDescPairs`中有节点A，那么程序会查询A卡片，并发现A连接到BCD，那么就会解除到BCD的链接，并且反向解除BCD到A的链接。
-- 3表示按路径取消链接`unlinkpath`，相当于将`input.json>IdDescPairs`中的彼此相连的节点按顺序解除绑定，比如输入`input.json>IdDescPairs`中的ABCD是彼此有链接的节点，那么程序就会从A节点开始，从A到B解除链接，B到C解除链接以此类推，但是不会解除A到其他结点的链接,比如A连接到BCD,但是你输入`input.json>IdDescPairs`的顺序是ABCD,那么A只会解除从A到B的链接,到CD的链接保持不动。
-两个组.比如`ABC回车DEF`,那么A,B,C都会连接到DEF,但A,B,C彼此不相连,同理DEF也会连接到ABC但彼此不相连.
+    - `linkMode`影响默认的链接多张卡片的算法,就是你点击`hjp_link>linkDefault`时会调用的算法,值为0或1,2,3,默认为0.
+    - 0表示完全链接`linkAll`，在`input.json>IdDescPairs`中的每一张卡双向连接到每一张卡,比如输入ABC,那么A中有BC,B中有AC,C中有BA的ID链接.
+    - 1表示按组链接`linkGroupToGroup`，在`input.json>IdDescGroups`中会分成几个组,前一个组的每一张卡双向连接到后一个组的每一张卡.
+    - 2表示按结点取消链接`unlinknode`，相当于将`input.json>IdDescPairs`中列出的每个节点孤立，比如`input.json>IdDescPairs`中有节点A，那么程序会查询A卡片，并发现A连接到BCD，那么就会解除到BCD的链接，并且反向解除BCD到A的链接。
+    - 3表示按路径取消链接`unlinkpath`，相当于将`input.json>IdDescPairs`中的彼此相连的节点按顺序解除绑定，比如输入`input.json>IdDescPairs`中的ABCD是彼此有链接的节点，那么程序就会从A节点开始，从A到B解除链接，B到C解除链接以此类推，但是不会解除A到其他结点的链接,比如A连接到BCD,但是你输入`input.json>IdDescPairs`的顺序是ABCD,那么A只会解除从A到B的链接,A到CD的链接保持不动。
 4. ### cidPrefix
-- 表示每个卡ID的默认前缀,用于让依赖的link插件识别这是可点的链接,可以为空,请注意标识符在txt中的含义必须是唯一确定的,不能在插入的正文中使用标识符
+    - 表示每个卡ID的默认前缀,用于让依赖的link插件识别这是可点的链接,可以为空,请注意标识符在txt中的含义必须是唯一确定的,不能在插入的正文中使用标识符
 5. ### appendNoteFieldPosition
-- 这个属性控制双链的标记插入到anki卡片的第几个字段,取值从0开始,所以第一个字段为0,默认为2,也就是第三个字段
+    - 这个属性控制双链的标记插入到anki卡片的第几个字段,取值从0开始,所以第一个字段为0,默认为2,也就是第三个字段
 6. ### readDescFieldPosition
-- 这个属性控制程序默认从卡片的第几个字段提取卡片描述的字符，数据类型为number
+    - 这个属性控制程序默认从卡片的第几个字段提取卡片描述的字符，数据类型为number
 7. ### regexForDescContent
-- 这个属性控制程序从卡片提取描述字符的方法，默认为0的话，会调用`DEFAULT>regexForDescContent`中的正则表达式来提取描述字符.如果你想按自己的正则表达式提取描述字符,可以改外层的`regexForDescContent`的值.
+    - 这个属性控制程序从卡片提取描述字符的方法，默认为0的话，会调用`DEFAULT>regexForDescContent`中的正则表达式来提取描述字符.如果你想按自己的正则表达式提取描述字符,可以改外层的`regexForDescContent`的值.
 
 ## 动画指导 
-单向链接的使用
-![0n1jQf.gif](https://s1.ax1x.com/2020/09/30/0n1jQf.gif)
-双向链接的设置
-![0n3JOO.gif](https://s1.ax1x.com/2020/09/30/0n3JOO.gif)
+- 单向链接的使用
+- ![0n1jQf.gif](https://s1.ax1x.com/2020/09/30/0n1jQf.gif)
+- 双向链接的设置
+- ![0n3JOO.gif](https://s1.ax1x.com/2020/09/30/0n3JOO.gif)
 
 ## 未来计划
 ### 近期
