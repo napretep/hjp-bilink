@@ -20,10 +20,10 @@
 2. ### 选取卡片记录插入`input.json`
 - 在`browser`窗口中选中几条你要双链的记录,
 - 根据模式不同,有以下两种录入的方式
-    1. 当你需要使用 1 **`linkall`完全链接模式**, 2 **`unlinkNode`按结点取消链接模式** , 3 **`unlinkPath`按路径取消链接模式** 采用如下录入的方式
+    1. 当你需要使用 1 **`linkall`完全链接模式**, 2 **`unlinkNode`按结点取消链接模式** , 3 **`unlinkPath`按路径取消链接模式** 时
         - 点击右键,选择`hjpCopyCidAlltoInputJson`,就能把你选的这几条记录的`card_id`插入到`input.json`中
         - 你可以反复执行这个过程,把所有需要的卡片ID都录入到`input.json`中
-    2. 当你需要使用 **`linkGroupToGroup` 按组链接模式**  采用如下录入的方式
+    2. 当你需要使用 **`linkGroupToGroup` 按组链接模式** 时
         - 选择`hjpAsGroupCopytoInputJson`,把所有选中的记录作为一个组录入到`input.json`中,
         - 注意 组链接至少需要两个组才能正常工作
 3. ### (如果需要)打开`input.json`编辑卡片ID和描述desc,
