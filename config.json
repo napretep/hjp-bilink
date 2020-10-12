@@ -1,7 +1,10 @@
 {
     "linkMode":0,
-    "rowSeparator":"\n",
-    "colSeparator":"\t",
     "cidPrefix":"cidd",
-    "appendNoteFieldPosition":0
+    "appendNoteFieldPosition":0,
+    "readDescFieldPosition":0,
+    "regexForDescContent":0,
+    "DEFAULT":{
+    	"regexForDescContent":"[\\w.\\\\:;,~`\\-=+|]{1,10}"
+    }
 }
