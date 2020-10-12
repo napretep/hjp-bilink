@@ -46,10 +46,10 @@
 配置文件名为`config.json`,可以在ANKI插件页面做修改,也可以通过`hjp_link->config`打开,可修改的值有
 1. ### linkMode
 - 链接多张卡片的算法,值为0或1,2,3,默认为0
-- 0表示完全链接`linkAll`，在txt中的每一张卡双向连接到每一张卡,比如输入ABC,那么A中有BC,B中有AC,C中有BA的ID链接.
-- 1表示按组链接`linkGroupToGroup`，在txt中会分成几个组,前一个组的每一张卡双向连接到后一个组的每一张卡,组与组之间用一个空的`rowSeparator`区分,默认就是空一行表示区分
-- 2表示按结点取消链接`unlinknode`，相当于将txt中的每个节点孤立，比如txt中有节点A，那么程序会查询A卡片，并发现A连接到BCD，那么就会解到BCD的除链接，并且反向解除BCD到A的链接。
-- 3表示按路径取消链接`unlinkpath`，相当于将txt中的彼此相连的节点按顺序解除绑定，比如输入txt中的ABCD是彼此有链接的节点，那么程序就会从A节点开始，从A到B解除链接，B到C解除链接以此类推，但是不会解除A到其他结点的链接。
+- 0表示完全链接`linkAll`，在`input.json>IdDescPairs`中的每一张卡双向连接到每一张卡,比如输入ABC,那么A中有BC,B中有AC,C中有BA的ID链接.
+- 1表示按组链接`linkGroupToGroup`，在`input.json>IdDescGroups`中会分成几个组,前一个组的每一张卡双向连接到后一个组的每一张卡.
+- 2表示按结点取消链接`unlinknode`，相当于将`input.json>IdDescPairs`中列出的每个节点孤立，比如`input.json>IdDescPairs`中有节点A，那么程序会查询A卡片，并发现A连接到BCD，那么就会解除到BCD的链接，并且反向解除BCD到A的链接。
+- 3表示按路径取消链接`unlinkpath`，相当于将`input.json>IdDescPairs`中的彼此相连的节点按顺序解除绑定，比如输入`input.json>IdDescPairs`中的ABCD是彼此有链接的节点，那么程序就会从A节点开始，从A到B解除链接，B到C解除链接以此类推，但是不会解除A到其他结点的链接,比如A连接到BCD,但是你输入`input.json>IdDescPairs`的顺序是ABCD,那么A只会解除从A到B的链接,到CD的链接保持不动。
 两个组.比如`ABC回车DEF`,那么A,B,C都会连接到DEF,但A,B,C彼此不相连,同理DEF也会连接到ABC但彼此不相连.
 2. ### rowSeparator（已经废弃）
 - 默认为"\n",表示一行一条链接,rowSeparator控制每一条记录的区分
