@@ -27,14 +27,19 @@
     - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034558_0ef8a51b_332584.png "屏幕截图.png")
     - 根据模式不同,选择不同的选项
         1. 当你需要使用 
+
             1 **`linkall`完全链接模式**, 
+
             2 **`unlinkNode`按结点取消链接模式** , 
+
             3 **`unlinkPath`按路径取消链接模式** 时
+
             - 选择`hjpCopyCidAlltoInputJson`,就能把你选的这几条记录的`card_id`插入到`input.json`中
             - 你可以反复执行这个过程,把所有需要的卡片ID都录入到`input.json`中
         2. 当你需要使用 **`linkGroupToGroup` 按组链接模式** 时
             - 选择`hjpAsGroupCopytoInputJson`,把所有选中的记录作为一个组录入到`input.json`中,
             - 注意 组链接至少需要两个组才能正常工作
+            - 你执行`hjpAsGroupCopytoInputJson`就是把选中的卡片编一个组插入到`input.json`中,所以想要实现链接到其他组,还得插入另一个编组.
 3. ### (如果需要)打开`input.json`编辑卡片ID和描述desc,
     - 在你把想双链的卡的id都插入到这个`input.json`中后,你可以点击菜单栏上的`hjp_link>show`打开`input.json`
     - `input.json`里面都是你在第二步操作中输入的`card_id`还有程序默认提取的描述`desc`,你这时候可以修改默认的描述内容,你也可以不追加解释,走下一步操作.
