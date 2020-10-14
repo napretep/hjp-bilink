@@ -24,9 +24,6 @@ relyLinkConfigFileName = "config.json"
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
-errorType = [
-    "card_id格式不正确", "colSep分栏不正确", "记录为空!"
-]
 
 
 class Link(object):
