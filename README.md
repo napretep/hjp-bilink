@@ -61,34 +61,6 @@
     -  **如果不熟悉json的语法,千万别自己删json的结构,最好用clear清除记录,不容易破坏json结构,否则会频繁报错.** 
     - 如果你熟悉json的语法,以上操作也可以打开`input.json`手工完成录入.
     - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034926_1c9e8e3d_332584.png "屏幕截图.png")
-## 配置指导
-配置文件名为`config.json`,可以在ANKI插件页面做修改,也可以通过`hjp_link->config`打开,可修改的值有
-1. ### `linkMode` (重点必看)
-    - `linkMode`影响默认的链接多张卡片的算法,就是你点击`hjp_link>linkDefault`时会调用的算法,值为0或1,2,3,默认为0.
-    - 0表示完全链接`linkAll`
-    - 1表示按组链接`linkGroupToGroup`
-    - 2表示按结点取消链接`unlinknode`
-    - 3表示按路径取消链接`unlinkpath`
-4. ### `cidPrefix`
-    - 表示每个卡ID的默认前缀,用于让依赖的link插件识别这是可点的链接，默认是依赖插件的默认配置即`cidd`,可以清空,请注意标识符在txt中的含义必须是唯一确定的,不能在插入的正文中使用标识符.
-5. ### `appendNoteFieldPosition`
-    - 这个属性控制双链的标记插入到anki卡片的第几个字段,取值从0开始,所以第一个字段为0,默认为0,第一个字段通常是问题描述,也就是卡片的正面,那么双链就会插入到正面的末尾.
-6. ### `readDescFieldPosition`
-    - 这个属性控制程序默认从卡片的第几个字段提取卡片描述的字符，数据类型为number,默认为0,也就是提取问题描述中的前面10个非标点类字符.
-7. ### `regexForDescContent`
-    - 这个属性控制程序从卡片提取描述字符的方法，默认为0的话，会调用`DEFAULT>regexForDescContent`中的正则表达式来提取描述字符.如果你想按自己的正则表达式提取描述字符,可以改外层的`regexForDescContent`的值.
-0. ### `linkFromSymbol`,`linkToSymbol`
-    - 这两个属性,一个控制链入的符号,另一个控制链出的符号. 默认是`"←"`和`"→"`,如果不需要,可以设为`""`值
-    - 效果比如这个图
-    - 完全图算法全是链出符号,只有组链接算法有链入符号.
-0. ### `linkStyle`
-    - 控制link所在的div元素的样式,默认是空字符串,即没有样式,你可以按照CSS的写法填入样式,不过注意JSON格式的回车换行问题.
-## 动画指导 
-- 单向链接的使用
-- ![0n1jQf.gif](https://s1.ax1x.com/2020/09/30/0n1jQf.gif)
-- 双向链接的设置
-- ![0n3JOO.gif](https://s1.ax1x.com/2020/09/30/0n3JOO.gif)
-
 ## 未来计划
 ### 近期
 - [ ] 实现各种方案转为tag(deck路径转tag,卡片内容转tag)
@@ -126,3 +98,32 @@
 ### 0.1
 - 为了方便切换不同的链接模式,现在把两个模式直接拿到菜单中可点击了.
 - 实现可修改前缀,网络化发布
+## 配置指导
+配置文件名为`config.json`,可以在ANKI插件页面做修改,也可以通过`hjp_link->config`打开,可修改的值有
+1. ### `linkMode` (重点必看)
+    - `linkMode`影响默认的链接多张卡片的算法,就是你点击`hjp_link>linkDefault`时会调用的算法,值为0或1,2,3,默认为0.
+    - 0表示完全链接`linkAll`
+    - 1表示按组链接`linkGroupToGroup`
+    - 2表示按结点取消链接`unlinknode`
+    - 3表示按路径取消链接`unlinkpath`
+4. ### `cidPrefix`
+    - 表示每个卡ID的默认前缀,用于让依赖的link插件识别这是可点的链接，默认是依赖插件的默认配置即`cidd`,可以清空,请注意标识符在txt中的含义必须是唯一确定的,不能在插入的正文中使用标识符.
+5. ### `appendNoteFieldPosition`
+    - 这个属性控制双链的标记插入到anki卡片的第几个字段,取值从0开始,所以第一个字段为0,默认为0,第一个字段通常是问题描述,也就是卡片的正面,那么双链就会插入到正面的末尾.
+6. ### `readDescFieldPosition`
+    - 这个属性控制程序默认从卡片的第几个字段提取卡片描述的字符，数据类型为number,默认为0,也就是提取问题描述中的前面10个非标点类字符.
+7. ### `regexForDescContent`
+    - 这个属性控制程序从卡片提取描述字符的方法，默认为0的话，会调用`DEFAULT>regexForDescContent`中的正则表达式来提取描述字符.如果你想按自己的正则表达式提取描述字符,可以改外层的`regexForDescContent`的值.
+0. ### `linkFromSymbol`,`linkToSymbol` **新增**
+    - 这两个属性,一个控制链入的符号,另一个控制链出的符号. 默认是`"←"`和`"→"`,如果不需要,可以设为`""`值
+    - 效果比如这个图
+    - 完全图算法全是链出符号,只有组链接算法有链入符号.
+0. ### `linkStyle` **新增**
+    - 控制link所在的div元素的样式,默认是空字符串,即没有样式,你可以按照CSS的写法填入样式,不过注意JSON格式的回车换行问题.
+## 动画指导 
+- 单向链接的使用
+- ![0n1jQf.gif](https://s1.ax1x.com/2020/09/30/0n1jQf.gif)
+- 双向链接的设置
+- ![0n3JOO.gif](https://s1.ax1x.com/2020/09/30/0n3JOO.gif)
+
+
