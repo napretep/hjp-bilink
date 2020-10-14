@@ -48,7 +48,13 @@ class Link(object):
         if self.prefix != self.relycfg[prefix_cid]:
             self.relycfg[prefix_cid] = self.prefix
             json.dump(self.relycfg, open(relycfgpath, "w", encoding="utf-8"))
-        self.fdata = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
+        self.fdata = {"IdDescPairs":[],"IdDescGroups":[]}
+        fdata=json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
+        for pl in fdata["IdDescPairs"]:
+            for p in pl:
+                self.fdata["IdDescPairs"].append(p)
+            self.fdata["IdDescGroups"].append(pl)
+
 
     def start(self):
         # errorcode=self.safeCheck()
@@ -214,22 +220,11 @@ def multicopyFunction(self, groupCopy=False):
         if groupCopy:
             group.append(pair)
         else:
-            s["IdDescPairs"].append(pair)
+            s["IdDescPairs"].append([pair])
     if len(group) > 0:
-        s["IdDescGroups"].append(group)
+        s["IdDescPairs"].append(group)
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
     showInfo(str(len(browser.selectedCards())) + " card has been appended to the json file")
-    # if groupCopy:
-    #     group=[]
-    #     for card_id in browser.selectedCards():
-    #         group.append({"card_id":card_id,"desc":""})
-    #     s["IdDescGroups"].append(group)
-    #     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4)
-    #     showInfo("groupCopy")
-    #     return
-    # for card_id in browser.selectedCards():#取出来的是id
-    #     pair={"card_id":card_id,"desc":""}
-    #     s["IdDescPairs"].append(pair)
 
 
 def displayFunction():
@@ -243,8 +238,6 @@ def configFunction():
 
 
 def helpFunction():
-    # config=json.load(open(os.path.join(THIS_FOLDER,configFileName),"r",encoding="utf-8"))
-    # Url=QUrl.fromLocalFile(""+os.path.join(THIS_FOLDER,helpFileName))
     Url = QUrl(helpSite)
     QDesktopServices.openUrl(Url)
 
