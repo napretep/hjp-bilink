@@ -62,21 +62,26 @@
     - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034926_1c9e8e3d_332584.png "屏幕截图.png")
 ## 配置指导
 配置文件名为`config.json`,可以在ANKI插件页面做修改,也可以通过`hjp_link->config`打开,可修改的值有
-1. ### linkMode (重点必看)
+1. ### `linkMode` (重点必看)
     - `linkMode`影响默认的链接多张卡片的算法,就是你点击`hjp_link>linkDefault`时会调用的算法,值为0或1,2,3,默认为0.
     - 0表示完全链接`linkAll`
     - 1表示按组链接`linkGroupToGroup`
     - 2表示按结点取消链接`unlinknode`
     - 3表示按路径取消链接`unlinkpath`
-4. ### cidPrefix
+4. ### `cidPrefix`
     - 表示每个卡ID的默认前缀,用于让依赖的link插件识别这是可点的链接，默认是依赖插件的默认配置即`cidd`,可以清空,请注意标识符在txt中的含义必须是唯一确定的,不能在插入的正文中使用标识符.
-5. ### appendNoteFieldPosition
+5. ### `appendNoteFieldPosition`
     - 这个属性控制双链的标记插入到anki卡片的第几个字段,取值从0开始,所以第一个字段为0,默认为0,第一个字段通常是问题描述,也就是卡片的正面,那么双链就会插入到正面的末尾.
-6. ### readDescFieldPosition
+6. ### `readDescFieldPosition`
     - 这个属性控制程序默认从卡片的第几个字段提取卡片描述的字符，数据类型为number,默认为0,也就是提取问题描述中的前面10个非标点类字符.
-7. ### regexForDescContent
+7. ### `regexForDescContent`
     - 这个属性控制程序从卡片提取描述字符的方法，默认为0的话，会调用`DEFAULT>regexForDescContent`中的正则表达式来提取描述字符.如果你想按自己的正则表达式提取描述字符,可以改外层的`regexForDescContent`的值.
-
+0. ### `linkFromSymbol`,`linkToSymbol`
+    - 这两个属性,一个控制链入的符号,另一个控制链出的符号. 默认是`"←"`和`"→"`,如果不需要,可以设为`""`值
+    - 效果比如这个图
+    - 完全图算法全是链出符号,只有组链接算法有链入符号.
+0. ### `linkStyle`
+    - 控制link所在的div元素的样式,默认是空字符串,即没有样式,你可以按照CSS的写法填入样式,不过注意JSON格式的回车换行问题.
 ## 动画指导 
 - 单向链接的使用
 - ![0n1jQf.gif](https://s1.ax1x.com/2020/09/30/0n1jQf.gif)
@@ -100,10 +105,12 @@
 ### 0.2.2
 - 优化
     - 现在`input.json`中的卡片ID可以统一处理,不再区分group或pair,每个pair都是单一的group,使用者不必在group或pair中反复横跳.
+    - 
+    - 除非出现错误,大部分命令不再弹出窗口, 改为左下角静音提示.
 - 新增
     - 提供style接口,你现在可以自定义链接的div样式.默认样式为空.
     - 退出时清空`input.json`
-    - 增加链入和链出的标记.
+    - 增加可修改的链入和链出标记.
 
 ### 0.2.1
 - 修复了一个愚蠢的错误

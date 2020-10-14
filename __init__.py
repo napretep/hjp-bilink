@@ -57,16 +57,12 @@ class Link(object):
 
 
     def start(self):
-        # errorcode=self.safeCheck()
-        # if errorcode!=-1:
-        #     showInfo(f"errorcode:{str(errorcode)}\n{errorType[errorcode]}")
-        #     return
         if len(self.fdata["IdDescPairs"]) == 0 and len(self.fdata["IdDescGroups"]) == 0:
             showInfo("no data！")
             return
-        showInfo("mode:" + str(int(self.mode)) + ",start")
+        tooltip("mode:" + str(int(self.mode)) + ",start")
         self.mapFuncPath[self.mode]()
-        showInfo("finished!")
+        tooltip("finished!")
 
     # 下面的是工具
     def getCardNoteFromId(self, li: int) -> object:
@@ -153,19 +149,18 @@ class Link(object):
         for idp in idpli:
             id = str(idp["card_id"])
             linkli = self.getCardIDfromNote(int(id))
-            # showInfo(str(idp["card_id"])+" listlen:"+str(len(linkli)))
+
             for link in linkli:
-                # showInfo("this is "+link)
+
                 note = self.getCardNoteFromId(int(link))  # 链到的卡片上找自己
-                # test=re.search(f'''<div card_id=["']{id}["']>[\\s\\S]+?{id}</div>''',note.fields[self.fieldPosi])[0]
-                # showInfo(test)
+
                 content = re.sub(f'''<div card_id=["']{id}["'][\\s\\S]+?{id}</div>''', "", note.fields[self.fieldPosi])
                 note.fields[self.fieldPosi] = content
                 note.flush()
                 note = self.getCardNoteFromId(idp["card_id"])
                 content = re.sub(f'''<div card_id=["']{link}["'][\\s\\S]+?{link}</div>''', "",
                                  note.fields[self.fieldPosi])
-                # showInfo(content)
+
                 note.fields[self.fieldPosi] = content
                 note.flush()
 
@@ -198,7 +193,7 @@ def destroyFuntion():
     fdata = open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8")
     fdata.write('{"IdDescPairs":[]}')
     fdata.close()
-    showInfo(f"{inputFileName} cleared")
+    tooltip(f"{inputFileName} cleared")
 
 
 # mw.col.getCard(li).note()
@@ -225,7 +220,7 @@ def multicopyFunction(self, groupCopy=False):
     if len(group) > 0:
         s["IdDescPairs"].append(group)
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
-    showInfo(str(len(browser.selectedCards())) + " card has been appended to the json file")
+    tooltip(str(len(browser.selectedCards())) + " card has been appended to the json file")
 
 
 def displayFunction():
