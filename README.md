@@ -27,7 +27,7 @@
         - `hjpAsGroupCopytoInputJson`两个选项
     - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034558_0ef8a51b_332584.png "屏幕截图.png")
     - 根据模式不同,选择不同的选项
-        1. 当你需要使用 
+        1. 当你需要使用以下三种模式
 
             1 **`linkall`完全链接模式**, 
 
@@ -41,6 +41,7 @@
             - 选择`hjpAsGroupCopytoInputJson`,把所有选中的记录作为一个组录入到`input.json`中,
             - 注意 组链接至少需要两个组才能正常工作
             - 你执行`hjpAsGroupCopytoInputJson`就是把选中的卡片编一个组插入到`input.json`中,所以想要实现链接到其他组,还得插入另一个编组.
+            - 实际上你也可以对非编组的ID使用`linkGroupToGroup`,目前新增功能可实现每个卡片默认是一个组.
 3. ### (如果需要)打开`input.json`编辑卡片ID和描述desc,
     - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/035618_5e0cbe98_332584.png "屏幕截图.png")
     - 在你把想双链的卡的id都插入到这个`input.json`中后,你可以点击菜单栏上的`hjp_link>show`打开`input.json`
@@ -105,10 +106,10 @@
 ### 0.2.2
 - 优化
     - 现在`input.json`中的卡片ID可以统一处理,不再区分group或pair,每个pair都是单一的group,使用者不必在group或pair中反复横跳.
-    - 
-    - 除非出现错误,大部分命令不再弹出窗口, 改为左下角静音提示.
+    - 现在`input.json`中的card_id在完全连接时是唯一的(尽管不唯一也不会造成重复).
+    - 除非出现错误,大部分命令提示不再弹出窗口, 改为左下角静音提示.
 - 新增
-    - 提供style接口,你现在可以自定义链接的div样式.默认样式为空.
+    - 增加style接口,你现在可以自定义链接的div样式.默认样式为空.
     - 退出时清空`input.json`
     - 增加可修改的链入和链出标记.
 

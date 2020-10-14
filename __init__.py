@@ -50,9 +50,14 @@ class Link(object):
             json.dump(self.relycfg, open(relycfgpath, "w", encoding="utf-8"))
         self.fdata = {"IdDescPairs":[],"IdDescGroups":[]}
         fdata=json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
+        same=[]
         for pl in fdata["IdDescPairs"]:
             for p in pl:
-                self.fdata["IdDescPairs"].append(p)
+                if p["card_id"] in same:
+                    continue
+                else:
+                    same.append(p["card_id"])
+                    self.fdata["IdDescPairs"].append(p)
             self.fdata["IdDescGroups"].append(pl)
 
 
