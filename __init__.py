@@ -84,12 +84,13 @@ class Link(object):
             dir=self.confg["linkToSymbol"]
         if dir == '←':
             dir=self.confg["linkFromSymbol"]
+        style=self.confg["linkStyle"]
         Id = IdDescPair["card_id"]
         descstr = self.getCardNoteFromId(IdDescPair["card_id"]).fields[self.confg["readDescFieldPosition"]]
         seRegx = self.confg["DEFAULT"]["regexForDescContent"] if self.confg["regexForDescContent"] == 0 else self.confg[
             "regexForDescContent"]
         Desc = IdDescPair["desc"] if len(IdDescPair["desc"]) > 1 else re.search(seRegx, descstr)[0]
-        note.fields[self.fieldPosi] += f"<div card_id='{Id}' dir = '{dir}'>{dir}{Desc} {self.prefix}{Id}</div>\n"
+        note.fields[self.fieldPosi] += f"<div card_id='{Id}' dir = '{dir}' style='{style}'>{dir}{Desc} {self.prefix}{Id}</div>\n"
         note.flush()
 
     def getCardIDfromNote(self, id : int) -> list:
@@ -158,11 +159,11 @@ class Link(object):
                 note = self.getCardNoteFromId(int(link))  # 链到的卡片上找自己
                 # test=re.search(f'''<div card_id=["']{id}["']>[\\s\\S]+?{id}</div>''',note.fields[self.fieldPosi])[0]
                 # showInfo(test)
-                content = re.sub(f'''<div card_id=["']{id}["']>[\\s\\S]+?{id}</div>''', "", note.fields[self.fieldPosi])
+                content = re.sub(f'''<div card_id=["']{id}["'][\\s\\S]+?{id}</div>''', "", note.fields[self.fieldPosi])
                 note.fields[self.fieldPosi] = content
                 note.flush()
                 note = self.getCardNoteFromId(idp["card_id"])
-                content = re.sub(f'''<div card_id=["']{link}["']>[\\s\\S]+?{link}</div>''', "",
+                content = re.sub(f'''<div card_id=["']{link}["'][\\s\\S]+?{link}</div>''', "",
                                  note.fields[self.fieldPosi])
                 # showInfo(content)
                 note.fields[self.fieldPosi] = content
@@ -175,11 +176,11 @@ class Link(object):
             idB = idpli[i + 1]["card_id"]
             noteA = self.getCardNoteFromId(idA)
             noteB = self.getCardNoteFromId(idB)
-            content = re.sub(f'''<div card_id=["']{str(idA)}["']>[\\s\\S]+?{str(idA)}</div>''', "",
+            content = re.sub(f'''<div card_id=["']{str(idA)}["'][\\s\\S]+?{str(idA)}</div>''', "",
                              noteB.fields[self.fieldPosi])
             noteB.fields[self.fieldPosi] = content
             noteB.flush()
-            content = re.sub(f'''<div card_id=["']{str(idB)}["']>[\\s\\S]+?{str(idB)}</div>''', "",
+            content = re.sub(f'''<div card_id=["']{str(idB)}["'][\\s\\S]+?{str(idB)}</div>''', "",
                              noteA.fields[self.fieldPosi])
             noteA.fields[self.fieldPosi] = content
             noteA.flush()
@@ -195,9 +196,9 @@ def setupFunction(mode=999):
 
 def destroyFuntion():
     fdata = open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8")
-    fdata.write('{"IdDescPairs":[],\n"IdDescGroups":[]}')
+    fdata.write('{"IdDescPairs":[]}')
     fdata.close()
-    showInfo("cleared")
+    showInfo(f"{inputFileName} cleared")
 
 
 # mw.col.getCard(li).note()
@@ -303,3 +304,4 @@ def AddToTableContextMenu(browser, menu):
 gui_hooks.browser_menus_did_init.append(setUpMenuShortcut)
 gui_hooks.browser_will_show_context_menu.append(AddToTableContextMenu)
 # linkActToMainMenu()
+gui_hooks.profile_will_close.append(destroyFuntion)
