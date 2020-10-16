@@ -227,7 +227,6 @@ def multicopyFunction(self, groupCopy=False):
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
     tooltip(str(len(browser.selectedCards())) + " card has been appended to the json file")
 
-
 def displayFunction():
     Url = QUrl.fromLocalFile("" + os.path.join(THIS_FOLDER, inputFileName))
     QDesktopServices.openUrl(Url)
@@ -303,5 +302,6 @@ def AddToTableContextMenu(browser, menu):
 
 gui_hooks.browser_menus_did_init.append(setUpMenuShortcut)
 gui_hooks.browser_will_show_context_menu.append(AddToTableContextMenu)
-# linkActToMainMenu()
 gui_hooks.profile_will_close.append(destroyFuntion)
+
+# linkActToMainMenu()
