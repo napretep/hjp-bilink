@@ -214,7 +214,7 @@ def multicopyFunction(self, groupCopy=False):
     for card_id in browser.selectedCards():
         note = mw.col.getCard(card_id).note()  # 读取卡片
         content = note.fields[confg["appendNoteFieldPosition"]]  # 读取字段
-        seRegx = confg  ["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
+        seRegx = confg["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
             "regexForDescContent"]  # 读取正则规则
         Desc = re.search(seRegx, content)[0]  # 综上读取描述文字
         pair = {"card_id": card_id, "desc": Desc}
@@ -301,8 +301,6 @@ def AddToTableContextMenu(browser, menu):
 
 
 gui_hooks.browser_menus_did_init.append(setUpMenuShortcut)
-gui_hooks.editor_will_show_context_menu.append(AddToTableContextMenu)
-gui_hooks.webview_will_show_context_menu.append(AddToTableContextMenu)
 gui_hooks.browser_will_show_context_menu.append(AddToTableContextMenu)
 gui_hooks.profile_will_close.append(destroyFuntion)
 
