@@ -20,7 +20,7 @@
     - 这个tag默认是开启的,你可以在`config.json>addTagEnable`中关闭它(0关闭,1开启)
     - 推荐安装层级标签插件`564851917`来管理标签
 - 优化
-    - 改进了菜单描述
+    - 改进了菜单描述,现在`clear`菜单改名为`initInput`
 ### 0.2.2
 - 优化
     - 现在`input.json`中的卡片ID可以统一处理,不再区分group或pair,每个pair都是单一的group,使用者不必在group或pair中反复横跳.
