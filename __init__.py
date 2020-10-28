@@ -68,7 +68,8 @@ class Link(object):
             return
         tooltip("mode:" + str(int(self.mode)) + ",start")
         self.mapFuncPath[self.mode]()
-        if self.mode<=2:self.appendTagForAllNote()
+        if self.confg["addTagEnable"]==1:
+            if self.mode<=2:self.appendTagForAllNote()
         tooltip("finished!")
 
     # 下面的是工具
