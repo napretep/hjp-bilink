@@ -16,7 +16,7 @@
     - 新增集体加tag功能,你可以在`input.json>addTag`添加你喜欢的tag名,这样建立连接后,会给连接中的卡片集体添加`hjp-bilink::yourtagname`这样方便你从全局角度查看同一连接的全部成员.
 ![输入图片说明](https://images.gitee.com/uploads/images/2020/1029/015020_74666904_332584.png "屏幕截图.png")
 ![输入图片说明](https://images.gitee.com/uploads/images/2020/1029/014832_a58a4759_332584.png "屏幕截图.png")
-    - 如果你没有输入tag名,那么插件会选择输入时间戳形式 `hjp-bilink::YYYYMMDDHHMMSS` 的tag,
+    - 如果你没有输入tag名,那么插件会选择插入时间戳形式的tag:`hjp-bilink::YYYYMMDDHHMMSS`,
     - 这个tag默认是开启的,你可以在`config.json>addTagEnable`中关闭它(0关闭,1开启)
     - 推荐安装层级标签插件`564851917`来管理标签
 - 优化
