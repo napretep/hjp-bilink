@@ -1,4 +1,4 @@
-import os, sys, time, json, re
+import os, sys, datetime, json, re
 # import win32.win32clipboard as clipboard 
 # import the main window object (mw) from aqt
 from aqt import mw, gui_hooks
@@ -9,7 +9,7 @@ from aqt.qt import *
 
 from anki import hooks
 import html
-import time
+
 from dataclasses import dataclass
 from enum import Enum
 from operator import itemgetter
@@ -24,7 +24,7 @@ relyLinkConfigFileName = "config.json"
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
-
+inputSchema='{"IdDescPairs":[],"addTag":""}'
 
 class Link(object):
     def __init__(self, path, cfgpath, relycfgpath, prefix_cid="prefix_cid", defaultMode=999):
@@ -49,6 +49,7 @@ class Link(object):
             self.relycfg[prefix_cid] = self.prefix
             json.dump(self.relycfg, open(relycfgpath, "w", encoding="utf-8"))
         self.fdata = {"IdDescPairs":[],"IdDescGroups":[]}
+        '''fdata 并不存储原始的json数据,他用来去重,再分装到group和pair,这是对旧函数的兼容'''
         fdata=json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
         same=[]
         for pl in fdata["IdDescPairs"]:
@@ -59,7 +60,7 @@ class Link(object):
                     same.append(p["card_id"])
                     self.fdata["IdDescPairs"].append(p)
             self.fdata["IdDescGroups"].append(pl)
-
+        self.fdata["addTag"]=fdata["addTag"]
 
     def start(self):
         if len(self.fdata["IdDescPairs"]) == 0 and len(self.fdata["IdDescGroups"]) == 0:
@@ -67,15 +68,25 @@ class Link(object):
             return
         tooltip("mode:" + str(int(self.mode)) + ",start")
         self.mapFuncPath[self.mode]()
+        if self.mode<=2:self.appendTagForAllNote()
         tooltip("finished!")
 
     # 下面的是工具
     def getCardNoteFromId(self, li: int) -> object:
-        '''
-         @li
-        li是一个number
-        '''
         return mw.col.getCard(li).note()
+
+    def appendTagForAllNote(self)-> None:
+        """加tag,默认加时间戳,有空自己去改"""
+        tagbase = self.confg["addTag"]+"::"
+        tagtail = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        cidli = self.fdata["IdDescPairs"]
+        if self.fdata["addTag"]!="":
+            tagtail=self.fdata["addTag"]
+        tag=tagbase+tagtail
+        for cidpair in cidli:
+            note=self.getCardNoteFromId(cidpair["card_id"])
+            note.addTag(tag)
+            note.flush()
 
     def appendIDtoNote(self, note, IdDescPair, dir : str = "→"):
         '''
@@ -196,9 +207,9 @@ def setupFunction(mode=999):
 
 def destroyFuntion():
     fdata = open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8")
-    fdata.write('{"IdDescPairs":[]}')
+    fdata.write(inputSchema)
     fdata.close()
-    tooltip(f"{inputFileName} cleared")
+    tooltip(f"{inputFileName} inited")
 
 
 # mw.col.getCard(li).note()
@@ -249,7 +260,7 @@ menuToolsItems = {
     'linkGroupToGroup': lambda m=1: setupFunction(mode=1),
     'unlinkNode': lambda m=2: setupFunction(mode=2),
     'unlinkPath': lambda m=3: setupFunction(mode=3),
-    'clear': destroyFuntion,
+    'initInput': destroyFuntion,
     'show': displayFunction,
     'config': configFunction,
     'help': helpFunction,

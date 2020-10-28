@@ -11,6 +11,7 @@
     "linkFromSymbol":"←",
     "linkToSymbol":"→",
     "linkStyle": "",
+    "addTag": "hjp-bilink",
     "DEFAULT":{
     	"regexForDescContent":"((?<=<div>)[\\s\\S]{1,10}?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().]+)"
     }
