@@ -151,7 +151,7 @@
     - 完全图算法全是链出符号,只有组链接算法有链入符号.
 0. ### `linkStyle` 
     - 控制link所在的div元素的样式,默认是空字符串,即没有样式,你可以按照CSS的写法填入样式,不过注意JSON格式的回车换行问题.
-0. ### `addTagEnable` 和 `addTagRoot`**新增**
+0. ### `addTagEnable` ,`addTagRoot`**新增**
     - 前者控制是否开启集体加标签功能默认值是1,表示开启,可选0,表示关闭,后者给所有的标签增加一个根节点,
     - 比如你在`input.json`输入的tag 是`abc`,`addTagRoot`的值为`hjp-bilink`,那么真正插入anki的tag显示为`hjp-bilink::abc`
     - 如果你安装了前文推荐的层级tag,你还可以继续在自己的tag上输入`::def`实现层级折叠.
