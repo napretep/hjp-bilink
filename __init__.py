@@ -60,7 +60,7 @@ class Link(object):
                     same.append(p["card_id"])
                     self.fdata["IdDescPairs"].append(p)
             self.fdata["IdDescGroups"].append(pl)
-        self.fdata["addTag"]=fdata["addTag"]
+        self.fdata["addTag"]=fdata["addTagRoot"]
 
     def start(self):
         if len(self.fdata["IdDescPairs"]) == 0 and len(self.fdata["IdDescGroups"]) == 0:
