@@ -1,5 +1,3 @@
-[toc]
-
 # hjp-bilink使用介绍
 - ![0nlpjS.jpg](https://s1.ax1x.com/2020/09/30/0nlpjS.jpg)
 - 本插件实现在anki上简易的手动双向绑定.
