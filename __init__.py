@@ -4,9 +4,10 @@ import os, sys, datetime, json, re
 from aqt import mw, gui_hooks
 from html.parser import HTMLParser
 from aqt.browser import Browser
+from aqt.reviewer import Reviewer
+from aqt.editor import EditorWebView
 from aqt.utils import showInfo, tooltip
 from aqt.qt import *
-
 from anki import hooks
 import html
 
@@ -60,17 +61,17 @@ class Link(object):
                     same.append(p["card_id"])
                     self.fdata["IdDescPairs"].append(p)
             self.fdata["IdDescGroups"].append(pl)
-        self.fdata["addTag"]=fdata["addTagRoot"]
+        self.fdata["addTag"]=fdata["addTag"]
 
     def start(self):
         if len(self.fdata["IdDescPairs"]) == 0 and len(self.fdata["IdDescGroups"]) == 0:
             showInfo("no data！")
             return
-        tooltip("mode:" + str(int(self.mode)) + ",start")
+        tooltip("hjp-bilink:mode:" + str(int(self.mode)) + ",start")
         self.mapFuncPath[self.mode]()
         if self.confg["addTagEnable"]==1:
             if self.mode<=2:self.appendTagForAllNote()
-        tooltip("finished!")
+        tooltip("hjp-bilink:finished!")
 
     # 下面的是工具
     def getCardNoteFromId(self, li: int) -> object:
@@ -78,7 +79,7 @@ class Link(object):
 
     def appendTagForAllNote(self)-> None:
         """加tag,默认加时间戳,有空自己去改"""
-        tagbase = self.confg["addTag"]+"::"
+        tagbase = self.confg["addTagRoot"]+"::"
         tagtail = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         cidli = self.fdata["IdDescPairs"]
         if self.fdata["addTag"]!="":
@@ -198,23 +199,26 @@ class Link(object):
             noteA.flush()
 
 
-def setupFunction(mode=999):
+def setupFunction(browser,mode=999):
     input = os.path.join(THIS_FOLDER, inputFileName)
     cfg = os.path.join(THIS_FOLDER, configFileName)
     relycfg = os.path.join(RELY_FOLDER, relyLinkConfigFileName)
+    browser.close()
     Linker = Link(input, cfg, relycfg, defaultMode=mode)
     Linker.start()
-
+    showInfo("")
+    tooltip("hjp-bilink:link finished,  browser has reload")
+    mw.onBrowse()
 
 def destroyFuntion():
     fdata = open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8")
     fdata.write(inputSchema)
     fdata.close()
-    tooltip(f"{inputFileName} inited")
+    tooltip(f"hjp-bilink:{inputFileName} inited")
 
 
 # mw.col.getCard(li).note()
-def multicopyFunction(self, groupCopy=False):
+def multicopyFunction(self, groupCopy=False,desc=""):
     cfgpath = os.path.join(THIS_FOLDER, configFileName)
     confg = json.load(open(cfgpath, "r", encoding="utf-8"))
     s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
@@ -224,11 +228,11 @@ def multicopyFunction(self, groupCopy=False):
         showInfo("nothing to copy!")
         return
     for card_id in browser.selectedCards():
-        note = mw.col.getCard(card_id).note()  # 读取卡片
+        note =  mw.col.getCard(card_id).note()  # 读取卡片
         content = note.fields[confg["appendNoteFieldPosition"]]  # 读取字段
         seRegx = confg["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
             "regexForDescContent"]  # 读取正则规则
-        Desc = re.search(seRegx, content)[0]  # 综上读取描述文字
+        Desc =  re.search(seRegx, content)[0] if desc=="" else desc  # 综上读取描述文字
         pair = {"card_id": card_id, "desc": Desc}
         if groupCopy:
             group.append(pair)
@@ -237,7 +241,35 @@ def multicopyFunction(self, groupCopy=False):
     if len(group) > 0:
         s["IdDescPairs"].append(group)
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
-    tooltip(str(len(browser.selectedCards())) + " card has been appended to the json file")
+    tooltip("hjp-bilink:"+str(len(browser.selectedCards())) + " card has been appended to the json file")
+def singlecopyFunction(card_id,desc='', groupCopy=False):
+    tooltip("hjp-bilink:card="+str(card_id)+",desc="+desc)
+    cfgpath = os.path.join(THIS_FOLDER, configFileName)
+    confg = json.load(open(cfgpath, "r", encoding="utf-8"))
+    s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
+    note = mw.col.getCard(card_id).note()  # 读取卡片
+    content = note.fields[confg["appendNoteFieldPosition"]]  # 读取字段
+    seRegx = confg["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
+        "regexForDescContent"]  # 读取正则规则
+    Desc = re.search(seRegx, content)[0] if desc == "" else desc  # 综上读取描述文字
+    pair = {"card_id": card_id, "desc": Desc}
+    if groupCopy:
+        try:
+            s["IdDescPairs"][-1].append(pair)
+        except:
+            s["IdDescPairs"].append([pair])
+        tooltip(f"hjp-bilink: {json.dumps(pair, ensure_ascii=False)} has been added to lastGroup in input.json")
+    else:
+        s["IdDescPairs"].append([pair])
+        tooltip("hjp-bilink:"+json.dumps(pair, ensure_ascii=False) + "has been added to input.json")
+    json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
+
+def copyTagFromSelected(tag):
+    s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
+    s["addTag"]=tag
+    tooltip("hjp-bilink:{"+f'"tag":"{tag}"' + "} has been updated to input.json")
+    json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
+
 
 def displayFunction():
     Url = QUrl.fromLocalFile("" + os.path.join(THIS_FOLDER, inputFileName))
@@ -254,37 +286,10 @@ def helpFunction():
     QDesktopServices.openUrl(Url)
 
 
-menuActionCollect = {}
-menuToolsItems = {
-    'linkDefault': lambda m=999: setupFunction(mode=999),
-    'linkAll': lambda m=0: setupFunction(mode=0),
-    'linkGroupToGroup': lambda m=1: setupFunction(mode=1),
-    'unlinkNode': lambda m=2: setupFunction(mode=2),
-    'unlinkPath': lambda m=3: setupFunction(mode=3),
-    'initInput': destroyFuntion,
-    'show': displayFunction,
-    'config': configFunction,
-    'help': helpFunction,
-}
 
-'''
-
-'''
-
-
-def linkActToMainMenu():
-    '''
-    将函数与钩子配对加到菜单里
-    '''
-    for name, action in menuToolsItems.items():
-        menuActionCollect[name] = QAction(name, mw)
-        menuActionCollect[name].triggered.connect(action)
-        mw.form.menuTools.addAction(menuActionCollect[name])
-
-
-def setUpMenuShortcut(self):
+def setUpBrowserMenuShortcut(browser):
     # 将参数命名为browser
-    browser = self
+    # browser = self
     '''
     #如果browser存在,直接让m读取menulinking属性,如果不存在,我们就自己创建一个
     函数用的是QMenu
@@ -292,15 +297,20 @@ def setUpMenuShortcut(self):
     menulinking就是刚建立的表单按钮,也就是Qmenu.
     '''
     try:
-        m = self.hjp_Link
+        m = browser.hjp_Link
     except:
-        self.hjp_Link = QMenu("hjp_link")
-        self.menuBar().insertMenu(self.mw.form.menuTools.menuAction(), self.hjp_Link)
-        m = self.hjp_Link
-    for name, action in menuToolsItems.items():
-        menuActionCollect[name] = QAction(name, mw)
-        menuActionCollect[name].triggered.connect(action)
-        m.addAction(menuActionCollect[name])
+        browser.hjp_Link = QMenu("hjp_link")
+        browser.menuBar().insertMenu(browser.mw.form.menuTools.menuAction(), browser.hjp_Link)
+        m = browser.hjp_Link
+    m.addAction('linkDefault').triggered.connect(lambda _: setupFunction(browser,mode=999))
+    m.addAction('linkAll').triggered.connect(lambda _: setupFunction(browser,mode=0))
+    m.addAction('linkGroupToGroup').triggered.connect(lambda _: setupFunction(browser,mode=1))
+    m.addAction('unlinkNode').triggered.connect(lambda _: setupFunction(browser,mode=2))
+    m.addAction('unlinkPath').triggered.connect(lambda _: setupFunction(browser,mode=3))
+    m.addAction('initInput').triggered.connect(destroyFuntion)
+    m.addAction('show').triggered.connect(displayFunction)
+    m.addAction('config').triggered.connect(configFunction)
+    m.addAction('help').triggered.connect(helpFunction)
 
 
 def AddToTableContextMenu(browser, menu):
@@ -310,10 +320,30 @@ def AddToTableContextMenu(browser, menu):
     actionGroupCopy = QAction("hjpAsGroupCopytoInputJson", browser)
     actionGroupCopy.triggered.connect(lambda _, b=browser: multicopyFunction(b, groupCopy=True))
     menu.addAction(actionGroupCopy)
+# def testfunction(card):
+#     tooltip("hello"+str(card.id))
 
+def AddToEditorContextMenu(view,menu):
+    editor=view.editor
+    try:
+        card_id=editor.card.id
+        #tooltip(f"cardid={str(card_id)}")
+    except:
+        tooltip("hjp-bilink:there is no card_id,link menu canceled")
+        return
+    selected=editor.web.selectedText()
+    singlecopy= menu.addAction("hjpCopyCidToInputJson")
+    singlecopy.triggered.connect(lambda _:singlecopyFunction(card_id,selected))
+    groupcopy = menu.addAction("hjpCopyCidToLastGroup")
+    groupcopy.triggered.connect(lambda _:singlecopyFunction(card_id,selected,groupCopy=True))
+    tagcopy = menu.addAction('hjpCopyAsTagToInputJson')
+    tagcopy.triggered.connect(lambda _:copyTagFromSelected(selected))
 
-gui_hooks.browser_menus_did_init.append(setUpMenuShortcut)
+gui_hooks.browser_menus_did_init.append(setUpBrowserMenuShortcut)
 gui_hooks.browser_will_show_context_menu.append(AddToTableContextMenu)
 gui_hooks.profile_will_close.append(destroyFuntion)
-
-# linkActToMainMenu()
+gui_hooks.editor_will_show_context_menu.append(AddToEditorContextMenu)
+#gui_hooks.reviewer_will_show_context_menu.append(testReviewer)
+#gui_hooks.reviewer_did_show_question.append(testfunction)
+#gui_hooks.reviewer_will_show_context_menu
+#linkActToMainMenu()
