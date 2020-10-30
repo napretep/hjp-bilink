@@ -65,13 +65,13 @@ class Link(object):
 
     def start(self):
         if len(self.fdata["IdDescPairs"]) == 0 and len(self.fdata["IdDescGroups"]) == 0:
-            showInfo("no data！")
+            showInfo("input.json文件中没有数据！")
             return
-        tooltip("hjp-bilink:mode:" + str(int(self.mode)) + ",start")
+        tooltip("hjp-bilink:mode:" + str(int(self.mode)) + ",链接开始")
         self.mapFuncPath[self.mode]()
         if self.confg["addTagEnable"]==1:
             if self.mode<=2:self.appendTagForAllNote()
-        tooltip("hjp-bilink:finished!")
+        tooltip("hjp-bilink:链接结束!")
 
     # 下面的是工具
     def getCardNoteFromId(self, li: int) -> object:
@@ -154,7 +154,7 @@ class Link(object):
         cidli = self.fdata["IdDescGroups"]
         placeholder = {"card_id": 0, "desc": ""}
         if len(cidli) < 2:
-            showInfo("link failed, not enough groups!")
+            showInfo("链接失败,组连接至少需要两个组!")
             return
         else:  # 说明groupSeperIdx 至少2个
             for i in range(0, len(cidli) - 1):  # 0,1,2起步
@@ -207,14 +207,14 @@ def setupFunction(browser,mode=999):
     Linker = Link(input, cfg, relycfg, defaultMode=mode)
     Linker.start()
     showInfo("")
-    tooltip("hjp-bilink:link finished,  browser has reload")
+    tooltip("hjp-bilink:链接工作结束,浏览界面重新启动")
     mw.onBrowse()
 
 def destroyFuntion():
     fdata = open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8")
     fdata.write(inputSchema)
     fdata.close()
-    tooltip(f"hjp-bilink:{inputFileName} inited")
+    tooltip(f"hjp-bilink:{inputFileName} 文件初始化完毕")
 
 
 # mw.col.getCard(li).note()
@@ -225,7 +225,7 @@ def multicopyFunction(self, groupCopy=False,desc=""):
     group = []
     browser = self
     if len(browser.selectedCards()) == 0:
-        showInfo("nothing to copy!")
+        showInfo("没有选中任何卡片!")
         return
     for card_id in browser.selectedCards():
         note =  mw.col.getCard(card_id).note()  # 读取卡片
@@ -241,7 +241,7 @@ def multicopyFunction(self, groupCopy=False,desc=""):
     if len(group) > 0:
         s["IdDescPairs"].append(group)
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
-    tooltip("hjp-bilink:"+str(len(browser.selectedCards())) + " card has been appended to the json file")
+    tooltip("hjp-bilink:"+str(len(browser.selectedCards())) + " 张卡被加入到input.json文件中")
 def singlecopyFunction(card_id,desc='', groupCopy=False):
     tooltip("hjp-bilink:card="+str(card_id)+",desc="+desc)
     cfgpath = os.path.join(THIS_FOLDER, configFileName)
@@ -258,16 +258,16 @@ def singlecopyFunction(card_id,desc='', groupCopy=False):
             s["IdDescPairs"][-1].append(pair)
         except:
             s["IdDescPairs"].append([pair])
-        tooltip(f"hjp-bilink: {json.dumps(pair, ensure_ascii=False)} has been added to lastGroup in input.json")
+        tooltip(f"hjp-bilink: {json.dumps(pair, ensure_ascii=False)} 已经被插入到上一个组")
     else:
         s["IdDescPairs"].append([pair])
-        tooltip("hjp-bilink:"+json.dumps(pair, ensure_ascii=False) + "has been added to input.json")
+        tooltip("hjp-bilink:"+json.dumps(pair, ensure_ascii=False) + " 已经被插入到input.json文件")
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
 
 def copyTagFromSelected(tag):
     s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
     s["addTag"]=tag
-    tooltip("hjp-bilink:{"+f'"tag":"{tag}"' + "} has been updated to input.json")
+    tooltip("hjp-bilink:{"+f'"tag":"{tag}"' + "} 已经更新到input.json文件")
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
 
 
@@ -329,7 +329,7 @@ def AddToEditorContextMenu(view,menu):
         card_id=editor.card.id
         #tooltip(f"cardid={str(card_id)}")
     except:
-        tooltip("hjp-bilink:there is no card_id,link menu canceled")
+        tooltip("hjp-bilink:由于这里无法读取card_id,链接菜单不在这显示")
         return
     selected=editor.web.selectedText()
     singlecopy= menu.addAction("hjpCopyCidToInputJson")
