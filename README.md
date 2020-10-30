@@ -22,7 +22,7 @@
 ### 0.4
 - 新增
     1. 可以在编辑界面(如`复习/review`时,点编辑,所跳出的界面,又如`浏览/browse`时,可编辑卡片的那个区域)右键点选插入卡片到`input.json`
-    (这里补一张图)
+    - [![Bt1JIK.gif](https://s1.ax1x.com/2020/10/30/Bt1JIK.gif)](https://imgchr.com/i/Bt1JIK)
         - 插入卡片的选中模式,当你选中一段文字,点击右键选择`hjpCopyCidToInputJson`或`hjpCopyCidToLastGroup`,会将你所选中的文字作为`desc`描述字段和ID一起插入到`input.json`
         - `hjpCopyCidToInputJson`和`hjpCopyCidToLastGroup`的区别,前者独立插入,后者作为前一个组的成员插入
     2. 在编辑界面选中的文字右键点击`hjpCopyAsTagToInputJson`,也可以将其作为`tag`的名字覆盖`input.json`中原先的`tag`
