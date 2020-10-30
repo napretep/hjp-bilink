@@ -146,6 +146,7 @@ class Link(object):
                 IdB = linkcid["card_id"]
                 if IdA != IdB and (re.search(str(IdB), note.fields[fieldPosi]) is None):
                     self.appendIDtoNote(note, linkcid)
+        tooltip("hjp-bilink:已按完全图完成链接")
 
     def groupBygroup(self):
         '''
@@ -161,7 +162,7 @@ class Link(object):
                 liA = cidli[i]
                 liB = cidli[i + 1]
                 self.AmapB(liA, liB)
-
+        tooltip("hjp-bilink:已按组完成链接")
     def unlinkNode(self):
         idpli = self.fdata["IdDescPairs"]
         for idp in idpli:
@@ -181,6 +182,7 @@ class Link(object):
 
                 note.fields[self.fieldPosi] = content
                 note.flush()
+        tooltip("hjp-bilink:已按节点取消彼此链接")
 
     def unlinkPath(self):
         idpli = self.fdata["IdDescPairs"]
@@ -197,6 +199,7 @@ class Link(object):
                              noteA.fields[self.fieldPosi])
             noteA.fields[self.fieldPosi] = content
             noteA.flush()
+        tooltip("hjp-bilink:已按路径取消路径节点上的彼此链接")
 
 
 def setupFunction(browser,mode=999):
