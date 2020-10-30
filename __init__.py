@@ -95,16 +95,16 @@ class Link(object):
         note必须是一个cardnote,posi是一个cardnote的位置,Id_DescribePair是卡号、描述的键值对
         '''
         if dir == '→':
-            dir=self.confg["linkToSymbol"]
+            direction=self.confg["linkToSymbol"]
         if dir == '←':
-            dir=self.confg["linkFromSymbol"]
+            direction=self.confg["linkFromSymbol"]
         style=self.confg["linkStyle"]
         Id = IdDescPair["card_id"]
         descstr = self.getCardNoteFromId(IdDescPair["card_id"]).fields[self.confg["readDescFieldPosition"]]
         seRegx = self.confg["DEFAULT"]["regexForDescContent"] if self.confg["regexForDescContent"] == 0 else self.confg[
             "regexForDescContent"]
         Desc = IdDescPair["desc"] if len(IdDescPair["desc"]) > 1 else re.search(seRegx, descstr)[0]
-        note.fields[self.fieldPosi] += f"<div card_id='{Id}' dir = '{dir}' style='{style}'>{dir}{Desc} {self.prefix}{Id}</div>\n"
+        note.fields[self.fieldPosi] += f"<div card_id='{Id}' dir = '{dir}' style='{style}'>{direction}{Desc} {self.prefix}{Id}</div>\n"
         note.flush()
 
     def getCardIDfromNote(self, id : int) -> list:
