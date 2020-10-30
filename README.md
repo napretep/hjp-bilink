@@ -19,13 +19,16 @@
 
 <a name="2"></a>
 ## 更新记录
+### 0.4.1
+- 优化
+    - 现在菜单按钮全部翻译成了中文,顾名思义会很好理解,简化上手的难度.
 ### 0.4
 - 新增
     1. 可以在编辑界面(如`复习/review`时,点编辑,所跳出的界面,又如`浏览/browse`时,可编辑卡片的那个区域)右键点选插入卡片到`input.json`
     - [![Bt1JIK.gif](https://s1.ax1x.com/2020/10/30/Bt1JIK.gif)](https://imgchr.com/i/Bt1JIK)
-        - 插入卡片的选中模式,当你选中一段文字,点击右键选择`hjpCopyCidToInputJson`或`hjpCopyCidToLastGroup`,会将你所选中的文字作为`desc`描述字段和ID一起插入到`input.json`
-        - `hjpCopyCidToInputJson`和`hjpCopyCidToLastGroup`的区别,前者独立插入,后者作为前一个组的成员插入
-    2. 在编辑界面选中的文字右键点击`hjpCopyAsTagToInputJson`,也可以将其作为`tag`的名字覆盖`input.json`中原先的`tag`
+        - 插入卡片的选中模式,当你选中一段文字,点击右键选择`hjp|将卡片插入input`或`hjp|将卡片插入上一个组`,会将你所选中的文字作为`desc`描述字段和ID一起插入到`input.json`
+        - `hjp|将卡片插入input`和`hjp|将卡片插入上一个组`的区别,顾名思义
+    2. 在编辑界面选中的文字右键点击`hjp|用选中文字更新input中的标签`,也可以将其作为`tag`的名字覆盖`input.json`中原先的`tag`
     - 这些操作能减少用户打开`input.json`编辑的次数,从而减少用户犯错造成插件崩溃的机会.
 - 优化
     - 内部代码优化.
@@ -71,7 +74,7 @@
 <a name="3"></a>
 ## 未来计划
 ### 近期
-- [ ] 实现选中文字读取为desc内容,并添加到`input.json`
+
 - [ ] 增加提取tag内容和deck内容作为描述符的正则
 - [ ] 实现各种方案转为tag(deck路径转tag,卡片内容转tag)
 - [ ] 实现答题日志系统(点击显示答案后的任意一个按钮都会弹出是否记录日志的问号,选择是就会记录当前的文本到指定的位置.)
@@ -81,9 +84,10 @@
 - [ ] 1.0正式版,利用sqlite3,实现链接信息的外部存储,方便维护,比如链接的同步更新,实时加载(可选)
     - 将来hjp-bilink会改为用外部存储anki卡片的链接关系,不会修改卡片内容,
     - 到时候是,打开一个卡片预览,会提供一个扩展按钮,点击后弹出linklist,
-    - 连接关系独立出来做的好处是,将来修改link对应的desc可以同步更新到每一张被链接的卡片上.
+    - 连接关系独立出来做的好处是,将来修改link对应的desc可以同步更新到每一张被链接的卡片上,还可以做关系图,前途很光明.
     - 为了实现这个目标,我们需要独立实现依赖的核心插件的功能,才能随心所欲地给窗口加自己的按钮,否则就要跟着别人的代码改了.
 ### 已完成
+- [x] 实现选中文字读取为desc内容,并添加到`input.json`
 - [x] 提供链接的html元素的样式修改接口
 - [x] 实现input.json文件中card_id的唯一化.
 - [x] 代码转移到gitee
@@ -107,41 +111,41 @@
     - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034448_bbf2a1fc_332584.png "屏幕截图.png")
 2. ### 选取卡片记录插入`input.json`
     - 在`browser`窗口中选中几条你要双链的记录，在任何一条被选中的记录上点击鼠标右键，弹出上下文菜单，其中有
-        - `hjpCopyCidAlltoInputJson`，
-        - `hjpAsGroupCopytoInputJson`两个选项
+        - `hjp|将选中的卡片插入input`，
+        - `hjp|将选中的卡片编组插入input`两个选项
     - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034558_0ef8a51b_332584.png "屏幕截图.png")
     - 根据模式不同,选择不同的选项
         1. 当你需要使用以下三种模式
 
-            1 **`linkall`完全链接模式**, 
+            1 `完全图连接`模式, 
 
-            2 **`unlinkNode`按结点取消链接模式** , 
+            2 `按结点取消连接`模式 , 
 
-            3 **`unlinkPath`按路径取消链接模式** 时
+            3 `按路径取消连接`模式 时
 
-            - 选择`hjpCopyCidAlltoInputJson`,就能把你选的这几条记录的`card_id`插入到`input.json`中
+            - 选择`hjp|将选中的卡片插入input`,就能把你选的这几条记录的`card_id`插入到`input.json`中
             - 你可以反复执行这个过程,把所有需要的卡片ID都录入到`input.json`中
-        2. 当你需要使用 **`linkGroupToGroup` 按组链接模式** 时
-            - 选择`hjpAsGroupCopytoInputJson`,把所有选中的记录作为一个组录入到`input.json`中,
+        2. 当你需要使用 `组对组连接` 模式 时
+            - 选择`hjp|将选中的卡片编组插入input`,把所有选中的记录作为一个组录入到`input.json`中,
             - 注意 组链接至少需要两个组才能正常工作
-            - 你执行`hjpAsGroupCopytoInputJson`就是把选中的卡片编一个组插入到`input.json`中,所以想要实现链接到其他组,还得插入另一个编组.
-            - 实际上你也可以对非编组的ID使用`linkGroupToGroup`,目前新增功能可实现每个卡片默认是一个组.
+            - 你执行`hjp|将选中的卡片编组插入input`就是把选中的卡片编一个组插入到`input.json`中,所以想要实现链接到其他组,还得插入另一个编组.
+            - 实际上你也可以对非编组的ID使用`linkGroupToGroup`,目前(0.2版之后)新增功能可实现每个卡片默认是一个组.
 3. ### (如果需要)打开`input.json`编辑卡片ID和描述desc,
     - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/035618_5e0cbe98_332584.png "屏幕截图.png")
-    - 在你把想双链的卡的id都插入到这个`input.json`中后,你可以点击菜单栏上的`hjp_link>show`打开`input.json`
-    - `input.json`里面都是你在第二步操作中输入的`card_id`还有程序默认提取的描述`desc`,你这时候可以修改默认的描述内容,你也可以不追加解释,走下一步操作.
+    - 在你把想双链的卡的id都插入到这个`input.json`中后,你可以点击菜单栏上的`hjp_link>显示input`打开`input.json`
+    - `input.json`里面都是你在第二步操作中输入的`card_id`还有程序默认提取的描述`desc`,你这时候可以修改默认的描述内容,你也可以不追加解释,走下一步操作.(注:0.4版后,你可以在编辑界面选中文字再右键选`hjp|将卡片插入input`,就能自动把选中的文字读取为连接的描述内容,详情看0.4更新的介绍)
     - ![0Rd6yj.png](https://s1.ax1x.com/2020/10/12/0Rd6yj.png)
 4. ### 建立双向连接
     - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034730_38b2b795_332584.png "屏幕截图.png")
-    - 选择`hjp_link>linkDefault`就会根据预先在`config.json>linkMode`中配置好的链接算法,自动建立双向连接
+    - 选择`hjp_link>默认连接`就会根据预先在`config.json>linkMode`中配置好的链接算法,自动建立双向连接
     - 不过,如果你想使用其他模式,也可以直接点击其他模式,因为我们会经常切换加链接的方式,所以我把这些模式单列了出来:
-        - 选择`hjp_link>linkAll`调用完全图算法链接每个记录，将`input.json>IdDescPairs`中的每一张卡双向连接到每一张卡,比如输入ABC,那么A中有BC,B中有AC,C中有BA的ID链接.
-        - 选择`hjp_link>linkGroupToGroup`调用组链接算法链接各个组的记录.在`input.json>IdDescGroups`中会分成几个组,前一个组的每一张卡双向连接到后一个组的每一张卡.比如ABC是一个组，DEF是一个组，那么组间链接就是第一组：A到DEF,B到DEF,C到DEF，第二组：D到ABC，E到ABC,F到ABC。
-        - 选择`hjp_link>unlinkNode`调用取消结点链接算法,相当于将`input.json>IdDescPairs`中列出的每个节点孤立，比如`input.json>IdDescPairs`中有节点A，那么程序会查询A卡片，并发现A连接到BCD，那么就会解除到BCD的链接，并且反向解除BCD到A的链接。
-        - 选择`hjp_link>unlinkPath`调用取消路径链接算法,相当于将`input.json>IdDescPairs`中的彼此相连的节点按顺序解除绑定，比如输入`input.json>IdDescPairs`中的ABCD是彼此有链接的节点，那么程序就会从A节点开始，从A到B解除链接，B到C解除链接以此类推，但是不会解除A到其他结点的链接,比如A连接到BCD,但是你输入`input.json>IdDescPairs`的顺序是ABCD,那么A只会解除从A到B的链接,A到CD的链接保持不动。
+        - 选择`hjp_link>完全图连接`,会将`input.json>IdDescPairs`中的每一张卡双向连接到每一张卡,比如输入ABC,那么A中有BC,B中有AC,C中有BA的ID链接.
+        - 选择`hjp_link>组对组连接`,会在`input.json>IdDescGroups`中会分成几个组,前一个组的每一张卡双向连接到后一个组的每一张卡.比如ABC是一个组，DEF是一个组，那么组间链接就是第一组：A到DEF,B到DEF,C到DEF，第二组：D到ABC，E到ABC,F到ABC。
+        - 选择`hjp_link>按结点取消连接`,相当于将`input.json>IdDescPairs`中列出的每个节点孤立，比如`input.json>IdDescPairs`中有节点A，那么程序会查询A卡片，并发现A连接到BCD，那么就会解除到BCD的链接，并且反向解除BCD到A的链接。
+        - 选择`hjp_link>按路径取消连接`,相当于将`input.json>IdDescPairs`中的彼此相连的节点按顺序解除绑定，比如输入`input.json>IdDescPairs`中的ABCD是彼此有链接的节点，那么程序就会从A节点开始，从A到B解除链接，B到C解除链接以此类推，但是注意,这不会解除A到其他结点的链接,比如A连接到BCD,但是你输入`input.json>IdDescPairs`的顺序是ABCD,那么A只会解除从A到B的链接,A到CD的链接保持不动。
     
 5. ### (如果需要)清除json中的记录
-    - 选择`hjp_link`->`clear`就能删掉之前的全部记录.
+    - 选择`hjp_link`->`初始化input`就能删掉之前的全部记录.(0.2.2之后关闭anki能自动初始化`input.json`)
     -  **如果不熟悉json的语法,千万别自己删json的结构,最好用clear清除记录,不容易破坏json结构,否则会频繁报错.** 
     - 如果你熟悉json的语法,以上操作也可以打开`input.json`手工完成录入.
     - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034926_1c9e8e3d_332584.png "屏幕截图.png")
@@ -150,10 +154,10 @@
 配置文件名为`config.json`,可以在ANKI插件页面做修改,也可以通过`hjp_link->config`打开,可修改的值有
 1. ### `linkMode` (重点必看)
     - `linkMode`影响默认的链接多张卡片的算法,就是你点击`hjp_link>linkDefault`时会调用的算法,值为0或1,2,3,默认为0.
-    - 0表示完全链接`linkAll`
-    - 1表示按组链接`linkGroupToGroup`
-    - 2表示按结点取消链接`unlinknode`
-    - 3表示按路径取消链接`unlinkpath`
+    - 0表示`完全图连接`
+    - 1表示`组对组连接`
+    - 2表示`按结点取消连接`
+    - 3表示`按路径取消连接`
 4. ### `cidPrefix`
     - 表示每个卡ID的默认前缀,用于让依赖的link插件识别这是可点的链接，默认是依赖插件的默认配置即`cidd`,可以清空,请注意标识符在`input.json`中的含义必须是唯一确定的,不能在插入的正文中使用标识符.
 5. ### `appendNoteFieldPosition`
@@ -161,14 +165,14 @@
 6. ### `readDescFieldPosition`
     - 这个属性控制程序默认从卡片的第几个字段提取卡片描述的字符，数据类型为number,默认为0,也就是提取问题描述中的前面10个非标点类字符.
 7. ### `regexForDescContent`
-    - 这个属性控制程序从卡片提取描述字符的方法，默认为0的话，会调用`DEFAULT>regexForDescContent`中的正则表达式来提取描述字符.如果你想按自己的正则表达式提取描述字符,可以改外层的`regexForDescContent`的值.
+    - 这个属性控制程序从卡片提取描述字符的方法，默认为0的话，会调用`DEFAULT>regexForDescContent`中的正则表达式来提取描述字符.如果你想按自己的正则表达式提取描述字符,可以改外层的`regexForDescContent`的值.`DEFAULT>regexForDescContent`的值就别动了.
 0. ### `regexForDescFromDeck`(未完成)
 0. ### `descMaxLength`(未完成)
 0. ### `linkFromSymbol`,`linkToSymbol`
     - 这两个属性,一个控制链入的符号,另一个控制链出的符号. 默认是`"←"`和`"→"`,如果不需要,可以设为`""`值
     - 效果比如这个图
     - [![BYKTWd.png](https://s1.ax1x.com/2020/10/30/BYKTWd.png)](https://imgchr.com/i/BYKTWd)
-    - 完全图算法全是链出符号,只有组链接算法有链入符号.
+    - 完全图算法全是链出符号,只有组对组连接算法有链入符号.
 0. ### `linkStyle` 
     - 控制link所在的div元素的样式,默认是空字符串,即没有样式,你可以按照CSS的写法填入样式,不过注意JSON格式的回车换行问题.
 0. ### `addTagEnable` ,`addTagRoot`**新增**

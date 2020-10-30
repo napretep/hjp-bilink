@@ -16,7 +16,7 @@ from enum import Enum
 from operator import itemgetter
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 
-helpSite = "https://gitee.com/huangjipan/hjp-bilink"
+helpSite = "https://gitee.com/huangjipan/hjp-bilink/blob/master/README.md#4"
 inputFileName = "input.json"
 configFileName = "config.json"
 helpFileName = "README.md"
@@ -305,22 +305,22 @@ def setUpBrowserMenuShortcut(browser):
         browser.hjp_Link = QMenu("hjp_link")
         browser.menuBar().insertMenu(browser.mw.form.menuTools.menuAction(), browser.hjp_Link)
         m = browser.hjp_Link
-    m.addAction('linkDefault').triggered.connect(lambda _: setupFunction(browser,mode=999))
-    m.addAction('linkAll').triggered.connect(lambda _: setupFunction(browser,mode=0))
-    m.addAction('linkGroupToGroup').triggered.connect(lambda _: setupFunction(browser,mode=1))
-    m.addAction('unlinkNode').triggered.connect(lambda _: setupFunction(browser,mode=2))
-    m.addAction('unlinkPath').triggered.connect(lambda _: setupFunction(browser,mode=3))
-    m.addAction('initInput').triggered.connect(destroyFuntion)
-    m.addAction('show').triggered.connect(displayFunction)
-    m.addAction('config').triggered.connect(configFunction)
-    m.addAction('help').triggered.connect(helpFunction)
+    m.addAction('默认连接').triggered.connect(lambda _: setupFunction(browser,mode=999))
+    m.addAction('完全图连接').triggered.connect(lambda _: setupFunction(browser,mode=0))
+    m.addAction('组对组连接').triggered.connect(lambda _: setupFunction(browser,mode=1))
+    m.addAction('按结点取消连接').triggered.connect(lambda _: setupFunction(browser,mode=2))
+    m.addAction('按路径取消连接').triggered.connect(lambda _: setupFunction(browser,mode=3))
+    m.addAction('初始化input').triggered.connect(destroyFuntion)
+    m.addAction('显示input').triggered.connect(displayFunction)
+    m.addAction('调整config').triggered.connect(configFunction)
+    m.addAction('使用帮助').triggered.connect(helpFunction)
 
 
 def AddToTableContextMenu(browser, menu):
-    actionCopyCidAll = QAction("hjpCopyCidAlltoInputJson", browser)
+    actionCopyCidAll = QAction("hjp|将选中的卡片插入input", browser)
     actionCopyCidAll.triggered.connect(lambda _, b=browser: multicopyFunction(b))
     menu.addAction(actionCopyCidAll)
-    actionGroupCopy = QAction("hjpAsGroupCopytoInputJson", browser)
+    actionGroupCopy = QAction("hjp|将选中的卡片编组插入input", browser)
     actionGroupCopy.triggered.connect(lambda _, b=browser: multicopyFunction(b, groupCopy=True))
     menu.addAction(actionGroupCopy)
 # def testfunction(card):
@@ -335,11 +335,11 @@ def AddToEditorContextMenu(view,menu):
         tooltip("hjp-bilink:由于这里无法读取card_id,链接菜单不在这显示")
         return
     selected=editor.web.selectedText()
-    singlecopy= menu.addAction("hjpCopyCidToInputJson")
+    singlecopy= menu.addAction("hjp|将卡片插入input")
     singlecopy.triggered.connect(lambda _:singlecopyFunction(card_id,selected))
-    groupcopy = menu.addAction("hjpCopyCidToLastGroup")
+    groupcopy = menu.addAction("hjp|将卡片插入上一个组")
     groupcopy.triggered.connect(lambda _:singlecopyFunction(card_id,selected,groupCopy=True))
-    tagcopy = menu.addAction('hjpCopyAsTagToInputJson')
+    tagcopy = menu.addAction('hjp|用选中文字更新input中的标签')
     tagcopy.triggered.connect(lambda _:copyTagFromSelected(selected))
 
 gui_hooks.browser_menus_did_init.append(setUpBrowserMenuShortcut)
