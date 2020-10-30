@@ -93,7 +93,7 @@
 - [x] 实现input.json文件中card_id的唯一化.
 - [x] 代码转移到gitee
 - [x] 实现unlink功能(若选中的卡片存在link关系,则删除这个link)
-- [x] 为了方便操作,将来会将卡片ID存储的`input.json`文本改为json数据({id:,desc:})
+- [x] 为了方便操作,将来会将卡片ID存储的`input.txt`文本改为json数据({id:,desc:})
 
 <a name="4"></a>
 ## 插件的安装
