@@ -26,6 +26,7 @@
 ### 0.4
 - 新增
     1. 可以在编辑界面(如`复习/review`时,点编辑,所跳出的界面,又如`浏览/browse`时,可编辑卡片的那个区域)右键点选插入卡片到`input.json`
+    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1031/023019_1a97770e_332584.png "屏幕截图.png")
     - [![Bt1JIK.gif](https://s1.ax1x.com/2020/10/30/Bt1JIK.gif)](https://imgchr.com/i/Bt1JIK)
         - 插入卡片的选中模式,当你选中一段文字,点击右键选择`hjp|将卡片插入input`或`hjp|将卡片插入上一个组`,会将你所选中的文字作为`desc`描述字段和ID一起插入到`input.json`
         - `hjp|将卡片插入input`和`hjp|将卡片插入上一个组`的区别,顾名思义
@@ -114,7 +115,7 @@
     - 在`browser`窗口中选中几条你要双链的记录，在任何一条被选中的记录上点击鼠标右键，弹出上下文菜单，其中有
         - `hjp|将选中的卡片插入input`，
         - `hjp|将选中的卡片编组插入input`两个选项
-    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034558_0ef8a51b_332584.png "屏幕截图.png")
+    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1031/022942_e7b4b36b_332584.png "屏幕截图.png")
     - 根据模式不同,选择不同的选项
         1. 当你需要使用以下三种模式
 
@@ -132,12 +133,12 @@
             - 你执行`hjp|将选中的卡片编组插入input`就是把选中的卡片编一个组插入到`input.json`中,所以想要实现链接到其他组,还得插入另一个编组.
             - 实际上你也可以对非编组的ID使用`linkGroupToGroup`,目前(0.2版之后)新增功能可实现每个卡片默认是一个组.
 3. ### (如果需要)打开`input.json`编辑卡片ID和描述desc,
-    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/035618_5e0cbe98_332584.png "屏幕截图.png")
+    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1031/023150_e2425697_332584.png "屏幕截图.png")
     - 在你把想双链的卡的id都插入到这个`input.json`中后,你可以点击菜单栏上的`hjp_link>显示input`打开`input.json`
     - `input.json`里面都是你在第二步操作中输入的`card_id`还有程序默认提取的描述`desc`,你这时候可以修改默认的描述内容,你也可以不追加解释,走下一步操作.(注:0.4版后,你可以在编辑界面选中文字再右键选`hjp|将卡片插入input`,就能自动把选中的文字读取为连接的描述内容,详情看0.4更新的介绍)
-    - ![0Rd6yj.png](https://s1.ax1x.com/2020/10/12/0Rd6yj.png)
+    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1031/023214_3bac147d_332584.png "屏幕截图.png")
 4. ### 建立双向连接
-    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034730_38b2b795_332584.png "屏幕截图.png")
+    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1031/023150_e2425697_332584.png "屏幕截图.png")
     - 选择`hjp_link>默认连接`就会根据预先在`config.json>linkMode`中配置好的链接算法,自动建立双向连接
     - 不过,如果你想使用其他模式,也可以直接点击其他模式,因为我们会经常切换加链接的方式,所以我把这些模式单列了出来:
         - 选择`hjp_link>完全图连接`,会将`input.json>IdDescPairs`中的每一张卡双向连接到每一张卡,比如输入ABC,那么A中有BC,B中有AC,C中有BA的ID链接.
@@ -149,7 +150,7 @@
     - 选择`hjp_link`->`初始化input`就能删掉之前的全部记录.(0.2.2之后关闭anki能自动初始化`input.json`)
     -  **如果不熟悉json的语法,千万别自己删json的结构,最好用clear清除记录,不容易破坏json结构,否则会频繁报错.** 
     - 如果你熟悉json的语法,以上操作也可以打开`input.json`手工完成录入.
-    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1013/034926_1c9e8e3d_332584.png "屏幕截图.png")
+    - ![输入图片说明](https://images.gitee.com/uploads/images/2020/1031/023150_e2425697_332584.png "屏幕截图.png")
 <a name="5"></a>
 ## 配置指导
 配置文件名为`config.json`,可以在ANKI插件页面做修改,也可以通过`hjp_link->config`打开,可修改的值有
