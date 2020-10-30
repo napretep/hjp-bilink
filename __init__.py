@@ -267,7 +267,7 @@ def singlecopyFunction(card_id,desc='', groupCopy=False):
 def copyTagFromSelected(tag):
     s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
     s["addTag"]=tag
-    tooltip("hjp-bilink:{"+f'"tag":"{tag}"' + "} 已经更新到input.json文件")
+    tooltip("hjp-bilink:标签 {"+f'"tag":"{tag}"' + "} 已经更新到input.json文件")
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
 
 
