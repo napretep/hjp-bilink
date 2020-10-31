@@ -307,7 +307,7 @@ def setUpBrowserMenuShortcut(browser):
         m = browser.hjp_Link
     m.addAction('默认连接').triggered.connect(lambda _: setupFunction(browser,mode=999))
     m.addAction('完全图连接').triggered.connect(lambda _: setupFunction(browser,mode=0))
-    m.addAction('组对组连接').triggered.connect(lambda _: setupFunction(browser,mode=1))
+    m.addAction('组到组连接').triggered.connect(lambda _: setupFunction(browser,mode=1))
     m.addAction('按结点取消连接').triggered.connect(lambda _: setupFunction(browser,mode=2))
     m.addAction('按路径取消连接').triggered.connect(lambda _: setupFunction(browser,mode=3))
     m.addAction('初始化input').triggered.connect(destroyFuntion)
