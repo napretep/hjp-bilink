@@ -2,7 +2,7 @@
     "addLinkTo.Field.or.MetaInfo":"Field",
     "linkMode":0,
     "cidPrefix":"cidd",
-    "appendNoteFieldPosition":0,
+    "appendNoteFieldPosition":1,
     "readDescFieldPosition":0,
     "regexForDescContent":0,
     "regexForDescFromTag":0,
@@ -14,6 +14,6 @@
     "addTagEnable": 1,
     "addTagRoot": "hjp-bilink",
     "DEFAULT":{
-    	"regexForDescContent":"((?<=<div>)[\\s\\S]{1,10}?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().]+)"
+    	"regexForDescContent":"((?<=<div>)[\\s\\S]{1,10}?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().]+|(?<=src=\")[\\w\\-\\.]+)"
     }
 }

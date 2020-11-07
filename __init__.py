@@ -26,7 +26,7 @@ THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
 inputSchema='{"IdDescPairs":[],"addTag":""}'
-
+consolerName="hjp-bilink"
 class Link(object):
     def __init__(self, path, cfgpath, relycfgpath, prefix_cid="prefix_cid", defaultMode=999):
         self.path = path
@@ -67,11 +67,11 @@ class Link(object):
         if len(self.fdata["IdDescPairs"]) == 0 and len(self.fdata["IdDescGroups"]) == 0:
             showInfo("input.json文件中没有数据！")
             return
-        tooltip("hjp-bilink:mode:" + str(int(self.mode)) + ",链接开始")
+        tooltip(f"{consolerName}:mode:" + str(int(self.mode)) + ",链接开始")
         self.mapFuncPath[self.mode]()
         if self.confg["addTagEnable"]==1:
             if self.mode<=2:self.appendTagForAllNote()
-        tooltip("hjp-bilink:链接结束!")
+        tooltip(f"{consolerName}:链接结束!")
 
     # 下面的是工具
     def getCardNoteFromId(self, li: int) -> object:
@@ -100,10 +100,14 @@ class Link(object):
             direction=self.confg["linkFromSymbol"]
         style=self.confg["linkStyle"]
         Id = IdDescPair["card_id"]
-        descstr = self.getCardNoteFromId(IdDescPair["card_id"]).fields[self.fieldPosi]
+        descstr = self.getCardNoteFromId(IdDescPair["card_id"]).fields[self.confg["readDescFieldPosition"]]#这里做了重复操作.和multicopy时的功能一样
         seRegx = self.confg["DEFAULT"]["regexForDescContent"] if self.confg["regexForDescContent"] == 0 else self.confg[
             "regexForDescContent"]
-        Desc = IdDescPair["desc"] if len(IdDescPair["desc"]) > 1 else re.search(seRegx, descstr)[0]
+        try:
+            Desc = IdDescPair["desc"] if len(IdDescPair["desc"]) >= 1 else re.search(seRegx, descstr)[0]
+        except:
+            showInfo(f"{consolerName}:正则读取描述字符失败!请检查读取的字段是否为空字段,或请检查正则表达式是否有效")
+            return
         note.fields[self.fieldPosi] += f"<div card_id='{Id}' dir = '{dir}' style='{style}'>{direction}{Desc} {self.prefix}{Id}</div>\n"
         note.flush()
 
@@ -146,7 +150,7 @@ class Link(object):
                 IdB = linkcid["card_id"]
                 if IdA != IdB and (re.search(str(IdB), note.fields[fieldPosi]) is None):
                     self.appendIDtoNote(note, linkcid)
-        tooltip("hjp-bilink:已按完全图完成链接")
+        tooltip(f"{consolerName}:已按完全图完成链接")
 
     def groupBygroup(self):
         '''
@@ -162,7 +166,7 @@ class Link(object):
                 liA = cidli[i]
                 liB = cidli[i + 1]
                 self.AmapB(liA, liB)
-        tooltip("hjp-bilink:已按组完成链接")
+        tooltip(f"{consolerName}:已按组完成链接")
     def unlinkNode(self):
         idpli = self.fdata["IdDescPairs"]
         for idp in idpli:
@@ -182,7 +186,7 @@ class Link(object):
 
                 note.fields[self.fieldPosi] = content
                 note.flush()
-        tooltip("hjp-bilink:已按节点取消彼此链接")
+        tooltip(f"{consolerName}:已按节点取消彼此链接")
 
     def unlinkPath(self):
         idpli = self.fdata["IdDescPairs"]
@@ -199,7 +203,7 @@ class Link(object):
                              noteA.fields[self.fieldPosi])
             noteA.fields[self.fieldPosi] = content
             noteA.flush()
-        tooltip("hjp-bilink:已按路径取消路径节点上的彼此链接")
+        tooltip(f"{consolerName}:已按路径取消路径节点上的彼此链接")
 
 
 def setupFunction(browser,mode=999):
@@ -210,14 +214,14 @@ def setupFunction(browser,mode=999):
     Linker = Link(input, cfg, relycfg, defaultMode=mode)
     Linker.start()
     showInfo("")
-    tooltip("hjp-bilink:链接工作结束,浏览界面重新启动")
+    tooltip(f"{consolerName}:链接工作结束,浏览界面重新启动")
     mw.onBrowse()
 
 def destroyFuntion():
     fdata = open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8")
     fdata.write(inputSchema)
     fdata.close()
-    tooltip(f"hjp-bilink:{inputFileName} 文件初始化完毕")
+    tooltip(f"{consolerName}:{inputFileName} 文件初始化完毕")
 
 
 # mw.col.getCard(li).note()
@@ -235,7 +239,11 @@ def multicopyFunction(self, groupCopy=False,desc=""):
         content = note.fields[confg["readDescFieldPosition"]]  # 读取字段
         seRegx = confg["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
             "regexForDescContent"]  # 读取正则规则
-        Desc =  re.search(seRegx, content)[0] if desc=="" else desc  # 综上读取描述文字
+        try:
+            Desc =  re.search(seRegx, content)[0] if desc=="" else desc  # 综上读取描述文字
+        except:
+            showInfo(f"{consolerName}:正则读取描述字符失败!请检查读取的字段是否为空字段,或请检查正则表达式是否有效")
+            return
         pair = {"card_id": card_id, "desc": Desc}
         if groupCopy:
             group.append(pair)
@@ -244,33 +252,37 @@ def multicopyFunction(self, groupCopy=False,desc=""):
     if len(group) > 0:
         s["IdDescPairs"].append(group)
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
-    tooltip("hjp-bilink:"+str(len(browser.selectedCards())) + " 张卡被加入到input.json文件中")
+    tooltip(f"{consolerName}:"+str(len(browser.selectedCards())) + " 张卡被加入到input.json文件中")
 def singlecopyFunction(card_id,desc='', groupCopy=False):
-    tooltip("hjp-bilink:card="+str(card_id)+",desc="+desc)
+    tooltip(f"{consolerName}:card="+str(card_id)+",desc="+desc)
     cfgpath = os.path.join(THIS_FOLDER, configFileName)
     confg = json.load(open(cfgpath, "r", encoding="utf-8"))
     s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
     note = mw.col.getCard(card_id).note()  # 读取卡片
-    content = note.fields[confg["appendNoteFieldPosition"]]  # 读取字段
+    content = note.fields[confg["readDescFieldPosition"]]  # 读取字段
     seRegx = confg["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
         "regexForDescContent"]  # 读取正则规则
-    Desc = re.search(seRegx, content)[0] if desc == "" else desc  # 综上读取描述文字
+    try:
+        Desc = re.search(seRegx, content)[0] if desc == "" else desc  # 综上读取描述文字
+    except:
+        showInfo(f"{consolerName}:正则读取描述字符失败!请检查读取的字段是否为空字段,或请检查正则表达式是否有效")
+        return
     pair = {"card_id": card_id, "desc": Desc}
     if groupCopy:
         try:
             s["IdDescPairs"][-1].append(pair)
         except:
             s["IdDescPairs"].append([pair])
-        tooltip(f"hjp-bilink: {json.dumps(pair, ensure_ascii=False)} 已经被插入到上一个组")
+        tooltip(f"{consolerName}: {json.dumps(pair, ensure_ascii=False)} 已经被插入到上一个组")
     else:
         s["IdDescPairs"].append([pair])
-        tooltip("hjp-bilink:"+json.dumps(pair, ensure_ascii=False) + " 已经被插入到input.json文件")
+        tooltip(f"{consolerName}:"+json.dumps(pair, ensure_ascii=False) + " 已经被插入到input.json文件")
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
 
 def copyTagFromSelected(tag):
     s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
     s["addTag"]=tag
-    tooltip("hjp-bilink:标签 {"+f'"tag":"{tag}"' + "} 已经更新到input.json文件")
+    tooltip(f"{consolerName}:标签"+ "{"+f'"tag":"{tag}"' + "} 已经更新到input.json文件")
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
 
 
@@ -332,7 +344,7 @@ def AddToEditorContextMenu(view,menu):
         card_id=editor.card.id
         #tooltip(f"cardid={str(card_id)}")
     except:
-        tooltip("hjp-bilink:由于这里无法读取card_id,链接菜单不在这显示")
+        tooltip(f"{consolerName}:由于这里无法读取card_id,链接菜单不在这显示")
         return
     selected=editor.web.selectedText()
     singlecopy= menu.addAction("hjp|将卡片插入input")
