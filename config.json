@@ -2,7 +2,7 @@
     "addLinkTo.Field.or.MetaInfo":"Field",
     "linkMode":0,
     "cidPrefix":"cidd",
-    "appendNoteFieldPosition":1,
+    "appendNoteFieldPosition":0,
     "readDescFieldPosition":0,
     "regexForDescContent":0,
     "regexForDescFromTag":0,
