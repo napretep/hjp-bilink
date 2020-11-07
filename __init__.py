@@ -100,7 +100,7 @@ class Link(object):
             direction=self.confg["linkFromSymbol"]
         style=self.confg["linkStyle"]
         Id = IdDescPair["card_id"]
-        descstr = self.getCardNoteFromId(IdDescPair["card_id"]).fields[self.confg["readDescFieldPosition"]]
+        descstr = self.getCardNoteFromId(IdDescPair["card_id"]).fields[self.fieldPosi]
         seRegx = self.confg["DEFAULT"]["regexForDescContent"] if self.confg["regexForDescContent"] == 0 else self.confg[
             "regexForDescContent"]
         Desc = IdDescPair["desc"] if len(IdDescPair["desc"]) > 1 else re.search(seRegx, descstr)[0]
@@ -232,7 +232,7 @@ def multicopyFunction(self, groupCopy=False,desc=""):
         return
     for card_id in browser.selectedCards():
         note =  mw.col.getCard(card_id).note()  # 读取卡片
-        content = note.fields[confg["appendNoteFieldPosition"]]  # 读取字段
+        content = note.fields[confg["readDescFieldPosition"]]  # 读取字段
         seRegx = confg["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
             "regexForDescContent"]  # 读取正则规则
         Desc =  re.search(seRegx, content)[0] if desc=="" else desc  # 综上读取描述文字
