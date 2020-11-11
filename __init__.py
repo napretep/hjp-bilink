@@ -16,7 +16,7 @@ from enum import Enum
 from operator import itemgetter
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 
-helpSite = "https://gitee.com/huangjipan/hjp-bilink/blob/master/README.md#4"
+helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"
 configFileName = "config.json"
 helpFileName = "README.md"
@@ -325,7 +325,7 @@ def setUpBrowserMenuShortcut(browser):
     m.addAction('初始化input').triggered.connect(destroyFuntion)
     m.addAction('显示input').triggered.connect(displayFunction)
     m.addAction('调整config').triggered.connect(configFunction)
-    m.addAction('使用帮助').triggered.connect(helpFunction)
+    m.addAction('打开插件页面').triggered.connect(helpFunction)
 
 
 def AddToTableContextMenu(browser, menu):
