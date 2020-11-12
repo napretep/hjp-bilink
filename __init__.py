@@ -8,6 +8,8 @@ from aqt.reviewer import Reviewer
 from aqt.editor import EditorWebView
 from aqt.utils import showInfo, tooltip
 from aqt.qt import *
+from anki.cards import Card
+from anki.notes import Note
 from anki import hooks
 import html
 
@@ -33,6 +35,7 @@ class Link(object):
         self.cfgpath = cfgpath
         self.confg = json.load(open(cfgpath, "r", encoding="utf-8"))
         self.relycfg = json.load(open(relycfgpath, "r", encoding="utf-8"))
+        self.tag=""
         if defaultMode == 999:
             self.mode = self.confg["linkMode"]
         else:
@@ -72,9 +75,10 @@ class Link(object):
         if self.confg["addTagEnable"]==1:
             if self.mode<=2:self.appendTagForAllNote()
         tooltip(f"{consolerName}:链接结束!")
+        return self.tag
 
     # 下面的是工具
-    def getCardNoteFromId(self, li: int) -> object:
+    def getCardNoteFromId(self, li: int) -> Note:
         return mw.col.getCard(li).note()
 
     def appendTagForAllNote(self)-> None:
@@ -89,6 +93,7 @@ class Link(object):
             note=self.getCardNoteFromId(cidpair["card_id"])
             note.addTag(tag)
             note.flush()
+        self.tag=tag
 
     def appendIDtoNote(self, note, IdDescPair, dir : str = "→"):
         '''
@@ -167,6 +172,7 @@ class Link(object):
                 liB = cidli[i + 1]
                 self.AmapB(liA, liB)
         tooltip(f"{consolerName}:已按组完成链接")
+
     def unlinkNode(self):
         idpli = self.fdata["IdDescPairs"]
         for idp in idpli:
@@ -181,6 +187,7 @@ class Link(object):
                 note.fields[self.fieldPosi] = content
                 note.flush()
                 note = self.getCardNoteFromId(idp["card_id"])
+                #<div card_id="1578352706361" dir="→" style=""><br></div>
                 content = re.sub(f'''<div card_id=["']{link}["'][\\s\\S]+?{link}</div>''', "",
                                  note.fields[self.fieldPosi])
 
@@ -206,16 +213,18 @@ class Link(object):
         tooltip(f"{consolerName}:已按路径取消路径节点上的彼此链接")
 
 
-def setupFunction(browser,mode=999):
+def setupFunction(browser:Browser,mode=999):
     input = os.path.join(THIS_FOLDER, inputFileName)
     cfg = os.path.join(THIS_FOLDER, configFileName)
     relycfg = os.path.join(RELY_FOLDER, relyLinkConfigFileName)
+    browser.model.search("1 -1")
     browser.close()
     Linker = Link(input, cfg, relycfg, defaultMode=mode)
-    Linker.start()
+    tag=Linker.start()
     showInfo("")
-    tooltip(f"{consolerName}:链接工作结束,浏览界面重新启动")
+    tooltip(f"{consolerName}:链接工作结束,浏览界面重新启动,tag={tag}")
     mw.onBrowse()
+
 
 def destroyFuntion():
     fdata = open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8")
@@ -300,6 +309,9 @@ def helpFunction():
     Url = QUrl(helpSite)
     QDesktopServices.openUrl(Url)
 
+def testFunction(browser: Browser):
+    browser.model.search("1 -1")
+    browser.editor.setNote(None)
 
 
 def setUpBrowserMenuShortcut(browser):
@@ -326,6 +338,7 @@ def setUpBrowserMenuShortcut(browser):
     m.addAction('显示input').triggered.connect(displayFunction)
     m.addAction('调整config').triggered.connect(configFunction)
     m.addAction('打开插件页面').triggered.connect(helpFunction)
+   # m.addAction("test").triggered.connect(lambda _: testFunction(browser))
 
 
 def AddToTableContextMenu(browser, menu):
