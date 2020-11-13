@@ -1,17 +1,1 @@
-{
-    "IdDescPairs": [
-        [
-            {
-                "card_id": 1605274463250,
-                "desc": "A= C' C"
-            }
-        ],
-        [
-            {
-                "card_id": 1604626067012,
-                "desc": "正定矩阵分解成上三角矩阵转置乘积"
-            }
-        ]
-    ],
-    "addTag": ""
-}
+{"IdDescPairs":[],"addTag":""}
