@@ -242,6 +242,7 @@ def getCardDesc(card_id:int,confg:object)->str:
     content = note.fields[confg["readDescFieldPosition"]]
     seRegx = confg["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
         "regexForDescContent"]
+    showInfo(content)
     try:
         Desc = re.search(seRegx, content)[0]#if desc == "" else desc  # 综上读取描述文字
     except:
@@ -277,8 +278,9 @@ def singlecopyFunction(card_id : int,groupCopy :bool = False,desc : str = "",cle
     cfgpath = os.path.join(THIS_FOLDER, configFileName)
     confg = json.load(open(cfgpath, "r", encoding="utf-8"))
     s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
-    desc=desc if desc !="" else getCardDesc(card_id,confg)
-    pair = {"card_id": card_id, "desc":desc}
+    showInfo(desc)
+    desc1=desc if desc !="" else getCardDesc(card_id,confg)
+    pair = {"card_id": card_id, "desc":desc1}
     tooltip(f"{consolerName}:card=" + str(card_id) + ",desc=" + desc)
     if groupCopy:
         try:
@@ -368,13 +370,13 @@ def AddToEditorContextMenu(view,menu):
     except:
         tooltip(f"{consolerName}:由于这里无法读取card_id,链接菜单不在这显示")
         return
-    selected=editor.web.selectedText()
+    selected:str =editor.web.selectedText()
     singlecopyWithClear = menu.addAction("hjp|先清除input再将卡片插入")
-    singlecopyWithClear.triggered.connect(lambda _:singlecopyFunction(card_id,selected,clearInput=True))
+    singlecopyWithClear.triggered.connect(lambda _:singlecopyFunction(card_id,desc=selected,clearInput=True))
     singlecopy= menu.addAction("hjp|将卡片插入input")
-    singlecopy.triggered.connect(lambda _:singlecopyFunction(card_id,selected))
+    singlecopy.triggered.connect(lambda _:singlecopyFunction(card_id,desc=selected))
     groupcopy = menu.addAction("hjp|将卡片插入上一个组")
-    groupcopy.triggered.connect(lambda _:singlecopyFunction(card_id,selected,groupCopy=True))
+    groupcopy.triggered.connect(lambda _:singlecopyFunction(card_id,desc=selected,groupCopy=True))
     tagcopy = menu.addAction('hjp|用选中文字更新input中的标签')
     tagcopy.triggered.connect(lambda _:copyTagFromSelected(selected))
 
