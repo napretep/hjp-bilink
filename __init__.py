@@ -19,7 +19,7 @@ from operator import itemgetter
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 helpSite = "https://gitee.com/huangjipan/hjp-bilink"
-hjp_bilink_VERSION="0.4.3"
+
 inputFileName = "input.json"
 configFileName = "config.json"
 helpFileName = "README.md"
@@ -30,6 +30,8 @@ PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
 inputSchema='{"IdDescPairs":[],"addTag":""}'
 consolerName="hjp-bilink"
+hjp_bilink_VERSION=re.search("(?<=- # hjp-bilink V\")[\w\.]+(?=\")",open(os.path.join(THIS_FOLDER,"readme.md"),"r", encoding="utf-8").read())[0]
+
 class Link(object):
     def __init__(self, path, cfgpath, relycfgpath, prefix_cid="prefix_cid", defaultMode=999):
         self.path = path
@@ -234,8 +236,22 @@ def destroyFuntion():
     tooltip(f"{consolerName}:{inputFileName} 文件初始化完毕")
 
 
-# mw.col.getCard(li).note()
-def multicopyFunction(self, groupCopy=False,desc=""):
+def getCardDesc(card_id:int,confg:object)->str:
+    """根据预设参数读取卡片的内容作为链接的描述字符串,如果读取失败,返回 读取描述字符失败"""
+    note = mw.col.getCard(card_id).note()
+    content = note.fields[confg["readDescFieldPosition"]]
+    seRegx = confg["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
+        "regexForDescContent"]
+    try:
+        Desc = re.search(seRegx, content)[0]#if desc == "" else desc  # 综上读取描述文字
+    except:
+        showInfo(f"{consolerName}:正则读取描述字符失败!请检查读取的字段是否为空字段,或请检查正则表达式是否有效")
+        return "读取描述字符失败"
+    return Desc[0:confg['descMaxLength'] if len(Desc)>confg['descMaxLength'] and confg['descMaxLength']!=0  else len(Desc)]
+
+#multicopyFunction 和  singlecopyFunction 代码高度重叠,以后要统一 TODO
+def multicopyFunction(self, groupCopy :bool = False,desc : str ="",clearInput :bool = False) -> None:
+    if clearInput: destroyFuntion()
     cfgpath = os.path.join(THIS_FOLDER, configFileName)
     confg = json.load(open(cfgpath, "r", encoding="utf-8"))
     s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
@@ -245,16 +261,7 @@ def multicopyFunction(self, groupCopy=False,desc=""):
         showInfo("没有选中任何卡片!")
         return
     for card_id in browser.selectedCards():
-        note =  mw.col.getCard(card_id).note()  # 读取卡片
-        content = note.fields[confg["readDescFieldPosition"]]  # 读取字段
-        seRegx = confg["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
-            "regexForDescContent"]  # 读取正则规则
-        try:
-            Desc =  re.search(seRegx, content)[0] if desc=="" else desc  # 综上读取描述文字
-        except:
-            showInfo(f"{consolerName}:正则读取描述字符失败!请检查读取的字段是否为空字段,或请检查正则表达式是否有效")
-            return
-        pair = {"card_id": card_id, "desc": Desc}
+        pair = {"card_id": card_id, "desc": getCardDesc(card_id,confg) }
         if groupCopy:
             group.append(pair)
         else:
@@ -263,21 +270,16 @@ def multicopyFunction(self, groupCopy=False,desc=""):
         s["IdDescPairs"].append(group)
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
     tooltip(f"{consolerName}:"+str(len(browser.selectedCards())) + " 张卡被加入到input.json文件中")
-def singlecopyFunction(card_id,desc='', groupCopy=False):
-    tooltip(f"{consolerName}:card="+str(card_id)+",desc="+desc)
+
+
+def singlecopyFunction(card_id : int,groupCopy :bool = False,desc : str = "",clearInput : bool = False) -> None:
+    if clearInput:destroyFuntion()
     cfgpath = os.path.join(THIS_FOLDER, configFileName)
     confg = json.load(open(cfgpath, "r", encoding="utf-8"))
     s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
-    note = mw.col.getCard(card_id).note()  # 读取卡片
-    content = note.fields[confg["readDescFieldPosition"]]  # 读取字段
-    seRegx = confg["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
-        "regexForDescContent"]  # 读取正则规则
-    try:
-        Desc = re.search(seRegx, content)[0] if desc == "" else desc  # 综上读取描述文字
-    except:
-        showInfo(f"{consolerName}:正则读取描述字符失败!请检查读取的字段是否为空字段,或请检查正则表达式是否有效")
-        return
-    pair = {"card_id": card_id, "desc": Desc}
+    desc=desc if desc !="" else getCardDesc(card_id,confg)
+    pair = {"card_id": card_id, "desc":desc}
+    tooltip(f"{consolerName}:card=" + str(card_id) + ",desc=" + desc)
     if groupCopy:
         try:
             s["IdDescPairs"][-1].append(pair)
@@ -288,6 +290,7 @@ def singlecopyFunction(card_id,desc='', groupCopy=False):
         s["IdDescPairs"].append([pair])
         tooltip(f"{consolerName}:"+json.dumps(pair, ensure_ascii=False) + " 已经被插入到input.json文件")
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
+
 
 def copyTagFromSelected(tag):
     s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
@@ -345,6 +348,9 @@ def setUpBrowserMenuShortcut(browser):
 
 
 def AddToTableContextMenu(browser, menu):
+    actionCopyCidAllWithClear = QAction("hjp|先清除input再将选中卡片插入",browser)
+    actionCopyCidAllWithClear.triggered.connect(lambda _, b=browser: multicopyFunction(b,clearInput=True))
+    menu.addAction(actionCopyCidAllWithClear)
     actionCopyCidAll = QAction("hjp|将选中的卡片插入input", browser)
     actionCopyCidAll.triggered.connect(lambda _, b=browser: multicopyFunction(b))
     menu.addAction(actionCopyCidAll)
@@ -363,6 +369,8 @@ def AddToEditorContextMenu(view,menu):
         tooltip(f"{consolerName}:由于这里无法读取card_id,链接菜单不在这显示")
         return
     selected=editor.web.selectedText()
+    singlecopyWithClear = menu.addAction("hjp|先清除input再将卡片插入")
+    singlecopyWithClear.triggered.connect(lambda _:singlecopyFunction(card_id,selected,clearInput=True))
     singlecopy= menu.addAction("hjp|将卡片插入input")
     singlecopy.triggered.connect(lambda _:singlecopyFunction(card_id,selected))
     groupcopy = menu.addAction("hjp|将卡片插入上一个组")
