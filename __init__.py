@@ -30,7 +30,7 @@ PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
 inputSchema='{"IdDescPairs":[],"addTag":""}'
 consolerName="hjp-bilink"
-hjp_bilink_VERSION=re.search("(?<=- # hjp-bilink V\")[\w\.]+(?=\")",open(os.path.join(THIS_FOLDER,"readme.md"),"r", encoding="utf-8").read())[0]
+hjp_bilink_VERSION=re.search("(?<=- # hjp-bilink V\")[\w\.]+(?=\")",open(os.path.join(THIS_FOLDER,helpFileName),"r", encoding="utf-8").read())[0]
 
 class Link(object):
     def __init__(self, path, cfgpath, relycfgpath, prefix_cid="prefix_cid", defaultMode=999):
