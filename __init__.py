@@ -242,7 +242,7 @@ def getCardDesc(card_id:int,confg:object)->str:
     content = note.fields[confg["readDescFieldPosition"]]
     seRegx = confg["DEFAULT"]["regexForDescContent"] if confg["regexForDescContent"] == 0 else confg[
         "regexForDescContent"]
-    showInfo(content)
+    #showInfo(content)
     try:
         Desc = re.search(seRegx, content)[0]#if desc == "" else desc  # 综上读取描述文字
     except:
