@@ -5,7 +5,7 @@ from aqt import mw, gui_hooks, browser, AnkiQt
 from aqt.reviewer import Reviewer
 from aqt.editor import EditorWebView
 from .linkTool import *
-from .linkTool import __
+# from .linkTool import 译
 from aqt.qt import *
 from aqt import dialogs
 from aqt.webview import AnkiWebView
@@ -301,7 +301,7 @@ class Link(object):
         for cidpair in cidli:
             note=self.getCardNoteFromId(cidpair["card_id"])
             note.addTag(tag)
-            note.flush()
+            # note.flush() 临时注释
         self.tag=tag
 
     def appendIDtoNote(self, note, IdDescPair, dir : str = "→"):
@@ -323,7 +323,7 @@ class Link(object):
             showInfo(f"{consolerName}:'正则读取描述字符失败!'")
             return
         note.fields[self.fieldPosi] += f"<button card_id='{Id}' dir = '{dir}' style='font-size:inherit;{style}'>{direction}{Desc} {self.prefix}{Id}</button>\n"
-        note.flush()
+        # note.flush() 临时注释
 
     def getCardIDfromNote(self, id : int) -> List[str]:
         note = self.getCardNoteFromId(id)
@@ -394,11 +394,11 @@ class Link(object):
             for link in linkli:
                 note = self.getCardNoteFromId(int(link))  # 链到的卡片上找自己
                 note.fields[self.fieldPosi] = self.delAnchor(id,note)
-                note.flush()
+                # note.flush() 临时注释
                 note = self.getCardNoteFromId(idp["card_id"])
 
                 note.fields[self.fieldPosi] = self.delAnchor(link,note)
-                note.flush()
+                # note.flush() 临时注释
         delog(f"{consolerName}:已按节点取消彼此链接",dbg=True)
 
     def unlinkPath(self):
@@ -409,9 +409,9 @@ class Link(object):
             noteA = self.getCardNoteFromId(idA)
             noteB = self.getCardNoteFromId(idB)
             noteB.fields[self.fieldPosi] = self.delAnchor(str(idA),noteB) #content
-            noteB.flush()
+            # noteB.flush() 临时注释
             noteA.fields[self.fieldPosi] = self.delAnchor(str(idB),noteA)
-            noteA.flush()
+            # noteA.flush() 临时注释
         delog(f"{consolerName}:已按路径取消路径节点上的彼此链接",dbg=True)
 
 
