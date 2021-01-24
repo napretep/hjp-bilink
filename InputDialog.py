@@ -17,18 +17,21 @@ class InputDialog(QDialog, Ui_input):
 
     def __init__(self, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
+        showInfo("mw.InputDialog=self")
         mw.InputDialog = self
         self.selectedData = copy.deepcopy(inputSchema)
         self.data = copy.deepcopy(inputSchema)
         self.initUI()
+        self.initModel()
+        self.initEvents()
         self.show()
 
     def initUI(self):
         """初始化UI"""
         self.setupUi(self)
-        self.inputTree.customContextMenuRequested.connect(self.initContextMenu)
+        self.inputTree.customContextMenuRequested.connect(self.contextMenuOnInputTree)
 
-    def initContextMenu(self):
+    def contextMenuOnInputTree(self):
         """初始化右键菜单"""
         Menu = self.inputTree.contextMenu = QMenu(self)
         prefix = consolerName
@@ -40,7 +43,7 @@ class InputDialog(QDialog, Ui_input):
     def initEvents(self):
         """事件的初始化"""
         self.closeEvent = self.onclose
-        self.inputTree.doubleClicked.connect(self.doubleClicked)
+        self.inputTree.doubleClicked.connect(self.onDoubleClick)
         self.inputTree.dropEvent = self.onDrop
         self.fileWatcher = QFileSystemWatcher()
         self.fileWatcher.addPath(os.path.join(THIS_FOLDER, inputFileName))
@@ -49,15 +52,15 @@ class InputDialog(QDialog, Ui_input):
         self.tagContent.textChanged.connect(self.data_saveJSONToFile)
 
     def initModel(self):
-        self.model = QStandardItemModel
+        self.model = QStandardItemModel()
         self.rootNode = self.model.invisibleRootItem()
         self.rootNode.setDropEnabled(False)
         self.rootNode.setEditable(False)
         self.rootNode.setSelectable(False)
         self.rootNode.setDragEnabled(False)
-        self.model.setHorizontalHeaderLabels([self.term["card_id"] + "+" + self.term["desc"]])
+        self.model.setHorizontalHeaderLabels(["card_id+desc"])
         self.inputTree.setModel(self.model)
-        self.data_JSONtoModel()
+        self.data_setJSONToModel()
 
     def view_selectedDelete(self):
         """选中的部分删除"""
@@ -69,7 +72,7 @@ class InputDialog(QDialog, Ui_input):
         """掉落事件"""
         pass
 
-    def onClose(self, QCloseEvent):
+    def onclose(self, QCloseEvent):
         '''关闭时要保存数据'''
         mw.InputDialog = None
 

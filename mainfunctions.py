@@ -18,9 +18,10 @@ def func_help():
 
 
 def func_openInput():
-    if hasattr(mw, "InputDialog"):
+    """打开input对话框"""
+    try:
         mw.InputDialog.activateWindow()
-    else:
+    except:
         mw.InputDialog = InputDialog()
         mw.InputDialog.exec()
         mw.activateWindow()

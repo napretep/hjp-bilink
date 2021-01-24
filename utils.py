@@ -17,7 +17,7 @@ THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
 inputSchema = {"IdDescPairs": [], "addTag": ""}
-consolerName = "hjp-bilink"
+consolerName = "hjp-bilink|"
 algPathDict = {
     "desc": ["默认连接", "完全图连接", "组到组连接", "按结点取消连接", "按路径取消连接"],
     "mode": [999, 0, 1, 2, 3]
