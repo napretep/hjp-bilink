@@ -1,25 +1,4 @@
 
-from aqt.utils import showInfo, tooltip
-# import win32.win32clipboard as clipboard
-# import the main window object (mw) from aqt
-import os, sys, datetime, json, re,copy
-
-from anki.lang import *
-
-helpSite = "https://gitee.com/huangjipan/hjp-bilink"
-inputFileName = "input.json"
-configFileName = "config.json"
-helpFileName = "README.md"
-relyLinkDir = "1423933177"
-relyLinkConfigFileName = "config.json"
-logFileName="log.txt"
-THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-PREV_FOLDER = os.path.dirname(THIS_FOLDER)
-RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
-inputSchema={"IdDescPairs":[],"addTag":""}
-consolerName="hjp-bilink"
-
-
 class delog(object):
     """做到区分通知用户的一般消息和debug消息"""
     def __init__(self,t:str,logdir=os.path.join(THIS_FOLDER, logFileName),func=tooltip,dbg=False):#for debug
@@ -44,7 +23,7 @@ class delog(object):
 
 class __(object):
     """有必要时翻译成英语 zh-CN,zh_TW,en,en-GB """
-def _translate(text:str=""):
+def rosetta(text:str=""):
     # return text
     lang=currentLang
 
@@ -103,10 +82,7 @@ def _translate(text:str=""):
 
 # def algdesc():
 #     return list(map(lambda x:译(x),["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"]))
-algPathDict={
-    "desc":["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"],
-    "mode":[999,0,1,2,3]
-}
+
 
 hjp_bilink_VERSION=re.search("(?<=- # hjp-bilink V\")[\w\.]+(?=\")",open(os.path.join(THIS_FOLDER,helpFileName),"r", encoding="utf-8").read())[0]
 
