@@ -3,15 +3,19 @@
 """
 from aqt import gui_hooks
 from aqt.qt import *
+
 from .language import rosetta as say
 from .mainfunctions import *
 
 
-def func_menuAddBrowserInsert(menu: QMenu, browser: Browser):
+def func_menuAddBrowserInsert(menu: QMenu, browser: Browser, prefix=""):
     """browser插入类函数集合"""
-    menuNameLi = list(map(lambda x: say(x), ["清除后选中卡片插入", "将选中卡片插入", "将选中卡片编组插入"]))
+    menuNameLi = list(map(lambda x: prefix + say(x), ["清除后选中卡片插入", "将选中卡片插入", "将选中卡片编组插入"]))
     need = ["", "group", "clear"]
-    linkmenu = menu.addMenu(say("插入"))
+    if prefix != "":
+        linkmenu = menu
+    else:
+        linkmenu = menu.addMenu(say("插入"))
     list(map(lambda x, y: linkmenu.addAction(x).triggered.connect(lambda: func_browserCopy(browser, need=[y])),
              menuNameLi, need))
     pass
@@ -52,7 +56,11 @@ func_dict_need = {
 def func_menuAddHelper(menu: QMenu, parent: Union[Browser, QObject] = None, need: list = None):
     """提供大部分类似的按钮添加操作帮助"""
     if "link" in need: func_dict_need["link"](menu)
-    if "browserinsert" in need: func_dict_need["browserinsert"](menu, parent)
+    if "browserinsert" in need:
+        if "prefix" in need:
+            func_dict_need["browserinsert"](menu, parent, prefix="hjp-bilink|")
+        else:
+            func_dict_need["browserinsert"](menu, parent)
     if "clean/open" in need: func_dict_need["clean/open"](menu)
     if "basicMenu" in need: func_dict_need["basicMenu"](menu)
     pass
@@ -71,8 +79,9 @@ def func_add_browsermenu(browser: Browser):
     func_menuAddHelper(menu, browser, need=["link", "browserinsert", "clean/open", "basicMenu"])
 
 
-def fun_add_browsercontextmenu(browser: Browser):
+def fun_add_browsercontextmenu(browser: Browser, menu: QMenu):
     """用来给browser加上下文菜单"""
+    func_menuAddHelper(menu, browser, need=["browserinsert", "prefix"])
 
 
 gui_hooks.browser_menus_did_init.append(func_add_browsermenu)
