@@ -71,181 +71,181 @@ class InputDialog(QDialog,Ui_input):
         self.inputTree.customContextMenuRequested.connect(self.contextMenuOnInputTree)
         showInfo("initUI调用完成")#debug
 
-    # def selectedLink(self,mode:int=999):
-    #     # delog("开启selected LINK",dbg=True)
-    #     self.loadFromTreeSelected()
-    #     setupFunction(mode=mode,inputJSON=self.selectedData)
-    #     pass
-    #
-    # def contextMenuOnInputTree(self,prefix="hjp-bilink|"):
-    #     '''设置右键菜单'''
-    #     self.inputTree.contextMenu = QMenu(self)
-    #     self.inputTree.contextMenu.addAction(f"{prefix} '全部展开/折叠'").triggered.connect(self.toggleEXPorCOL)
-    #     self.inputTree.contextMenu.addAction(f"{prefix}'选中删除'").triggered.connect(self.deletItem)
-    #     contexthelper(None,self.inputTree.contextMenu,need=["link","clear"])
-    #     selectedLinkMenu = self.inputTree.contextMenu.addMenu(f"{prefix}'选中连接'")
-    #     def connectMenu(Menu:QMenu,desc:str,mode:int):
-    #         Menu.addAction(desc).triggered.connect(lambda _ : self.selectedLink(mode=mode))
-    #     list(map(lambda x,y:connectMenu(selectedLinkMenu,x,y),algPathDict["desc"],algPathDict["mode"]))
-    #
-    #     self.inputTree.contextMenu.popup(QCursor.pos())
-    #     self.inputTree.contextMenu.show()
-    # def onDoubleClick(self,index):
-    #     item=self.model.itemFromIndex(index)
-    #     showInfo(currentLang)
-    #
-    # # '''暂时先不搞这个bug,太难了.___20210124021251搞定了!'''
-    # # https://stackoverflow.com/questions/26227885/drag-and-drop-rows-within-qtablewidget
-    # def onDrop(self, e:QDropEvent):
-    #     '''这个东西的难点在于,移除item会导致index对不上,从而导致移空'''
-    #     def removeChild(item:QStandardItem):
-    #         return item.parent().takeRow(item.row())#takeRow先取出后appenrow,这个顺序非常重要!!!!
-    #     selectedIndexesLi=self.inputTree.selectedIndexes()
-    #     selectedItemLi=list(map(self.model.itemFromIndex,selectedIndexesLi))
-    #     drop_row=self.inputTree.indexAt(e.pos())
-    #     targetItem = self.model.itemFromIndex(drop_row)
-    #     if targetItem.parent()!=None:
-    #         targetItem=targetItem.parent()
-    #         if targetItem.parent()!=None:
-    #             targetItem = targetItem.parent()
-    #     removedItemLi=list(map(lambda x:removeChild(x),selectedItemLi))
-    #     nothin= list(map(lambda x: targetItem.appendRow(x),removedItemLi))
-    #     self.JSONsave()
-    #     # delog("onDrop",dbg=True)
-    #     e.ignore()
-    #
-    # def addEvents(self):
-    #     self.inputTree.doubleClicked.connect(self.onDoubleClick)
-    #     self.inputTree.dropEvent = self.onDrop
-    #     self.fileWatcher = QFileSystemWatcher()
-    #     self.fileWatcher.addPath(os.path.join(THIS_FOLDER, inputFileName))
-    #     self.fileWatcher.fileChanged.connect(self.JSONtoModel)
-    #     self.model.dataChanged.connect(self.JSONsave)
-    #     self.tagContent.textChanged.connect(self.JSONsave)
-    #
-    # def setupModel(self):
-    #     '''数据模型初始化'''
-    #     # https://github.com/daun4168/BobsSimulator/blob/0f4d13628f9c46fb87e0140eed4ec61489dbe661/Test/test.py
-    #     self.model=QStandardItemModel()
-    #     self.rootNode=self.model.invisibleRootItem()
-    #     self.rootNode.setDropEnabled(False)
-    #     self.rootNode.setEditable(False)
-    #     self.rootNode.setSelectable(False)
-    #     self.rootNode.setDragEnabled(False)
-    #     self.model.setHorizontalHeaderLabels([self.term["card_id"]+"+"+self.term["desc"]])
-    #     self.inputTree.setModel(self.model)
-    #     self.JSONtoModel()
-    #
-    # def loadJson(self):
-    #     self.data: json = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
-    # def deletItem(self):
-    #     LI=self.inputTree.selectedIndexes()
-    #     if len(LI)>0:
-    #         for i in range(len(LI)):
-    #             item=self.model.itemFromIndex(LI[i])
-    #             row=item.row()
-    #             col=item.column()
-    #             father=item.parent()
-    #             if father != None:
-    #                 father.removeRow(row)
-    #             else:
-    #                 self.rootNode.removeRow(row)
-    #     self.JSONsave()
-    # def toggleEXPorCOL(self):
-    #     if self.treeIsExpanded:
-    #         root=self.rootNode
-    #         tree=self.inputTree
-    #         for group in [self.rootNode.child(i) for i in range(root.rowCount())]:
-    #             list(map(lambda x: tree.collapse(x.index()),[group.child(i) for i in range(group.rowCount())]))
-    #         self.treeIsExpanded=False
-    #     else:
-    #         self.inputTree.expandAll()
-    #         self.treeIsExpanded=True
-    #
-    # # dbg = True
-    # def loadFromTreeSelected(self):
-    #     self.selectedData=copy.deepcopy(inputSchema)
-    #     LI = self.inputTree.selectedIndexes()
-    #     def tool(item:QStandardItem):
-    #         if item.level==1:
-    #             self.selectedData["IdDescPairs"].append([{
-    #                 "card_id":int(item.child(0).text()),
-    #                 "desc":item.child(1).text()
-    #             }])
-    #     if len(LI)>0:
-    #         itemLi=list(map(lambda x: self.model.itemFromIndex(x) , LI))
-    #         list(map(lambda x:tool(x) , itemLi))
-    #
-    #
-    # def loadFromTree(self):
-    #     self.data=copy.deepcopy(inputSchema)
-    #     self.data["addTag"]=self.tagContent.text()
-    #     if self.rootNode.rowCount()>0:#groups
-    #         for i in range(self.rootNode.rowCount()):#每个group
-    #             group:List=[]
-    #             self.data["IdDescPairs"].append(group)
-    #             for j in range(self.rootNode.child(i).rowCount()):#每个group中的pair个数
-    #                 try:
-    #                     pair:dict={
-    #                         "card_id":int(self.rootNode.child(i).child(j).child(0).text()),
-    #                         "desc":self.rootNode.child(i).child(j).child(1).text()
-    #                     }
-    #                     self.data["IdDescPairs"][i].append(pair)
-    #                 except:
-    #                     continue
-    #                     pass
-    # def JSONtoModel(self):
-    #     '''装载INPUT.JSON文件到表格'''
-    #     self.loadJson()
-    #     self.rootNode.clearData()
-    #     self.model.removeRows(0,self.model.rowCount())
-    #     _=self.term
-    #     for groupNum in range(0,len(self.data["IdDescPairs"])):
-    #         gpairs=self.data["IdDescPairs"][groupNum]
-    #         parent = QStandardItem(str(groupNum))
-    #         parent.level = 0
-    #         parent.setFlags(parent.flags()&~Qt.ItemIsEditable&~Qt.ItemIsDragEnabled&~Qt.ItemIsSelectable)
-    #         self.rootNode.appendRow([parent])
-    #         for pairNum in range(0,len(gpairs)):
-    #             pairs=gpairs[pairNum]
-    #             pairsItem=QStandardItem(_["pair"])
-    #             pairsItem.level = 1
-    #             pairsItem.setFlags(pairsItem.flags()&~Qt.ItemIsEditable&~Qt.ItemIsDropEnabled)
-    #             parent.appendRow([pairsItem])
-    #             child1 = QStandardItem(str(pairs[_["card_id"]]))
-    #             child2 = QStandardItem(pairs[_["desc"]])
-    #             child2.setFlags(child1.flags()&~Qt.ItemIsDropEnabled&~Qt.ItemIsDragEnabled&~Qt.ItemIsSelectable)
-    #             child1.setFlags(
-    #                 child2.flags()&
-    #                 ~Qt.ItemIsDropEnabled&
-    #                 ~Qt.ItemIsDragEnabled&
-    #                 ~Qt.ItemIsSelectable&
-    #                 ~Qt.ItemIsEditable)#不可拖拽不可选中不可编辑
-    #             child1.level = child2.level = 2
-    #             pairsItem.appendRow([child1])
-    #             pairsItem.appendRow([child2])
-    #     self.tagContent.setText(self.data[_["addTag"]])
-    #     self.lastrowcount = self.rootNode.rowCount()
-    #     self.inputTree.expandAll()
-    #     self.treeIsExpanded=True
-    #     # delog("JSON读取到模型完毕",dbg=True)
-    #
-    # def JSONsave(self):
-    #     '''数据保存'''
-    #     self.loadFromTree()
-    #     json.dump(self.data,
-    #               open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"),
-    #               indent=4,
-    #               ensure_ascii=False)
-    #     # delog("JSONsave完成",dbg=True)
-    #
-    # def closeEvent(self, QCloseEvent):
-    #     '''关闭时要保存数据'''
-    #     mw.InputDialog=None
-    #     if len(self.data["IdDescPairs"])>0:
-    #         self.JSONsave()
-    #     else:
-    #         destroyFuntion()
+    def selectedLink(self,mode:int=999):
+        # delog("开启selected LINK",dbg=True)
+        self.loadFromTreeSelected()
+        setupFunction(mode=mode,inputJSON=self.selectedData)
+        pass
+
+    def contextMenuOnInputTree(self,prefix="hjp-bilink|"):
+        '''设置右键菜单'''
+        self.inputTree.contextMenu = QMenu(self)
+        self.inputTree.contextMenu.addAction(f"{prefix} '全部展开/折叠'").triggered.connect(self.toggleEXPorCOL)
+        self.inputTree.contextMenu.addAction(f"{prefix}'选中删除'").triggered.connect(self.deletItem)
+        contexthelper(None,self.inputTree.contextMenu,need=["link","clear"])
+        selectedLinkMenu = self.inputTree.contextMenu.addMenu(f"{prefix}'选中连接'")
+        def connectMenu(Menu:QMenu,desc:str,mode:int):
+            Menu.addAction(desc).triggered.connect(lambda _ : self.selectedLink(mode=mode))
+        list(map(lambda x,y:connectMenu(selectedLinkMenu,x,y),algPathDict["desc"],algPathDict["mode"]))
+
+        self.inputTree.contextMenu.popup(QCursor.pos())
+        self.inputTree.contextMenu.show()
+    def onDoubleClick(self,index):
+        item=self.model.itemFromIndex(index)
+        showInfo(currentLang)
+
+    # '''暂时先不搞这个bug,太难了.___20210124021251搞定了!'''
+    # https://stackoverflow.com/questions/26227885/drag-and-drop-rows-within-qtablewidget
+    def onDrop(self, e:QDropEvent):
+        '''这个东西的难点在于,移除item会导致index对不上,从而导致移空'''
+        def removeChild(item:QStandardItem):
+            return item.parent().takeRow(item.row())#takeRow先取出后appenrow,这个顺序非常重要!!!!
+        selectedIndexesLi=self.inputTree.selectedIndexes()
+        selectedItemLi=list(map(self.model.itemFromIndex,selectedIndexesLi))
+        drop_row=self.inputTree.indexAt(e.pos())
+        targetItem = self.model.itemFromIndex(drop_row)
+        if targetItem.parent()!=None:
+            targetItem=targetItem.parent()
+            if targetItem.parent()!=None:
+                targetItem = targetItem.parent()
+        removedItemLi=list(map(lambda x:removeChild(x),selectedItemLi))
+        nothin= list(map(lambda x: targetItem.appendRow(x),removedItemLi))
+        self.JSONsave()
+        # delog("onDrop",dbg=True)
+        e.ignore()
+
+    def addEvents(self):
+        self.inputTree.doubleClicked.connect(self.onDoubleClick)
+        self.inputTree.dropEvent = self.onDrop
+        self.fileWatcher = QFileSystemWatcher()
+        self.fileWatcher.addPath(os.path.join(THIS_FOLDER, inputFileName))
+        self.fileWatcher.fileChanged.connect(self.JSONtoModel)
+        self.model.dataChanged.connect(self.JSONsave)
+        self.tagContent.textChanged.connect(self.JSONsave)
+
+    def setupModel(self):
+        '''数据模型初始化'''
+        # https://github.com/daun4168/BobsSimulator/blob/0f4d13628f9c46fb87e0140eed4ec61489dbe661/Test/test.py
+        self.model=QStandardItemModel()
+        self.rootNode=self.model.invisibleRootItem()
+        self.rootNode.setDropEnabled(False)
+        self.rootNode.setEditable(False)
+        self.rootNode.setSelectable(False)
+        self.rootNode.setDragEnabled(False)
+        self.model.setHorizontalHeaderLabels([self.term["card_id"]+"+"+self.term["desc"]])
+        self.inputTree.setModel(self.model)
+        self.JSONtoModel()
+
+    def loadJson(self):
+        self.data: json = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
+    def deletItem(self):
+        LI=self.inputTree.selectedIndexes()
+        if len(LI)>0:
+            for i in range(len(LI)):
+                item=self.model.itemFromIndex(LI[i])
+                row=item.row()
+                col=item.column()
+                father=item.parent()
+                if father != None:
+                    father.removeRow(row)
+                else:
+                    self.rootNode.removeRow(row)
+        self.JSONsave()
+    def toggleEXPorCOL(self):
+        if self.treeIsExpanded:
+            root=self.rootNode
+            tree=self.inputTree
+            for group in [self.rootNode.child(i) for i in range(root.rowCount())]:
+                list(map(lambda x: tree.collapse(x.index()),[group.child(i) for i in range(group.rowCount())]))
+            self.treeIsExpanded=False
+        else:
+            self.inputTree.expandAll()
+            self.treeIsExpanded=True
+
+    # dbg = True
+    def loadFromTreeSelected(self):
+        self.selectedData=copy.deepcopy(inputSchema)
+        LI = self.inputTree.selectedIndexes()
+        def tool(item:QStandardItem):
+            if item.level==1:
+                self.selectedData["IdDescPairs"].append([{
+                    "card_id":int(item.child(0).text()),
+                    "desc":item.child(1).text()
+                }])
+        if len(LI)>0:
+            itemLi=list(map(lambda x: self.model.itemFromIndex(x) , LI))
+            list(map(lambda x:tool(x) , itemLi))
+
+
+    def loadFromTree(self):
+        self.data=copy.deepcopy(inputSchema)
+        self.data["addTag"]=self.tagContent.text()
+        if self.rootNode.rowCount()>0:#groups
+            for i in range(self.rootNode.rowCount()):#每个group
+                group:List=[]
+                self.data["IdDescPairs"].append(group)
+                for j in range(self.rootNode.child(i).rowCount()):#每个group中的pair个数
+                    try:
+                        pair:dict={
+                            "card_id":int(self.rootNode.child(i).child(j).child(0).text()),
+                            "desc":self.rootNode.child(i).child(j).child(1).text()
+                        }
+                        self.data["IdDescPairs"][i].append(pair)
+                    except:
+                        continue
+                        pass
+    def JSONtoModel(self):
+        '''装载INPUT.JSON文件到表格'''
+        self.loadJson()
+        self.rootNode.clearData()
+        self.model.removeRows(0,self.model.rowCount())
+        _=self.term
+        for groupNum in range(0,len(self.data["IdDescPairs"])):
+            gpairs=self.data["IdDescPairs"][groupNum]
+            parent = QStandardItem(str(groupNum))
+            parent.level = 0
+            parent.setFlags(parent.flags()&~Qt.ItemIsEditable&~Qt.ItemIsDragEnabled&~Qt.ItemIsSelectable)
+            self.rootNode.appendRow([parent])
+            for pairNum in range(0,len(gpairs)):
+                pairs=gpairs[pairNum]
+                pairsItem=QStandardItem(_["pair"])
+                pairsItem.level = 1
+                pairsItem.setFlags(pairsItem.flags()&~Qt.ItemIsEditable&~Qt.ItemIsDropEnabled)
+                parent.appendRow([pairsItem])
+                child1 = QStandardItem(str(pairs[_["card_id"]]))
+                child2 = QStandardItem(pairs[_["desc"]])
+                child2.setFlags(child1.flags()&~Qt.ItemIsDropEnabled&~Qt.ItemIsDragEnabled&~Qt.ItemIsSelectable)
+                child1.setFlags(
+                    child2.flags()&
+                    ~Qt.ItemIsDropEnabled&
+                    ~Qt.ItemIsDragEnabled&
+                    ~Qt.ItemIsSelectable&
+                    ~Qt.ItemIsEditable)#不可拖拽不可选中不可编辑
+                child1.level = child2.level = 2
+                pairsItem.appendRow([child1])
+                pairsItem.appendRow([child2])
+        self.tagContent.setText(self.data[_["addTag"]])
+        self.lastrowcount = self.rootNode.rowCount()
+        self.inputTree.expandAll()
+        self.treeIsExpanded=True
+        # delog("JSON读取到模型完毕",dbg=True)
+
+    def JSONsave(self):
+        '''数据保存'''
+        self.loadFromTree()
+        json.dump(self.data,
+                  open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"),
+                  indent=4,
+                  ensure_ascii=False)
+        # delog("JSONsave完成",dbg=True)
+
+    def closeEvent(self, QCloseEvent):
+        '''关闭时要保存数据'''
+        mw.InputDialog=None
+        if len(self.data["IdDescPairs"])>0:
+            self.JSONsave()
+        else:
+            destroyFuntion()
 
 
 class Link(object):
@@ -652,6 +652,96 @@ def AddToEditorContextMenu(view:AnkiWebView,menu:QMenu):
     contexthelper(view,menu,selected=selected,card_id=card_id,need=["append","open","clear"])
 
 
+
+class delog(object):
+    """做到区分通知用户的一般消息和debug消息"""
+    def __init__(self,t:str,logdir=os.path.join(THIS_FOLDER, logFileName),func=tooltip,dbg=False):#for debug
+        self.message=t
+        self.logDir=logdir
+        self.needLog=True
+        self.needDebug=True
+        self.isDebuger=dbg
+        self.func=func
+        if not self.isDebuger:
+            self.func(self.message)
+        if self.isDebuger and self.needDebug:
+            self.func(self.message)
+            if self.needLog:
+                self.toLogtxt()
+
+    def toLogtxt(self):
+        flog=open(self.logDir,"a",encoding="utf8")
+        flog.write(datetime.datetime.now().strftime("%Y/%m/%d-%H:%M:%S")+f" {consolerName}:"+self.message+"\n")
+        flog.flush()
+        flog.close()
+
+class __(object):
+    """有必要时翻译成英语 zh-CN,zh_TW,en,en-GB """
+def rosetta(text:str=""):
+    # return text
+    lang=currentLang
+
+    surrport=["zh-CN","zh_TW","en","en-GB"]
+    def En(text):
+        return Endict[text]
+
+    def Zh(text):
+        return text
+    if not (lang in surrport):
+        lang="en"
+    Endict ={
+        "默认连接":"default",
+        "完全图连接":"completeMap",
+        "组到组连接":"groupBygroup",
+        "按结点取消连接":"unlinkByNode",
+        "按路径取消连接":"unlinkByPath",
+        "由于这里无法读取card_id, 连接菜单不在这显示":"Since card_id cannot be read here, the  menu is not displayed here",
+        "先清除再将选中卡片插入":"clearInputBeforeInsert",
+        "将选中的卡片插入":"insertSelected",
+        "将选中的卡片编组插入":"insertAsGroup",
+        "调整config":"configuration",
+        "查看版本":"version",
+        "打开插件页面":"openWebSite",
+        "连接":"link",
+        "清空":"clear",
+        "打开":"open",
+        "插入":"Insert",
+        "选中文字更新标签":"updateTagBySelectedString",
+        "先清除再插入":"clearInputBefore",
+        "直接":"directly",
+        "标签":"tag",
+        "已经更新到":"updatedTo",
+        "已经被插入到":"insertedTo",
+        "上一个组":"LastGroup",
+        "张卡被加入到":"cardsInsertedTo",
+        "没有选中任何卡片!":"selectedNothing!",
+        "正则读取描述字符失败!":"loadDescByRegexFailed",
+        '初始化完毕':"initialized",
+        "操作完成":"operationFinished",
+        "链接失败,组连接至少需要两个组!":"linkFailed,groupBygroup Link need at least 2 groups",
+        "input中没有数据！":"no data in input",
+        '全部展开/折叠':"Expand/Collapse All",
+        '选中删除':"deleteSelected",
+        "选中连接":"linkSelected"
+    }
+    translateFuncs = {
+        "en":En,
+        "en-GB": En,
+        "zh-CN":Zh,
+        "zh-TW":Zh,
+    }
+    delog(f"lang={lang}", dbg=True)
+    text = translateFuncs[lang](text)
+    return text
+
+# def algdesc():
+#     return list(map(lambda x:译(x),["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"]))
+
+
+hjp_bilink_VERSION=re.search("(?<=- # hjp-bilink V\")[\w\.]+(?=\")",open(os.path.join(THIS_FOLDER,helpFileName),"r", encoding="utf-8").read())[0]
+
+# delog("linkTool.py运行完",dbg=True)
+# delog(_translate("标签"))
 
 gui_hooks.browser_menus_did_init.append(setUpBrowserMenuShortcut)
 gui_hooks.browser_will_show_context_menu.append(AddToTableContextMenu)
