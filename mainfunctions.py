@@ -1,5 +1,5 @@
-from aqt.utils import showInfo, tooltip
 from aqt.browser import Browser
+from aqt.utils import showInfo
 
 
 def func_config():
@@ -43,7 +43,15 @@ def func_linkStarter(mode=999):
     showInfo("hello")
 
 
-def func_browserCopy(browser: Browser, need: list = None):
+def func_browserInsert(browser: Browser, need: tuple = None):
     """专门用于browser界面的id拷贝
     need: group , clear
+    """
+
+
+def func_singleInsert(card_id: int = 0, desc: str = "", need: tuple = None):
+    """
+    @param card_id:
+    @param desc:
+    @param need: clear , last,  tag
     """
