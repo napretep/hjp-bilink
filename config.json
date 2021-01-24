@@ -14,6 +14,6 @@
     "addTagEnable": 1,
     "addTagRoot": "hjp-bilink",
     "DEFAULT":{
-    	"regexForDescContent":"((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().]+|(?<=src=\")[\\w\\-\\.]+)"
+    	"regexForDescContent":"((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=\")[\\w\\-\\.]+)"
     }
 }
