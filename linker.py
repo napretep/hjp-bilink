@@ -623,9 +623,9 @@ def AddToEditorContextMenu(view:AnkiWebView,menu:QMenu):
 
 
 
-gui_hooks.browser_menus_did_init.append(setUpBrowserMenuShortcut)
-gui_hooks.browser_will_show_context_menu.append(AddToTableContextMenu)
-gui_hooks.profile_will_close.append(destroyFuntion)
-gui_hooks.editor_will_show_context_menu.append(AddToEditorContextMenu)
-gui_hooks.webview_will_show_context_menu.append(AddToWebviewContextMenu)
+# gui_hooks.browser_menus_did_init.append(setUpBrowserMenuShortcut)
+# gui_hooks.browser_will_show_context_menu.append(AddToTableContextMenu)
+# gui_hooks.profile_will_close.append(destroyFuntion)
+# gui_hooks.editor_will_show_context_menu.append(AddToEditorContextMenu)
+# gui_hooks.webview_will_show_context_menu.append(AddToWebviewContextMenu)
 delog("linker.py运行完",dbg=True)

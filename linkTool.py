@@ -40,13 +40,13 @@ class delog(object):
 
     def toLogtxt(self):
         flog=open(self.logDir,"a",encoding="utf8")
-        flog.write(datetime.datetime.now().strftime("%Y%m%d%H%M%S")+f" {consolerName}:"+self.message+"\n")
+        flog.write(datetime.datetime.now().strftime("%Y/%m/%d-%H:%M:%S")+f" {consolerName}:"+self.message+"\n")
         flog.flush()
         flog.close()
 
 class __(object):
     """有必要时翻译成英语 zh-CN,zh_TW,en,en-GB """
-def __(text:str=""):
+def 译(text:str=""):
     # return text
     lang=currentLang
 
@@ -99,13 +99,14 @@ def __(text:str=""):
         "zh-CN":Zh,
         "zh-TW":Zh,
     }
-    delog(lang, dbg=True)
+    delog(f"lang={lang}", dbg=True)
     text = translateFuncs[lang](text)
     return text
 
-
+def algdesc():
+    return list(map(lambda x:译(x),["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"]))
 algPathDict={
-    "desc":list(map(lambda x:__(x),["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"])),
+    "desc":["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"],
     "mode":[999,0,1,2,3]
 }
 
