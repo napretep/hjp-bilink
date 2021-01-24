@@ -5,23 +5,40 @@ from .language import rosetta as say
 from .mainfunctions import *
 
 
-def func_browser_link(menu: QMenu, parent: QObject = None):
-    """链接类函数集合"""
+def func_menuAddBrowserInsert(menu: QMenu,browser:Browser):
+    """browser插入类函数集合"""
+    menuNameLi=list(map(lambda x:say(x),["清除后选中卡片插入","将选中卡片插入","将选中卡片编组插入"]))
+    need=["","group","clear"]
+    linkmenu = menu.addMenu(say("插入"))
+    list(map(lambda x,y:linkmenu.addAction(x).triggered.connect(lambda :func_browserCopy(browser,need=[y])), menuNameLi,need))
+    pass
+
+
+def func_menuAddLink(menu: QMenu):
+    """连接类函数集合
+    @param menu:
+    @type menu:
+    """
     menuNameLi = list(map(lambda x: say(x), ["默认连接", "完全图连接", "组到组连接", "按结点取消连接", "按路径取消连接"]))
     linkmenu = menu.addMenu(say("连接"))
-    list(map(lambda x: linkmenu.addAction(x), menuNameLi))
 
+    modeLi = [999, 0, 1, 2, 3]
+    list(
+        map(lambda x, y: linkmenu.addAction(x).triggered.connect(lambda: func_linkStarter(mode=y)), menuNameLi, modeLi))
 
 
 func_dict_need = {
-    "browserlink": func_browser_link
+    "link": func_menuAddLink,
+    "browserinsert": func_menuAddBrowserInsert
 }
 
 
-def func_menuhelper(menu: QMenu, parent: QObject = None, need: list = None):
+def func_menuAddHelper(menu: QMenu, parent:Union[Browser,QObject] = None, need: list = None):
     """提供大部分类似的按钮添加操作帮助"""
-    if "browserlink" in need:
-        func_dict_need["browserlink"](menu, parent)
+    if "link" in need:
+        func_dict_need["link"](menu)
+    if "browserinsert" in need:
+        func_dict_need["browserinsert"](menu,parent)
     pass
 
 
@@ -35,7 +52,7 @@ def func_add_browsermenu(browser: Browser):
     '''
     连接:5个,插入:3个,打开,清空,配置,版本,帮助
     '''
-    func_menuhelper(menu, need=["browserlink"])
+    func_menuAddHelper(menu,browser, need=["link", "browserinsert"])
 
 
 gui_hooks.browser_menus_did_init.append(func_add_browsermenu)
