@@ -6,8 +6,6 @@ import os, sys, datetime, json, re,copy
 
 from anki.lang import *
 
-
-
 helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"
 configFileName = "config.json"
@@ -46,7 +44,7 @@ class delog(object):
 
 class __(object):
     """有必要时翻译成英语 zh-CN,zh_TW,en,en-GB """
-def 译(text:str=""):
+def _translate(text:str=""):
     # return text
     lang=currentLang
 
@@ -104,7 +102,7 @@ def 译(text:str=""):
     return text
 
 def algdesc():
-    return list(map(lambda x:译(x),["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"]))
+    return list(map(lambda x:_translate(x),["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"]))
 algPathDict={
     "desc":["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"],
     "mode":[999,0,1,2,3]

@@ -18,7 +18,7 @@ from enum import Enum
 from operator import itemgetter
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 from anki import hooks
-# from .input import Ui_input
+from .input import Ui_input
 
 class InputDialog(QDialog,Ui_input):
     def __init(self, parent=None):
