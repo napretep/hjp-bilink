@@ -101,8 +101,8 @@ def _translate(text:str=""):
     text = translateFuncs[lang](text)
     return text
 
-def algdesc():
-    return list(map(lambda x:_translate(x),["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"]))
+# def algdesc():
+#     return list(map(lambda x:译(x),["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"]))
 algPathDict={
     "desc":["默认连接","完全图连接","组到组连接","按结点取消连接","按路径取消连接"],
     "mode":[999,0,1,2,3]
@@ -110,4 +110,5 @@ algPathDict={
 
 hjp_bilink_VERSION=re.search("(?<=- # hjp-bilink V\")[\w\.]+(?=\")",open(os.path.join(THIS_FOLDER,helpFileName),"r", encoding="utf-8").read())[0]
 
-delog("linkTool.py运行完",dbg=True)
+# delog("linkTool.py运行完",dbg=True)
+# delog(_translate("标签"))

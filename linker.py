@@ -301,7 +301,7 @@ class Link(object):
         for cidpair in cidli:
             note=self.getCardNoteFromId(cidpair["card_id"])
             note.addTag(tag)
-            # note.flush() 临时注释
+            note.flush()
         self.tag=tag
 
     def appendIDtoNote(self, note, IdDescPair, dir : str = "→"):
@@ -323,7 +323,7 @@ class Link(object):
             showInfo(f"{consolerName}:'正则读取描述字符失败!'")
             return
         note.fields[self.fieldPosi] += f"<button card_id='{Id}' dir = '{dir}' style='font-size:inherit;{style}'>{direction}{Desc} {self.prefix}{Id}</button>\n"
-        # note.flush() 临时注释
+        note.flush()
 
     def getCardIDfromNote(self, id : int) -> List[str]:
         note = self.getCardNoteFromId(id)
@@ -394,11 +394,11 @@ class Link(object):
             for link in linkli:
                 note = self.getCardNoteFromId(int(link))  # 链到的卡片上找自己
                 note.fields[self.fieldPosi] = self.delAnchor(id,note)
-                # note.flush() 临时注释
+                note.flush()
                 note = self.getCardNoteFromId(idp["card_id"])
 
                 note.fields[self.fieldPosi] = self.delAnchor(link,note)
-                # note.flush() 临时注释
+                note.flush()
         # delog(f"{consolerName}:已按节点取消彼此链接",dbg=True)
 
     def unlinkPath(self):
@@ -409,9 +409,9 @@ class Link(object):
             noteA = self.getCardNoteFromId(idA)
             noteB = self.getCardNoteFromId(idB)
             noteB.fields[self.fieldPosi] = self.delAnchor(str(idA),noteB) #content
-            # noteB.flush() 临时注释
+            noteB.flush()
             noteA.fields[self.fieldPosi] = self.delAnchor(str(idB),noteA)
-            # noteA.flush() 临时注释
+            noteA.flush()
         # delog(f"{consolerName}:已按路径取消路径节点上的彼此链接",dbg=True)
 
 
@@ -628,4 +628,4 @@ gui_hooks.browser_will_show_context_menu.append(AddToTableContextMenu)
 gui_hooks.profile_will_close.append(destroyFuntion)
 gui_hooks.editor_will_show_context_menu.append(AddToEditorContextMenu)
 gui_hooks.webview_will_show_context_menu.append(AddToWebviewContextMenu)
-# delog("linker.py运行完",dbg=True)
+# tooltip("linker.py运行完")
