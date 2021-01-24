@@ -14,10 +14,10 @@ from .utils import *
 
 class InputDialog(QDialog, Ui_input):
     """INPUT对话窗口类"""
+    model: Union[QStandardItemModel, QStandardItemModel]
 
     def __init__(self, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        showInfo("mw.InputDialog=self")
         mw.InputDialog = self
         self.selectedData = copy.deepcopy(inputSchema)
         self.data = copy.deepcopy(inputSchema)
@@ -40,6 +40,7 @@ class InputDialog(QDialog, Ui_input):
         list(map(lambda x, y: Menu.addAction(x).triggered.connect(y), menuli, funcli))
         MenuAdder.func_menuAddHelper(Menu, self, need=("link", "clear/open", "prefix", "selected"))
 
+    # noinspection PyAttributeOutsideInit
     def initEvents(self):
         """事件的初始化"""
         self.closeEvent = self.onclose
@@ -52,6 +53,7 @@ class InputDialog(QDialog, Ui_input):
         self.tagContent.textChanged.connect(self.data_saveJSONToFile)
 
     def initModel(self):
+        """模型数据的初始化"""
         self.model = QStandardItemModel()
         self.rootNode = self.model.invisibleRootItem()
         self.rootNode.setDropEnabled(False)
@@ -73,7 +75,7 @@ class InputDialog(QDialog, Ui_input):
         pass
 
     def onclose(self, QCloseEvent):
-        '''关闭时要保存数据'''
+        """关闭时要保存数据"""
         mw.InputDialog = None
 
     def onDoubleClick(self):

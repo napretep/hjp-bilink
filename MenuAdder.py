@@ -69,7 +69,7 @@ def func_menuAddSingleInsert(menu: QMenu, card_id=0, selected="", need: tuple = 
 
 def func_menuAddHelper(
         menu: QMenu,
-        parent: Union[Browser, QObject, EditorWebView] = None,
+        parent: Union[Browser, QObject, EditorWebView, InputDialog] = None,
         need: tuple = ("none",),
         card_id: int = 0,
         selected: str = ""):
