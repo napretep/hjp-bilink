@@ -1,7 +1,7 @@
 """
 专门用来加按钮的文件
 """
-from aqt import gui_hooks, mw
+from aqt import gui_hooks
 from aqt.editor import EditorWebView
 from aqt.webview import AnkiWebView
 
@@ -31,10 +31,14 @@ def func_menuAddLink(menu: QMenu, need: tuple = ("none",)):
     menuNameLi = list(map(lambda x: say(x), ["默认连接", "完全图连接", "组到组连接", "按结点取消连接", "按路径取消连接"]))
     prefix = "" if "prefix" not in need else consolerName
     linkmenu = menu.addMenu(prefix + say("连接"))
-
     modeLi = [999, 0, 1, 2, 3]
-    list(
-        map(lambda x, y: linkmenu.addAction(x).triggered.connect(lambda: func_linkStarter(mode=y)), menuNameLi, modeLi))
+    list(map(
+        lambda x, y: linkmenu.addAction(x).triggered.connect(lambda: func_linkStarter(mode=y)), menuNameLi, modeLi))
+    if "selected" in need:
+        linkmenu2 = menu.addMenu(prefix + say("选中连接"))
+        list(map(
+            lambda x, y: linkmenu2.addAction(x).triggered.connect(
+                lambda: func_linkStarter(mode=y, need=need)), menuNameLi, modeLi))
 
 
 def func_menuAddClearOpen(menu: QMenu, need: tuple = ("none",)):

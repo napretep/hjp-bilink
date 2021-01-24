@@ -1,5 +1,8 @@
+from aqt import mw
 from aqt.browser import Browser
 from aqt.utils import showInfo
+
+from .InputDialog import InputDialog
 
 
 def func_config():
@@ -15,6 +18,12 @@ def func_help():
 
 
 def func_openInput():
+    if hasattr(mw, "InputDialog"):
+        mw.InputDialog.activateWindow()
+    else:
+        mw.InputDialog = InputDialog()
+        mw.InputDialog.exec()
+        mw.activateWindow()
     """返回input窗口"""
 
 
@@ -38,8 +47,12 @@ def func_unlinkByPath():
     """按路径取消连接"""
 
 
-def func_linkStarter(mode=999):
+def func_linkStarter(mode=999, need: tuple = ("none",)):
     """开始连接的入口,预处理,根据模式选择一种连接算法"""
+    if "seleted" in need:
+        """如果是选中模式,直接读取dict"""
+        pass
+
     showInfo("hello")
 
 

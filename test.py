@@ -1,31 +1,23 @@
+# import win32.win32clipboard as clipboard
+# import the main window object (mw) from aqt
+import copy
+import datetime
+import json
+from typing import List
+
+from anki.lang import *
 from anki.notes import Note
+from aqt import dialogs
+from aqt import mw, gui_hooks, browser
 from aqt.browser import Browser
-from aqt import mw, gui_hooks, browser, AnkiQt
 # from html.parser import HTMLParser
-from aqt.reviewer import Reviewer
-from aqt.editor import EditorWebView
 # from .linkTool import *
 # from .linkTool import _translate
 from aqt.qt import *
-from aqt import dialogs
-from aqt.webview import AnkiWebView
-from aqt.previewer import Previewer
-from anki.cards import Card
-import os, sys, datetime, json, re,copy
-from PyQt5 import QtCore, QtGui, QtWidgets
-from dataclasses import dataclass
-from enum import Enum
-from operator import itemgetter
-from typing import Callable, List, Optional, Sequence, Tuple, Union
-from anki import hooks
-from .input import Ui_input
-
 from aqt.utils import showInfo, tooltip
-# import win32.win32clipboard as clipboard
-# import the main window object (mw) from aqt
-import os, sys, datetime, json, re,copy
+from aqt.webview import AnkiWebView
 
-from anki.lang import *
+from .inputUI import Ui_input
 
 helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"
@@ -45,23 +37,23 @@ algPathDict={
 }
 
 class InputDialog(QDialog,Ui_input):
-    def __init(self, parent=None):
-        QDialog.__init(self,parent)
-        self.selectedData=copy.deepcopy(inputSchema)
-        mw.InputDialog=self
-        self.term={
-        "pair":"pair",
-        "card_id":"card_id",
-        "desc":"desc",
-        "addTag":"addTag"
+    def __init__(self, parent=None):
+        QDialog.__init(self, parent)
+        self.selectedData = copy.deepcopy(inputSchema)
+        mw.InputDialog = self
+        self.term = {
+            "pair": "pair",
+            "card_id": "card_id",
+            "desc": "desc",
+            "addTag": "addTag"
         }
-        self.row=0
-        self.cols=["group","desc","card_id"]
+        self.row = 0
+        self.cols = ["group", "desc", "card_id"]
         self.initUI()
-        # self.setupModel()
-        # self.addEvents()
-        self.treeIsChanging=False
-        self.show()#光show没用,还得实例化后加一个exec()
+        self.setupModel()
+        self.addEvents()
+        self.treeIsChanging = False
+        self.show()  # 光show没用,还得实例化后加一个exec()
         showInfo("__init__调用完成")  # debug
 
     def initUI(self):
