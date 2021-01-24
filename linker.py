@@ -18,7 +18,7 @@ from enum import Enum
 from operator import itemgetter
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 from anki import hooks
-# from .input import Ui_input
+from .input import Ui_input
 
 class InputDialog(QDialog,Ui_input):
     def __init(self, parent=None):
@@ -47,7 +47,7 @@ class InputDialog(QDialog,Ui_input):
         self.inputTree.customContextMenuRequested.connect(self.contextMenuOnInputTree)
 
     def selectedLink(self,mode:int=999):
-        delog("开启selected LINK",dbg=True)
+        # delog("开启selected LINK",dbg=True)
         self.loadFromTreeSelected()
         setupFunction(mode=mode,inputJSON=self.selectedData)
         pass
@@ -86,7 +86,7 @@ class InputDialog(QDialog,Ui_input):
         removedItemLi=list(map(lambda x:removeChild(x),selectedItemLi))
         nothin= list(map(lambda x: targetItem.appendRow(x),removedItemLi))
         self.JSONsave()
-        delog("onDrop",dbg=True)
+        # delog("onDrop",dbg=True)
         e.ignore()
 
     def addEvents(self):
@@ -203,7 +203,7 @@ class InputDialog(QDialog,Ui_input):
         self.lastrowcount = self.rootNode.rowCount()
         self.inputTree.expandAll()
         self.treeIsExpanded=True
-        delog("JSON读取到模型完毕",dbg=True)
+        # delog("JSON读取到模型完毕",dbg=True)
 
     def JSONsave(self):
         '''数据保存'''
@@ -212,7 +212,7 @@ class InputDialog(QDialog,Ui_input):
                   open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"),
                   indent=4,
                   ensure_ascii=False)
-        delog("JSONsave完成",dbg=True)
+        # delog("JSONsave完成",dbg=True)
 
     def closeEvent(self, QCloseEvent):
         '''关闭时要保存数据'''
@@ -225,13 +225,13 @@ class InputDialog(QDialog,Ui_input):
 
 class Link(object):
     def __init(self, path, cfgpath, relycfgpath, prefix_cid="prefix_cid", defaultMode=999,_from=None,inputJSON=None):
-        delog("Link启动",dbg=True)
+        # delog("Link启动",dbg=True)
         self.path = path
         self.cfgpath = cfgpath
         self.confg = json.load(open(cfgpath, "r", encoding="utf-8"))
         self.relycfg = json.load(open(relycfgpath, "r", encoding="utf-8"))
         self.tag=""
-        delog(f"linkmode={str(self.confg['linkMode'])},defaultMode={defaultMode},",dbg=True)
+        # delog(f"linkmode={str(self.confg['linkMode'])},defaultMode={defaultMode},",dbg=True)
         if defaultMode == 999:
             self.mode = self.confg["linkMode"]
         else:
@@ -266,19 +266,19 @@ class Link(object):
         self.fdata["addTag"]=fdata["addTag"]
 
     def start(self):
-        delog("linkstart启动",dbg=True)
+        # delog("linkstart启动",dbg=True)
         if mw.state == "review":
             mw.reviewer.cleanup()
         if len(self.fdata["IdDescPairs"]) == 0 and len(self.fdata["IdDescGroups"]) == 0:
             showInfo("input中没有数据！")
             return
-        delog("linkstart启动2",dbg=True)
-        delog(f"{consolerName}:mode=" + str(int(self.mode)) + ",链接开始",dbg=True)
+        # delog("linkstart启动2",dbg=True)
+        # delog(f"{consolerName}:mode=" + str(int(self.mode)) + ",链接开始",dbg=True)
         self.mapFuncPath[self.mode]()
-        delog("linkstart启动3",dbg=True)
+        # delog("linkstart启动3",dbg=True)
         if self.confg["addTagEnable"]==1:
             if self.mode<len(self.mapFuncPath):self.appendTagForAllNote()
-        delog(f"{consolerName}:链接结束!",dbg=True)
+        # delog(f"{consolerName}:链接结束!",dbg=True)
 
         if mw.state == "review":
             mw.reviewer.show()
@@ -294,7 +294,7 @@ class Link(object):
         tagbase = self.confg["addTagRoot"]+"::"
         tagtail = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         cidli = self.fdata["IdDescPairs"]
-        delog(f"这里是appendTagForAllNote,fdata['addTag']={self.fdata['addTag']}",dbg=True)
+        # delog(f"这里是appendTagForAllNote,fdata['addTag']={self.fdata['addTag']}",dbg=True)
         if self.fdata["addTag"]!="":
             tagtail=self.fdata["addTag"]
         tag=tagbase+tagtail
@@ -367,13 +367,13 @@ class Link(object):
                 IdB = linkcid["card_id"]
                 if IdA != IdB and (re.search(str(IdB), note.fields[fieldPosi]) is None):
                     self.appendIDtoNote(note, linkcid)
-        delog(f"{consolerName}:已按完全图完成链接",dbg=True)
+        # delog(f"{consolerName}:已按完全图完成链接",dbg=True)
 
     def groupBygroup(self):
         '''
         将其首尾分段相连A-B-C
         '''
-        delog("我在完全图连接中",dbg=True)
+        # delog("我在完全图连接中",dbg=True)
         cidli = self.fdata["IdDescGroups"]
         placeholder = {"card_id": 0, "desc": ""}
         if len(cidli) < 2:
@@ -384,7 +384,7 @@ class Link(object):
                 liA = cidli[i]
                 liB = cidli[i + 1]
                 self.AmapB(liA, liB)
-        delog(f"{consolerName}:已按组完成链接",dbg=True)
+        # delog(f"{consolerName}:已按组完成链接",dbg=True)
 
     def unlinkNode(self):
         idpli = self.fdata["IdDescPairs"]
@@ -399,7 +399,7 @@ class Link(object):
 
                 note.fields[self.fieldPosi] = self.delAnchor(link,note)
                 # note.flush() 临时注释
-        delog(f"{consolerName}:已按节点取消彼此链接",dbg=True)
+        # delog(f"{consolerName}:已按节点取消彼此链接",dbg=True)
 
     def unlinkPath(self):
         idpli = self.fdata["IdDescPairs"]
@@ -412,13 +412,13 @@ class Link(object):
             # noteB.flush() 临时注释
             noteA.fields[self.fieldPosi] = self.delAnchor(str(idB),noteA)
             # noteA.flush() 临时注释
-        delog(f"{consolerName}:已按路径取消路径节点上的彼此链接",dbg=True)
+        # delog(f"{consolerName}:已按路径取消路径节点上的彼此链接",dbg=True)
 
 
 
 
 def setupFunction(browser:Browser=None,_from=None,mode=999,inputJSON=None):
-    delog(f"setupFunction被启动,此时mode={mode}",dbg=True)
+    # delog(f"setupFunction被启动,此时mode={mode}",dbg=True)
     input = os.path.join(THIS_FOLDER, inputFileName)
     cfg = os.path.join(THIS_FOLDER, configFileName)
     relycfg = os.path.join(RELY_FOLDER, relyLinkConfigFileName)
@@ -431,7 +431,7 @@ def setupFunction(browser:Browser=None,_from=None,mode=999,inputJSON=None):
     browser.editor.setNote(None, hide=True)
     Linker = Link(input, cfg, relycfg, defaultMode=mode,_from=_from,inputJSON=inputJSON)
     tag=Linker.start()
-    delog(f"{consolerName}:'操作完成',tag={tag}")
+    # delog(f"{consolerName}:'操作完成',tag={tag}")
     # mw.onBrowse()
     browser.editor.setNote(None, hide=True) #用来刷新browser后避免编辑窗口中的数据滞后从而导致重新被修改.
     browser.model.layoutChanged.emit()
@@ -444,7 +444,7 @@ def destroyFuntion():
     json.dump(inputSchema,open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"),
                   indent=4,
                   ensure_ascii=False)
-    delog(f"{consolerName}:{inputFileName} '初始化完毕'")
+    # delog(f"{consolerName}:{inputFileName} '初始化完毕'")
 
 
 def getCardDesc(card_id:int,confg:object)->str:
@@ -480,7 +480,7 @@ def multicopyFunction(self, groupCopy :bool = False,desc : str ="",clearInput :b
     if len(group) > 0:
         s["IdDescPairs"].append(group)
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
-    delog(f"{consolerName}:"+str(len(browser.selectedCards())) + f" '张卡被加入到'input")
+    # delog(f"{consolerName}:"+str(len(browser.selectedCards())) + f" '张卡被加入到'input")
 
 
 def singlecopyFunction(card_id : int,groupCopy :bool = False,desc : str = "",clearInput : bool = False) -> None:
@@ -491,23 +491,23 @@ def singlecopyFunction(card_id : int,groupCopy :bool = False,desc : str = "",cle
     # showInfo(desc)
     desc1=desc if desc !="" else getCardDesc(card_id,confg)
     pair = {"card_id": card_id, "desc":desc1}
-    delog(f"{consolerName}:card=" + str(card_id) + ",desc=" + desc)
+    # delog(f"{consolerName}:card=" + str(card_id) + ",desc=" + desc)
     if groupCopy:
         try:
             s["IdDescPairs"][-1].append(pair)
         except:
             s["IdDescPairs"].append([pair])
-        delog(f"{consolerName}: {json.dumps(pair, ensure_ascii=False)} '已经被插入到''上一个组'")
+        # delog(f"{consolerName}: {json.dumps(pair, ensure_ascii=False)} '已经被插入到''上一个组'")
     else:
         s["IdDescPairs"].append([pair])
-        delog(f"{consolerName}:"+json.dumps(pair, ensure_ascii=False) + f" '已经被插入到'input")
+        # delog(f"{consolerName}:"+json.dumps(pair, ensure_ascii=False) + f" '已经被插入到'input")
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
 
 
 def copyTagFromSelected(tag):
     s = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
     s["addTag"]=tag
-    delog(f"{consolerName}:'标签'"+ "{"+f':"{tag}"' + "}"+f"'已经更新到'Input")
+    # delog(f"{consolerName}:'标签'"+ "{"+f':"{tag}"' + "}"+f"'已经更新到'Input")
     json.dump(s, open(os.path.join(THIS_FOLDER, inputFileName), "w", encoding="utf-8"), indent=4, ensure_ascii=False)
 
 
@@ -615,17 +615,17 @@ def AddToEditorContextMenu(view:AnkiWebView,menu:QMenu):
     selected: str = editor.web.selectedText()
     try:
         card_id=editor.card.id
-        #delog(f"cardid={str(card_id)}")
+#         #delog(f"cardid={str(card_id)}")
     except:
-        delog(f"{consolerName}:'由于这里无法读取card_id, 连接菜单不在这显示'")
+        # delog(f"{consolerName}:'由于这里无法读取card_id, 连接菜单不在这显示'")
         return
     contexthelper(view,menu,selected=selected,card_id=card_id,need=["append","open","clear"])
 
 
 
-# gui_hooks.browser_menus_did_init.append(setUpBrowserMenuShortcut)
-# gui_hooks.browser_will_show_context_menu.append(AddToTableContextMenu)
-# gui_hooks.profile_will_close.append(destroyFuntion)
-# gui_hooks.editor_will_show_context_menu.append(AddToEditorContextMenu)
-# gui_hooks.webview_will_show_context_menu.append(AddToWebviewContextMenu)
-delog("linker.py运行完",dbg=True)
+gui_hooks.browser_menus_did_init.append(setUpBrowserMenuShortcut)
+gui_hooks.browser_will_show_context_menu.append(AddToTableContextMenu)
+gui_hooks.profile_will_close.append(destroyFuntion)
+gui_hooks.editor_will_show_context_menu.append(AddToEditorContextMenu)
+gui_hooks.webview_will_show_context_menu.append(AddToWebviewContextMenu)
+# delog("linker.py运行完",dbg=True)
