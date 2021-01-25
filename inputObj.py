@@ -4,6 +4,7 @@
 import json
 from copy import deepcopy
 
+from anki.notes import Note
 from aqt import mw
 from aqt.main import AnkiQt
 
@@ -15,17 +16,19 @@ class Params:
     """参数对象"""
 
     def __init__(self,
-                 card_id: str = "0",
-                 desc: str = "",
-                 need: tuple = ("none",),
+                 card_id: str = None,
+                 desc: str = None,
+                 need: tuple = None,
                  parent=None,
                  menu=None,
+                 input=None
                  ):
         self.card_id = card_id
         self.desc = desc
         self.need = need
         self.parent = parent
         self.menu = menu
+        self.input = input
 
 
 class Pair:
@@ -86,12 +89,12 @@ class Input:
         helpUrl = QUrl(self.helpSite)
         QDesktopServices.openUrl(helpUrl)
 
-    def idDescPairExtract(self, cardLi: List[str] = None) -> List[dict]:
+    def pairExtract(self, cardLi: List[str] = None) -> List[dict]:
         """从卡片列表中读取卡片ID和desc."""
-        descLi: List[str] = list(map(lambda x: self.cardDescExtract(x), cardLi))
+        descLi: List[str] = list(map(lambda x: self.descExtract(x), cardLi))
         return list(map(lambda x, y: Pair(x, y).__dict__, cardLi, descLi))
 
-    def cardDescExtract(self, c: str = ""):
+    def descExtract(self, c: str = ""):
         """读取卡片的描述"""
         cid = int(c)
         cfg: dict = self.config
@@ -106,3 +109,39 @@ class Input:
             return
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
+
+    def noteFromId(self, card_id="") -> Note:
+        """从卡片的ID获取note"""
+        li = int(card_id)
+        return mw.col.getCard(li).note()
+
+    def noteAddTagAll(self):
+        """给所有的note加上tag"""
+        tag = self.data["addTag"]
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        tagbase = self.config["addTagRoot"] + "::"
+        tagtail = tag if tag is not None else timestamp
+        groupLi = self.data["IdDescPairs"]
+        tag = tagbase + tagtail
+        for group in groupLi:
+            list(map(lambda x: self.noteAddTag(tag, x["card_id"]), group))
+        return self
+
+    def noteAddTag(self, tag: str = "", card_id: str = ""):
+        """一个加tag的子函数"""
+        note = self.noteFromId(card_id)
+        note.addTag(tag)
+        note.flush()
+        return self
+
+    def pairInsertToNote(self, note, pair, direction: str = "→"):
+        """往note里加pair"""
+        pass
+
+    def IdFromLinkedCard(self, id: str = ""):
+        """读取那些被连接的笔记中的卡片ID"""
+        pass
+
+    def AnchorDelete(self, id: str, note: Note):
+        """删掉笔记中的锚点"""
+        pass

@@ -41,7 +41,7 @@ def rosetta(text:str=""):
         '初始化完毕': "initialized",
         "操作完成": "operation finished",
         "链接失败,组连接至少需要两个组!": "linkFailed,group by group Link need at least 2 groups",
-        "input中没有数据！": "no data in input",
+        "input中没有数据！": "no data in input, abort",
         '全部展开/折叠': "Expand/Collapse All",
         '选中删除': "deleteSelected",
         "选中连接": "linkSelected"

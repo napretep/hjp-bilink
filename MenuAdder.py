@@ -2,7 +2,6 @@
 专门用来加按钮的文件
 """
 from aqt import gui_hooks
-from aqt.webview import AnkiWebView
 
 from .mainfunctions import *
 from .utils import *
@@ -30,7 +29,8 @@ def func_menuAddLink(param: Params = None):
     linkmenu = param.menu.addMenu(prefix + say("连接"))
     modeLi = [999, 0, 1, 2, 3]
     list(map(
-        lambda x, y: linkmenu.addAction(x).triggered.connect(lambda: func_linkStarter(mode=y)), menuNameLi, modeLi))
+        lambda x, y: linkmenu.addAction(x).triggered.connect(lambda: func_linkStarter(mode=y, param=param)), menuNameLi,
+        modeLi))
     if "selected" in param.need:
         linkmenu2 = param.menu.addMenu(prefix + say("选中连接"))
         list(map(
