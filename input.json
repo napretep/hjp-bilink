@@ -1,4 +1,15 @@
 {
-  "IdDescPairs": [],
-  "addTag": ""
+  "IdDescPairs": [
+    [
+      {
+        "card_id": "1611035902112",
+        "desc": "G"
+      },
+      {
+        "card_id": "1611035902112",
+        "desc": "H"
+      }
+    ]
+  ],
+  "addTag": "G"
 }

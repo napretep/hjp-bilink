@@ -5,7 +5,7 @@ from aqt import mw
 from aqt.browser import Browser
 
 from .InputDialog import InputDialog
-from .inputObj import Input, Pair
+from .inputObj import Input, Pair, Params
 from .language import rosetta as say
 from .utils import *
 
@@ -58,9 +58,9 @@ def func_unlinkByPath():
     """按路径取消连接"""
 
 
-def func_linkStarter(mode=999, need: tuple = ("none",)):
+def func_linkStarter(mode=999, param: Params = None):
     """开始连接的入口,预处理,根据模式选择一种连接算法"""
-    if "seleted" in need:
+    if "seleted" in param.need:
         """如果是选中模式,直接读取dict"""
         pass
 
@@ -86,18 +86,17 @@ def func_browserInsert(browser: Browser, need: tuple = None):
     return inputObj.dataSave
 
 
-def func_singleInsert(card_id: str = "0", desc: str = "", need: tuple = None):
+def func_singleInsert(param: Params = None, need: tuple = None):
     """
-    @param card_id:
-    @param desc:
+    @param param:
     @param need: clear , last,  tag
     """
     inputObj = Input()
     if "tag" in need:
-        inputObj.data["addTag"] = desc
+        inputObj.data["addTag"] = param.desc
     else:
-        desc1 = desc if desc != "" else inputObj.cardDescExtract(c=card_id)
-        pair = Pair(card_id, desc1)
+        desc1 = param.desc if param.desc != "" else inputObj.cardDescExtract(c=param.card_id)
+        pair = Pair(param.card_id, desc1)
         if "clear" in need:
             inputObj = inputObj.dataReset
         if "last" in need and len(inputObj.data["IdDescPairs"]) > 0:
