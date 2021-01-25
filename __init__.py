@@ -1,1 +1,1 @@
-from . import MenuAdder
+"""初试入口"""

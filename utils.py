@@ -6,6 +6,7 @@ import datetime
 
 from aqt.utils import *
 
+VERSION = "0.5"
 helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"
 configFileName = "config.json"

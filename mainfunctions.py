@@ -1,21 +1,26 @@
+"""
+这个文件保存常用函数
+"""
 from aqt import mw
 from aqt.browser import Browser
-from aqt.utils import showInfo
 
 from .InputDialog import InputDialog
+from .inputObj import Input
+from .utils import *
 
 
 def func_config():
-    """返回配置文件 """
+    """打开配置文件"""
+    return Input().configOpen()
 
 
 def func_version():
     """返回版本号"""
-
+    showInfo(VERSION)
 
 def func_help():
     """返回帮助页面"""
-
+    return Input().helpSiteOpen()
 
 def func_openInput():
     """打开input对话框"""
@@ -30,6 +35,7 @@ def func_openInput():
 
 def func_clearInput():
     """清空input文件"""
+    return Input().dataReset.dataSave
 
 
 def func_completeMap():
