@@ -11,6 +11,23 @@ from .language import rosetta as say
 from .utils import *
 
 
+class Params:
+    """参数对象"""
+
+    def __init__(self,
+                 card_id: str = "0",
+                 desc: str = "",
+                 need: tuple = ("none",),
+                 parent=None,
+                 menu=None,
+                 ):
+        self.card_id = card_id
+        self.desc = desc
+        self.need = need
+        self.parent = parent
+        self.menu = menu
+
+
 class Pair:
     """卡片ID和卡片描述的键值对的对象"""
 
@@ -18,8 +35,6 @@ class Pair:
         self.card_id = card_id
         self.desc = desc
 
-class Params:
-    """集成装载"""
 
 class Input:
     """集成input对象,满足增删查改需求"""
