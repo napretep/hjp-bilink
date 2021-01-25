@@ -5,7 +5,8 @@ from aqt import mw
 from aqt.browser import Browser
 
 from .InputDialog import InputDialog
-from .inputObj import Input
+from .inputObj import Input, Pair
+from .language import rosetta as say
 from .utils import *
 
 
@@ -18,9 +19,11 @@ def func_version():
     """返回版本号"""
     showInfo(VERSION)
 
+
 def func_help():
     """返回帮助页面"""
     return Input().helpSiteOpen()
+
 
 def func_openInput():
     """打开input对话框"""
@@ -67,11 +70,37 @@ def func_browserInsert(browser: Browser, need: tuple = None):
     """专门用于browser界面的id拷贝
     need: group , clear
     """
+    cardLi: List[str] = list(map(lambda x: str(x), browser.selectedCards()))
+    if len(cardLi) == 0:
+        showInfo(say("没有选中任何卡片"))
+        return
+    inputObj = Input()
+    idDescPairLi = inputObj.idDescPairExtract(cardLi)
+    if "clear" in need:
+        inputObj = inputObj.dataReset.dataSave
+    if "group" in need:
+        inputObj.data["IdDescPairs"].append(idDescPairLi)
+    else:
+        list(map(lambda x: inputObj.data["IdDescPairs"].append([x]), idDescPairLi))
+    return inputObj.dataSave
 
 
-def func_singleInsert(card_id: int = 0, desc: str = "", need: tuple = None):
+def func_singleInsert(card_id: str = "0", desc: str = "", need: tuple = None):
     """
     @param card_id:
     @param desc:
     @param need: clear , last,  tag
     """
+    inputObj = Input()
+    if "tag" in need:
+        inputObj.data["addTag"] = desc
+    else:
+        desc1 = desc if desc != "" else inputObj.cardDescExtract(c=card_id)
+        pair = Pair(card_id, desc1)
+        if "clear" in need:
+            inputObj = inputObj.dataReset
+        if "last" in need and len(inputObj.data["IdDescPairs"]) > 0:
+            inputObj.data["IdDescPairs"][-1].append(pair.__dict__)
+        else:
+            inputObj.data["IdDescPairs"].append([pair.__dict__])
+    return inputObj.dataSave
