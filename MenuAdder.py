@@ -120,7 +120,8 @@ def func_add_webviewcontextmenu(view: AnkiWebView, menu: QMenu):
     elif view.title == "previewer":
         cid = view.parent().card().id
     if cid != "0":
-        func_menuAddHelper(menu, view, need=("link", "insert", "clear/open", "prefix",), desc=selected, card_id=cid)
+        func_menuAddHelper(menu, view, need=("link", "insert", "clear/open", "prefix",),
+                           desc=selected, card_id=str(cid))
 
 
 gui_hooks.browser_menus_did_init.append(func_add_browsermenu)

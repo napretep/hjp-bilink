@@ -18,6 +18,8 @@ class Pair:
         self.card_id = card_id
         self.desc = desc
 
+class Params:
+    """集成装载"""
 
 class Input:
     """集成input对象,满足增删查改需求"""
