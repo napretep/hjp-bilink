@@ -38,7 +38,8 @@ def func_openInput():
 
 def func_clearInput():
     """清空input文件"""
-    return Input().dataReset.dataSave
+    var = Input().dataLoad.dataReset.dataSave
+    return
 
 
 def func_completeMap():

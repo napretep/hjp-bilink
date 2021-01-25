@@ -2,6 +2,7 @@
 用来设计input对象,把一些常用属性绑定起来.
 """
 import json
+from copy import deepcopy
 
 from aqt import mw
 from aqt.main import AnkiQt
@@ -31,7 +32,7 @@ class Input:
                  ):
         self.model = model
         self.helpSite = helpDir
-        self.data: json = json.load(open(inputFileDir, "r", encoding="UTF-8"))
+        self.data: json = json.load(open(inputFileDir, "r", encoding="UTF-8", ))
         config = json.load(open(configFileDir, "r", encoding="UTF-8", ))
         self.config = config
         self.relyDir = relyDir
@@ -40,9 +41,15 @@ class Input:
         self.initDict = initDict
 
     @property
+    def dataLoad(self):
+        """数据读取"""
+        self.data: json = json.load(open(self.inputDir, "r", encoding="utf-8"))
+        return self
+
+    @property
     def dataReset(self):
         """数据重设"""
-        self.data = self.initDict
+        self.data = deepcopy(self.initDict)
         return self
 
     @property
