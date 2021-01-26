@@ -1,17 +1,4 @@
 {
-  "IdDescPairs": [
-    [
-      {
-        "card_id": "1611035896519",
-        "desc": "A"
-      }
-    ],
-    [
-      {
-        "card_id": "1611035897919",
-        "desc": "C"
-      }
-    ]
-  ],
+  "IdDescPairs": [],
   "addTag": ""
 }

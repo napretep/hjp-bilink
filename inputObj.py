@@ -44,7 +44,7 @@ class Pair:
         self.desc = pair["desc"]
 
 
-class Input:
+class Input(object):
     """集成input对象,满足增删查改需求"""
 
     def __init__(self,
@@ -154,12 +154,13 @@ class Input:
 
     def noteInsertedByPair(self, pairA: dict, pairB: dict, dir: str = "→", diffInsert=True):
         """往pairA的note里加pairB,默认不给自己加pair"""
-        console("""""").log
+        console("""""", obj=self).log
         if diffInsert and pairA.card_id == pairB.card_id:
-            console("""""").log
+            console("""if diffInsert and pairA.card_id == pairB.card_id:return self""").log
             return self
         note = self.noteLoadFromId(pairA)
-        if re.search(pairB.card_id, note.fields[self.insertPosi]) is not None:
+        console("""note = self.noteLoadFromId(pairA)""").log
+        if re.search(pairB.card_id, note.fields[self.insertPosi]) is None:
             cfg = Empty()
             cfg.__dict__ = self.config
             dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
@@ -173,8 +174,9 @@ class Input:
             note.fields[
                 self.insertPosi] += f"""<button card_id='{Id}' dir = '{dir}'""" \
                                     + f""" style='font-size:inherit;{cfg.linkStyle}'>""" \
-                                    + f"""{direction}{desc} {cfg.prefix}{Id}</button>"""
+                                    + f"""{direction}{desc} {cfg.cidPrefix}{Id}</button>"""
             note.flush()
+
         return self
 
     def IdFromLinkedCard(self, id: str = ""):
