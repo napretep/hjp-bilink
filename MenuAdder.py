@@ -69,7 +69,7 @@ def func_menuAddHelper(param: Params = None):
     """提供大部分类似的按钮添加操作帮助"""
     if "link" in param.need: func_menuAddLink(param=param)
     if "browserinsert" in param.need: func_menuAddBrowserInsert(param=param)
-    if "clear/open" in param.need: func_menuAddClearOpen(param=param)
+    if "clear_open" in param.need: func_menuAddClearOpen(param=param)
     if "basicMenu" in param.need: func_menuAddBaseMenu(param=param)
     if "insert" in param.need: func_menuAddSingleInsert(param=param)
     pass
@@ -85,7 +85,7 @@ def func_add_browsermenu(browser: Browser = None):
     '''
     连接:5个,插入:3个,打开,清空,配置,版本,帮助
     '''
-    param = Params(menu=menu, parent=browser, need=("link", "browserinsert", "clear/open", "basicMenu",))
+    param = Params(menu=menu, parent=browser, need=("link", "browserinsert", "clear_open", "basicMenu",))
     func_menuAddHelper(param=param)
 
 
@@ -105,7 +105,7 @@ def func_add_editorcontextmenu(view: AnkiWebView, menu: QMenu):
         console(say("由于这里无法读取card_id, 连接菜单不在这显示"))
         return
     param = Params(menu=menu, parent=view, card_id=str(card_id), desc=selected,
-                   need=("insert", "clear/open", "prefix",))
+                   need=("insert", "clear_open", "prefix",))
     func_menuAddHelper(param=param)
 
 
@@ -119,7 +119,7 @@ def func_add_webviewcontextmenu(view: AnkiWebView, menu: QMenu):
         cid = view.parent().card().id
     if cid != "0":
         param = Params(desc=selected, card_id=str(cid),
-                       parent=view, menu=menu, need=("link", "insert", "clear/open", "prefix",))
+                       parent=view, menu=menu, need=("link", "insert", "clear_open", "prefix",))
         func_menuAddHelper(param=param)
 
 

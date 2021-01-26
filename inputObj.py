@@ -3,6 +3,7 @@
 """
 import json
 from copy import deepcopy
+from functools import reduce
 
 from anki.notes import Note
 from aqt import mw
@@ -10,6 +11,10 @@ from aqt.main import AnkiQt
 
 from .language import rosetta as say
 from .utils import *
+
+
+class Empty:
+    """空对象"""
 
 
 class Params:
@@ -21,22 +26,22 @@ class Params:
                  need: tuple = None,
                  parent=None,
                  menu=None,
-                 input=None
+                 inputObj=None
                  ):
         self.card_id = card_id
         self.desc = desc
         self.need = need
         self.parent = parent
         self.menu = menu
-        self.input = input
+        self.input = inputObj
 
 
 class Pair:
     """卡片ID和卡片描述的键值对的对象"""
 
-    def __init__(self, card_id="", desc=""):
-        self.card_id = card_id
-        self.desc = desc
+    def __init__(self, **pair):
+        self.card_id = pair["card_id"]
+        self.desc = pair["desc"]
 
 
 class Input:
@@ -52,13 +57,20 @@ class Input:
                  ):
         self.model = model
         self.helpSite = helpDir
-        self.data: json = json.load(open(inputFileDir, "r", encoding="UTF-8", ))
-        config = json.load(open(configFileDir, "r", encoding="UTF-8", ))
-        self.config = config
+        self.initDict = initDict
         self.relyDir = relyDir
         self.inputDir = inputFileDir
         self.configDir = configFileDir
-        self.initDict = initDict
+        self.config = json.load(open(configFileDir, "r", encoding="UTF-8", ))
+        self.insertPosi = self.config["appendNoteFieldPosition"]
+        self.linkstyle = self.config["linkStyle"]
+        self.seRegx = self.config["DEFAULT"]["regexForDescContent"] if self.config["regexForDescContent"] == 0 else \
+            self.config["regexForDescContent"]
+        try:
+            self.data: json = json.load(open(inputFileDir, "r", encoding="UTF-8", ))
+            self.tag = self.data["addTag"]
+        except:
+            self.tag = self.dataReset.dataSave.data["addTag"]
 
     @property
     def dataLoad(self):
@@ -67,16 +79,28 @@ class Input:
         return self
 
     @property
+    def dataObj(self):
+        return [[Pair(**pair) for pair in group] for group in self.data["IdDescPairs"]]
+
+    @property
     def dataReset(self):
         """数据重设"""
         self.data = deepcopy(self.initDict)
+        self.flatdata = self.dataflat
         return self
 
     @property
     def dataSave(self):
         """数据保存"""
-        json.dump(self.data, open(self.inputDir, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
+        try:
+            json.dump(self.data, open(self.inputDir, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
+        except:
+            return self.dataReset.dataSave
         return self
+
+    @property
+    def dataflat(self):
+        return list(reduce(lambda x, y: x + y, self.dataObj, []))
 
     def configOpen(self):
         """打开配置文件"""
@@ -89,10 +113,10 @@ class Input:
         helpUrl = QUrl(self.helpSite)
         QDesktopServices.openUrl(helpUrl)
 
-    def pairExtract(self, cardLi: List[str] = None) -> List[dict]:
-        """从卡片列表中读取卡片ID和desc."""
+    def pairExtract(self, cardLi: List[str] = None) -> List[Pair]:
+        """从卡片列表中读取卡片ID和desc. 为了统一我们都处理成Pair,输出时再改回普通的."""
         descLi: List[str] = list(map(lambda x: self.descExtract(x), cardLi))
-        return list(map(lambda x, y: Pair(x, y).__dict__, cardLi, descLi))
+        return list(map(lambda x, y: Pair(card_id=x, desc=y), cardLi, descLi))
 
     def descExtract(self, c: str = ""):
         """读取卡片的描述"""
@@ -110,33 +134,48 @@ class Input:
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
 
-    def noteFromId(self, card_id="") -> Note:
-        """从卡片的ID获取note"""
-        li = int(card_id)
-        return mw.col.getCard(li).note()
-
     def noteAddTagAll(self):
         """给所有的note加上tag"""
-        tag = self.data["addTag"]
+        tag = self.tag
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         tagbase = self.config["addTagRoot"] + "::"
         tagtail = tag if tag is not None else timestamp
-        groupLi = self.data["IdDescPairs"]
+        groupLi = self.dataObj
         tag = tagbase + tagtail
         for group in groupLi:
-            list(map(lambda x: self.noteAddTag(tag, x["card_id"]), group))
+            list(map(lambda x: self.noteAddTag(tag, x.card_id), group))
         return self
 
-    def noteAddTag(self, tag: str = "", card_id: str = ""):
+    def noteAddTag(self, tag: str = "", pair: Pair = None):
         """一个加tag的子函数"""
-        note = self.noteFromId(card_id)
+        note = self.noteLoadFromId(pair)
         note.addTag(tag)
         note.flush()
         return self
 
-    def pairInsertToNote(self, note, pair, direction: str = "→"):
-        """往note里加pair"""
-        pass
+    def noteInsertedByPair(self, pairA: dict, pairB: dict, dir: str = "→", diffInsert=True):
+        """往pairA的note里加pairB,默认不给自己加pair"""
+        console("开始noteInsertedByPair")
+        if diffInsert and pairA.card_id == pairB.card_id:
+            return self
+        note = self.noteLoadFromId(pairA)
+        if re.search(pairB.card_id, note.fields[self.insertPosi]) is not None:
+            cfg = Empty()
+            cfg.__dict__ = self.config
+            dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
+            direction = dirMap[dir]
+            Id = pairB.card_id
+            try:
+                desc = pairB.desc if len(pairB.desc) > 0 else re.search(self.seRegx, note[self.insertPosi])[0]
+            except:
+                console(say("正则读取描述字符失败!"), func=showInfo)
+                return self
+            note.fields[
+                self.insertPosi] += f"""<button card_id='{Id}' dir = '{dir}'""" \
+                                    + f""" style='font-size:inherit;{cfg.linkStyle}'>""" \
+                                    + f"""{direction}{desc} {cfg.prefix}{Id}</button>"""
+            note.flush()
+        return self
 
     def IdFromLinkedCard(self, id: str = ""):
         """读取那些被连接的笔记中的卡片ID"""
@@ -145,3 +184,18 @@ class Input:
     def AnchorDelete(self, id: str, note: Note):
         """删掉笔记中的锚点"""
         pass
+
+    def noteLoadFromId(self, pair: Pair = None) -> Note:
+        """从卡片的ID获取note"""
+        li = int(pair.card_id)
+        return self.model.col.getCard(li).note()
+
+    def __setattr__(self, name, value):
+        if name == "data" \
+                and (type(value) == list and len(value) > 0) \
+                and (type(value[0]) == list and len(value[0]) > 0) \
+                and isinstance(value[0][0], Pair):
+            v = [list(map(lambda x: x.__dict__, group)) for group in value]
+            self.__dict__[name]["IdDescPairs"] = v
+        else:
+            self.__dict__[name] = value

@@ -18,7 +18,7 @@ def func_config():
 
 def func_version():
     """返回版本号"""
-    showInfo(VERSION)
+    console(VERSION, func=showInfo)
 
 
 def func_help():
@@ -43,10 +43,10 @@ def func_clearInput():
 
 
 def func_completeMap(param: Params = None):
-    """完全图连接"""
-    cardGroupLi = param.input.data["IdDescPairs"]
-    insertPosi = param.input.config["appendNoteFieldPosition"]
-    prefix = param.input.config["cidPrefix"]
+    """完全图连接,此时group分组不影响."""
+    data = param.input.dataflat  # 不分group,只有pairs
+    i = param.input
+    [list(map(lambda pairB: i.noteInsertedByPair(pairA, pairB), data)) for pairA in data]
 
 
 def func_GroupByGroup(param: Params = None):
@@ -76,15 +76,17 @@ def func_linkStarter(mode=999, param: Params = None):
     else:
         if mw.state == "review": mw.reviewer.cleanup()
         if len(param.input.data["IdDescPairs"]) == 0:
-            showInfo(say("input中没有数据！"))
+            console(say("input中没有数据！"), func=showInfo)
             return False
         browser = dialogs.open("Browser", mw)
+        browser.maybeRefreshSidebar()
         browser.model.layoutChanged.emit()
         browser.editor.setNote(None, hide=True)
         funcli[mode](param=param)
         browser.maybeRefreshSidebar()
         browser.model.layoutChanged.emit()
-        if param.input.config["addTagEnable"] == 1:
+        browser.editor.setNote(None, hide=True)
+        if param.input.config["addTagEnable"] == 0:
             func_addTagToAllNote(param=param)
             browser.model.search(f"tag:{param.input.data['addTag']}")
         if mw.state == "review": mw.reviewer.show()
@@ -98,16 +100,18 @@ def func_browserInsert(browser: Browser, need: tuple = None):
     """
     cardLi: List[str] = list(map(lambda x: str(x), browser.selectedCards()))
     if len(cardLi) == 0:
-        showInfo(say("没有选中任何卡片"))
+        console(say("没有选中任何卡片"), func=showInfo)
         return
     inputObj = Input()
-    idDescPairLi = inputObj.pairExtract(cardLi)
+    pairLi = inputObj.pairExtract(cardLi)
+    dataObj = inputObj.dataObj
     if "clear" in need:
         inputObj = inputObj.dataReset.dataSave
     if "group" in need:
-        inputObj.data["IdDescPairs"].append(idDescPairLi)
+        dataObj.append(pairLi)
     else:
-        list(map(lambda x: inputObj.data["IdDescPairs"].append([x]), idDescPairLi))
+        list(map(lambda x: dataObj.append([x]), pairLi))
+    inputObj.data = dataObj
     return inputObj.dataSave
 
 

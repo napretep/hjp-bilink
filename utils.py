@@ -25,11 +25,18 @@ algPathDict = {
 }
 
 
-def console(text: str, func: callable = tooltip, need: tuple = ("console",)):
+def console(text: str, func: callable = tooltip, terminal=consolerName, **need):
     prefix = ""
-    if "time" in need:
-        prefix += datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    if "console" in need:
-        prefix += consolerName
+    prefix += terminal
     text = prefix + text
     func(text)
+
+    if "log" in need:
+        text = sys._getframe(1).f_code.co_name + ">" + text
+        if "self" in need:
+            text = need["self"].__name__ + ">" + text
+        text = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S>") + text + "\n"
+
+        f = open(os.path.join(THIS_FOLDER, logFileName), "a", encoding="utf-8")
+        f.write(text)
+        f.close()
