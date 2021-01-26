@@ -25,7 +25,10 @@ algPathDict = {
 }
 
 class console:
-    def __init__(self, text: str = "", func: callable = tooltip, terminal=consolerName, **need):
+    """debug用的"""
+
+    def __init__(self, text: str = "", func: callable = tooltip, terminal=consolerName, logSwitcher=True, **need):
+        self.logSwitcher = logSwitcher
         self.text = text
         self.say = func
         self.prefix = terminal + " > "
@@ -34,16 +37,35 @@ class console:
         self.who = sys._getframe(1).f_code.co_name + " > "
         self.logfile = os.path.join(THIS_FOLDER, logFileName)
 
-    @property
-    def log(self):
+    def log(self, chain=True):
+        """debug用"""
         obj = self.need["obj"].__class__.__name__ + "." if "obj" in self.need else ""
         text = self.timestamp + self.prefix + obj + self.who + "\n" + self.text + "\n"
         f = open(self.logfile, "a", encoding="utf-8")
         f.write(text)
         f.close()
+        if chain:
+            return self
+        else:
+            return
+
+    def _(self, text):
+        """当这个类是一个对象的属性时,我们可以通过这个方法来发起通信"""
+        self.text = text
         return self
 
-    @property
-    def talk(self):
+    def talk(self, chain=True):
+        """talk 就是 说出来"""
         self.say(self.text)
-        return self
+        if chain:
+            return self
+        else:
+            return
+
+    def showInfo(self, chain=True):
+        """和外来的名字一样就是为了链式访问简单一点"""
+        self.say = showInfo
+        if chain:
+            return self
+        else:
+            return

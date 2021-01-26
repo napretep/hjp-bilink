@@ -1,0 +1,112 @@
+2021/01/26 16:57:32 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.inputObj.Pair object at 0x000001A0DDE84910>, <hjp-bilink.inputObj.Pair object at 0x000001A0DDE84CD0>]
+2021/01/26 16:57:32 > hjp-bilink| > Input.noteInsertedByPair > 
+
+2021/01/26 16:57:32 > hjp-bilink| > noteInsertedByPair > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 16:57:32 > hjp-bilink| > Input.noteInsertedByPair > 
+
+2021/01/26 16:57:32 > hjp-bilink| > noteLoadFromId > 
+
+2021/01/26 16:57:32 > hjp-bilink| > noteInsertedByPair > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 16:57:32 > hjp-bilink| > Input.noteInsertedByPair > 
+
+2021/01/26 16:57:32 > hjp-bilink| > noteLoadFromId > 
+
+2021/01/26 16:57:32 > hjp-bilink| > noteInsertedByPair > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 16:57:32 > hjp-bilink| > Input.noteInsertedByPair > 
+
+2021/01/26 16:57:32 > hjp-bilink| > noteInsertedByPair > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:17:49 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.inputObj.Pair object at 0x000002761BFD7940>, <hjp-bilink.inputObj.Pair object at 0x000002761BFD79A0>]
+2021/01/26 17:23:53 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.inputObj.Pair object at 0x000002E7F62F67F0>, <hjp-bilink.inputObj.Pair object at 0x000002E7F62F6310>]
+2021/01/26 17:34:44 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.inputObj.Pair object at 0x000002E7F61A40D0>, <hjp-bilink.inputObj.Pair object at 0x000002E7F61A45E0>]
+2021/01/26 17:36:59 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.inputObj.Pair object at 0x00000163ED0310D0>, <hjp-bilink.inputObj.Pair object at 0x00000163ED0CD2E0>]
+2021/01/26 17:36:59 > hjp-bilink| > Input.__init__ > 
+
+2021/01/26 17:36:59 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:36:59 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:36:59 > hjp-bilink| > noteLoadFromId > 
+
+2021/01/26 17:36:59 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:36:59 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:36:59 > hjp-bilink| > noteLoadFromId > 
+
+2021/01/26 17:36:59 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:36:59 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:36:59 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:37:26 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.inputObj.Pair object at 0x00000163ED0CFFA0>, <hjp-bilink.inputObj.Pair object at 0x00000163ED0CFF10>]
+2021/01/26 17:37:26 > hjp-bilink| > Input.__init__ > 
+
+2021/01/26 17:37:26 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:37:26 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:37:26 > hjp-bilink| > noteLoadFromId > 
+
+2021/01/26 17:37:26 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:37:26 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:37:26 > hjp-bilink| > noteLoadFromId > 
+
+2021/01/26 17:37:26 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:37:26 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:37:26 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:42:39 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.inputObj.Pair object at 0x00000205D8E47640>, <hjp-bilink.inputObj.Pair object at 0x00000205D8E47400>]
+2021/01/26 17:42:39 > hjp-bilink| > Input.__init__ > 
+
+2021/01/26 17:42:39 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:42:39 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:42:39 > hjp-bilink| > noteLoadFromId > 
+
+2021/01/26 17:42:39 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:42:39 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:42:39 > hjp-bilink| > noteLoadFromId > 
+
+2021/01/26 17:42:39 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:42:39 > hjp-bilink| > Input.__init__ > 
+note = self.noteLoadFromId(pairA)
+2021/01/26 17:42:39 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:42:51 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.inputObj.Pair object at 0x00000205D8F17100>]
+2021/01/26 17:42:51 > hjp-bilink| > Input.__init__ > 
+
+2021/01/26 17:42:51 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:42:56 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.inputObj.Pair object at 0x00000205D8F2A1F0>]
+2021/01/26 17:42:56 > hjp-bilink| > Input.__init__ > 
+
+2021/01/26 17:42:56 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self
+2021/01/26 17:43:03 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.inputObj.Pair object at 0x00000205D8F39B20>]
+2021/01/26 17:43:03 > hjp-bilink| > Input.__init__ > 
+
+2021/01/26 17:43:03 > hjp-bilink| > Input.__init__ > 
+if diffInsert and pairA.card_id == pairB.card_id:return self

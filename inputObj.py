@@ -55,6 +55,7 @@ class Input(object):
                  initDict: dict = inputSchema,
                  model: AnkiQt = mw
                  ):
+        self.console = console(obj=self)
         self.model = model
         self.helpSite = helpDir
         self.initDict = initDict
@@ -80,6 +81,7 @@ class Input(object):
 
     @property
     def dataObj(self):
+        """将数据转换为对象,方便访问"""
         return [[Pair(**pair) for pair in group] for group in self.data["IdDescPairs"]]
 
     @property
@@ -99,6 +101,7 @@ class Input(object):
 
     @property
     def dataflat(self):
+        """将东西扁平化"""
         return list(reduce(lambda x, y: x + y, self.dataObj, []))
 
     def configOpen(self):
@@ -128,7 +131,7 @@ class Input(object):
         try:
             desc = re.search(seRegx, content)[0]
         except:
-            console(say("正则读取描述字符失败!"), func=showInfo).talk
+            console(say("正则读取描述字符失败!")).showInfo.talk()
             return
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
@@ -152,44 +155,44 @@ class Input(object):
         note.flush()
         return self
 
-    def noteInsertedByPair(self, pairA: dict, pairB: dict, dir: str = "→", diffInsert=True):
+    def noteInsertedByPair(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
         """往pairA的note里加pairB,默认不给自己加pair"""
-        console("""""", obj=self).log
+        self.console.log()
         if diffInsert and pairA.card_id == pairB.card_id:
-            console("""if diffInsert and pairA.card_id == pairB.card_id:return self""").log
+            self.console._("""if diffInsert and pairA.card_id == pairB.card_id:return self""").log()
             return self
         note = self.noteLoadFromId(pairA)
-        console("""note = self.noteLoadFromId(pairA)""").log
+        self.console._("""note = self.noteLoadFromId(pairA)""").log()
         if re.search(pairB.card_id, note.fields[self.insertPosi]) is None:
             cfg = Empty()
             cfg.__dict__ = self.config
             dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
-            direction = dirMap[dir]
+            direction = dirMap[dirposi]
             Id = pairB.card_id
             try:
                 desc = pairB.desc if len(pairB.desc) > 0 else re.search(self.seRegx, note[self.insertPosi])[0]
             except:
-                console(say("正则读取描述字符失败!"), func=showInfo).talk
+                self.console._(say("正则读取描述字符失败!")).showInfo.talk()
                 return self
             note.fields[
-                self.insertPosi] += f"""<button card_id='{Id}' dir = '{dir}'""" \
+                self.insertPosi] += f"""<button card_id='{Id}' dir = '{dirposi}'""" \
                                     + f""" style='font-size:inherit;{cfg.linkStyle}'>""" \
                                     + f"""{direction}{desc} {cfg.cidPrefix}{Id}</button>"""
             note.flush()
 
         return self
 
-    def IdFromLinkedCard(self, id: str = ""):
+    def IdLiFromLinkedCard(self, pair: Pair = None):
         """读取那些被连接的笔记中的卡片ID"""
         pass
 
-    def AnchorDelete(self, id: str, note: Note):
-        """删掉笔记中的锚点"""
+    def AnchorDelete(self, pairA: Pair, pairB: Pair):
+        """A中删除B的id"""
         pass
 
     def noteLoadFromId(self, pair: Pair = None) -> Note:
         """从卡片的ID获取note"""
-        console("").log
+        console("").log()
         li = int(pair.card_id)
         return self.model.col.getCard(li).note()
 

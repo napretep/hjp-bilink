@@ -18,7 +18,7 @@ def func_config():
 
 def func_version():
     """返回版本号"""
-    console(VERSION, func=showInfo).talk
+    console(VERSION).showInfo().talk()
 
 
 def func_help():
@@ -45,13 +45,15 @@ def func_clearInput():
 def func_completeMap(param: Params = None):
     """完全图连接,此时group分组不影响."""
     data = param.input.dataflat  # 不分group,只有pairs
-    console(data.__str__()).log
+    console(data.__str__()).log()
     i = param.input
     [list(map(lambda pairB: i.noteInsertedByPair(pairA, pairB), data)) for pairA in data]
 
 
 def func_GroupByGroup(param: Params = None):
     """组到组连接"""
+    data = param.input
+    console(data.__str__()).log()
 
 
 def func_unlinkByNode(param: Params = None):
@@ -77,22 +79,26 @@ def func_linkStarter(mode=999, param: Params = None):
     else:
         if mw.state == "review": mw.reviewer.cleanup()
         if len(param.input.data["IdDescPairs"]) == 0:
-            console(say("input中没有数据！"), func=showInfo).talk
+            console(say("input中没有数据！")).showInfo().talk()
             return False
-        browser = dialogs.open("Browser", mw)
+        browser = param.parent if isinstance(param.parent, Browser) else dialogs.open("Browser", mw)
         browser.maybeRefreshSidebar()
         browser.model.layoutChanged.emit()
-        browser.editor.setNote(None, hide=True)
+        browser.editor.setNote(None)
         funcli[mode](param=param)
         browser.maybeRefreshSidebar()
         browser.model.layoutChanged.emit()
-        browser.editor.setNote(None, hide=True)
+        browser.editor.setNote(None)
+        browser.model.reset()  # 关键作用
         if param.input.config["addTagEnable"] == 0:
             func_addTagToAllNote(param=param)
             browser.model.search(f"tag:{param.input.data['addTag']}")
         if mw.state == "review": mw.reviewer.show()
-        if isinstance(param.parent, AnkiWebView) and param.parent.title == "previewer":
-            param.parent.parent().render_card()
+        if isinstance(param.parent, AnkiWebView):
+            if param.parent.title == "previewer":
+                param.parent.parent().render_card()
+            if param.parent.title == "main webview":
+                mw.reviewer.show()
 
 
 def func_browserInsert(browser: Browser, need: tuple = None):
@@ -101,7 +107,7 @@ def func_browserInsert(browser: Browser, need: tuple = None):
     """
     cardLi: List[str] = list(map(lambda x: str(x), browser.selectedCards()))
     if len(cardLi) == 0:
-        console(say("没有选中任何卡片"), func=showInfo).talk
+        console(say("没有选中任何卡片")).showInfo().talk()
         return
     inputObj = Input()
     if "clear" in need: inputObj = inputObj.dataReset.dataSave
@@ -125,7 +131,7 @@ def func_singleInsert(param: Params = None, need: tuple = None):
         inputObj.data["addTag"] = param.desc
     else:
         desc1 = param.desc if param.desc != "" else inputObj.descExtract(c=param.card_id)
-        pair = Pair(param.card_id, desc1)
+        pair = Pair(card_id=param.card_id, desc=desc1)
         if "clear" in need:
             inputObj = inputObj.dataReset
         if "last" in need and len(inputObj.data["IdDescPairs"]) > 0:
