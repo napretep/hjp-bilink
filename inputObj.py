@@ -7,7 +7,9 @@ from functools import reduce
 
 from anki.notes import Note
 from aqt import mw
+from aqt.browser import Browser
 from aqt.main import AnkiQt
+from aqt.webview import AnkiWebView
 
 from .language import rosetta as say
 from .utils import *
@@ -24,16 +26,16 @@ class Params:
                  card_id: str = None,
                  desc: str = None,
                  need: tuple = None,
-                 parent=None,
-                 menu=None,
-                 inputObj=None
+                 parent: Union[Browser, Editor, AnkiWebView, Reviewer, Previewer] = None,
+                 menu: QMenu = None,
+                 inputObj: Input = None
                  ):
         self.card_id = card_id
         self.desc = desc
         self.need = need
         self.parent = parent
         self.menu = menu
-        self.input = inputObj
+        self.input: Input = inputObj
 
 
 class Pair:
@@ -115,12 +117,12 @@ class Input(object):
         helpUrl = QUrl(self.helpSite)
         QDesktopServices.openUrl(helpUrl)
 
-    def pairExtract(self, cardLi: List[str] = None) -> List[Pair]:
+    def pair_extract(self, cardLi: List[str] = None) -> List[Pair]:
         """从卡片列表中读取卡片ID和desc. 为了统一我们都处理成Pair,输出时再改回普通的."""
-        descLi: List[str] = list(map(lambda x: self.descExtract(x), cardLi))
+        descLi: List[str] = list(map(lambda x: self.desc_extract(x), cardLi))
         return list(map(lambda x, y: Pair(card_id=x, desc=y), cardLi, descLi))
 
-    def descExtract(self, c: str = ""):
+    def desc_extract(self, c: str = ""):
         """读取卡片的描述"""
         cid = int(c)
         cfg: dict = self.config
@@ -136,7 +138,7 @@ class Input(object):
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
 
-    def noteAddTagAll(self):
+    def note_addTagAll(self):
         """给所有的note加上tag"""
         tag = self.tag
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -148,22 +150,22 @@ class Input(object):
             list(map(lambda x: self.noteAddTag(tag, x.card_id), group))
         return self
 
-    def noteAddTag(self, tag: str = "", pair: Pair = None):
+    def note_addTag(self, tag: str = "", pair: Pair = None):
         """一个加tag的子函数"""
-        note = self.noteLoadFromId(pair)
+        note = self.note_loadFromId(pair)
         note.addTag(tag)
         note.flush()
         return self
 
-    def noteInsertedByPair(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
-        """往pairA的note里加pairB,默认不给自己加pair"""
+    def note_insertPair(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
+        """往A note 加 pairB,默认不给自己加pair"""
         self.console.log()
         if diffInsert and pairA.card_id == pairB.card_id:
             self.console._("""if diffInsert and pairA.card_id == pairB.card_id:return self""").log()
             return self
-        note = self.noteLoadFromId(pairA)
-        self.console._("""note = self.noteLoadFromId(pairA)""").log()
-        if re.search(pairB.card_id, note.fields[self.insertPosi]) is None:
+        note = self.note_loadFromId(pairA)
+        self.console._("""note = self.note_loadFromId(pairA)""").log()
+        if self.Id_noFoundInNote(pairB, pairA):
             cfg = Empty()
             cfg.__dict__ = self.config
             dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
@@ -182,17 +184,20 @@ class Input(object):
 
         return self
 
-    def IdLiFromLinkedCard(self, pair: Pair = None):
+    def Id_noFoundInNote(self, pairA: Pair = None, pairB: Pair = None) -> bool:
+        """判断A id是否在B Note中,如果不在,返回真"""
+        return re.search(pairA.card_id, self.note_loadFromId(pairB).fields[self.insertPosi]) is not None
+
+    def IdLi_FromLinkedCard(self, pair: Pair = None):
         """读取那些被连接的笔记中的卡片ID"""
         pass
 
-    def AnchorDelete(self, pairA: Pair, pairB: Pair):
+    def Anchor_Delete(self, pairA: Pair, pairB: Pair):
         """A中删除B的id"""
         pass
 
-    def noteLoadFromId(self, pair: Pair = None) -> Note:
+    def note_loadFromId(self, pair: Pair = None) -> Note:
         """从卡片的ID获取note"""
-        console("").log()
         li = int(pair.card_id)
         return self.model.col.getCard(li).note()
 
@@ -205,3 +210,8 @@ class Input(object):
             self.__dict__[name]["IdDescPairs"] = v
         else:
             self.__dict__[name] = value
+
+    def group_bijectReducer(self, groupA: List[Pair] = None, groupB: List[Pair] = None):
+        """A组的每个pair连接到B组的每个pair,还有一个反向回链, """
+        [[self.note_insertPair(pairA, pairB).self(pairB, pairA, dirposi="←") for pairB in groupB] for pairA in groupA]
+        return groupB

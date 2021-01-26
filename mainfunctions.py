@@ -1,12 +1,11 @@
 """
 这个文件保存常用函数
 """
-from aqt import mw, dialogs
-from aqt.browser import Browser
-from aqt.webview import AnkiWebView
+
+from aqt import dialogs
 
 from .InputDialog import InputDialog
-from .inputObj import Input, Pair, Params
+from .inputObj import *
 from .language import rosetta as say
 from .utils import *
 
@@ -47,13 +46,15 @@ def func_completeMap(param: Params = None):
     data = param.input.dataflat  # 不分group,只有pairs
     console(data.__str__()).log()
     i = param.input
-    [list(map(lambda pairB: i.noteInsertedByPair(pairA, pairB), data)) for pairA in data]
+    [list(map(lambda pairB: i.note_insertPair(pairA, pairB), data)) for pairA in data]
 
 
 def func_GroupByGroup(param: Params = None):
     """组到组连接"""
-    data = param.input
+    input_obj = param.input
+    data: List[List[Pair]] = input_obj.dataObj
     console(data.__str__()).log()
+    reduce(input_obj.group_bijectReducer, data)
 
 
 def func_unlinkByNode(param: Params = None):
@@ -111,7 +112,7 @@ def func_browserInsert(browser: Browser, need: tuple = None):
         return
     inputObj = Input()
     if "clear" in need: inputObj = inputObj.dataReset.dataSave
-    pairLi = inputObj.pairExtract(cardLi)
+    pairLi = inputObj.pair_extract(cardLi)
     dataObj = inputObj.dataObj
     if "group" in need:
         dataObj.append(pairLi)
@@ -130,7 +131,7 @@ def func_singleInsert(param: Params = None, need: tuple = None):
     if "tag" in need:
         inputObj.data["addTag"] = param.desc
     else:
-        desc1 = param.desc if param.desc != "" else inputObj.descExtract(c=param.card_id)
+        desc1 = param.desc if param.desc != "" else inputObj.desc_extract(c=param.card_id)
         pair = Pair(card_id=param.card_id, desc=desc1)
         if "clear" in need:
             inputObj = inputObj.dataReset
