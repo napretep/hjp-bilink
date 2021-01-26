@@ -18,7 +18,7 @@ def func_config():
 
 def func_version():
     """返回版本号"""
-    console(VERSION, func=showInfo)
+    console(VERSION, func=showInfo).talk
 
 
 def func_help():
@@ -45,6 +45,7 @@ def func_clearInput():
 def func_completeMap(param: Params = None):
     """完全图连接,此时group分组不影响."""
     data = param.input.dataflat  # 不分group,只有pairs
+    console(data.__str__()).log
     i = param.input
     [list(map(lambda pairB: i.noteInsertedByPair(pairA, pairB), data)) for pairA in data]
 
@@ -76,7 +77,7 @@ def func_linkStarter(mode=999, param: Params = None):
     else:
         if mw.state == "review": mw.reviewer.cleanup()
         if len(param.input.data["IdDescPairs"]) == 0:
-            console(say("input中没有数据！"), func=showInfo)
+            console(say("input中没有数据！"), func=showInfo).talk
             return False
         browser = dialogs.open("Browser", mw)
         browser.maybeRefreshSidebar()
@@ -100,13 +101,12 @@ def func_browserInsert(browser: Browser, need: tuple = None):
     """
     cardLi: List[str] = list(map(lambda x: str(x), browser.selectedCards()))
     if len(cardLi) == 0:
-        console(say("没有选中任何卡片"), func=showInfo)
+        console(say("没有选中任何卡片"), func=showInfo).talk
         return
     inputObj = Input()
+    if "clear" in need: inputObj = inputObj.dataReset.dataSave
     pairLi = inputObj.pairExtract(cardLi)
     dataObj = inputObj.dataObj
-    if "clear" in need:
-        inputObj = inputObj.dataReset.dataSave
     if "group" in need:
         dataObj.append(pairLi)
     else:

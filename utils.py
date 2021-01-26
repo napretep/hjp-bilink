@@ -24,19 +24,42 @@ algPathDict = {
     "mode": [999, 0, 1, 2, 3]
 }
 
+class console:
+    def __init__(self, text: str = "", func: callable = tooltip, terminal=consolerName, **need):
+        self.text = text
+        self.say = func
+        self.prefix = terminal + ">"
+        self.need = need
+        self.timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S>")
+        self.who = sys._getframe(1).f_code.co_name + ">"
+        self.logfile = os.path.join(THIS_FOLDER, logFileName)
 
-def console(text: str, func: callable = tooltip, terminal=consolerName, **need):
-    prefix = ""
-    prefix += terminal
-    text = prefix + text
-    func(text)
-
-    if "log" in need:
-        text = sys._getframe(1).f_code.co_name + ">" + text
-        if "self" in need:
-            text = need["self"].__name__ + ">" + text
-        text = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S>") + text + "\n"
-
-        f = open(os.path.join(THIS_FOLDER, logFileName), "a", encoding="utf-8")
+    @property
+    def log(self):
+        obj = self.need["self"].__name__ + ">" if "self" in self.need else ""
+        text = self.timestamp + self.prefix + obj + self.who + self.text + "\n"
+        f = open(self.logfile, "a", encoding="utf-8")
         f.write(text)
         f.close()
+        return self
+
+    @property
+    def talk(self):
+        self.say(self.text)
+        return self
+
+# def console(text: str, func: callable = tooltip, terminal=consolerName, **need):
+#     prefix = ""
+#     prefix += terminal
+#     text = prefix + text
+#     func(text)
+#
+#     if "log" in need:
+#         text = sys._getframe(1).f_code.co_name + ">" + text
+#         if "self" in need:
+#             text = need["self"].__name__ + ">" + text
+#         text = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S>") + text + "\n"
+#
+#         f = open(os.path.join(THIS_FOLDER, logFileName), "a", encoding="utf-8")
+#         f.write(text)
+#         f.close()

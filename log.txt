@@ -1,1 +1,14 @@
-2021/01/26 15:18:25>hjp-bilink|data=<method-wrapper '__str__' of list object at 0x00000146B2907900>
+2021/01/26 15:18:25>hjp-bilink|data=<method-wrapper '__str__' of list object at 0x00000146B2907900>2021/01/26 15:44:02>func_completeMap>hjp-bilink|[<hjp-bilink.inputObj.Pair object at 0x0000029AC4B58B50>, <hjp-bilink.inputObj.Pair object at 0x0000029AC4B58A00>]
+2021/01/26 15:44:02>noteInsertedByPair>hjp-bilink|
+2021/01/26 15:44:02>noteInsertedByPair>hjp-bilink|
+2021/01/26 15:44:02>noteLoadFromId>hjp-bilink|
+2021/01/26 15:44:02>noteInsertedByPair>hjp-bilink|
+2021/01/26 15:44:02>noteLoadFromId>hjp-bilink|
+2021/01/26 15:44:02>noteInsertedByPair>hjp-bilink|
+2021/01/26 16:16:19>hjp-bilink|>func_completeMap>[<hjp-bilink.inputObj.Pair object at 0x000001CED2044F40>, <hjp-bilink.inputObj.Pair object at 0x000001CED20563A0>]
+2021/01/26 16:16:19>hjp-bilink|>noteInsertedByPair>
+2021/01/26 16:16:19>hjp-bilink|>noteInsertedByPair>
+2021/01/26 16:16:19>hjp-bilink|>noteLoadFromId>
+2021/01/26 16:16:19>hjp-bilink|>noteInsertedByPair>
+2021/01/26 16:16:19>hjp-bilink|>noteLoadFromId>
+2021/01/26 16:16:19>hjp-bilink|>noteInsertedByPair>

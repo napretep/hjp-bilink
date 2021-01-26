@@ -86,7 +86,6 @@ class Input:
     def dataReset(self):
         """数据重设"""
         self.data = deepcopy(self.initDict)
-        self.flatdata = self.dataflat
         return self
 
     @property
@@ -129,7 +128,7 @@ class Input:
         try:
             desc = re.search(seRegx, content)[0]
         except:
-            console(say("正则读取描述字符失败!"), func=showInfo)
+            console(say("正则读取描述字符失败!"), func=showInfo).talk
             return
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
@@ -155,8 +154,9 @@ class Input:
 
     def noteInsertedByPair(self, pairA: dict, pairB: dict, dir: str = "→", diffInsert=True):
         """往pairA的note里加pairB,默认不给自己加pair"""
-        console("开始noteInsertedByPair")
+        console("""""").log
         if diffInsert and pairA.card_id == pairB.card_id:
+            console("""""").log
             return self
         note = self.noteLoadFromId(pairA)
         if re.search(pairB.card_id, note.fields[self.insertPosi]) is not None:
@@ -168,7 +168,7 @@ class Input:
             try:
                 desc = pairB.desc if len(pairB.desc) > 0 else re.search(self.seRegx, note[self.insertPosi])[0]
             except:
-                console(say("正则读取描述字符失败!"), func=showInfo)
+                console(say("正则读取描述字符失败!"), func=showInfo).talk
                 return self
             note.fields[
                 self.insertPosi] += f"""<button card_id='{Id}' dir = '{dir}'""" \
@@ -187,6 +187,7 @@ class Input:
 
     def noteLoadFromId(self, pair: Pair = None) -> Note:
         """从卡片的ID获取note"""
+        console("").log
         li = int(pair.card_id)
         return self.model.col.getCard(li).note()
 
