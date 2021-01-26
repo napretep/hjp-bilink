@@ -8,7 +8,10 @@ from functools import reduce
 from anki.notes import Note
 from aqt import mw
 from aqt.browser import Browser
+from aqt.editor import Editor
 from aqt.main import AnkiQt
+from aqt.previewer import Previewer
+from aqt.reviewer import Reviewer
 from aqt.webview import AnkiWebView
 
 from .language import rosetta as say
@@ -19,31 +22,12 @@ class Empty:
     """空对象"""
 
 
-class Params:
-    """参数对象"""
-
-    def __init__(self,
-                 card_id: str = None,
-                 desc: str = None,
-                 need: tuple = None,
-                 parent: Union[Browser, Editor, AnkiWebView, Reviewer, Previewer] = None,
-                 menu: QMenu = None,
-                 inputObj: Input = None
-                 ):
-        self.card_id = card_id
-        self.desc = desc
-        self.need = need
-        self.parent = parent
-        self.menu = menu
-        self.input: Input = inputObj
-
-
 class Pair:
     """卡片ID和卡片描述的键值对的对象"""
 
     def __init__(self, **pair):
-        self.card_id = pair["card_id"]
-        self.desc = pair["desc"]
+        self.card_id: str = pair["card_id"]
+        self.desc: str = pair["desc"]
 
 
 class Input(object):
@@ -66,6 +50,7 @@ class Input(object):
         self.configDir = configFileDir
         self.config = json.load(open(configFileDir, "r", encoding="UTF-8", ))
         self.insertPosi = self.config["appendNoteFieldPosition"]
+        self.regexDescPosi = self.config["readDescFieldPosition"]
         self.linkstyle = self.config["linkStyle"]
         self.seRegx = self.config["DEFAULT"]["regexForDescContent"] if self.config["regexForDescContent"] == 0 else \
             self.config["regexForDescContent"]
@@ -127,13 +112,14 @@ class Input(object):
         cid = int(c)
         cfg: dict = self.config
         note = self.model.col.getCard(cid).note()
-        content = note.fields[cfg["readDescFieldPosition"]]
+        content = note.fields[self.regexDescPosi]
         seRegx = cfg["DEFAULT"]["regexForDescContent"] if cfg["regexForDescContent"] == 0 \
             else cfg["regexForDescContent"]
+        console(f"""seRegx={seRegx},content={content}""").log()
         try:
             desc = re.search(seRegx, content)[0]
         except:
-            console(say("正则读取描述字符失败!")).showInfo.talk()
+            console(say("正则读取描述字符失败!")).showInfo().talk()
             return
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
@@ -161,10 +147,10 @@ class Input(object):
         """往A note 加 pairB,默认不给自己加pair"""
         self.console.log()
         if diffInsert and pairA.card_id == pairB.card_id:
-            self.console._("""if diffInsert and pairA.card_id == pairB.card_id:return self""").log()
+            console("""if diffInsert and pairA.card_id == pairB.card_id:return self""").log()
             return self
         note = self.note_loadFromId(pairA)
-        self.console._("""note = self.note_loadFromId(pairA)""").log()
+        console("""note = self.note_loadFromId(pairA)""").log()
         if self.Id_noFoundInNote(pairB, pairA):
             cfg = Empty()
             cfg.__dict__ = self.config
@@ -172,9 +158,9 @@ class Input(object):
             direction = dirMap[dirposi]
             Id = pairB.card_id
             try:
-                desc = pairB.desc if len(pairB.desc) > 0 else re.search(self.seRegx, note[self.insertPosi])[0]
+                desc = pairB.desc if len(pairB.desc) > 0 else re.search(self.seRegx, note[self.regexDescPosi])[0]
             except:
-                self.console._(say("正则读取描述字符失败!")).showInfo.talk()
+                self.console._(say("正则读取描述字符失败!")).showInfo().talk()
                 return self
             note.fields[
                 self.insertPosi] += f"""<button card_id='{Id}' dir = '{dirposi}'""" \
@@ -186,7 +172,8 @@ class Input(object):
 
     def Id_noFoundInNote(self, pairA: Pair = None, pairB: Pair = None) -> bool:
         """判断A id是否在B Note中,如果不在,返回真"""
-        return re.search(pairA.card_id, self.note_loadFromId(pairB).fields[self.insertPosi]) is not None
+        console(f"""card_id={pairA.card_id},fieldtontent={self.note_loadFromId(pairB).fields[self.insertPosi]}""").log()
+        return re.search(pairA.card_id, self.note_loadFromId(pairB).fields[self.insertPosi]) is None
 
     def IdLi_FromLinkedCard(self, pair: Pair = None):
         """读取那些被连接的笔记中的卡片ID"""
@@ -213,5 +200,27 @@ class Input(object):
 
     def group_bijectReducer(self, groupA: List[Pair] = None, groupB: List[Pair] = None):
         """A组的每个pair连接到B组的每个pair,还有一个反向回链, """
-        [[self.note_insertPair(pairA, pairB).self(pairB, pairA, dirposi="←") for pairB in groupB] for pairA in groupA]
+        for pairA in groupA:
+            for pairB in groupB:
+                self.note_insertPair(pairA, pairB)
+                self.note_insertPair(pairB, pairA, dirposi="←")
         return groupB
+
+
+class Params:
+    """参数对象"""
+
+    def __init__(self,
+                 card_id: str = None,
+                 desc: str = None,
+                 need: tuple = None,
+                 parent: Union[Browser, Editor, AnkiWebView, Reviewer, Previewer] = None,
+                 menu: QMenu = None,
+                 inputObj: Input = None
+                 ):
+        self.card_id = card_id
+        self.desc = desc
+        self.need = need
+        self.parent = parent
+        self.menu = menu
+        self.input: Input = inputObj
