@@ -1,11 +1,39 @@
 """
 写了个HTML toObject toJSON 解析器
 """
-import json
+import json, functools, types
 import re
 from abc import ABCMeta
 from html.parser import HTMLParser
 from typing import List, Tuple, Dict
+
+
+
+
+
+
+def logfunc(func):
+    """Calculate the execution time of func."""
+
+    @functools.wraps(func)
+    def wrap_log(*args, **kwargs):
+        """包装函数"""
+        console(func.__name__ + "开始").noNewline.log()
+        result = func(*args, **kwargs)
+        console(func.__name__ + "结束").noNewline.log()
+        return result
+
+    return wrap_log
+
+class MetaClass_loger(type):
+    """"监控元类"""
+
+    def __new__(mcs, name, bases, attr_dict):
+        for k, v in attr_dict.items():
+            # If the attribute is function type, use the wrapper function instead
+            if isinstance(v, types.FunctionType):
+                attr_dict[k] = logfunc(v)
+        return type.__new__(mcs, name, bases, attr_dict)
 
 
 class HTML_element:
@@ -22,42 +50,9 @@ class HTML_element:
         self.parent = parent
 
 
-def HTML_JSONGen(obj: List[HTML_element]):
-    """利用深度优先遍历建立HTML的JSON对应"""
-    HTML_dict = []
-    stack_elem: List[HTML_element] = []  # element 对象
-    stack_dict: List[Dict] = []  # element 字典
-    stack: List[HTML_element] = []  # 原始对象
-    stack += obj  # 入栈
-    while len(stack) > 0:  # 当栈内有元素时
-        el: HTML_element = stack.pop(0)  # 弹出元素
-        stack = el.kids + stack  # 将孩子纳入
-        cur = {}  # 提取字典
-        dict_attrs = {}
-        for tp in el.attrs:
-            if isinstance(tp, tuple) and len(tp) == 2 and tp[0] != '' and tp[1] != '':
-                dict_attrs[tp[0]] = tp[1]
-        cur["tagName"], cur["attrs"], cur["data"], cur["kids"] = el.tagname, dict_attrs, el.data, []
-        if len(stack_elem) == 0:
-            stack_elem.append(el)
-            stack_dict.append(cur)
-            HTML_dict.append(cur)
-        else:
-            while len(stack_elem) > 0 and el not in stack_elem[-1].kids:
-                stack_elem.pop()
-                stack_dict.pop()
-            if len(stack_elem) > 0:
-                stack_dict[-1]["kids"].append(cur)
-            else:
-                HTML_dict.append(cur)
-            stack_elem.append(el)
-            stack_dict.append(cur)
-    return HTML_dict
-
-
-class HTML_extractor(HTMLParser, metaclass=ABCMeta):
+class HTML_extractor(HTMLParser,):
     """读取一些有用的信息"""
-
+    # __metaclass__ = MetaClass_loger
     def __init__(self):
         HTMLParser.__init__(self)
         self.root: List[HTML_element] = []
@@ -116,9 +111,9 @@ class HTML_extractor(HTMLParser, metaclass=ABCMeta):
 
     def clear(self):
         """清空方便下次使用"""
-        root = self.root
-        tagdict = self.tagdict
-        return [root, tagdict]
+        self.reset()
+        self.__init__()
+        return self
 
 
 class HTML_converter:
@@ -137,8 +132,7 @@ class HTML_converter:
         """将HTML文本串输入此处,内部转化输出为JSON和OBJ"""
         self.objRoot = self.extractor.root[0].kids
         self.dictLiTag = self.extractor.tagdict
-        self.objJSON = self.HTML_JSONGen(self.objRoot)
-        self.objJSON.append(self.extractor.root[0].data)
+        self.objJSON = {"tree": self.HTML_JSONGen(self.objRoot), self.container: self.extractor.root[0].data}
         return self
 
     def HTML_purify(self, text):
@@ -184,6 +178,11 @@ class HTML_converter:
                 stack_dict.append(cur)
         return HTML_dict
 
+    def clear(self):
+        self.extractor.clear()
+        self.__init__()
+        return self
+
 
 if __name__ == "__main__":
     eg = HTML_converter()
@@ -219,9 +218,9 @@ if __name__ == "__main__":
     </country>
 </virtualRoot>
     """
-
-    d = eg.feed("   1<,34,臧昂").back.objJSON
+    e = eg.feed(egHTML)
+    d = e.back.objJSON
+    e.clear()
 
     print(json.dumps(d, indent=4, ensure_ascii=False))
-    # j =ET.fromstring(egHTML2)
-    # print(json.dumps(obj=j,default=lambda x:x.__dict__ if not isinstance(x,dict) else x,indent=4, ensure_ascii=False))
+    print(e.objJSON.__str__())

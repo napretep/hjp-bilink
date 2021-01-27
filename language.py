@@ -12,19 +12,19 @@ def rosetta(text:str=""):
     if not (lang in surrport):
         lang="en"
     Endict ={
-        "默认连接": "default",
-        "完全图连接": "complete map",
-        "组到组连接": "group by group",
-        "按结点取消连接": "unlink by node",
-        "按路径取消连接": "unlink by path",
-        "由于这里无法读取card_id, 连接菜单不在这显示": "Since card_id cannot be read here, the  menu is not displayed here",
+        "默认链接": "default",
+        "完全图链接": "complete map",
+        "组到组链接": "group by group",
+        "按结点取消链接": "unlink by node",
+        "按路径取消链接": "unlink by path",
+        "由于这里无法读取card_id, 链接菜单不在这显示": "Since card_id cannot be read here, the  menu is not displayed here",
         "清除后选中卡片插入": "clear input Before insert selected",
         "将选中卡片插入": "insert selected",
         "将选中卡片编组插入": "insert as group",
         "调整config": "configuration",
         "查看版本": "version",
         "打开插件页面": "open webSite",
-        "连接": "link",
+        "链接": "link",
         "清空input": "clear input",
         "打开input": "open input",
         "插入": "Insert",
@@ -40,11 +40,11 @@ def rosetta(text:str=""):
         "正则读取描述字符失败!": "load Desc by Regex failed",
         '初始化完毕': "initialized",
         "操作完成": "operation finished",
-        "链接失败,组连接至少需要两个组!": "linkFailed,group by group Link need at least 2 groups",
+        "链接失败,组链接至少需要两个组!": "linkFailed,group by group Link need at least 2 groups",
         "input中没有数据！": "no data in input, abort",
         '全部展开/折叠': "Expand/Collapse All",
         '选中删除': "deleteSelected",
-        "选中连接": "linkSelected"
+        "选中链接": "linkSelected"
     }
     translateFuncs = {
         "en":En,

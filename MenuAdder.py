@@ -23,16 +23,16 @@ def func_menuAddBrowserInsert(param: Params = None):
 
 
 def func_menuAddLink(param: Params = None):
-    """用来给连接类型的函数加按钮"""
-    menuNameLi = list(map(lambda x: say(x), ["默认连接", "完全图连接", "组到组连接", "按结点取消连接", "按路径取消连接"]))
+    """用来给链接类型的函数加按钮"""
+    menuNameLi = list(map(lambda x: say(x), ["默认链接", "完全图链接", "组到组链接", "按结点取消链接", "按路径取消链接"]))
     prefix = "" if "prefix" not in param.need else consolerName
-    linkmenu = param.menu.addMenu(prefix + say("连接"))
+    linkmenu = param.menu.addMenu(prefix + say("链接"))
     modeLi = [999, 0, 1, 2, 3]
     list(map(
         lambda x, y: linkmenu.addAction(x).triggered.connect(lambda: func_linkStarter(mode=y, param=param)), menuNameLi,
         modeLi))
     if "selected" in param.need:
-        linkmenu2 = param.menu.addMenu(prefix + say("选中连接"))
+        linkmenu2 = param.menu.addMenu(prefix + say("选中链接"))
         list(map(
             lambda x, y: linkmenu2.addAction(x).triggered.connect(
                 lambda: func_linkStarter(mode=y, param=param)), menuNameLi, modeLi))
@@ -83,7 +83,7 @@ def func_add_browsermenu(browser: Browser = None):
         menu = browser.hjp_Link = QMenu("hjp_link")
         browser.menuBar().addMenu(browser.hjp_Link)
     '''
-    连接:5个,插入:3个,打开,清空,配置,版本,帮助
+    链接:5个,插入:3个,打开,清空,配置,版本,帮助
     '''
     param = Params(menu=menu, parent=browser, need=("link", "browserinsert", "clear_open", "basicMenu",))
     func_menuAddHelper(param=param)
@@ -102,7 +102,7 @@ def func_add_editorcontextmenu(view: AnkiWebView, menu: QMenu):
     try:
         card_id = editor.card.id
     except:
-        console(say("由于这里无法读取card_id, 连接菜单不在这显示"))
+        console(say("由于这里无法读取card_id, 链接菜单不在这显示"))
         return
     param = Params(menu=menu, parent=view, card_id=str(card_id), desc=selected,
                    need=("insert", "clear_open", "prefix",))
@@ -115,7 +115,7 @@ def func_add_webviewcontextmenu(view: AnkiWebView, menu: QMenu):
     cid = "0"
     if view.title == "main webview" and mw.state == "review":
         cid = mw.reviewer.card.id
-    elif view.title == "previewer":
+    elif view.title == "previewer" and view.parent() is not None and view.parent().card() is not None:
         cid = view.parent().card().id
     if cid != "0":
         param = Params(desc=selected, card_id=str(cid),
@@ -125,6 +125,6 @@ def func_add_webviewcontextmenu(view: AnkiWebView, menu: QMenu):
 
 gui_hooks.browser_menus_did_init.append(func_add_browsermenu)
 gui_hooks.browser_will_show_context_menu.append(fun_add_browsercontextmenu)
-gui_hooks.profile_will_close.append(func_clearInput)
+gui_hooks.profile_will_close.append(func_onProgramClose)
 gui_hooks.editor_will_show_context_menu.append(func_add_editorcontextmenu)
 gui_hooks.webview_will_show_context_menu.append(func_add_webviewcontextmenu)

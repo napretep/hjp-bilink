@@ -30,8 +30,13 @@ class Pair:
         self.card_id: str = pair["card_id"]
         self.desc: str = pair["desc"]
 
+    @property
+    def int_card_id(self):
+        """用方法伪装属性,好处是不必担心加入input出问题"""
+        return int(self.card_id)
 
-class Input(object):
+
+class Input(object, metaclass=MetaClass_loger):
     """集成input对象,满足增删查改需求"""
 
     def __init__(self,
@@ -42,7 +47,9 @@ class Input(object):
                  initDict: dict = inputSchema,
                  model: AnkiQt = mw
                  ):
+        self.valueStack = []
         self.console = console(obj=self)
+        self.dataflat_ = None
         self.model = model
         self.helpSite = helpDir
         self.initDict = initDict
@@ -58,20 +65,24 @@ class Input(object):
         self.HTMLtextget = HTML_converter()
         try:
             self.data: json = json.load(open(inputFileDir, "r", encoding="UTF-8", ))
+            self.objdata = self.dataObj.val
             self.tag = self.data["addTag"]
         except:
-            self.tag = self.dataReset.dataSave.data["addTag"]
+            self.tag = self.dataReset.dataSave.dataload.data["addTag"]
 
     @property
     def dataLoad(self):
         """数据读取"""
         self.data: json = json.load(open(self.inputDir, "r", encoding="utf-8"))
+        self.objdata = self.dataObj.val
         return self
 
     @property
     def dataObj(self):
         """将数据转换为对象,方便访问"""
-        return [[Pair(**pair) for pair in group] for group in self.data["IdDescPairs"]]
+        v = [[Pair(**pair) for pair in group] for group in self.data["IdDescPairs"]]
+        self.objdata = v
+        return self
 
     @property
     def dataReset(self):
@@ -89,9 +100,24 @@ class Input(object):
         return self
 
     @property
-    def dataflat(self):
+    def dataFlat(self):
         """将东西扁平化"""
-        return list(reduce(lambda x, y: x + y, self.dataObj, []))
+        self.dataflat_ = list(reduce(lambda x, y: x + y, self.objdata, []))
+        return self
+
+    @property
+    def val(self):
+        """取回上一次求解的内容"""
+        return self.valueStack.pop()
+
+    @property
+    def dataUnique(self):
+        """列表去重"""
+        o, t = self.valueStack[-1], []
+        if type(o) == list:
+            [t.append(i) for i in o if i not in t]
+            self.valueStack[-1] = t
+        return self
 
     def configOpen(self):
         """打开配置文件"""
@@ -115,21 +141,15 @@ class Input(object):
         cfg: dict = self.config
         note = self.model.col.getCard(cid).note()
         content = note.fields[self.regexDescPosi]
+        self.HTMLtextget.clear()
         descJSON = self.HTMLtextget.feed(content).back.objJSON
         desc1 = ""
-        node = descJSON
-        while len(node["kids"]) > 0:
-            node = node["kids"][0]
-            desc1 += reduce(lambda x, y: x + y if re.search(r"\S", x + y) is not None else "", node["data"], "")
-        desc = descJSON[1][0] + desc1
-        # seRegx = cfg["DEFAULT"]["regexForDescContent"] if cfg["regexForDescContent"] == 0 \
-        #     else cfg["regexForDescContent"]
-        # console(f"""seRegx={seRegx},content={content}""").log()
-        # try:
-        #     desc = re.search(seRegx, content)[0]
-        # except:
-        #     console(say("正则读取描述字符失败!")).showInfo().talk()
-        #     return
+        if descJSON.get("tree"):
+            node = descJSON["tree"][0]
+            while len(node["kids"]) > 0:
+                node = node["kids"][0]
+                desc1 += reduce(lambda x, y: x + y if re.search(r"\S", x + y) is not None else "", node["data"], "")
+        desc = descJSON["outsideText"][0] + desc1
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
 
@@ -139,10 +159,9 @@ class Input(object):
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         tagbase = self.config["addTagRoot"] + "::"
         tagtail = tag if tag is not None else timestamp
-        groupLi = self.dataObj
+        groupLi = self.dataObj.dataFlat.val
         tag = tagbase + tagtail
-        for group in groupLi:
-            list(map(lambda x: self.noteAddTag(tag, x.card_id), group))
+        [list(map(lambda x: self.noteAddTag(tag, x.card_id), group)) for group in groupLi]
         return self
 
     def note_addTag(self, tag: str = "", pair: Pair = None):
@@ -154,12 +173,9 @@ class Input(object):
 
     def note_insertPair(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
         """往A note 加 pairB,默认不给自己加pair"""
-        self.console.log()
         if diffInsert and pairA.card_id == pairB.card_id:
-            console("""if diffInsert and pairA.card_id == pairB.card_id:return self""").log()
             return self
         note = self.note_loadFromId(pairA)
-        console("""note = self.note_loadFromId(pairA)""").log()
         if self.Id_noFoundInNote(pairB, pairA):
             cfg = Empty()
             cfg.__dict__ = self.config
@@ -169,7 +185,7 @@ class Input(object):
             try:
                 desc = pairB.desc if len(pairB.desc) > 0 else re.search(self.seRegx, note[self.regexDescPosi])[0]
             except:
-                self.console._(say("正则读取描述字符失败!")).showInfo().talk()
+                console("正则读取描述字符失败!").showInfo.talk()
                 return self
             note.fields[
                 self.insertPosi] += f"""<button card_id='{Id}' dir = '{dirposi}'""" \
@@ -181,34 +197,53 @@ class Input(object):
 
     def Id_noFoundInNote(self, pairA: Pair = None, pairB: Pair = None) -> bool:
         """判断A id是否在B Note中,如果不在,返回真"""
-        console(f"""card_id={pairA.card_id},fieldtontent={self.note_loadFromId(pairB).fields[self.insertPosi]}""").log()
+        console(f"""card_id={pairA.card_id},fieldtontent={self.note_loadFromId(pairB).fields[self.insertPosi]}""").log.end()
         return re.search(pairA.card_id, self.note_loadFromId(pairB).fields[self.insertPosi]) is None
 
     def IdLi_FromLinkedCard(self, pair: Pair = None):
-        """读取那些被连接的笔记中的卡片ID"""
+        """读取那些被链接的笔记中的卡片ID"""
         pass
 
-    def Anchor_Delete(self, pairA: Pair, pairB: Pair):
+    def anchor_unbind(self, pairA: Pair, pairB: Pair):
+        """两张卡片若有链接则会相互解除绑定"""
+        console(f"""pairA={pairA.desc},pairB={pairB.desc}""").log.end()
+        self.anchor_delete(pairA, pairB).anchor_delete(pairB, pairA)
+        return pairB
+
+    def anchor_delete(self, pairA: Pair, pairB: Pair):
         """A中删除B的id"""
-        pass
+        note = self.note_loadFromId(pairA)
+        field = note.fields[self.insertPosi]
+        field = re.sub(f'''<(:?div|button) card_id=["']{pairB.card_id}["'][\\s\\S]+?{pairB.card_id}</(:?div|button)>''',
+                       "",
+                       field)
+        note.fields[self.insertPosi] = field
+        note.flush()
+        return self
 
     def note_loadFromId(self, pair: Pair = None) -> Note:
         """从卡片的ID获取note"""
-        li = int(pair.card_id)
+        console("pair="+pair.__str__()).log.end()
+        li = pair.int_card_id
         return self.model.col.getCard(li).note()
 
     def __setattr__(self, name, value):
+        console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
         if name == "data" \
                 and (type(value) == list and len(value) > 0) \
                 and (type(value[0]) == list and len(value[0]) > 0) \
                 and isinstance(value[0][0], Pair):
             v = [list(map(lambda x: x.__dict__, group)) for group in value]
             self.__dict__[name]["IdDescPairs"] = v
+            self.valueStack.append(value)
         else:
+
             self.__dict__[name] = value
+            if name != "valueStack":
+                self.valueStack.append(value)
 
     def group_bijectReducer(self, groupA: List[Pair] = None, groupB: List[Pair] = None):
-        """A组的每个pair连接到B组的每个pair,还有一个反向回链, """
+        """A组的每个pair链接到B组的每个pair,还有一个反向回链, """
         for pairA in groupA:
             for pairB in groupB:
                 self.note_insertPair(pairA, pairB)
