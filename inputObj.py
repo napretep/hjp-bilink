@@ -14,6 +14,7 @@ from aqt.previewer import Previewer
 from aqt.reviewer import Reviewer
 from aqt.webview import AnkiWebView
 
+from .HTML_converter import HTML_converter
 from .language import rosetta as say
 from .utils import *
 
@@ -54,6 +55,7 @@ class Input(object):
         self.linkstyle = self.config["linkStyle"]
         self.seRegx = self.config["DEFAULT"]["regexForDescContent"] if self.config["regexForDescContent"] == 0 else \
             self.config["regexForDescContent"]
+        self.HTMLtextget = HTML_converter()
         try:
             self.data: json = json.load(open(inputFileDir, "r", encoding="UTF-8", ))
             self.tag = self.data["addTag"]
@@ -113,14 +115,21 @@ class Input(object):
         cfg: dict = self.config
         note = self.model.col.getCard(cid).note()
         content = note.fields[self.regexDescPosi]
-        seRegx = cfg["DEFAULT"]["regexForDescContent"] if cfg["regexForDescContent"] == 0 \
-            else cfg["regexForDescContent"]
-        console(f"""seRegx={seRegx},content={content}""").log()
-        try:
-            desc = re.search(seRegx, content)[0]
-        except:
-            console(say("正则读取描述字符失败!")).showInfo().talk()
-            return
+        descJSON = self.HTMLtextget.feed(content).back.objJSON
+        desc1 = ""
+        node = descJSON
+        while len(node["kids"]) > 0:
+            node = node["kids"][0]
+            desc1 += reduce(lambda x, y: x + y if re.search(r"\S", x + y) is not None else "", node["data"], "")
+        desc = descJSON[1][0] + desc1
+        # seRegx = cfg["DEFAULT"]["regexForDescContent"] if cfg["regexForDescContent"] == 0 \
+        #     else cfg["regexForDescContent"]
+        # console(f"""seRegx={seRegx},content={content}""").log()
+        # try:
+        #     desc = re.search(seRegx, content)[0]
+        # except:
+        #     console(say("正则读取描述字符失败!")).showInfo().talk()
+        #     return
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
 
