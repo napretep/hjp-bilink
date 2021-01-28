@@ -1,0 +1,220 @@
+11:18:31 > hjp-bilink| > wrap_log > __init__ 开始
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.valueStack=[]
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.console=<hjp-bilink.utils.console object at 0x000002333D16E4F0>
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.dataflat_=None
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.model=<aqt.main.AnkiQt object at 0x000002332C83BCA0>
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.helpSite=https://gitee.com/huangjipan/hjp-bilink
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.initDict={'IdDescPairs': [], 'addTag': ''}
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.relyDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\1423933177
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.inputDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\input.json
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.configDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\config.json
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.config={'addLinkTo_Field_or_MetaInfo': 'Field', 'linkMode': 0, 'cidPrefix': 'cidd', 'appendNoteFieldPosition': 0, 'readDescFieldPosition': 0, 'regexForDescContent': 0, 'regexForDescFromTag': 0, 'regexForDescFromDeck': 0, 'descMaxLength': 0, 'linkFromSymbol': '←', 'linkToSymbol': '→', 'linkStyle': '', 'addTagEnable': 1, 'addTagRoot': 'hjp-bilink', 'DEFAULT': {'regexForDescContent': '((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=")[\\w\\-\\.]+)'}}
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.insertPosi=0
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.regexDescPosi=0
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.linkstyle=
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.seRegx=((?<=<div>)[\s\S]+?(?=</div>)|^[\w:;\-\[\]{}@#$%^&*().\|]+|(?<=src=")[\w\-\.]+)
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.HTMLtextget=<hjp-bilink.HTML_converter.HTML_converter object at 0x000002333D16E2E0>
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [], 'addTag': ''}
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.objdata=[]
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.objdata=[]
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.tag=
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __init__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [], 'addTag': ''}
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > pair_extract 开始
+11:18:31 > hjp-bilink| > wrap_log > desc_extract 开始
+11:18:31 > hjp-bilink| > wrap_log > desc_extract 结束
+11:18:31 > hjp-bilink| > wrap_log > desc_extract 开始
+11:18:31 > hjp-bilink| > wrap_log > desc_extract 结束
+11:18:31 > hjp-bilink| > wrap_log > pair_extract 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.objdata=[]
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:31 > hjp-bilink| > __setattr__ > 
+Input.data=[[<hjp-bilink.inputObj.Pair object at 0x000002333D16EC10>], [<hjp-bilink.inputObj.Pair object at 0x000002333D16E340>]]
+11:18:31 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __init__ 开始
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.valueStack=[]
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.console=<hjp-bilink.utils.console object at 0x000002333D16EF70>
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.dataflat_=None
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.model=<aqt.main.AnkiQt object at 0x000002332C83BCA0>
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.helpSite=https://gitee.com/huangjipan/hjp-bilink
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.initDict={'IdDescPairs': [], 'addTag': ''}
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.relyDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\1423933177
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.inputDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\input.json
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.configDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\config.json
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.config={'addLinkTo_Field_or_MetaInfo': 'Field', 'linkMode': 0, 'cidPrefix': 'cidd', 'appendNoteFieldPosition': 0, 'readDescFieldPosition': 0, 'regexForDescContent': 0, 'regexForDescFromTag': 0, 'regexForDescFromDeck': 0, 'descMaxLength': 0, 'linkFromSymbol': '←', 'linkToSymbol': '→', 'linkStyle': '', 'addTagEnable': 1, 'addTagRoot': 'hjp-bilink', 'DEFAULT': {'regexForDescContent': '((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=")[\\w\\-\\.]+)'}}
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.insertPosi=0
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.regexDescPosi=0
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.linkstyle=
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.seRegx=((?<=<div>)[\s\S]+?(?=</div>)|^[\w:;\-\[\]{}@#$%^&*().\|]+|(?<=src=")[\w\-\.]+)
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.HTMLtextget=<hjp-bilink.HTML_converter.HTML_converter object at 0x000002333D16E490>
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [[{'card_id': '1611035902112', 'desc': 'G'}], [{'card_id': '1611035896519', 'desc': 'A'}]], 'addTag': ''}
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.inputObj.Pair object at 0x000002333D16E5E0>], [<hjp-bilink.inputObj.Pair object at 0x000002333D16EF40>]]
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.inputObj.Pair object at 0x000002333D16E5E0>], [<hjp-bilink.inputObj.Pair object at 0x000002333D16EF40>]]
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.tag=
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __init__ 结束
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+11:18:34 > hjp-bilink| > __setattr__ > 
+Input.dataflat_=[<hjp-bilink.inputObj.Pair object at 0x000002333D16E5E0>, <hjp-bilink.inputObj.Pair object at 0x000002333D16EF40>]
+11:18:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+11:18:34 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.inputObj.Pair object at 0x000002333D16E5E0>, <hjp-bilink.inputObj.Pair object at 0x000002333D16EF40>]
+11:18:34 > hjp-bilink| > wrap_log > note_insertPair 开始
+11:18:34 > hjp-bilink| > wrap_log > note_insertPair 结束
+11:18:34 > hjp-bilink| > wrap_log > note_insertPair 开始
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 开始
+11:18:34 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.inputObj.Pair object at 0x000002333D16E5E0>
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 结束
+11:18:34 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 开始
+11:18:34 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.inputObj.Pair object at 0x000002333D16E5E0>
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 结束
+11:18:34 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035896519,fieldtontent=G
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 开始
+11:18:34 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.inputObj.Pair object at 0x000002333D16E5E0>
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 结束
+11:18:34 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+11:18:34 > hjp-bilink| > wrap_log > note_insertPair 结束
+11:18:34 > hjp-bilink| > wrap_log > note_insertPair 开始
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 开始
+11:18:34 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.inputObj.Pair object at 0x000002333D16EF40>
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 结束
+11:18:34 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 开始
+11:18:34 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.inputObj.Pair object at 0x000002333D16EF40>
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 结束
+11:18:34 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035902112,fieldtontent=A
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 开始
+11:18:34 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.inputObj.Pair object at 0x000002333D16EF40>
+11:18:34 > hjp-bilink| > wrap_log > note_loadFromId 结束
+11:18:34 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+11:18:34 > hjp-bilink| > wrap_log > note_insertPair 结束
+11:18:34 > hjp-bilink| > wrap_log > note_insertPair 开始
+11:18:34 > hjp-bilink| > wrap_log > note_insertPair 结束

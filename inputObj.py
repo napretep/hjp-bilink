@@ -15,7 +15,6 @@ from aqt.reviewer import Reviewer
 from aqt.webview import AnkiWebView
 
 from .HTML_converter import HTML_converter
-from .language import rosetta as say
 from .utils import *
 
 
@@ -188,16 +187,18 @@ class Input(object, metaclass=MetaClass_loger):
                 console("正则读取描述字符失败!").showInfo.talk()
                 return self
             note.fields[
-                self.insertPosi] += f"""<button card_id='{Id}' dir = '{dirposi}'""" \
-                                    + f""" style='font-size:inherit;{cfg.linkStyle}'>""" \
-                                    + f"""{direction}{desc} {cfg.cidPrefix}{Id}</button>"""
+                self.insertPosi] += f"""<button card_id='{Id}'  dir = '{dirposi}'""" \
+                                    f"""onclick="javascript:pycmd(&quot;{cfg.cidPrefix}&quot;+&quot;{Id}&quot;);"  """ \
+                                    f""" style='font-size:inherit;{cfg.linkStyle}'""" \
+                                    f"""> {direction}{desc} {cfg.cidPrefix}{Id}</button>"""
             note.flush()
 
         return self
 
     def Id_noFoundInNote(self, pairA: Pair = None, pairB: Pair = None) -> bool:
         """判断A id是否在B Note中,如果不在,返回真"""
-        console(f"""card_id={pairA.card_id},fieldtontent={self.note_loadFromId(pairB).fields[self.insertPosi]}""").log.end()
+        console(
+            f"""card_id={pairA.card_id},fieldtontent={self.note_loadFromId(pairB).fields[self.insertPosi]}""").log.end()
         return re.search(pairA.card_id, self.note_loadFromId(pairB).fields[self.insertPosi]) is None
 
     def IdLi_FromLinkedCard(self, pair: Pair = None):
@@ -214,16 +215,17 @@ class Input(object, metaclass=MetaClass_loger):
         """A中删除B的id"""
         note = self.note_loadFromId(pairA)
         field = note.fields[self.insertPosi]
-        field = re.sub(f'''<(:?div|button) card_id=["']{pairB.card_id}["'][\\s\\S]+?{pairB.card_id}</(:?div|button)>''',
-                       "",
-                       field)
+        field = re.sub(
+            fr'''<(:?div|button)\s+card_id=["']{pairB.card_id}["'][\\s\\S]+?(:?{pairB.card_id})?</(:?div|button)>''',
+            "",
+            field)
         note.fields[self.insertPosi] = field
         note.flush()
         return self
 
     def note_loadFromId(self, pair: Pair = None) -> Note:
         """从卡片的ID获取note"""
-        console("pair="+pair.__str__()).log.end()
+        console("pair=" + pair.__str__()).log.end()
         li = pair.int_card_id
         return self.model.col.getCard(li).note()
 
