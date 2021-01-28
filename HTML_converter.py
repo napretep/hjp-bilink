@@ -8,38 +8,12 @@ import types
 import xml.dom.minidom as XMLParser
 from html.parser import HTMLParser
 from typing import List, Tuple, Dict
+# from .bs4 import
 
 if __name__ == "__main__":
-    from utils import console
-    # from inputObj import *
-
+    from utils import console, MetaClass_loger
 else:
-    from .utils import console
-
-
-def logfunc(func):
-    """Calculate the execution time of func."""
-
-    @functools.wraps(func)
-    def wrap_log(*args, **kwargs):
-        """包装函数"""
-        console(func.__name__ + "开始").noNewline.log.end()
-        result = func(*args, **kwargs)
-        console(func.__name__ + "结束").noNewline.log.end()
-        return result
-
-    return wrap_log
-
-
-class MetaClass_loger(type):
-    """"监控元类"""
-
-    def __new__(mcs, name, bases, attr_dict):
-        for k, v in attr_dict.items():
-            # If the attribute is function type, use the wrapper function instead
-            if isinstance(v, types.FunctionType):
-                attr_dict[k] = logfunc(v)
-        return type.__new__(mcs, name, bases, attr_dict)
+    from .utils import console, MetaClass_loger
 
 
 class HTML_element:
@@ -143,6 +117,7 @@ class HTML_converter(object, metaclass=MetaClass_loger):
     """格式转换综合对象"""
 
     def __init__(self, **args):
+        self.regexForSingleEl = r"(:?wbr|br|img|base||||||)"
         self.parse = XMLParser.parseString
         self.text = ""
         self.domRoot: XMLParser.Element = None

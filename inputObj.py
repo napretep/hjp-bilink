@@ -146,9 +146,10 @@ class Input(object, metaclass=MetaClass_loger):
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         tagbase = self.config["addTagRoot"] + "::"
         tagtail = tag if tag is not None else timestamp
-        groupLi = self.dataObj.dataFlat.val
+        pairLi = self.dataObj.dataFlat.dataUnique.val
         tag = tagbase + tagtail
-        [list(map(lambda x: self.noteAddTag(tag, x.card_id), group)) for group in groupLi]
+        self.tag = tag
+        list(map(lambda pair: self.note_addTag(tag=tag, pair=pair), pairLi))
         return self
 
     def note_addTag(self, tag: str = "", pair: Pair = None):
@@ -164,6 +165,7 @@ class Input(object, metaclass=MetaClass_loger):
             return self
         note = self.note_loadFromId(pairA)
         if self.Id_noFoundInNote(pairB, pairA):
+            Id, desc = pairB.card_id, pairB.desc
             cfg = Empty()
             cfg.__dict__ = self.config
             dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}

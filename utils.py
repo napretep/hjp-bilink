@@ -11,6 +11,7 @@ helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"
 configFileName = "config.json"
 helpFileName = "README.md"
+debug = True
 relyLinkDir = "1423933177"
 relyLinkConfigFileName = "config.json"
 logFileName = "log.txt"
@@ -68,6 +69,8 @@ class console:
     @property
     def log(self, chain=True):
         """debug用"""
+        if not debug:
+            return self
         obj = self.need["obj"].__class__.__name__ + "." if "obj" in self.need else ""
         text = self.timestamp + self.prefix + obj + self.who + self.newline_ + self.text + self.breakline_
         self.logFileWrite(text)

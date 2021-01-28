@@ -13,7 +13,7 @@ from .utils import *
 
 def func_anchorUpdate():
     """对外的接口"""
-    Input().func_anchorUpdate()
+    Input().anchor_versionUpdate()
     return
 
 
@@ -37,7 +37,7 @@ def func_openInput():
     try:
         mw.InputDialog.activateWindow()
     except:
-        mw.InputDialog = InputDialog.end()
+        mw.InputDialog = InputDialog()
         mw.InputDialog.exec()
         mw.activateWindow()
     """返回input窗口"""
@@ -112,9 +112,9 @@ def func_linkStarter(mode=999, param: Params = None):
         browser.model.layoutChanged.emit()
         browser.editor.setNote(None)
         browser.model.reset()  # 关键作用
-        if param.input.config["addTagEnable"] == 0:
-            func_addTagToAllNote(param=param)
-            browser.model.search(f"tag:{param.input.data['addTag']}")
+        if param.input.config["addTagEnable"] == 1:
+            param.input.note_addTagAll()
+            browser.model.search(f"tag:{param.input.tag}*")
         if mw.state == "review": mw.reviewer.show()
         if isinstance(param.parent, AnkiWebView):
             if param.parent.title == "previewer":
