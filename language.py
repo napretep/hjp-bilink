@@ -44,7 +44,9 @@ def rosetta(text:str=""):
         "input中没有数据！": "no data in input, abort",
         '全部展开/折叠': "Expand/Collapse All",
         '选中删除': "deleteSelected",
-        "选中链接": "linkSelected"
+        "选中链接": "linkSelected",
+        "升级旧版锚点": "old link anchor update",
+        "错误:字段中的HTML无法读取": "error:can't read HTML in card.field"
     }
     translateFuncs = {
         "en":En,

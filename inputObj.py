@@ -7,12 +7,7 @@ from functools import reduce
 
 from anki.notes import Note
 from aqt import mw
-from aqt.browser import Browser
-from aqt.editor import Editor
 from aqt.main import AnkiQt
-from aqt.previewer import Previewer
-from aqt.reviewer import Reviewer
-from aqt.webview import AnkiWebView
 
 from .HTML_converter import HTML_converter
 from .utils import *
@@ -44,7 +39,7 @@ class Input(object, metaclass=MetaClass_loger):
                  helpDir: str = helpSite,
                  relyDir: str = RELY_FOLDER,
                  initDict: dict = inputSchema,
-                 model: AnkiQt = mw
+                 model: AnkiQt = mw,
                  ):
         self.valueStack = []
         self.console = console(obj=self)
@@ -141,14 +136,7 @@ class Input(object, metaclass=MetaClass_loger):
         note = self.model.col.getCard(cid).note()
         content = note.fields[self.regexDescPosi]
         self.HTMLtextget.clear()
-        descJSON = self.HTMLtextget.feed(content).back.objJSON
-        desc1 = ""
-        if descJSON.get("tree"):
-            node = descJSON["tree"][0]
-            while len(node["kids"]) > 0:
-                node = node["kids"][0]
-                desc1 += reduce(lambda x, y: x + y if re.search(r"\S", x + y) is not None else "", node["data"], "")
-        desc = descJSON["outsideText"][0] + desc1
+        desc = self.HTMLtextget.feed(content).node_removeByTagAttrs().text_get.HTML_text
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
 
@@ -180,19 +168,12 @@ class Input(object, metaclass=MetaClass_loger):
             cfg.__dict__ = self.config
             dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
             direction = dirMap[dirposi]
-            Id = pairB.card_id
-            try:
-                desc = pairB.desc if len(pairB.desc) > 0 else re.search(self.seRegx, note[self.regexDescPosi])[0]
-            except:
-                console("正则读取描述字符失败!").showInfo.talk()
-                return self
             note.fields[
-                self.insertPosi] += f"""<button card_id='{Id}'  dir = '{dirposi}'""" \
-                                    f"""onclick="javascript:pycmd(&quot;{cfg.cidPrefix}&quot;+&quot;{Id}&quot;);"  """ \
-                                    f""" style='font-size:inherit;{cfg.linkStyle}'""" \
-                                    f"""> {direction}{desc} {cfg.cidPrefix}{Id}</button>"""
+                self.insertPosi] += f"""<button card_id='{Id}'  dir = '{dirposi}' """ \
+                                    f"""onclick="javascript:pycmd(&quot;{cfg.cidPrefix}&quot;+&quot;{Id}&quot;);" """ \
+                                    f"""style='font-size:inherit;{cfg.linkStyle}' >""" \
+                                    f"""{direction}{desc}</button>"""
             note.flush()
-
         return self
 
     def Id_noFoundInNote(self, pairA: Pair = None, pairB: Pair = None) -> bool:
@@ -211,14 +192,16 @@ class Input(object, metaclass=MetaClass_loger):
         self.anchor_delete(pairA, pairB).anchor_delete(pairB, pairA)
         return pairB
 
+    def anchor_versionUpdate(self):
+        """升级旧版锚点注入规则 TODO"""
+        pass
+
     def anchor_delete(self, pairA: Pair, pairB: Pair):
         """A中删除B的id"""
         note = self.note_loadFromId(pairA)
         field = note.fields[self.insertPosi]
-        field = re.sub(
-            fr'''<(:?div|button)\s+card_id=["']{pairB.card_id}["'][\\s\\S]+?(:?{pairB.card_id})?</(:?div|button)>''',
-            "",
-            field)
+        field = self.HTMLtextget.feed(field).node_removeByTagAttrs(attrs={"card_id": pairB.card_id},
+                                                                   checkValue=True).HTML_back()
         note.fields[self.insertPosi] = field
         note.flush()
         return self
@@ -256,17 +239,5 @@ class Input(object, metaclass=MetaClass_loger):
 class Params:
     """参数对象"""
 
-    def __init__(self,
-                 card_id: str = None,
-                 desc: str = None,
-                 need: tuple = None,
-                 parent: Union[Browser, Editor, AnkiWebView, Reviewer, Previewer] = None,
-                 menu: QMenu = None,
-                 inputObj: Input = None
-                 ):
-        self.card_id = card_id
-        self.desc = desc
-        self.need = need
-        self.parent = parent
-        self.menu = menu
-        self.input: Input = inputObj
+    def __init__(self, **args):
+        self.__dict__ = args

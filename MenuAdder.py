@@ -2,7 +2,10 @@
 专门用来加按钮的文件
 """
 from aqt import gui_hooks
-
+from aqt.browser import Browser
+from aqt.editor import EditorWebView, Editor
+from aqt.reviewer import Reviewer
+from aqt.webview import AnkiWebView
 from .mainfunctions import *
 from .utils import *
 
@@ -48,8 +51,8 @@ def func_menuAddClearOpen(param: Params = None):
 
 def func_menuAddBaseMenu(param: Params = None):
     """基础的如,help,config,version"""
-    menuli = ["调整config", "查看版本", "打开插件页面"]
-    funcli = [func_config, func_version, func_help]
+    menuli = ["调整config", "查看版本", "打开插件页面", "升级旧版锚点"]
+    funcli = [func_config, func_version, func_help, func_anchorUpdate]
     list(map(lambda x, y: param.menu.addAction(f"{say(x)}").triggered.connect(y), menuli, funcli))
 
 

@@ -3,11 +3,18 @@
 """
 
 from aqt import dialogs
-
+from aqt.browser import Browser
+from aqt.webview import AnkiWebView
 from .InputDialog import InputDialog
 from .inputObj import *
 from .language import rosetta as say
 from .utils import *
+
+
+def func_anchorUpdate():
+    """对外的接口"""
+    Input().func_anchorUpdate()
+    return
 
 
 def func_config():
