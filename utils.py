@@ -26,6 +26,30 @@ algPathDict = {
 }
 
 
+class Empty:
+    """空对象"""
+
+
+class Pair:
+    """卡片ID和卡片描述的键值对的对象"""
+
+    def __init__(self, **pair):
+        self.card_id: str = pair["card_id"]
+        self.desc: str = pair["desc"]
+
+    @property
+    def int_card_id(self):
+        """用方法伪装属性,好处是不必担心加入input出问题"""
+        return int(self.card_id)
+
+
+class Params:
+    """参数对象"""
+
+    def __init__(self, **args):
+        self.__dict__ = args
+
+
 def logfunc(func):
     """Calculate the execution time of func."""
 

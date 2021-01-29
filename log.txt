@@ -1,164 +1,1620 @@
-21:38:59 > hjp-bilink| > wrap_log > __init__ 开始
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __init__ 开始
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.valueStack=[]
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-Input.console=<hjp-bilink.utils.console object at 0x000001F2814D7640>
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+Input.console=<hjp-bilink.utils.console object at 0x0000023DE63CCBB0>
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.dataflat_=None
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-Input.model=<aqt.main.AnkiQt object at 0x000001F2F080DCA0>
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+Input.model=<aqt.main.AnkiQt object at 0x0000023DDBBEBCA0>
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.helpSite=https://gitee.com/huangjipan/hjp-bilink
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.initDict={'IdDescPairs': [], 'addTag': ''}
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.relyDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\1423933177
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.inputDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\input.json
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.configDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\config.json
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.config={'addLinkTo_Field_or_MetaInfo': 'Field', 'linkMode': 0, 'cidPrefix': 'cidd', 'appendNoteFieldPosition': 0, 'readDescFieldPosition': 0, 'regexForDescContent': 0, 'regexForDescFromTag': 0, 'regexForDescFromDeck': 0, 'descMaxLength': 0, 'linkFromSymbol': '←', 'linkToSymbol': '→', 'linkStyle': '', 'addTagEnable': 1, 'addTagRoot': 'hjp-bilink', 'DEFAULT': {'regexForDescContent': '((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=")[\\w\\-\\.]+)'}}
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.insertPosi=0
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.regexDescPosi=0
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.linkstyle=
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.seRegx=((?<=<div>)[\s\S]+?(?=</div>)|^[\w:;\-\[\]{}@#$%^&*().\|]+|(?<=src=")[\w\-\.]+)
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __init__ 开始
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-HTML_converter.regexForSingleEl=(:?wbr|br|img|base||||||)
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-HTML_converter.parse=<function parseString at 0x000001F28163B820>
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __init__ 开始
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+HTML_converter.parse=<class 'bs4.BeautifulSoup'>
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 HTML_converter.text=
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 HTML_converter.domRoot=None
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-HTML_converter.container=virtualRoot
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-HTML_converter.objRoot=[]
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-HTML_converter.dictLiTag={}
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 HTML_converter.objJSON={}
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 HTML_converter.HTML_text=
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __init__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-Input.HTMLtextget=<hjp-bilink.HTML_converter.HTML_converter object at 0x000001F2814D79A0>
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+HTML_converter.regexName=re.compile('div|button')
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+HTML_converter.regexCard_id=re.compile('\\d+')
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __init__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+Input.HTMLmanage=<hjp-bilink.HTML_converter.HTML_converter object at 0x0000023DE63CC940>
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.data={'IdDescPairs': [], 'addTag': ''}
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.objdata=[]
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.objdata=[]
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 Input.tag=
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __init__ 结束
-21:38:59 > hjp-bilink| > wrap_log > desc_extract 开始
-21:38:59 > hjp-bilink| > wrap_log > clear 开始
-21:38:59 > hjp-bilink| > wrap_log > __init__ 开始
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-HTML_converter.regexForSingleEl=(:?wbr|br|img|base||||||)
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-HTML_converter.parse=<function parseString at 0x000001F28163B820>
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __init__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [], 'addTag': ''}
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > pair_extract 开始
+14:59:41 > hjp-bilink| > wrap_log > desc_extract 开始
+14:59:41 > hjp-bilink| > wrap_log > feed 开始
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > feed 结束
+14:59:41 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:41 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:41 > hjp-bilink| > wrap_log > text_get 开始
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
 HTML_converter.text=
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > text_get 结束
+14:59:41 > hjp-bilink| > wrap_log > desc_extract 结束
+14:59:41 > hjp-bilink| > wrap_log > desc_extract 开始
+14:59:41 > hjp-bilink| > wrap_log > feed 开始
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > feed 结束
+14:59:41 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:41 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:41 > hjp-bilink| > wrap_log > text_get 开始
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+HTML_converter.text=
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > text_get 结束
+14:59:41 > hjp-bilink| > wrap_log > desc_extract 结束
+14:59:41 > hjp-bilink| > wrap_log > desc_extract 开始
+14:59:41 > hjp-bilink| > wrap_log > feed 开始
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > feed 结束
+14:59:41 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:41 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:41 > hjp-bilink| > wrap_log > text_get 开始
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+HTML_converter.text=
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > text_get 结束
+14:59:41 > hjp-bilink| > wrap_log > desc_extract 结束
+14:59:41 > hjp-bilink| > wrap_log > desc_extract 开始
+14:59:41 > hjp-bilink| > wrap_log > feed 开始
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > feed 结束
+14:59:41 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:41 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:41 > hjp-bilink| > wrap_log > text_get 开始
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+HTML_converter.text=
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > text_get 结束
+14:59:41 > hjp-bilink| > wrap_log > desc_extract 结束
+14:59:41 > hjp-bilink| > wrap_log > pair_extract 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+Input.objdata=[]
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:41 > hjp-bilink| > __setattr__ > 
+Input.data=[[<hjp-bilink.utils.Pair object at 0x0000023DE63DD610>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DD490>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DD1F0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DD4F0>]]
+14:59:41 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __init__ 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.valueStack=[]
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.console=<hjp-bilink.utils.console object at 0x0000023DE63CC9D0>
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.dataflat_=None
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.model=<aqt.main.AnkiQt object at 0x0000023DDBBEBCA0>
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.helpSite=https://gitee.com/huangjipan/hjp-bilink
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.initDict={'IdDescPairs': [], 'addTag': ''}
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.relyDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\1423933177
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.inputDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\input.json
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.configDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\config.json
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.config={'addLinkTo_Field_or_MetaInfo': 'Field', 'linkMode': 0, 'cidPrefix': 'cidd', 'appendNoteFieldPosition': 0, 'readDescFieldPosition': 0, 'regexForDescContent': 0, 'regexForDescFromTag': 0, 'regexForDescFromDeck': 0, 'descMaxLength': 0, 'linkFromSymbol': '←', 'linkToSymbol': '→', 'linkStyle': '', 'addTagEnable': 1, 'addTagRoot': 'hjp-bilink', 'DEFAULT': {'regexForDescContent': '((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=")[\\w\\-\\.]+)'}}
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.insertPosi=0
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.regexDescPosi=0
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.linkstyle=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.seRegx=((?<=<div>)[\s\S]+?(?=</div>)|^[\w:;\-\[\]{}@#$%^&*().\|]+|(?<=src=")[\w\-\.]+)
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __init__ 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.parse=<class 'bs4.BeautifulSoup'>
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
 HTML_converter.domRoot=None
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-HTML_converter.container=virtualRoot
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-HTML_converter.objRoot=[]
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-HTML_converter.dictLiTag={}
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
 HTML_converter.objJSON={}
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
 HTML_converter.HTML_text=
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > __init__ 结束
-21:38:59 > hjp-bilink| > wrap_log > clear 结束
-21:38:59 > hjp-bilink| > wrap_log > feed 开始
-21:38:59 > hjp-bilink| > wrap_log > HTML_addcontainer 开始
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 开始
-21:38:59 > hjp-bilink| > __setattr__ > 
-HTML_converter.text=<virtualRoot>例 13 设 $A_{1}, A_{2}, \cdots, A_{m}$ 都是域 $F$ 上 $n$ 维线性空间 $V$ 上的线性变换,证明 : 如果 $A_{1},$ $\boldsymbol{A}_{2}, \cdots, \boldsymbol{A}_{m}$ 都可对角化,且它们两两可交换,那么 $V$ 中存在一个基,使得 $\boldsymbol{A}_{1}, \boldsymbol{A}_{2}, \cdots, \boldsymbol{A}_{m}$ 在<br>此基下的矩阵都是对角矩阵。</virtualRoot>
-21:38:59 > hjp-bilink| > wrap_log > __setattr__ 结束
-21:38:59 > hjp-bilink| > wrap_log > HTML_addcontainer 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.regexName=re.compile('div|button')
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.regexCard_id=re.compile('\\d+')
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __init__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.HTMLmanage=<hjp-bilink.HTML_converter.HTML_converter object at 0x0000023DE63CCA00>
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [[{'card_id': '1611035902112', 'desc': ''}], [{'card_id': '1611035899455', 'desc': ''}], [{'card_id': '1611035897919', 'desc': ''}], [{'card_id': '1611035896519', 'desc': ''}]], 'addTag': ''}
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.utils.Pair object at 0x0000023DE63CC6D0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DD7F0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DD8E0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DD970>]]
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.utils.Pair object at 0x0000023DE63CC6D0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DD7F0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DD8E0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DD970>]]
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.tag=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __init__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [[{'card_id': '1611035902112', 'desc': ''}], [{'card_id': '1611035899455', 'desc': ''}], [{'card_id': '1611035897919', 'desc': ''}], [{'card_id': '1611035896519', 'desc': ''}]], 'addTag': ''}
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.utils.Pair object at 0x0000023DE63DD3D0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DDEE0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DDF40>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DDA30>]]
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.utils.Pair object at 0x0000023DE63DD3D0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DDEE0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DDF40>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DDA30>]]
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.utils.Pair object at 0x0000023DE63DD9D0>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DDC40>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DDC10>], [<hjp-bilink.utils.Pair object at 0x0000023DE63DDB80>]]
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.dataflat_=[<hjp-bilink.utils.Pair object at 0x0000023DE63DD9D0>, <hjp-bilink.utils.Pair object at 0x0000023DE63DDC40>, <hjp-bilink.utils.Pair object at 0x0000023DE63DDC10>, <hjp-bilink.utils.Pair object at 0x0000023DE63DDB80>]
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > func_unlinkByNode > 
+[<hjp-bilink.utils.Pair object at 0x0000023DE63DD9D0>, <hjp-bilink.utils.Pair object at 0x0000023DE63DDC40>, <hjp-bilink.utils.Pair object at 0x0000023DE63DDC10>, <hjp-bilink.utils.Pair object at 0x0000023DE63DDB80>]
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DD9D0>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DD9D0>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DD9D0>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC40>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DD9D0>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC10>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DD9D0>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDB80>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC40>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DD9D0>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC40>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC40>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC40>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC10>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC40>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDB80>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC10>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DD9D0>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC10>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC40>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC10>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC10>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC10>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDB80>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDB80>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DD9D0>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDB80>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC40>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDB80>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDC10>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 开始
+14:59:43 > hjp-bilink| > anchor_unbind > 
+pairA=,pairB=
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDB80>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE63DDB80>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > feed 结束
+14:59:43 > hjp-bilink| > wrap_log > node_remove 开始
+14:59:43 > hjp-bilink| > wrap_log > node_remove 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > HTML_get 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_delete 结束
+14:59:43 > hjp-bilink| > wrap_log > anchor_unbind 结束
+14:59:43 > hjp-bilink| > wrap_log > note_addTagAll 开始
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.utils.Pair object at 0x0000023DE64BE5B0>], [<hjp-bilink.utils.Pair object at 0x0000023DE64BE610>], [<hjp-bilink.utils.Pair object at 0x0000023DE64BE670>], [<hjp-bilink.utils.Pair object at 0x0000023DE64BE6D0>]]
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.dataflat_=[<hjp-bilink.utils.Pair object at 0x0000023DE64BE5B0>, <hjp-bilink.utils.Pair object at 0x0000023DE64BE610>, <hjp-bilink.utils.Pair object at 0x0000023DE64BE670>, <hjp-bilink.utils.Pair object at 0x0000023DE64BE6D0>]
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 开始
+14:59:43 > hjp-bilink| > __setattr__ > 
+Input.tag=hjp-bilink::
+14:59:43 > hjp-bilink| > wrap_log > __setattr__ 结束
+14:59:43 > hjp-bilink| > wrap_log > note_addTag 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64BE5B0>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > note_addTag 结束
+14:59:43 > hjp-bilink| > wrap_log > note_addTag 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64BE610>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > note_addTag 结束
+14:59:43 > hjp-bilink| > wrap_log > note_addTag 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64BE670>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > note_addTag 结束
+14:59:43 > hjp-bilink| > wrap_log > note_addTag 开始
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 开始
+14:59:43 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64BE6D0>
+14:59:43 > hjp-bilink| > wrap_log > note_loadFromId 结束
+14:59:43 > hjp-bilink| > wrap_log > note_addTag 结束
+14:59:43 > hjp-bilink| > wrap_log > note_addTagAll 结束
+15:00:20 > hjp-bilink| > wrap_log > __init__ 开始
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.valueStack=[]
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.console=<hjp-bilink.utils.console object at 0x0000023DE64D22B0>
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.dataflat_=None
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.model=<aqt.main.AnkiQt object at 0x0000023DDBBEBCA0>
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.helpSite=https://gitee.com/huangjipan/hjp-bilink
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.initDict={'IdDescPairs': [], 'addTag': ''}
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.relyDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\1423933177
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.inputDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\input.json
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.configDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\config.json
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.config={'addLinkTo_Field_or_MetaInfo': 'Field', 'linkMode': 0, 'cidPrefix': 'cidd', 'appendNoteFieldPosition': 0, 'readDescFieldPosition': 0, 'regexForDescContent': 0, 'regexForDescFromTag': 0, 'regexForDescFromDeck': 0, 'descMaxLength': 0, 'linkFromSymbol': '←', 'linkToSymbol': '→', 'linkStyle': '', 'addTagEnable': 1, 'addTagRoot': 'hjp-bilink', 'DEFAULT': {'regexForDescContent': '((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=")[\\w\\-\\.]+)'}}
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.insertPosi=0
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.regexDescPosi=0
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.linkstyle=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.seRegx=((?<=<div>)[\s\S]+?(?=</div>)|^[\w:;\-\[\]{}@#$%^&*().\|]+|(?<=src=")[\w\-\.]+)
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __init__ 开始
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.parse=<class 'bs4.BeautifulSoup'>
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.text=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=None
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.objJSON={}
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.regexName=re.compile('div|button')
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.regexCard_id=re.compile('\\d+')
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __init__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.HTMLmanage=<hjp-bilink.HTML_converter.HTML_converter object at 0x0000023DE64D2490>
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [[{'card_id': '1611035902112', 'desc': ''}], [{'card_id': '1611035899455', 'desc': ''}], [{'card_id': '1611035897919', 'desc': ''}], [{'card_id': '1611035896519', 'desc': ''}]], 'addTag': ''}
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.utils.Pair object at 0x0000023DE64D22E0>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D2160>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D24F0>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D2550>]]
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.utils.Pair object at 0x0000023DE64D22E0>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D2160>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D24F0>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D2550>]]
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.tag=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __init__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [], 'addTag': ''}
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > pair_extract 开始
+15:00:20 > hjp-bilink| > wrap_log > desc_extract 开始
+15:00:20 > hjp-bilink| > wrap_log > feed 开始
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > feed 结束
+15:00:20 > hjp-bilink| > wrap_log > node_remove 开始
+15:00:20 > hjp-bilink| > wrap_log > node_remove 结束
+15:00:20 > hjp-bilink| > wrap_log > text_get 开始
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.text=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > text_get 结束
+15:00:20 > hjp-bilink| > wrap_log > desc_extract 结束
+15:00:20 > hjp-bilink| > wrap_log > desc_extract 开始
+15:00:20 > hjp-bilink| > wrap_log > feed 开始
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > feed 结束
+15:00:20 > hjp-bilink| > wrap_log > node_remove 开始
+15:00:20 > hjp-bilink| > wrap_log > node_remove 结束
+15:00:20 > hjp-bilink| > wrap_log > text_get 开始
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.text=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > text_get 结束
+15:00:20 > hjp-bilink| > wrap_log > desc_extract 结束
+15:00:20 > hjp-bilink| > wrap_log > desc_extract 开始
+15:00:20 > hjp-bilink| > wrap_log > feed 开始
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > feed 结束
+15:00:20 > hjp-bilink| > wrap_log > node_remove 开始
+15:00:20 > hjp-bilink| > wrap_log > node_remove 结束
+15:00:20 > hjp-bilink| > wrap_log > text_get 开始
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.text=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > text_get 结束
+15:00:20 > hjp-bilink| > wrap_log > desc_extract 结束
+15:00:20 > hjp-bilink| > wrap_log > desc_extract 开始
+15:00:20 > hjp-bilink| > wrap_log > feed 开始
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > feed 结束
+15:00:20 > hjp-bilink| > wrap_log > node_remove 开始
+15:00:20 > hjp-bilink| > wrap_log > node_remove 结束
+15:00:20 > hjp-bilink| > wrap_log > text_get 开始
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+HTML_converter.text=
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > text_get 结束
+15:00:20 > hjp-bilink| > wrap_log > desc_extract 结束
+15:00:20 > hjp-bilink| > wrap_log > pair_extract 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.objdata=[]
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:20 > hjp-bilink| > __setattr__ > 
+Input.data=[[<hjp-bilink.utils.Pair object at 0x0000023DE64D2BE0>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D2DF0>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D2DC0>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D2D00>]]
+15:00:20 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __init__ 开始
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.valueStack=[]
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.console=<hjp-bilink.utils.console object at 0x0000023DE64D23A0>
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.dataflat_=None
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.model=<aqt.main.AnkiQt object at 0x0000023DDBBEBCA0>
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.helpSite=https://gitee.com/huangjipan/hjp-bilink
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.initDict={'IdDescPairs': [], 'addTag': ''}
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.relyDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\1423933177
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.inputDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\input.json
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.configDir=C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\config.json
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.config={'addLinkTo_Field_or_MetaInfo': 'Field', 'linkMode': 0, 'cidPrefix': 'cidd', 'appendNoteFieldPosition': 0, 'readDescFieldPosition': 0, 'regexForDescContent': 0, 'regexForDescFromTag': 0, 'regexForDescFromDeck': 0, 'descMaxLength': 0, 'linkFromSymbol': '←', 'linkToSymbol': '→', 'linkStyle': '', 'addTagEnable': 1, 'addTagRoot': 'hjp-bilink', 'DEFAULT': {'regexForDescContent': '((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=")[\\w\\-\\.]+)'}}
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.insertPosi=0
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.regexDescPosi=0
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.linkstyle=
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.seRegx=((?<=<div>)[\s\S]+?(?=</div>)|^[\w:;\-\[\]{}@#$%^&*().\|]+|(?<=src=")[\w\-\.]+)
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __init__ 开始
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+HTML_converter.parse=<class 'bs4.BeautifulSoup'>
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+HTML_converter.text=
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+HTML_converter.domRoot=None
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+HTML_converter.objJSON={}
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+HTML_converter.HTML_text=
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+HTML_converter.regexName=re.compile('div|button')
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+HTML_converter.regexCard_id=re.compile('\\d+')
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __init__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.HTMLmanage=<hjp-bilink.HTML_converter.HTML_converter object at 0x0000023DE64D2430>
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [[{'card_id': '1611035896519', 'desc': ''}], [{'card_id': '1611035897919', 'desc': ''}], [{'card_id': '1611035899455', 'desc': ''}], [{'card_id': '1611035902112', 'desc': ''}]], 'addTag': ''}
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D4250>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D4310>]]
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D4250>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D4310>]]
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.tag=
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __init__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.dataflat_=[<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>, <hjp-bilink.utils.Pair object at 0x0000023DE64D4250>, <hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>, <hjp-bilink.utils.Pair object at 0x0000023DE64D4310>]
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > func_completeMap > 
+[<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>, <hjp-bilink.utils.Pair object at 0x0000023DE64D4250>, <hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>, <hjp-bilink.utils.Pair object at 0x0000023DE64D4310>]
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035897919,fieldtontent=A
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035899455,fieldtontent=A<button card_id='1611035897919'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035897919&quot;);" style='font-size:inherit;' >→</button>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035902112,fieldtontent=A<button card_id='1611035897919'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035897919&quot;);" style='font-size:inherit;' >→</button><button card_id='1611035899455'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035899455&quot;);" style='font-size:inherit;' >→</button>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D2400>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4250>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4250>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035896519,fieldtontent=C
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4250>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4250>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4250>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035899455,fieldtontent=C<button card_id='1611035896519'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035896519&quot;);" style='font-size:inherit;' >→</button>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4250>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4250>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4250>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035902112,fieldtontent=C<button card_id='1611035896519'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035896519&quot;);" style='font-size:inherit;' >→</button><button card_id='1611035899455'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035899455&quot;);" style='font-size:inherit;' >→</button>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4250>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035896519,fieldtontent=E
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035897919,fieldtontent=E<button card_id='1611035896519'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035896519&quot;);" style='font-size:inherit;' >→</button>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035902112,fieldtontent=E<button card_id='1611035896519'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035896519&quot;);" style='font-size:inherit;' >→</button><button card_id='1611035897919'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035897919&quot;);" style='font-size:inherit;' >→</button>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D42E0>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4310>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4310>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035896519,fieldtontent=G
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4310>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4310>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4310>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035897919,fieldtontent=G<button card_id='1611035896519'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035896519&quot;);" style='font-size:inherit;' >→</button>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4310>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4310>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4310>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > Id_noFoundInNote > 
+card_id=1611035899455,fieldtontent=G<button card_id='1611035896519'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035896519&quot;);" style='font-size:inherit;' >→</button><button card_id='1611035897919'  dir = '→' onclick="javascript:pycmd(&quot;cidd&quot;+&quot;1611035897919&quot;);" style='font-size:inherit;' >→</button>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4310>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > Id_noFoundInNote 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 开始
+15:00:22 > hjp-bilink| > wrap_log > note_insertPair 结束
+15:00:22 > hjp-bilink| > wrap_log > note_addTagAll 开始
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.objdata=[[<hjp-bilink.utils.Pair object at 0x0000023DE64D47C0>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D4820>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D4880>], [<hjp-bilink.utils.Pair object at 0x0000023DE64D48E0>]]
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.dataflat_=[<hjp-bilink.utils.Pair object at 0x0000023DE64D47C0>, <hjp-bilink.utils.Pair object at 0x0000023DE64D4820>, <hjp-bilink.utils.Pair object at 0x0000023DE64D4880>, <hjp-bilink.utils.Pair object at 0x0000023DE64D48E0>]
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 开始
+15:00:22 > hjp-bilink| > __setattr__ > 
+Input.tag=hjp-bilink::
+15:00:22 > hjp-bilink| > wrap_log > __setattr__ 结束
+15:00:22 > hjp-bilink| > wrap_log > note_addTag 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D47C0>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > note_addTag 结束
+15:00:22 > hjp-bilink| > wrap_log > note_addTag 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4820>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > note_addTag 结束
+15:00:22 > hjp-bilink| > wrap_log > note_addTag 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D4880>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > note_addTag 结束
+15:00:22 > hjp-bilink| > wrap_log > note_addTag 开始
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 开始
+15:00:22 > hjp-bilink| > note_loadFromId > 
+pair=<hjp-bilink.utils.Pair object at 0x0000023DE64D48E0>
+15:00:22 > hjp-bilink| > wrap_log > note_loadFromId 结束
+15:00:22 > hjp-bilink| > wrap_log > note_addTag 结束
+15:00:22 > hjp-bilink| > wrap_log > note_addTagAll 结束

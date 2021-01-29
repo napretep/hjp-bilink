@@ -13,21 +13,6 @@ from .HTML_converter import HTML_converter
 from .utils import *
 
 
-class Empty:
-    """空对象"""
-
-
-class Pair:
-    """卡片ID和卡片描述的键值对的对象"""
-
-    def __init__(self, **pair):
-        self.card_id: str = pair["card_id"]
-        self.desc: str = pair["desc"]
-
-    @property
-    def int_card_id(self):
-        """用方法伪装属性,好处是不必担心加入input出问题"""
-        return int(self.card_id)
 
 
 class Input(object, metaclass=MetaClass_loger):
@@ -56,7 +41,7 @@ class Input(object, metaclass=MetaClass_loger):
         self.linkstyle = self.config["linkStyle"]
         self.seRegx = self.config["DEFAULT"]["regexForDescContent"] if self.config["regexForDescContent"] == 0 else \
             self.config["regexForDescContent"]
-        self.HTMLtextget = HTML_converter()
+        self.HTMLmanage = HTML_converter()
         try:
             self.data: json = json.load(open(inputFileDir, "r", encoding="UTF-8", ))
             self.objdata = self.dataObj.val
@@ -113,13 +98,13 @@ class Input(object, metaclass=MetaClass_loger):
             self.valueStack[-1] = t
         return self
 
-    def configOpen(self):
+    def config_open(self):
         """打开配置文件"""
         configUrl = QUrl.fromLocalFile(self.configDir)
         QDesktopServices.openUrl(configUrl)
         return self
 
-    def helpSiteOpen(self):
+    def helpSite_open(self):
         """打开帮助页面"""
         helpUrl = QUrl(self.helpSite)
         QDesktopServices.openUrl(helpUrl)
@@ -135,8 +120,7 @@ class Input(object, metaclass=MetaClass_loger):
         cfg: dict = self.config
         note = self.model.col.getCard(cid).note()
         content = note.fields[self.regexDescPosi]
-        self.HTMLtextget.clear()
-        desc = self.HTMLtextget.feed(content).node_removeByTagAttrs().text_get.HTML_text
+        desc = self.HTMLmanage.feed(content).node_remove().text_get().text
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
 
@@ -174,7 +158,7 @@ class Input(object, metaclass=MetaClass_loger):
                 self.insertPosi] += f"""<button card_id='{Id}'  dir = '{dirposi}' """ \
                                     f"""onclick="javascript:pycmd(&quot;{cfg.cidPrefix}&quot;+&quot;{Id}&quot;);" """ \
                                     f"""style='font-size:inherit;{cfg.linkStyle}' >""" \
-                                    f"""{direction}{desc}</button>"""
+                                    f"""{direction}{desc}</button><div></div>"""
             note.flush()
         return self
 
@@ -194,7 +178,7 @@ class Input(object, metaclass=MetaClass_loger):
         self.anchor_delete(pairA, pairB).anchor_delete(pairB, pairA)
         return pairB
 
-    def anchor_versionUpdate(self):
+    def anchor_updateVersion(self):
         """升级旧版锚点注入规则 TODO"""
         pass
 
@@ -202,15 +186,14 @@ class Input(object, metaclass=MetaClass_loger):
         """A中删除B的id"""
         note = self.note_loadFromId(pairA)
         field = note.fields[self.insertPosi]
-        field = self.HTMLtextget.feed(field).node_removeByTagAttrs(attrs={"card_id": pairB.card_id},
-                                                                   checkValue=True).HTML_back()
+        field = self.HTMLmanage.feed(field).node_remove(card_id=pairB.card_id).HTML_get().text
         note.fields[self.insertPosi] = field
         note.flush()
         return self
 
     def note_loadFromId(self, pair: Pair = None) -> Note:
         """从卡片的ID获取note"""
-        console("pair=" + pair.__str__()).log.end()
+        console(self.__class__.__name__ + " argument: pair=" + pair.__str__()).log.end()
         li = pair.int_card_id
         return self.model.col.getCard(li).note()
 
@@ -238,8 +221,4 @@ class Input(object, metaclass=MetaClass_loger):
         return groupB
 
 
-class Params:
-    """参数对象"""
 
-    def __init__(self, **args):
-        self.__dict__ = args

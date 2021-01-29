@@ -13,13 +13,13 @@ from .utils import *
 
 def func_anchorUpdate():
     """对外的接口"""
-    Input().anchor_versionUpdate()
+    Input().anchor_updateVersion()
     return
 
 
 def func_config():
     """打开配置文件"""
-    return Input().configOpen()
+    return Input().config_open()
 
 
 def func_version():
@@ -29,7 +29,7 @@ def func_version():
 
 def func_help():
     """返回帮助页面"""
-    return Input().helpSiteOpen()
+    return Input().helpSite_open()
 
 
 def func_openInput():
