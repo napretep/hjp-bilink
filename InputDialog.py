@@ -63,7 +63,8 @@ class InputDialog(QDialog, Ui_input):
         menuli = list(map(lambda x: prefix + say(x), ["全部展开/折叠", "选中删除"]))
         funcli = [self.view_expandCollapseToggle, self.view_selectedDelete]
         list(map(lambda x, y: Menu.addAction(x).triggered.connect(y), menuli, funcli))
-        MenuAdder.func_menuAddHelper(Menu, self, need=("link", "clear/open", "prefix", "selected"))
+        param = Params(menu=Menu, parent=self, need=("link", "clear_open", "prefix", "selected"))
+        MenuAdder.func_menuAddHelper(param)
 
     def onDrop(self):
         """掉落事件"""
