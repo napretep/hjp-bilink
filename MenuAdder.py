@@ -40,14 +40,12 @@ def func_menuAddLink(param: Params = None):
             lambda x, y: linkmenu2.addAction(x).triggered.connect(
                 lambda: func_linkStarter(mode=y, param=param)), menuNameLi, modeLi))
 
-
 def func_menuAddClearOpen(param: Params = None):
     """用来给清除和打开input功能加按钮"""
     prefix = "" if "prefix" not in param.need else consolerName
     menuli = ["清空input", "打开input"]
     funcli = [func_clearInput, func_openInput]
     list(map(lambda x, y: param.menu.addAction(f"{prefix}{say(x)}").triggered.connect(y), menuli, funcli))
-
 
 def func_menuAddBaseMenu(param: Params = None):
     """基础的如,help,config,version"""

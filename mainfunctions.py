@@ -33,10 +33,10 @@ def func_help():
 
 def func_openInput():
     """打开input对话框"""
-    try:
+    if hasattr(mw, "InputDialog") and mw.InputDialog is not None:
         mw.InputDialog.activateWindow()
-    except:
-        mw.InputDialog = InputDialog(inputObj=Input)
+    else:
+        mw.InputDialog = InputDialog()
         mw.InputDialog.exec()
     """返回input窗口"""
 

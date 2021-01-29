@@ -95,6 +95,8 @@ class Params:
     def __add__(self, other):
         return other + self.__dict__.__str__()
 
+    def __repr__(self):
+        return self.__dict__.__str__()
 
 class console:
     """debug用的"""

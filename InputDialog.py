@@ -16,10 +16,10 @@ class InputDialog(QDialog, Ui_input):
     """INPUT对话窗口类"""
     model: Union[QStandardItemModel, QStandardItemModel]
 
-    def __init__(self, parent=None, **kwargs):
+    def __init__(self, parent=None):
         super().__init__(parent)
         mw.InputDialog = self
-        self.fileHelper: Input = kwargs["inputObj"]()
+        self.fileHelper: Input = Input()
         self.model_dataSelected: List[List[Pair]] = []
         self.model_data: List[List[Pair]] = []
         self.UI_init()
@@ -35,7 +35,7 @@ class InputDialog(QDialog, Ui_input):
     # noinspection PyAttributeOutsideInit
     def events_init(self):
         """事件的初始化"""
-        self.closeEvent = self.onclose
+        self.closeEvent = self.onClose
         self.inputTree.doubleClicked.connect(self.onDoubleClick)
         self.inputTree.dropEvent = self.onDrop
         self.fileWatcher = QFileSystemWatcher()
@@ -58,35 +58,47 @@ class InputDialog(QDialog, Ui_input):
 
     def contextMenuOnInputTree(self):
         """初始化右键菜单"""
-        Menu = self.inputTree.contextMenu = QMenu(self)
+        self.inputTree.contextMenu = QMenu()
         prefix = consolerName
         menuli = list(map(lambda x: prefix + say(x), ["全部展开/折叠", "选中删除"]))
-        funcli = [self.view_expandCollapseToggle, self.view_selectedDelete]
-        list(map(lambda x, y: Menu.addAction(x).triggered.connect(y), menuli, funcli))
-        param = Params(menu=Menu, parent=self, need=("link", "clear_open", "prefix", "selected"))
+        funcli = [self.tree_toggleExpandCollapse, self.tree_selectedDelete]
+        list(map(lambda x, y: self.inputTree.contextMenu.addAction(x).triggered.connect(y), menuli, funcli))
+        param = Params(menu=self.inputTree.contextMenu, parent=self.
+                       inputTree, need=("link", "clear_open", "prefix", "selected"))
         MenuAdder.func_menuAddHelper(param)
+        self.inputTree.contextMenu.popup(QCursor.pos())
+        self.inputTree.contextMenu.show()
 
     def onDrop(self):
         """掉落事件"""
         pass
 
-    def onclose(self, QCloseEvent):
-        """关闭时要保存数据"""
+    def onDoubleClick(self):
+        """双击事件响应"""
+        pass
+
+    def onClose(self, QCloseEvent):
+        """关闭时要保存数据,QCloseEvent是有用的参数,不能删掉,否则会报错"""
         mw.InputDialog = None
         if len(self.model_data) > 0:
             self.tree_saveToFile()
         else:
             self.fileHelper.dataReset.dataSave
 
-    def onDoubleClick(self):
-        """双击事件响应"""
-        pass
-
-    def view_selectedDelete(self):
+    def tree_selectedDelete(self):
         """选中的部分删除"""
 
-    def view_expandCollapseToggle(self):
-        """切换展开与收起"""
+    def tree_toggleExpandCollapse(self):
+        if self.treeIsExpanded:
+            root = self.model_rootNode
+            tree = self.inputTree
+            groupLi = [root.child(i) for i in range(root.rowCount())]
+            for group in groupLi:
+                list(map(lambda x: tree.collapse(x.index()), [group.child(i) for i in range(group.rowCount())]))
+            self.treeIsExpanded = False
+        else:
+            self.inputTree.expandAll()
+            self.treeIsExpanded = True
 
     def tree_saveToFile(self):
         """保存文件"""
@@ -152,3 +164,4 @@ class InputDialog(QDialog, Ui_input):
         self.fileHelper.tag = self.tagContent.text()
         self.fileHelper.dataSave
         pass
+
