@@ -16,7 +16,9 @@ from .utils import *
 
 
 class Input(object, metaclass=MetaClass_loger):
-    """集成input对象,满足增删查改需求"""
+    """集成input对象,满足增删查改需求
+    当你保存dataobj到data的时候会自动类型转换
+    """
 
     def __init__(self,
                  inputFileDir: str = os.path.join(THIS_FOLDER, inputFileName),
@@ -44,34 +46,35 @@ class Input(object, metaclass=MetaClass_loger):
         self.HTMLmanage = HTML_converter()
         try:
             self.data: json = json.load(open(inputFileDir, "r", encoding="UTF-8", ))
-            self.objdata = self.dataObj.val
+            self.dataObj_ = self.dataObj.val
             self.tag = self.data["addTag"]
         except:
             self.tag = self.dataReset.dataSave.dataload.data["addTag"]
 
     @property
     def dataLoad(self):
-        """数据读取"""
+        """数据读取, 修改self.data,tag,objdata"""
         self.data: json = json.load(open(self.inputDir, "r", encoding="utf-8"))
-        self.objdata = self.dataObj.val
+        self.tag = self.data["addTag"]
+        self.dataObj_ = self.dataObj.val
         return self
 
     @property
     def dataObj(self):
-        """将数据转换为对象,方便访问"""
+        """将数据转换为对象,方便访问,修改 self.objdata """
         v = [[Pair(**pair) for pair in group] for group in self.data["IdDescPairs"]]
-        self.objdata = v
+        self.dataObj_ = v
         return self
 
     @property
     def dataReset(self):
-        """数据重设"""
+        """数据重设,修改 self.data """
         self.data = deepcopy(self.initDict)
         return self
 
     @property
     def dataSave(self):
-        """数据保存"""
+        """数据保存,尝试json.dump,否则self.dataReset.dataSave"""
         try:
             json.dump(self.data, open(self.inputDir, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
         except:
@@ -80,8 +83,8 @@ class Input(object, metaclass=MetaClass_loger):
 
     @property
     def dataFlat(self):
-        """将东西扁平化"""
-        self.dataflat_ = list(reduce(lambda x, y: x + y, self.objdata, []))
+        """去掉数据的组别,修改self.dataflat_"""
+        self.dataflat_ = list(reduce(lambda x, y: x + y, self.dataObj_, []))
         return self
 
     @property
@@ -91,7 +94,7 @@ class Input(object, metaclass=MetaClass_loger):
 
     @property
     def dataUnique(self):
-        """列表去重"""
+        """列表去重,默认对栈中上一个元素读取进行操作"""
         o, t = self.valueStack[-1], []
         if type(o) == list:
             [t.append(i) for i in o if i not in t]
@@ -177,7 +180,7 @@ class Input(object, metaclass=MetaClass_loger):
         pass
 
     def anchor_unbind(self, pairA: Pair, pairB: Pair):
-        """两张卡片若有链接则会相互解除绑定"""
+        """两张卡片若有链接则会相互解除绑定,用于reduce函数"""
         console(f"""pairA={pairA.desc},pairB={pairB.desc}""").log.end()
         self.anchor_delete(pairA, pairB).anchor_delete(pairB, pairA)
         return pairB
@@ -187,7 +190,7 @@ class Input(object, metaclass=MetaClass_loger):
         pass
 
     def anchor_delete(self, pairA: Pair, pairB: Pair):
-        """A中删除B的id"""
+        """A中删除B的id,返回自己"""
         note = self.note_loadFromId(pairA)
         field = note.fields[self.insertPosi]
         field = self.HTMLmanage.feed(field).node_remove(card_id=pairB.card_id).HTML_get().HTML_text
@@ -203,21 +206,27 @@ class Input(object, metaclass=MetaClass_loger):
 
     def __setattr__(self, name, value):
         console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
-        if name == "data" \
-                and (type(value) == list and len(value) > 0) \
-                and (type(value[0]) == list and len(value[0]) > 0) \
-                and isinstance(value[0][0], Pair):
-            v = [list(map(lambda x: x.__dict__, group)) for group in value]
-            self.__dict__[name]["IdDescPairs"] = v
+        if name == "data":
+            if (type(value) == list and len(value) > 0) \
+                    and (type(value[0]) == list and len(value[0]) > 0) \
+                    and isinstance(value[0][0], Pair):
+                v = [list(map(lambda x: x.__dict__, group)) for group in value]
+                self.__dict__[name]["IdDescPairs"] = v
+            if type(value) == dict:
+                self.__dict__[name] = value
+            self.dataObj
             self.valueStack.append(value)
         else:
-
+            if name == "tag": self.__dict__["data"]["addTag"] = value
             self.__dict__[name] = value
+            if len(self.valueStack) > 100:
+                del self.valueStack
+                self.valueStack = []
             if name != "valueStack":
                 self.valueStack.append(value)
 
     def group_bijectReducer(self, groupA: List[Pair] = None, groupB: List[Pair] = None):
-        """A组的每个pair链接到B组的每个pair,还有一个反向回链, """
+        """A组的每个pair链接到B组的每个pair,还有一个反向回链,是个reduce使用的函数 """
         for pairA in groupA:
             for pairB in groupB:
                 self.note_insertPair(pairA, pairB)

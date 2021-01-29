@@ -5,8 +5,7 @@
 from aqt import dialogs
 from aqt.browser import Browser
 from aqt.webview import AnkiWebView
-from .InputDialog import InputDialog
-from .inputObj import *
+from .InputDialog import *
 from .language import rosetta as say
 from .utils import *
 
@@ -37,9 +36,8 @@ def func_openInput():
     try:
         mw.InputDialog.activateWindow()
     except:
-        mw.InputDialog = InputDialog()
+        mw.InputDialog = InputDialog(inputObj=Input)
         mw.InputDialog.exec()
-        mw.activateWindow()
     """返回input窗口"""
 
 
