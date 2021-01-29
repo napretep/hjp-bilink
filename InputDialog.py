@@ -21,38 +21,30 @@ class InputDialog(QDialog, Ui_input):
         mw.InputDialog = self
         self.selectedData = copy.deepcopy(inputSchema)
         self.data = copy.deepcopy(inputSchema)
-        self.initUI()
-        self.initModel()
-        self.initEvents()
+        self.UI_init()
+        self.model_init()
+        self.events_init()
         self.show()
 
-    def initUI(self):
+    def UI_init(self):
         """初始化UI"""
         self.setupUi(self)
         self.inputTree.customContextMenuRequested.connect(self.contextMenuOnInputTree)
 
-    def contextMenuOnInputTree(self):
-        """初始化右键菜单"""
-        Menu = self.inputTree.contextMenu = QMenu(self)
-        prefix = consolerName
-        menuli = list(map(lambda x: prefix + say(x), ["全部展开/折叠", "选中删除"]))
-        funcli = [self.view_expandCollapseToggle, self.view_selectedDelete]
-        list(map(lambda x, y: Menu.addAction(x).triggered.connect(y), menuli, funcli))
-        MenuAdder.func_menuAddHelper(Menu, self, need=("link", "clear/open", "prefix", "selected"))
 
     # noinspection PyAttributeOutsideInit
-    def initEvents(self):
+    def events_init(self):
         """事件的初始化"""
         self.closeEvent = self.onclose
         self.inputTree.doubleClicked.connect(self.onDoubleClick)
         self.inputTree.dropEvent = self.onDrop
         self.fileWatcher = QFileSystemWatcher()
         self.fileWatcher.addPath(os.path.join(THIS_FOLDER, inputFileName))
-        self.fileWatcher.fileChanged.connect(self.data_setJSONToModel)
-        self.model.dataChanged.connect(self.data_saveJSONToFile)
-        self.tagContent.textChanged.connect(self.data_saveJSONToFile)
+        self.fileWatcher.fileChanged.connect(self.model_loadJSON)
+        self.model.dataChanged.connect(self.JSON_saveToFile)
+        self.tagContent.textChanged.connect(self.JSON_saveToFile)
 
-    def initModel(self):
+    def model_init(self):
         """模型数据的初始化"""
         self.model = QStandardItemModel()
         self.rootNode = self.model.invisibleRootItem()
@@ -62,13 +54,16 @@ class InputDialog(QDialog, Ui_input):
         self.rootNode.setDragEnabled(False)
         self.model.setHorizontalHeaderLabels(["card_id+desc"])
         self.inputTree.setModel(self.model)
-        self.data_setJSONToModel()
+        self.model_loadJSON()
 
-    def view_selectedDelete(self):
-        """选中的部分删除"""
-
-    def view_expandCollapseToggle(self):
-        """切换展开与收起"""
+    def contextMenuOnInputTree(self):
+        """初始化右键菜单"""
+        Menu = self.inputTree.contextMenu = QMenu(self)
+        prefix = consolerName
+        menuli = list(map(lambda x: prefix + say(x), ["全部展开/折叠", "选中删除"]))
+        funcli = [self.view_expandCollapseToggle, self.view_selectedDelete]
+        list(map(lambda x, y: Menu.addAction(x).triggered.connect(y), menuli, funcli))
+        MenuAdder.func_menuAddHelper(Menu, self, need=("link", "clear/open", "prefix", "selected"))
 
     def onDrop(self):
         """掉落事件"""
@@ -82,21 +77,27 @@ class InputDialog(QDialog, Ui_input):
         """双击事件响应"""
         pass
 
-    def data_setJSONToModel(self):
+    def view_selectedDelete(self):
+        """选中的部分删除"""
+
+    def view_expandCollapseToggle(self):
+        """切换展开与收起"""
+
+    def model_loadJSON(self):
         """从JSON读取到模型"""
 
-    def data_loadJSONFromFile(self):
+    def JSON_loadFromFile(self):
         """从文件中读取json对象"""
         self.data: json = json.load(open(os.path.join(THIS_FOLDER, inputFileName), "r", encoding="utf-8"))
 
-    def data_loadJSONFromTree(self):
+    def JSON_loadFromTree(self):
         """从树中读取json"""
         pass
 
-    def data_loadJSONFromSelected(self):
+    def JSON_loadFromSelect(self):
         """从选中的项目中读取json"""
         pass
 
-    def data_saveJSONToFile(self):
+    def JSON_saveToFile(self):
         """将json保存到文件"""
         pass

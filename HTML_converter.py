@@ -61,9 +61,6 @@ class HTML_converter(object, metaclass=MetaClass_loger):
         self.text = self.domRoot.text
         return self
 
-    def HTML_appenBreak(self, **args):
-        """TODO 给选中的元素增加<br>,主要是针对不会使用HTML的人做的"""
-
     def HTML_get(self):
         self.HTML_text = self.domRoot.__str__()
         return self
