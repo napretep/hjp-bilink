@@ -2,8 +2,7 @@
 debug函数
 一些常量
 """
-import datetime, types, functools
-
+import datetime, types, functools, json
 from aqt.utils import *
 
 VERSION = "0.5"
@@ -26,6 +25,38 @@ algPathDict = {
 }
 
 
+
+
+
+
+def logfunc(func):
+    """Calculate the execution time of func."""
+
+    @functools.wraps(func)
+    def wrap_log(*args, **kwargs):
+        """包装函数"""
+        console(f"""{func.__name__} 开始""").noNewline.log.end()
+        result = func(*args, **kwargs)
+        localss = locals()
+        console(
+            f"""{func.__name__} 结果:\nargs>{localss["args"]}\nkwargs>{localss["kwargs"]}\nresult>{localss["result"]}""").noNewline.log.end()
+        console(f"""{func.__name__} 结束""").noNewline.log.end()
+        return result
+
+    return wrap_log
+
+
+class MetaClass_loger(type):
+    """"监控元类"""
+
+    def __new__(mcs, name, bases, attr_dict):
+        for k, v in attr_dict.items():
+            # If the attribute is function type, use the wrapper function instead
+            if isinstance(v, types.FunctionType):
+                attr_dict[k] = logfunc(v)
+        return type.__new__(mcs, name, bases, attr_dict)
+
+
 class Empty:
     """空对象"""
 
@@ -42,6 +73,15 @@ class Pair:
         """用方法伪装属性,好处是不必担心加入input出问题"""
         return int(self.card_id)
 
+    def __str__(self):
+        return f"""<{self.__class__.__name__}:{self.__dict__.__str__()}>"""
+
+    def __add__(self, other):
+        return other + self.__str__()
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class Params:
     """参数对象"""
@@ -49,30 +89,11 @@ class Params:
     def __init__(self, **args):
         self.__dict__ = args
 
+    def __str__(self):
+        return f"""<{self.__class__.__name__}:{self.__dict__.__str__()}"""
 
-def logfunc(func):
-    """Calculate the execution time of func."""
-
-    @functools.wraps(func)
-    def wrap_log(*args, **kwargs):
-        """包装函数"""
-        console(func.__name__ + " 开始").noNewline.log.end()
-        result = func(*args, **kwargs)
-        console(func.__name__ + " 结束").noNewline.log.end()
-        return result
-
-    return wrap_log
-
-
-class MetaClass_loger(type):
-    """"监控元类"""
-
-    def __new__(mcs, name, bases, attr_dict):
-        for k, v in attr_dict.items():
-            # If the attribute is function type, use the wrapper function instead
-            if isinstance(v, types.FunctionType):
-                attr_dict[k] = logfunc(v)
-        return type.__new__(mcs, name, bases, attr_dict)
+    def __add__(self, other):
+        return other + self.__dict__.__str__()
 
 
 class console:

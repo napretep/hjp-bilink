@@ -88,6 +88,7 @@ def func_add_browsermenu(browser: Browser = None):
     '''
     链接:5个,插入:3个,打开,清空,配置,版本,帮助
     '''
+
     param = Params(menu=menu, parent=browser, need=("link", "browserinsert", "clear_open", "basicMenu",))
     func_menuAddHelper(param=param)
 

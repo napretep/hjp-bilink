@@ -109,18 +109,20 @@ class Input(object, metaclass=MetaClass_loger):
         helpUrl = QUrl(self.helpSite)
         QDesktopServices.openUrl(helpUrl)
 
-    def pair_extract(self, cardLi: List[str] = None) -> List[Pair]:
+    def pairLi_extract(self, cardLi: List[str] = None) -> List[Pair]:
         """从卡片列表中读取卡片ID和desc. 为了统一我们都处理成Pair,输出时再改回普通的."""
         descLi: List[str] = list(map(lambda x: self.desc_extract(x), cardLi))
         return list(map(lambda x, y: Pair(card_id=x, desc=y), cardLi, descLi))
 
-    def desc_extract(self, c: str = ""):
+    def desc_extract(self, c=None):
         """读取卡片的描述"""
-        cid = int(c)
+        if isinstance(c, Pair): cid = c.int_card_id
+        if isinstance(c, str): cid = int(c)
         cfg: dict = self.config
         note = self.model.col.getCard(cid).note()
         content = note.fields[self.regexDescPosi]
         desc = self.HTMLmanage.feed(content).node_remove().text_get().text
+        desc = re.sub(r"\n+", "", desc)
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
 
@@ -129,7 +131,7 @@ class Input(object, metaclass=MetaClass_loger):
         tag = self.tag
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         tagbase = self.config["addTagRoot"] + "::"
-        tagtail = tag if tag is not None else timestamp
+        tagtail = tag if tag != "" else timestamp
         pairLi = self.dataObj.dataFlat.dataUnique.val
         tag = tagbase + tagtail
         self.tag = tag
@@ -149,23 +151,25 @@ class Input(object, metaclass=MetaClass_loger):
             return self
         note = self.note_loadFromId(pairA)
         if self.Id_noFoundInNote(pairB, pairA):
-            Id, desc = pairB.card_id, pairB.desc
+            Id, desc = pairB.card_id, pairB.desc if pairB.desc != "" else self.desc_extract()
             cfg = Empty()
             cfg.__dict__ = self.config
             dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
             direction = dirMap[dirposi]
-            note.fields[
-                self.insertPosi] += f"""<button card_id='{Id}'  dir = '{dirposi}' """ \
-                                    f"""onclick="javascript:pycmd(&quot;{cfg.cidPrefix}&quot;+&quot;{Id}&quot;);" """ \
-                                    f"""style='font-size:inherit;{cfg.linkStyle}' >""" \
-                                    f"""{direction}{desc}</button><div></div>"""
+            fieldcontent = note.fields[self.insertPosi]
+            fieldcontent = self.HTMLmanage.feed(fieldcontent).button_make(Id=Id,
+                                                                          desc=desc,
+                                                                          direction=direction,
+                                                                          prefix=cfg.cidPrefix,
+                                                                          linkStyle=cfg.linkStyle).HTML_get().HTML_text
+            note.fields[self.insertPosi] = fieldcontent
             note.flush()
         return self
 
     def Id_noFoundInNote(self, pairA: Pair = None, pairB: Pair = None) -> bool:
         """判断A id是否在B Note中,如果不在,返回真"""
         console(
-            f"""card_id={pairA.card_id},fieldtontent={self.note_loadFromId(pairB).fields[self.insertPosi]}""").log.end()
+            f"""card_id={pairA.card_id},fieldcontent={self.note_loadFromId(pairB).fields[self.insertPosi]}""").log.end()
         return re.search(pairA.card_id, self.note_loadFromId(pairB).fields[self.insertPosi]) is None
 
     def IdLi_FromLinkedCard(self, pair: Pair = None):
@@ -186,7 +190,7 @@ class Input(object, metaclass=MetaClass_loger):
         """A中删除B的id"""
         note = self.note_loadFromId(pairA)
         field = note.fields[self.insertPosi]
-        field = self.HTMLmanage.feed(field).node_remove(card_id=pairB.card_id).HTML_get().text
+        field = self.HTMLmanage.feed(field).node_remove(card_id=pairB.card_id).HTML_get().HTML_text
         note.fields[self.insertPosi] = field
         note.flush()
         return self

@@ -2,10 +2,8 @@
 """
 写了个HTML toObject toJSON 解析器
 """
-import functools
 import re
-import types
-import xml.dom.minidom as XMLParser
+
 from typing import List, Tuple, Dict
 from bs4 import BeautifulSoup, element
 
@@ -13,6 +11,7 @@ if __name__ == "__main__":
     from utils import console, MetaClass_loger, Params
 else:
     from .utils import console, MetaClass_loger, Params
+
 
 class HTML_converter(object, metaclass=MetaClass_loger):
     """格式转换综合对象"""
@@ -25,20 +24,45 @@ class HTML_converter(object, metaclass=MetaClass_loger):
         self.HTML_text = ""
         self.regexName = re.compile(r"div|button")
         self.regexCard_id = re.compile(r"\d+")
+        self.buttonDivId = "hjp_bilink_button"
 
     def feed(self, text):
         """把接口变得简单一点,domRoot修改"""
-        self.domRoot = self.parse(self.text, "html.parser")
+        self.domRoot = self.parse(text, "html.parser")
         return self
 
     def getElementsByTagName(self, tagName):
         """获取TAG"""
         pass
 
+    def button_make(self, **args):
+        """用来创建按钮,需要提供pair,direction"""
+        # 新建bs4.element对象
+        self.fbtnmk_HTMLbutton = \
+            self.domRoot.new_tag(name="button", card_id=args["Id"], dir=args["direction"],
+                                 onclick=f"""javascript:pycmd('{args["prefix"]}'+'{args["Id"]}');""",
+                                 style=f"""'displaystyle:inline;font-size:inherit;{args["linkStyle"]};""", )
+        self.fbtnmk_HTMLbutton.string = args["direction"] + args["desc"]
+        self.fbtmk_div = self.domRoot.select(f"#{self.buttonDivId}")
+        if len(self.fbtmk_div) == 0:
+            self.fbtmk_div_ = self.domRoot.new_tag("div", id=self.buttonDivId)
+            self.fbtmk_div_.append(self.fbtnmk_HTMLbutton)
+            self.domRoot.append(self.domRoot.new_tag("br"))
+            self.domRoot.append(self.domRoot.new_tag("br"))
+            self.domRoot.append(self.fbtmk_div_)
+            self.domRoot.append(self.domRoot.new_tag("br"))
+            self.domRoot.append(self.domRoot.new_tag("br"))
+        else:
+            self.domRoot.select(f"#{self.buttonDivId}")[0].append(self.fbtnmk_HTMLbutton)
+        return self
+
     def text_get(self, node=None):
         """外层"""
         self.text = self.domRoot.text
         return self
+
+    def HTML_appenBreak(self, **args):
+        """TODO 给选中的元素增加<br>,主要是针对不会使用HTML的人做的"""
 
     def HTML_get(self):
         self.HTML_text = self.domRoot.__str__()
@@ -46,11 +70,9 @@ class HTML_converter(object, metaclass=MetaClass_loger):
 
     def node_remove(self, name=None, **args):
         """剔除一些标签, 默认是为了我的插件服务的,临时删除所有影响获取文本的无关结点"""
-        if name is None:
-            name = self.regexName
-        if args == {}:
-            args["card_id"] = self.regexCard_id
-        list(map(lambda x: x.extract(), self.domRoot.find_all(name=name, **args)))
+        name = self.regexName if name is None else name
+        args["card_id"] = self.regexCard_id if args == {} else args["card_id"]
+        list(map(lambda x: x.extract(), self.domRoot.find_all(name=name, attrs=args)))
         return self
 
     def clear(self):
@@ -62,24 +84,8 @@ class HTML_converter(object, metaclass=MetaClass_loger):
         self.__dict__[name] = value
 
     def __getattr__(self, name):
-        console(f""" get {self.__class__.__name__}.{name}""").log.end()
+        console(f""" getattr→ {self.__class__.__name__}.{name}  """).log.end()
         return self.__dict__[name]
-
-
-def text_get(node: XMLParser.Element):
-    rc = []
-    nodeli = node.childNodes
-
-    for n in nodeli:
-        if n.nodeType == n.TEXT_NODE:
-            console("data=" + n.data).log.end()
-            if re.search(r"\S", n.data) is not None:
-                rc += [n.data]
-            else:
-                rc += [re.sub(r"\s+", " ", n.data)]
-        else:
-            rc += text_get(n)
-    return rc
 
 
 if __name__ == "__main__":

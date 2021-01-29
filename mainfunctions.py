@@ -56,10 +56,10 @@ def func_onProgramClose():
 
 def func_completeMap(param: Params = None):
     """完全图链接,此时group分组不影响."""
-    data = param.input.dataFlat.dataUnique.val  # 不分group,只有pairs
-    console(data.__str__()).log.end()
+    pairLi = param.input.dataFlat.dataUnique.val  # 不分group,只有pairs
+    console(pairLi.__str__()).log.end()
     i = param.input
-    [list(map(lambda pairB: i.note_insertPair(pairA, pairB), data)) for pairA in data]
+    [list(map(lambda pairB: i.note_insertPair(pairA, pairB), pairLi)) for pairA in pairLi]
 
 
 def func_GroupByGroup(param: Params = None):
@@ -133,7 +133,7 @@ def func_browserInsert(browser: Browser, need: tuple = None):
         return
     inputObj = Input()
     if "clear" in need: inputObj = inputObj.dataReset.dataSave
-    pairLi = inputObj.pair_extract(cardLi)
+    pairLi = inputObj.pairLi_extract(cardLi)
     dataObj = inputObj.dataObj.val
     if "group" in need:
         dataObj.append(pairLi)
