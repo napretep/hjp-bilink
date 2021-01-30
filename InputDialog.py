@@ -3,6 +3,7 @@
 """
 import copy
 import json
+import time
 
 from aqt import mw
 
@@ -26,6 +27,7 @@ class InputDialog(QDialog, Ui_input):
         self.model_init()
         self.events_init()
         self.show()
+        console("初始化完成!").log.end()
 
     def UI_init(self):
         """初始化UI"""
@@ -42,6 +44,8 @@ class InputDialog(QDialog, Ui_input):
         self.fileWatcher.addPath(os.path.join(THIS_FOLDER, inputFileName))
         self.fileWatcher.fileChanged.connect(self.model_loadJSON)
         self.model.dataChanged.connect(self.tree_saveToFile)
+        self.model.rowsRemoved.connect(self.tree_saveToFile)
+        # self.model.layoutChanged.connect(self.tree_saveToFile)
         self.tagContent.textChanged.connect(self.tag_saveToFile)
 
     def model_init(self):
@@ -58,24 +62,28 @@ class InputDialog(QDialog, Ui_input):
 
     def contextMenuOnInputTree(self):
         """初始化右键菜单"""
-        self.inputTree.contextMenu = QMenu()
+        menu = self.inputTree.contextMenu = QMenu()
         prefix = consolerName
-        menuli = list(map(lambda x: prefix + say(x), ["全部展开/折叠", "选中删除"]))
-        funcli = [self.tree_toggleExpandCollapse, self.tree_selectedDelete]
-        list(map(lambda x, y: self.inputTree.contextMenu.addAction(x).triggered.connect(y), menuli, funcli))
-        param = Params(menu=self.inputTree.contextMenu, parent=self.
-                       inputTree, need=("link", "clear_open", "prefix", "selected"))
+        menu.addAction(prefix + say("全部展开/折叠")).triggered.connect(self.tree_toggleExpandCollapse)
+        if len(self.inputTree.selectedIndexes()) > 0:
+            menu.addAction(prefix + say("选中删除")).triggered.connect(self.tree_selectedDelete)
+        menu.addAction("test").triggered.connect(self.tree_saveToFile)
+        param = Params(menu=menu, parent=self.inputTree, need=("link", "clear_open", "prefix", "selected"))
         MenuAdder.func_menuAddHelper(param)
-        self.inputTree.contextMenu.popup(QCursor.pos())
-        self.inputTree.contextMenu.show()
+        menu.popup(QCursor.pos())
+        menu.show()
 
     def onDrop(self):
-        """掉落事件"""
+        """掉落事件响应"""
         pass
 
     def onDoubleClick(self):
         """双击事件响应"""
         pass
+
+    def onRowRemoved(self):
+        """移除行时响应"""
+        self.tree_saveToFile()
 
     def onClose(self, QCloseEvent):
         """关闭时要保存数据,QCloseEvent是有用的参数,不能删掉,否则会报错"""
@@ -83,12 +91,22 @@ class InputDialog(QDialog, Ui_input):
         if len(self.model_data) > 0:
             self.tree_saveToFile()
         else:
-            self.fileHelper.dataReset.dataSave
+            self.fileHelper.dataReset.dataSave.end()
 
     def tree_selectedDelete(self):
         """选中的部分删除"""
+        indexLi = self.inputTree.selectedIndexes()
+        for index in indexLi:
+            item = self.model.itemFromIndex(index)
+            row, col = item.row(), item.column()
+            father = item.parent()
+            if father is not None:
+                father.removeRow(row)
+            else:
+                self.model_rootNode.removeRow(row)
 
     def tree_toggleExpandCollapse(self):
+        """切换input对话框的折叠和展开状态"""
         if self.treeIsExpanded:
             root = self.model_rootNode
             tree = self.inputTree
@@ -104,7 +122,8 @@ class InputDialog(QDialog, Ui_input):
         """保存文件"""
         self.JSON_loadFromModel()
         self.fileHelper.data = self.model_data
-        self.fileHelper.dataSave
+        self.fileHelper.dataSave.end()
+        console(f"tree_saveToFile:{self.fileHelper.data.__str__()}").log.end()
 
     def model_loadTag(self):
         self.tagContent.setText(self.fileHelper.dataLoad.tag)
@@ -137,23 +156,28 @@ class InputDialog(QDialog, Ui_input):
         self.inputTree.expandAll()
         self.treeIsExpanded = True
         self.model_loadTag()
+        console("model_loadJSON" + self.model_data.__str__()).log.end()
 
     def JSON_loadFromModel(self):
         """从树中读取json"""
-        self.model_data = self.fileHelper.dataReset.dataObj.val
+        self.model_data: List[List[Pair]] = self.fileHelper.dataReset.dataObj.val
         self.fileHelper.tag = self.tagContent.text()
-        if self.model_rootNode.rowCount() > 0:
-            for i in range(self.model_rootNode.rowCount()):
-                group = []
-                self.model_data.append(group)
+        self.JSON_loadFromModel_sub()
+
+    def JSON_loadFromModel_sub(self):
+        """是一个子函数"""
+        for i in range(self.model_rootNode.rowCount()):
+            console("model_data=" + self.model_data.__str__()).log.end()
+            console(f"self.model_rootNode.child({i.__str__()}).rowCount()=" + self.model_rootNode.child(
+                i).rowCount().__str__()).log.end()
+            if self.model_rootNode.child(i).rowCount() == 0:
+                continue
+            else:
+                self.model_data.append([])
                 for j in range(self.model_rootNode.child(i).rowCount()):
-                    try:
-                        pair = Pair(card_id=self.model_rootNode.child(i).child(j).child(0).text(),
-                                    desc=self.model_rootNode.child(i).child(j).child(1).text())
-                        self.model_data[i].append(pair)
-                    except:
-                        continue
-        self.fileHelper.data = self.model_data
+                    pair = Pair(card_id=self.model_rootNode.child(i).child(j).child(0).text(),
+                                desc=self.model_rootNode.child(i).child(j).child(1).text())
+                    self.model_data[-1].append(pair)
 
     def JSON_loadFromSelect(self):
         """从选中的项目中读取json"""
@@ -162,6 +186,6 @@ class InputDialog(QDialog, Ui_input):
     def tag_saveToFile(self):
         """将json保存到文件"""
         self.fileHelper.tag = self.tagContent.text()
-        self.fileHelper.dataSave
+        self.fileHelper.dataSave.end()
         pass
 

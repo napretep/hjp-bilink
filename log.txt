@@ -1,160 +1,374 @@
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.data={'IdDescPairs': [], 'addTag': ''}
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CA7BD30>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CA7BD30>, 'data', {'IdDescPairs': [], 'addTag': ''})
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'data', {'IdDescPairs': [], 'addTag': ''})
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.tag=
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CA7BD30>, 'tag', '')
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'tag', '')
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
-Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CA7BD30>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > JSON_loadFromModel_sub > 
+model_data=[]
+07:28:13 > hjp-bilink| > JSON_loadFromModel_sub > 
+self.model_rootNode.child(0).rowCount()=0
+07:28:13 > hjp-bilink| > JSON_loadFromModel_sub > 
+model_data=[]
+07:28:13 > hjp-bilink| > JSON_loadFromModel_sub > 
+self.model_rootNode.child(1).rowCount()=1
+07:28:13 > hjp-bilink| > JSON_loadFromModel_sub > 
+model_data=[[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>]]
+07:28:13 > hjp-bilink| > JSON_loadFromModel_sub > 
+self.model_rootNode.child(2).rowCount()=1
+07:28:13 > hjp-bilink| > JSON_loadFromModel_sub > 
+model_data=[[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>], [<Pair:{'card_id': '1611035899455', 'desc': 'E'}>]]
+07:28:13 > hjp-bilink| > JSON_loadFromModel_sub > 
+self.model_rootNode.child(3).rowCount()=1
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.data=[[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>], [<Pair:{'card_id': '1611035899455', 'desc': 'E'}>], [<Pair:{'card_id': '1611035902112', 'desc': 'G'}>]]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>], [<Pair:{'card_id': '1611035899455', 'desc': 'E'}>], [<Pair:{'card_id': '1611035902112', 'desc': 'G'}>]]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>], [<Pair:{'card_id': '1611035899455', 'desc': 'E'}>], [<Pair:{'card_id': '1611035902112', 'desc': 'G'}>]])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
-Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CA7BD30>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'data', [[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>], [<Pair:{'card_id': '1611035899455', 'desc': 'E'}>], [<Pair:{'card_id': '1611035902112', 'desc': 'G'}>]])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > end 开始
+07:28:13 > hjp-bilink| > wrap_log > end 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>,)
+kwargs>{}
+result><hjp-bilink.inputObj.Input object at 0x0000024470DD0100>
+07:28:13 > hjp-bilink| > wrap_log > end 结束
+07:28:13 > hjp-bilink| > tree_saveToFile >  先看到这里,睡觉了,
+tree_saveToFile:{'IdDescPairs': [[{'card_id': '1611035897919', 'desc': 'C'}], [{'card_id': '1611035899455', 'desc': 'E'}], [{'card_id': '1611035902112', 'desc': 'G'}]], 'addTag': ''}
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [[{'card_id': '1611035897919', 'desc': 'C'}], [{'card_id': '1611035899455', 'desc': 'E'}], [{'card_id': '1611035902112', 'desc': 'G'}]], 'addTag': ''}
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>], [<Pair:{'card_id': '1611035899455', 'desc': 'E'}>], [<Pair:{'card_id': '1611035902112', 'desc': 'G'}>]]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>], [<Pair:{'card_id': '1611035899455', 'desc': 'E'}>], [<Pair:{'card_id': '1611035902112', 'desc': 'G'}>]])
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'data', {'IdDescPairs': [[{'card_id': '1611035897919', 'desc': 'C'}], [{'card_id': '1611035899455', 'desc': 'E'}], [{'card_id': '1611035902112', 'desc': 'G'}]], 'addTag': ''})
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.tag=
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'tag', '')
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>], [<Pair:{'card_id': '1611035899455', 'desc': 'E'}>], [<Pair:{'card_id': '1611035902112', 'desc': 'G'}>]]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>], [<Pair:{'card_id': '1611035899455', 'desc': 'E'}>], [<Pair:{'card_id': '1611035902112', 'desc': 'G'}>]])
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>], [<Pair:{'card_id': '1611035899455', 'desc': 'E'}>], [<Pair:{'card_id': '1611035902112', 'desc': 'G'}>]]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [[<Pair:{'card_id': '1611035897919', 'desc': 'C'}>], [<Pair:{'card_id': '1611035899455', 'desc': 'E'}>], [<Pair:{'card_id': '1611035902112', 'desc': 'G'}>]])
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.data={'IdDescPairs': [], 'addTag': ''}
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CA7BD30>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CA7BD30>, 'data', {'IdDescPairs': [], 'addTag': ''})
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'data', {'IdDescPairs': [], 'addTag': ''})
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.tag=
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CA7BD30>, 'tag', '')
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'tag', '')
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.data=[]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CA7BD30>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
-Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CA7BD30>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'data', [])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > end 开始
+07:28:13 > hjp-bilink| > wrap_log > end 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>,)
+kwargs>{}
+result><hjp-bilink.inputObj.Input object at 0x0000024470DD0100>
+07:28:13 > hjp-bilink| > wrap_log > end 结束
+07:28:13 > hjp-bilink| > tree_saveToFile > 
+tree_saveToFile:{'IdDescPairs': [], 'addTag': ''}
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.data={'IdDescPairs': [], 'addTag': ''}
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CB12B20>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CB12B20>, 'data', {'IdDescPairs': [], 'addTag': ''})
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'data', {'IdDescPairs': [], 'addTag': ''})
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.tag=
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CB12B20>, 'tag', '')
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'tag', '')
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CB12B20>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CB12B20>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > model_loadJSON > 
+model_loadJSON[]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.data={'IdDescPairs': [], 'addTag': ''}
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CB12B20>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CB12B20>, 'data', {'IdDescPairs': [], 'addTag': ''})
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'data', {'IdDescPairs': [], 'addTag': ''})
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.tag=
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CB12B20>, 'tag', '')
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'tag', '')
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CB12B20>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 开始
-03:49:28 > hjp-bilink| > __setattr__ > 
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
 Input.dataObj_=[]
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结果:
-args>(<hjp-bilink.inputObj.Input object at 0x000002331CB12B20>, 'dataObj_', [])
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
 kwargs>{}
 result>None
-03:49:28 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [], 'addTag': ''}
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'data', {'IdDescPairs': [], 'addTag': ''})
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.tag=
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'tag', '')
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 开始
+07:28:13 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[]
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
+kwargs>{}
+result>None
+07:28:13 > hjp-bilink| > wrap_log > __setattr__ 结束
+07:28:13 > hjp-bilink| > model_loadJSON > 
+model_loadJSON[]
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+13:46:34 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [], 'addTag': ''}
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+13:46:34 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[]
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
+kwargs>{}
+result>None
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'data', {'IdDescPairs': [], 'addTag': ''})
+kwargs>{}
+result>None
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+13:46:34 > hjp-bilink| > __setattr__ > 
+Input.tag=
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'tag', '')
+kwargs>{}
+result>None
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+13:46:34 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[]
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
+kwargs>{}
+result>None
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+13:46:34 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[]
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
+kwargs>{}
+result>None
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+13:46:34 > hjp-bilink| > __setattr__ > 
+Input.data={'IdDescPairs': [], 'addTag': ''}
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+13:46:34 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[]
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
+kwargs>{}
+result>None
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'data', {'IdDescPairs': [], 'addTag': ''})
+kwargs>{}
+result>None
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+13:46:34 > hjp-bilink| > __setattr__ > 
+Input.tag=
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'tag', '')
+kwargs>{}
+result>None
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+13:46:34 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[]
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
+kwargs>{}
+result>None
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 开始
+13:46:34 > hjp-bilink| > __setattr__ > 
+Input.dataObj_=[]
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结果:
+args>(<hjp-bilink.inputObj.Input object at 0x0000024470DD0100>, 'dataObj_', [])
+kwargs>{}
+result>None
+13:46:34 > hjp-bilink| > wrap_log > __setattr__ 结束
+13:46:34 > hjp-bilink| > model_loadJSON > 
+model_loadJSON[]

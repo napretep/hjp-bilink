@@ -204,6 +204,17 @@ class Input(object, metaclass=MetaClass_loger):
         li = pair.int_card_id
         return self.model.col.getCard(li).note()
 
+    def group_bijectReducer(self, groupA: List[Pair] = None, groupB: List[Pair] = None):
+        """A组的每个pair链接到B组的每个pair,还有一个反向回链,是个reduce使用的函数 """
+        for pairA in groupA:
+            for pairB in groupB:
+                self.note_insertPair(pairA, pairB)
+                self.note_insertPair(pairB, pairA, dirposi="←")
+        return groupB
+
+    def end(self):
+        return self
+
     def __setattr__(self, name, value):
         console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
         if name == "data":
@@ -225,13 +236,5 @@ class Input(object, metaclass=MetaClass_loger):
             if name != "valueStack":
                 self.valueStack.append(value)
 
-    def group_bijectReducer(self, groupA: List[Pair] = None, groupB: List[Pair] = None):
-        """A组的每个pair链接到B组的每个pair,还有一个反向回链,是个reduce使用的函数 """
-        for pairA in groupA:
-            for pairB in groupB:
-                self.note_insertPair(pairA, pairB)
-                self.note_insertPair(pairB, pairA, dirposi="←")
-        return groupB
-
-
-
+    # def __getattribute__(self, name):
+    #     console(f"遇到调用属性名:{self.__class__.__name__}.{name}")
