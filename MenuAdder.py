@@ -29,29 +29,28 @@ def func_menuAddLink(param: Params = None):
     """用来给链接类型的函数加按钮"""
     menuNameLi = list(map(lambda x: say(x), ["默认链接", "完全图链接", "组到组链接", "按结点取消链接", "按路径取消链接"]))
     prefix = "" if "prefix" not in param.need else consolerName
-    linkmenu = param.menu.addMenu(prefix + say("链接"))
+    linkname = "链接"
+    if "selected" in param.need:
+        linkname = "选中链接"
+    linkmenu = param.menu.addMenu(prefix + say(linkname))
     modeLi = [999, 0, 1, 2, 3]
     list(map(
         lambda x, y: linkmenu.addAction(x).triggered.connect(lambda: func_linkStarter(mode=y, param=param)), menuNameLi,
         modeLi))
-    if "selected" in param.need:
-        linkmenu2 = param.menu.addMenu(prefix + say("选中链接"))
-        list(map(
-            lambda x, y: linkmenu2.addAction(x).triggered.connect(
-                lambda: func_linkStarter(mode=y, param=param)), menuNameLi, modeLi))
 
 def func_menuAddClearOpen(param: Params = None):
     """用来给清除和打开input功能加按钮"""
     prefix = "" if "prefix" not in param.need else consolerName
-    menuli = ["清空input", "打开input"]
-    funcli = [func_clearInput, func_openInput]
+    menuli = ["打开input", "清空input"]
+    funcli = [func_openInput, func_clearInput]
     list(map(lambda x, y: param.menu.addAction(f"{prefix}{say(x)}").triggered.connect(y), menuli, funcli))
 
 def func_menuAddBaseMenu(param: Params = None):
     """基础的如,help,config,version"""
-    menuli = ["调整config", "查看版本", "打开插件页面", "升级旧版锚点"]
-    funcli = [func_config, func_version, func_help, func_anchorUpdate]
-    list(map(lambda x, y: param.menu.addAction(f"{say(x)}").triggered.connect(y), menuli, funcli))
+    menuli = ["调整config", "查看版本和新特性", "打开插件页面", "升级旧版锚点", "联系作者", "支持作者"]
+    funcli = [func_config, func_version, func_help, func_anchorUpdate, func_contactMe, func_supportMe]
+    menu = param.menu.addMenu(say("其他"))
+    list(map(lambda x, y: menu.addAction(f"{say(x)}").triggered.connect(y), menuli, funcli))
 
 
 def func_menuAddSingleInsert(param: Params = None):

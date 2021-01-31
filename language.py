@@ -1,11 +1,17 @@
 from anki.lang import *
+
+
 def rosetta(text:str=""):
     # return text
     lang=currentLang
 
     surrport=["zh-CN","zh_TW","en","en-GB"]
+
     def En(text):
-        return Endict[text]
+        if text in Endict:
+            return Endict[text]
+        else:
+            return text
 
     def Zh(text):
         return text
@@ -22,7 +28,7 @@ def rosetta(text:str=""):
         "将选中卡片插入": "insert selected",
         "将选中卡片编组插入": "insert as group",
         "调整config": "configuration",
-        "查看版本": "version",
+        "查看版本和新特性": "version and what's new",
         "打开插件页面": "open webSite",
         "链接": "link",
         "清空input": "clear input",
@@ -46,7 +52,10 @@ def rosetta(text:str=""):
         '选中删除': "deleteSelected",
         "选中链接": "linkSelected",
         "升级旧版锚点": "old link anchor update",
-        "错误:字段中的HTML无法读取": "error:can't read HTML in card.field"
+        "错误:字段中的HTML无法读取": "error:can't read HTML in card.field",
+        "联系作者": "contact author",
+        "支持作者": "support author",
+        "其他": "other"
     }
     translateFuncs = {
         "en":En,
@@ -54,5 +63,5 @@ def rosetta(text:str=""):
         "zh-CN":Zh,
         "zh-TW":Zh,
     }
-    text = translateFuncs[lang](text)
-    return text
+
+    return translateFuncs[lang](text)

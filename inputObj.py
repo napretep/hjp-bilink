@@ -46,53 +46,47 @@ class Input(object, metaclass=MetaClass_loger):
         self.HTMLmanage = HTML_converter()
         try:
             self.data: json = json.load(open(inputFileDir, "r", encoding="UTF-8", ))
-            self.dataObj_ = self.dataObj.val
+            self.dataObj_ = self.dataObj().val()
             self.tag = self.data["addTag"]
         except:
-            self.tag = self.dataReset.dataSave.dataload.data["addTag"]
+            self.tag = self.dataReset().dataSave().dataload().data["addTag"]
 
-    @property
     def dataLoad(self):
         """数据读取, 修改self.data,tag,objdata"""
         self.data: json = json.load(open(self.inputDir, "r", encoding="utf-8"))
         self.tag = self.data["addTag"]
-        self.dataObj_ = self.dataObj.val
+        self.dataObj_ = self.dataObj().val()
         return self
 
-    @property
+
     def dataObj(self):
         """将数据转换为对象,方便访问,修改 self.objdata """
         v = [[Pair(**pair) for pair in group] for group in self.data["IdDescPairs"]]
         self.dataObj_ = v
         return self
 
-    @property
     def dataReset(self):
         """数据重设,修改 self.data """
         self.data = deepcopy(self.initDict)
         return self
 
-    @property
     def dataSave(self):
         """数据保存,尝试json.dump,否则self.dataReset.dataSave"""
         try:
             json.dump(self.data, open(self.inputDir, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
         except:
-            return self.dataReset.dataSave
+            return self.dataReset().dataSave()
         return self
 
-    @property
     def dataFlat(self):
-        """去掉数据的组别,修改self.dataflat_"""
+        """去掉数据的组别,传入self.dataObj_ 传出self.dataflat_"""
         self.dataflat_ = list(reduce(lambda x, y: x + y, self.dataObj_, []))
         return self
 
-    @property
     def val(self):
         """取回上一次求解的内容"""
         return self.valueStack.pop()
 
-    @property
     def dataUnique(self):
         """列表去重,默认对栈中上一个元素读取进行操作"""
         o, t = self.valueStack[-1], []
@@ -115,6 +109,7 @@ class Input(object, metaclass=MetaClass_loger):
     def pairLi_extract(self, cardLi: List[str] = None) -> List[Pair]:
         """从卡片列表中读取卡片ID和desc. 为了统一我们都处理成Pair,输出时再改回普通的."""
         descLi: List[str] = list(map(lambda x: self.desc_extract(x), cardLi))
+
         return list(map(lambda x, y: Pair(card_id=x, desc=y), cardLi, descLi))
 
     def desc_extract(self, c=None):
@@ -135,7 +130,7 @@ class Input(object, metaclass=MetaClass_loger):
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         tagbase = self.config["addTagRoot"] + "::"
         tagtail = tag if tag != "" else timestamp
-        pairLi = self.dataObj.dataFlat.dataUnique.val
+        pairLi = self.dataObj().dataFlat().dataUnique().val()
         tag = tagbase + tagtail
         self.tag = tag
         list(map(lambda pair: self.note_addTag(tag=tag, pair=pair), pairLi))
@@ -225,7 +220,7 @@ class Input(object, metaclass=MetaClass_loger):
                 self.__dict__[name]["IdDescPairs"] = v
             if type(value) == dict:
                 self.__dict__[name] = value
-            self.dataObj
+            self.dataObj().end()
             self.valueStack.append(value)
         else:
             if name == "tag": self.__dict__["data"]["addTag"] = value
@@ -236,5 +231,3 @@ class Input(object, metaclass=MetaClass_loger):
             if name != "valueStack":
                 self.valueStack.append(value)
 
-    # def __getattribute__(self, name):
-    #     console(f"遇到调用属性名:{self.__class__.__name__}.{name}")

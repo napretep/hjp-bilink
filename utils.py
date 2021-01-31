@@ -10,7 +10,7 @@ helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"
 configFileName = "config.json"
 helpFileName = "README.md"
-debug = True
+ISDEBUG = True
 relyLinkDir = "1423933177"
 relyLinkConfigFileName = "config.json"
 logFileName = "log.txt"
@@ -25,9 +25,23 @@ algPathDict = {
 }
 
 
+def debugWatcher(func):
+    @functools.wraps(func)
+    def debugWatcher_sub(*args, **kwargs):
+        if ISDEBUG:
+            lineNumber = "line " + sys._getframe(1).f_lineno.__str__() + ":"
+            path = sys._getframe(1).f_code.co_filename
+            method = sys._getframe(1).f_code.co_name.__str__()
+            local = sys._getframe(1).f_code.co_varnames.__str__()
+            console(path + "\n" + lineNumber + "." + method + "--->start\nlocal:" + local).log.end()
+            result = func(*args, **kwargs)
+            local = sys._getframe(1).f_locals.__str__()
+            console(path + "\n" + lineNumber + method + "--->end\nlocal:" + local).log.end()
+        else:
+            result = func(*args, **kwargs)
+        return result
 
-
-
+    return debugWatcher_sub
 
 def logfunc(func):
     """Calculate the execution time of func."""
@@ -35,12 +49,15 @@ def logfunc(func):
     @functools.wraps(func)
     def wrap_log(*args, **kwargs):
         """包装函数"""
-        console(f"""{func.__name__} 开始""").noNewline.log.end()
-        result = func(*args, **kwargs)
-        localss = locals()
-        console(
-            f"""{func.__name__} 结果:\nargs>{localss["args"]}\nkwargs>{localss["kwargs"]}\nresult>{localss["result"]}""").noNewline.log.end()
-        console(f"""{func.__name__} 结束""").noNewline.log.end()
+        if ISDEBUG:
+            console(f"""{func.__name__} 开始""").noNewline.log.end()
+            result = func(*args, **kwargs)
+            localss = locals()
+            console(
+                f"""{func.__name__} 中间:\nargs>{localss["args"]}\nkwargs>{localss["kwargs"]}\nresult>{localss["result"]}""").noNewline.log.end()
+            console(f"""{func.__name__} 结束""").noNewline.log.end()
+        else:
+            result = func(*args, **kwargs)
         return result
 
     return wrap_log
@@ -53,7 +70,7 @@ class MetaClass_loger(type):
         for k, v in attr_dict.items():
             # If the attribute is function type, use the wrapper function instead
             if isinstance(v, types.FunctionType):
-                attr_dict[k] = logfunc(v)
+                attr_dict[k] = debugWatcher(v)
         return type.__new__(mcs, name, bases, attr_dict)
 
 
@@ -98,6 +115,13 @@ class Params:
     def __repr__(self):
         return self.__dict__.__str__()
 
+    def __getattr__(self, name):
+        if self.__dict__.__contains__(name):
+            return self.__dict__[name]
+        else:
+            return None
+
+
 class console:
     """debug用的"""
 
@@ -108,7 +132,7 @@ class console:
         self.prefix = terminal + " > "
         self.need = need
         self.timestamp = datetime.datetime.now().strftime("%H:%M:%S") + " > "
-        self.who = sys._getframe(1).f_code.co_name + " > "
+        self.who = f"""line{sys._getframe(1).f_lineno.__str__()}:{sys._getframe(1).f_code.co_name} >"""
         self.logfile = os.path.join(THIS_FOLDER, logFileName)
         self.newline_ = "\n"
         self.breakline_ = "\n"
@@ -116,7 +140,7 @@ class console:
     @property
     def log(self, chain=True):
         """debug用"""
-        if not debug:
+        if not ISDEBUG:
             return self
         obj = self.need["obj"].__class__.__name__ + "." if "obj" in self.need else ""
         text = self.timestamp + self.prefix + obj + self.who + self.newline_ + self.text + self.breakline_

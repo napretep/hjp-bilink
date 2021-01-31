@@ -10,6 +10,14 @@ from .language import rosetta as say
 from .utils import *
 
 
+def func_contactMe():
+    showInfo(say("QQ群:"))
+
+
+def func_supportMe():
+    pass
+
+
 def func_anchorUpdate():
     """对外的接口"""
     Input().anchor_updateVersion()
@@ -43,7 +51,7 @@ def func_openInput():
 
 def func_clearInput():
     """清空input文件"""
-    return Input().dataLoad.dataReset.dataSave
+    return Input().dataLoad().dataReset().dataSave()
 
 
 def func_onProgramClose():
@@ -54,7 +62,7 @@ def func_onProgramClose():
 
 def func_completeMap(param: Params = None):
     """完全图链接,此时group分组不影响."""
-    pairLi = param.input.dataFlat.dataUnique.val  # 不分group,只有pairs
+    pairLi = param.input.dataFlat().dataUnique().val()  # 不分group,只有pairs
     console(pairLi.__str__()).log.end()
     i = param.input
     [list(map(lambda pairB: i.note_insertPair(pairA, pairB), pairLi)) for pairA in pairLi]
@@ -62,26 +70,26 @@ def func_completeMap(param: Params = None):
 
 def func_GroupByGroup(param: Params = None):
     """组到组链接"""
-    input_obj = param.input
-    data: List[List[Pair]] = input_obj.dataObj.val
-    console(data.__str__()).log.end()
-    reduce(input_obj.group_bijectReducer, data)
+    input_obj: Input = param.input
+    PairLi: List[List[Pair]] = input_obj.dataObj_
+    console(PairLi.__str__()).log.end()
+    reduce(input_obj.group_bijectReducer, PairLi)
 
 
 def func_unlinkByNode(param: Params = None):
     """按结点取消链接"""
-    objInput = param.input
-    pairLi = objInput.dataLoad.dataObj.dataFlat.dataUnique.val
+    input_obj: Input = param.input
+    pairLi = input_obj.dataFlat().dataUnique().val()
     console(pairLi.__str__()).log.end()
-    [list(map(lambda pairB: objInput.anchor_unbind(pairA, pairB), pairLi)) for pairA in pairLi]
+    [list(map(lambda pairB: input_obj.anchor_unbind(pairA, pairB), pairLi)) for pairA in pairLi]
 
 
 def func_unlinkByPath(param: Params = None):
     """按路径取消链接"""
-    objInput = param.input
-    pairLi = objInput.dataLoad.dataObj.dataFlat.dataUnique.val
+    input_obj: Input = param.input
+    pairLi = input_obj.dataFlat().dataUnique().val()
     console("pairLi=" + list(map(lambda pair: pair.desc, pairLi)).__str__()).log.end()
-    reduce(lambda x, y: objInput.anchor_unbind(x, y), pairLi)
+    reduce(lambda x, y: input_obj.anchor_unbind(x, y), pairLi)
 
 
 def func_addTagToAllNote(param: Params = None, ):
@@ -90,35 +98,34 @@ def func_addTagToAllNote(param: Params = None, ):
 
 def func_linkStarter(mode=999, param: Params = None):
     """开始链接的入口,预处理,根据模式选择一种链接算法"""
-    funcli = [func_completeMap, func_GroupByGroup, func_unlinkByNode, func_unlinkByPath]
     param.input = Input()
-    if mode == 999: mode = param.input.config["linkMode"]
-    if "seleted" in param.need:
-        """如果是选中模式,直接读取dict"""
-        pass
+    if mode == 999: mode = param.input.config["defaultLinkMode"]
+    if "selected" in param.need:  # 如果是选中模式,直接读取dict
+        param.input = param.parent.parent.fileHelper
     else:
-        if mw.state == "review": mw.reviewer.cleanup()
-        if len(param.input.data["IdDescPairs"]) == 0:
-            console(say("input中没有数据！")).showInfo.talk()
-            return False
-        browser = param.parent if isinstance(param.parent, Browser) else dialogs.open("Browser", mw)
-        browser.maybeRefreshSidebar()
-        browser.model.layoutChanged.emit()
-        browser.editor.setNote(None)
-        funcli[mode](param=param)
-        browser.maybeRefreshSidebar()
-        browser.model.layoutChanged.emit()
-        browser.editor.setNote(None)
-        browser.model.reset()  # 关键作用
-        if param.input.config["addTagEnable"] == 1:
-            param.input.note_addTagAll()
-            browser.model.search(f"tag:{param.input.tag}*")
-        if mw.state == "review": mw.reviewer.show()
-        if isinstance(param.parent, AnkiWebView):
-            if param.parent.title == "previewer":
-                param.parent.parent().render_card()
-            if param.parent.title == "main webview":
-                mw.reviewer.show()
+        param.input.dataLoad()
+    if mw.state == "review": mw.reviewer.cleanup()
+    if len(param.input.data["IdDescPairs"]) == 0:
+        console(say("input中没有数据！")).showInfo.talk()
+        return False
+    browser = param.parent if isinstance(param.parent, Browser) else dialogs.open("Browser", mw)
+    browser.maybeRefreshSidebar()
+    browser.model.layoutChanged.emit()
+    browser.editor.setNote(None)
+    funcli[mode](param=param)
+    browser.maybeRefreshSidebar()
+    browser.model.layoutChanged.emit()
+    browser.editor.setNote(None)
+    browser.model.reset()  # 关键作用
+    if param.input.config["addTagEnable"] == 1:
+        param.input.note_addTagAll()
+        browser.model.search(f"tag:{param.input.tag}*")
+    if mw.state == "review": mw.reviewer.show()
+    if isinstance(param.parent, AnkiWebView):
+        if param.parent.title == "previewer":
+            param.parent.parent().render_card()
+        if param.parent.title == "main webview":
+            mw.reviewer.show()
 
 
 def func_browserInsert(browser: Browser, need: tuple = None):
@@ -130,15 +137,15 @@ def func_browserInsert(browser: Browser, need: tuple = None):
         console(say("没有选中任何卡片")).showInfo.talk()
         return
     inputObj = Input()
-    if "clear" in need: inputObj = inputObj.dataReset.dataSave
+    if "clear" in need: inputObj = inputObj.dataReset().dataSave()
     pairLi = inputObj.pairLi_extract(cardLi)
-    dataObj = inputObj.dataObj.val
+    dataObjLi = inputObj.dataObj().val()
     if "group" in need:
-        dataObj.append(pairLi)
+        dataObjLi.append(pairLi)
     else:
-        list(map(lambda x: dataObj.append([x]), pairLi))
-    inputObj.data = dataObj
-    return inputObj.dataSave
+        list(map(lambda x: dataObjLi.append([x]), pairLi))
+    inputObj.data = dataObjLi
+    return inputObj.dataSave()
 
 
 def func_singleInsert(param: Params = None, need: tuple = None):
@@ -153,9 +160,13 @@ def func_singleInsert(param: Params = None, need: tuple = None):
         desc1 = param.desc if param.desc != "" else inputObj.desc_extract(c=param.card_id)
         pair = Pair(card_id=param.card_id, desc=desc1)
         if "clear" in need:
-            inputObj = inputObj.dataReset
+            inputObj = inputObj.dataReset()
         if "last" in need and len(inputObj.data["IdDescPairs"]) > 0:
             inputObj.data["IdDescPairs"][-1].append(pair.__dict__)
         else:
             inputObj.data["IdDescPairs"].append([pair.__dict__])
-    return inputObj.dataSave
+    return inputObj.dataSave()
+
+
+funcli = [func_completeMap, func_GroupByGroup, func_unlinkByNode, func_unlinkByPath, func_browserInsert,
+          func_singleInsert]
