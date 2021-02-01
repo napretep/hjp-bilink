@@ -193,7 +193,7 @@ class console:
 
 
 VERSION = """
-<p>版本:0.6.14<\p>
+<p>版本:0.6.15<\p>
 <p>新增功能:<\p>
 <p>锚点改为按钮格式<\p>
 <p>input对话框,可拖拽,可双击打开卡片预览,可右键执行链接,删除,选中部分卡片链接等<\p>
@@ -204,7 +204,7 @@ helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"
 configFileName = "config.json"
 helpFileName = "README.md"
-ISDEBUG = True  # 别轻易开启,很卡的
+ISDEBUG = False  # 别轻易开启,很卡的
 relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"
