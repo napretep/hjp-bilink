@@ -112,7 +112,7 @@ class InputDialog(QDialog, Ui_input):
     def onDoubleClick(self, index, *args, **kwargs):
         """双击事件响应"""
         item = self.model.itemFromIndex(index)
-        if cardPrevDialog is not None:
+        if item.column == 0 and cardPrevDialog is not None:
             card = self.input.model.col.getCard(int(item.text()))
             cardPrevDialog(card)
 
