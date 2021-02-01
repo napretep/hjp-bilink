@@ -114,8 +114,12 @@ class Input(object, metaclass=MetaClass_loger):
 
     def desc_extract(self, c=None):
         """读取卡片的描述"""
-        if isinstance(c, Pair): cid = c.int_card_id
-        if isinstance(c, str): cid = int(c)
+        if isinstance(c, Pair):
+            cid = c.int_card_id
+        elif isinstance(c, str):
+            cid = int(c)
+        else:
+            raise TypeError("参数类型不支持:" + c.__str__())
         cfg: dict = self.config
         note = self.model.col.getCard(cid).note()
         content = note.fields[self.regexDescPosi]
@@ -149,7 +153,7 @@ class Input(object, metaclass=MetaClass_loger):
             return self
         note = self.note_loadFromId(pairA)
         if self.Id_noFoundInNote(pairB, pairA):
-            Id, desc = pairB.card_id, pairB.desc if pairB.desc != "" else self.desc_extract()
+            Id, desc = pairB.card_id, pairB.desc if pairB.desc != "" else self.desc_extract(pairB)
             cfg = Empty()
             cfg.__dict__ = self.config
             dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
