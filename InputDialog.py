@@ -211,15 +211,6 @@ class InputDialog(QDialog, Ui_input):
         self.JSON_loadFromModel_sub()
 
     @debugWatcher
-    def JSON_loadFromSelected(self):
-        """从选中的项目中读取出JSON列表,保存在InputObj的data中,他只要不存到本地就没事情"""
-        itemLi: List[QStandardItem] = [self.model.itemFromIndex(i) for i in self.inputTree.selectedIndexes()]
-        pairLi = [[Pair(card_id=item.child(0).text(),
-                        desc=item.child(1).text())] for item in itemLi]
-        self.input.data = pairLi
-        self.input.tag = self.tagContent.text()
-
-    @debugWatcher
     def JSON_loadFromModel_sub(self, *args, **kwargs):
         """是一个子函数"""
         for i in range(self.model_rootNode.rowCount()):
@@ -234,6 +225,16 @@ class InputDialog(QDialog, Ui_input):
                     pair = Pair(card_id=self.model_rootNode.child(i).child(j).child(0, 0).text(),
                                 desc=self.model_rootNode.child(i).child(j).child(0, 1).text())
                     self.model_data[-1].append(pair)
+
+    @debugWatcher
+    def JSON_loadFromSelected(self):
+        """从选中的项目中读取出JSON列表,保存在InputObj的data中,他只要不存到本地就没事情"""
+        itemLi: List[QStandardItem] = [self.model.itemFromIndex(i) for i in self.inputTree.selectedIndexes()]
+
+        pairLi = [[Pair(card_id=item.child(0, 0).text(),
+                        desc=item.child(0, 1).text())] for item in itemLi]
+        self.input.data = pairLi
+        self.input.tag = self.tagContent.text()
 
     @debugWatcher
     def tag_saveToFile(self, *args, **kwargs):

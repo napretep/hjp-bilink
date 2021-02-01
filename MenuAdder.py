@@ -53,7 +53,8 @@ def func_menuAddLink(*args, **kwargs):
     modeLi = [999, 0, 1, 2, 3]
     list(map(
         lambda x, y: linkmenu.addAction(x).triggered.connect(
-            lambda: func_linkStarter(mode=y, parent=param.parent, input=Input())), menuNameLi, modeLi))
+            lambda: func_linkStarter(mode=y, parent=param.parent, input=Input(), features=param.features)),
+        menuNameLi, modeLi))
 
 
 def func_menuAddClearOpen(*args, **kwargs):
