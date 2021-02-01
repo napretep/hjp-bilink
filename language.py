@@ -20,7 +20,7 @@ def rosetta(text:str=""):
     Endict ={
         "默认链接": "default",
         "完全图链接": "complete map",
-        "组到组链接": "group by group",
+        "组到组链接": "group to group",
         "按结点取消链接": "unlink by node",
         "按路径取消链接": "unlink by path",
         "由于这里无法读取card_id, 链接菜单不在这显示": "Since card_id cannot be read here, the  menu is not displayed here",
@@ -55,7 +55,20 @@ def rosetta(text:str=""):
         "错误:字段中的HTML无法读取": "error:can't read HTML in card.field",
         "联系作者": "contact author",
         "支持作者": "support author",
-        "其他": "other"
+        "其他": "other",
+        "未选择卡片": "please select card",
+        "张卡片重复插入, 已去重": " cards already inserted before, skip",
+        "卡片已经存在,跳过": "the card already inserted before, skip",
+        "所选卡片早已插入,跳过任务": "these cards already inserted before, skip",
+        "张卡片已插入": "cards has been inserted",
+        "刚插入的标签为:": "inserted tag:",
+        "成功插入{卡片-描述}对:": "successfully insert the pair of card_id and desc",
+        "已按路径取消链接": "unlinked as given path",
+        "已按结点取消链接": "unlinked as given node",
+        "已按组到组完成链接": "linked as group to group",
+        "已按完全图完成链接": "linked as complete map",
+        "已删除选中卡片": "selected card deleted",
+        "请安装插件1423933177,否则将无法点击链接预览卡片": "please install the addon 1423933177, otherwise you can't click the link and open preivew window"
     }
     translateFuncs = {
         "en":En,

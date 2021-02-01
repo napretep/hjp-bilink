@@ -45,11 +45,10 @@ class Input(object, metaclass=MetaClass_loger):
             self.config["regexForDescContent"]
         self.HTMLmanage = HTML_converter()
         try:
-            self.data: json = json.load(open(inputFileDir, "r", encoding="UTF-8", ))
-            self.dataObj_ = self.dataObj().val()
+            self.data: dict = json.load(open(inputFileDir, "r", encoding="UTF-8", ))
             self.tag = self.data["addTag"]
         except:
-            self.tag = self.dataReset().dataSave().dataload().data["addTag"]
+            raise ValueError("读取input出现错误,请检查格式是否正确,或请点击'清空input'重置input文件")
 
     def dataLoad(self):
         """数据读取, 修改self.data,tag,objdata"""
@@ -107,9 +106,10 @@ class Input(object, metaclass=MetaClass_loger):
         QDesktopServices.openUrl(helpUrl)
 
     def pairLi_extract(self, cardLi: List[str] = None) -> List[Pair]:
-        """从卡片列表中读取卡片ID和desc. 为了统一我们都处理成Pair,输出时再改回普通的."""
+        """从卡片列表中读取卡片ID和desc.
+        为了统一我们都处理成listPair输出
+        """
         descLi: List[str] = list(map(lambda x: self.desc_extract(x), cardLi))
-
         return list(map(lambda x, y: Pair(card_id=x, desc=y), cardLi, descLi))
 
     def desc_extract(self, c=None):
@@ -155,11 +155,9 @@ class Input(object, metaclass=MetaClass_loger):
             dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
             direction = dirMap[dirposi]
             fieldcontent = note.fields[self.insertPosi]
-            fieldcontent = self.HTMLmanage.feed(fieldcontent).button_make(Id=Id,
-                                                                          desc=desc,
-                                                                          direction=direction,
-                                                                          prefix=cfg.cidPrefix,
-                                                                          linkStyle=cfg.linkStyle).HTML_get().HTML_text
+            fieldcontent = self.HTMLmanage.feed(fieldcontent) \
+                .button_make(Id=Id, desc=desc, direction=direction, prefix=cfg.cidPrefix, linkStyle=cfg.linkStyle) \
+                .HTML_get().HTML_text
             note.fields[self.insertPosi] = fieldcontent
             note.flush()
         return self
@@ -176,13 +174,12 @@ class Input(object, metaclass=MetaClass_loger):
 
     def anchor_unbind(self, pairA: Pair, pairB: Pair):
         """两张卡片若有链接则会相互解除绑定,用于reduce函数"""
-        console(f"""pairA={pairA.desc},pairB={pairB.desc}""").log.end()
         self.anchor_delete(pairA, pairB).anchor_delete(pairB, pairA)
         return pairB
 
     def anchor_updateVersion(self):
         """升级旧版锚点注入规则 TODO"""
-        pass
+        showInfo("这个功能还没做好,可能也不做了,反正可以手动删除旧版的锚点,不会影响,再链接一次就好了")
 
     def anchor_delete(self, pairA: Pair, pairB: Pair):
         """A中删除B的id,返回自己"""
@@ -195,7 +192,6 @@ class Input(object, metaclass=MetaClass_loger):
 
     def note_loadFromId(self, pair: Pair = None) -> Note:
         """从卡片的ID获取note"""
-        console(self.__class__.__name__ + " argument: pair=" + pair.__str__()).log.end()
         li = pair.int_card_id
         return self.model.col.getCard(li).note()
 
@@ -213,15 +209,23 @@ class Input(object, metaclass=MetaClass_loger):
     def __setattr__(self, name, value):
         console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
         if name == "data":
-            if (type(value) == list and len(value) > 0) \
-                    and (type(value[0]) == list and len(value[0]) > 0) \
-                    and isinstance(value[0][0], Pair):
-                v = [list(map(lambda x: x.__dict__, group)) for group in value]
-                self.__dict__[name]["IdDescPairs"] = v
-            if type(value) == dict:
+            if (type(value) == list and len(value) > 0):
+                if (type(value[0]) == list and len(value[0]) > 0) and isinstance(value[0][0], Pair):
+                    v = [list(map(lambda x: x.__dict__, group)) for group in value]
+                    self.__dict__[name]["IdDescPairs"] = v
+                elif isinstance(value[0], Pair):
+                    v = list(map(lambda x: [x.__dict__], value))
+                    self.__dict__[name]["IdDescPairs"] = v
+                elif type(value[0][0]) == dict:
+                    self.__dict__[name] = value
+                else:
+                    raise TypeError("无法处理数据:" + value.__str__())
+                self.valueStack.append(value)
+            elif type(value) == dict:
                 self.__dict__[name] = value
+            else:
+                raise TypeError("无法处理数据:" + value.__str__())
             self.dataObj().end()
-            self.valueStack.append(value)
         else:
             if name == "tag": self.__dict__["data"]["addTag"] = value
             self.__dict__[name] = value
