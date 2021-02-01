@@ -112,7 +112,7 @@ class InputDialog(QDialog, Ui_input):
     def onDoubleClick(self, index, *args, **kwargs):
         """双击事件响应"""
         item = self.model.itemFromIndex(index)
-        if item.column == 0 and cardPrevDialog is not None:
+        if cardPrevDialog is not None and item.level == 2 and item.character == "card_id":
             card = self.input.model.col.getCard(int(item.text()))
             cardPrevDialog(card)
 
@@ -196,6 +196,8 @@ class InputDialog(QDialog, Ui_input):
                 child1.setFlags(child2.flags() & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsSelectable &
                                 ~Qt.ItemIsEditable)  # 不可拖拽不可选中不可编辑
                 child1.level = child2.level = 2
+                child1.character = "card_id"
+                child2.character = "desc"
                 pairsItem.appendRow([child1, child2])
         self.lastrowcount = self.model_rootNode.rowCount()
         self.inputTree.expandAll()

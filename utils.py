@@ -206,6 +206,7 @@ configFileName = "config.json"
 helpFileName = "README.md"
 ISDEBUG = True  # 别轻易开启,很卡的
 relyLinkDir = "1423933177"
+advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"
 logFileName = "log.txt"
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
@@ -223,3 +224,6 @@ try:
 except:
     cardPrevDialog = None
     showInfo(say("请安装插件1423933177,否则将无法点击链接预览卡片"))
+
+if not os.path.exists(os.path.join(PREV_FOLDER, advancedBrowserDir)):
+    showInfo(say("请安装插件564851917,否则将无法折叠标签,我们每次链接都会产生标签"))

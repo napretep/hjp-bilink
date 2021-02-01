@@ -68,7 +68,8 @@ def rosetta(text:str=""):
         "已按组到组完成链接": "linked as group to group",
         "已按完全图完成链接": "linked as complete map",
         "已删除选中卡片": "selected card deleted",
-        "请安装插件1423933177,否则将无法点击链接预览卡片": "please install the addon 1423933177, otherwise you can't click the link and open preivew window"
+        "请安装插件1423933177,否则将无法点击链接预览卡片": "please install the addon 1423933177, otherwise you can't click the link and open preivew window",
+        "请安装插件564851917,否则将无法折叠标签,我们每次链接都会产生标签": "please install the addon 1423933177,otherwise you won't have hierarchical tag system, it's useful for collapse/expand the tag produced by hjp-bilink"
     }
     translateFuncs = {
         "en":En,

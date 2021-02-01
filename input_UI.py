@@ -54,8 +54,9 @@ class Ui_input(object):
         self.inputTree.setAnimated(True)
         self.inputTree.setObjectName("inputTree")
         self.inputTree.header().setCascadingSectionResizes(True)
-        self.inputTree.header().setDefaultSectionSize(210)
+        self.inputTree.header().setDefaultSectionSize(180)
         self.inputTree.header().setHighlightSections(True)
+        self.inputTree.header().setMinimumSectionSize(180)
         self.inputTree.header().setSortIndicatorShown(False)
         self.verticalLayout.addWidget(self.inputTree)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
@@ -87,4 +88,4 @@ class Ui_input(object):
         _translate = QtCore.QCoreApplication.translate
         input.setWindowTitle(_translate("input", "input"))
         self.label.setText(_translate("input", "tag:"))
-        self.info.setText(_translate("input", "注:pair可拖拽,可多选,最底层的desc可修改,右键执行连接或关闭窗口会保存数据.有小概率会出bug"))
+        self.info.setText(_translate("input", "注:pair可拖拽,desc可双击修改,card_id可双击预览,多选pair右键可针对选中项直接进行链接,小概率会出bug,欢迎报告bug"))
