@@ -31,7 +31,7 @@ def func_config():
 
 def func_version():
     """返回版本号"""
-    console(VERSION).showInfo.talk.end()
+    showInfo(VERSION, textFormat="rich")
 
 
 def func_help():

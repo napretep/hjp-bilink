@@ -192,7 +192,13 @@ class console:
         return self
 
 
-VERSION = """<p><\p>
+VERSION = """
+<p>版本:0.6.12<\p>
+<p>新增功能:<\p>
+<p>锚点改为按钮格式<\p>
+<p>input对话框,可拖拽,可双击打开卡片预览,可右键执行链接,删除,选中部分卡片链接等<\p>
+<p>快捷键:在browser浏览界面下,可以使用快捷键执行链接,反链接,清空input,打开input,插入选中卡片<\p>
+<p>可以在复习窗口,预览窗口点右键执行绝大部分功能<\p>
 """
 helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"

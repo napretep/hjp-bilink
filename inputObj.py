@@ -178,7 +178,7 @@ class Input(object, metaclass=MetaClass_loger):
         return pairB
 
     def anchor_updateVersion(self):
-        """升级旧版锚点注入规则 TODO"""
+        """升级旧版锚点注入规则 """
         showInfo("这个功能还没做好,可能也不做了,反正可以手动删除旧版的锚点,不会影响,再链接一次就好了")
 
     def anchor_delete(self, pairA: Pair, pairB: Pair):
