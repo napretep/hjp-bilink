@@ -185,6 +185,7 @@ def func_singleInsert(*args, **kwargs):
     """
     param = Params(**kwargs)
     inputObj = Input()
+    datastr = inputObj.data.__str__()
     if "tag" in param.features:
         inputObj.data["addTag"] = param.pair.desc
         console(say("刚插入的标签为:") + param.pair.desc).talk.end()
@@ -193,9 +194,12 @@ def func_singleInsert(*args, **kwargs):
         if "clear" in param.features:
             inputObj = inputObj.dataReset().dataSave()
         else:
-            if param.pair.card_id in inputObj.data.__str__():
+            if param.pair.card_id in datastr and param.pair.desc in datastr:
                 console(say("所选卡片早已插入,跳过任务")).talk.end()
                 return
+            elif param.pair.card_id in datastr and not param.pair.desc in datastr:
+                inputObj.card_remove(param.pair)
+                inputObj.dataSave()
         if "last" in param.features and len(inputObj.data["IdDescPairs"]) > 0:
             inputObj.data["IdDescPairs"][-1].append(param.pair.__dict__)
         else:

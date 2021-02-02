@@ -15,7 +15,9 @@ from .utils import *
 
 
 
-class Input(object, metaclass=MetaClass_loger):
+class Input(object,
+            # metaclass=MetaClass_loger
+            ):
     """集成input对象,满足增删查改需求
     当你保存dataobj到data的时候会自动类型转换
     """
@@ -129,6 +131,13 @@ class Input(object, metaclass=MetaClass_loger):
         desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
 
+    def card_remove(self, pair: Pair = None):
+
+        [list(map(lambda x: group.remove(x) if x.card_id == pair.card_id else None, group)) for group in self.dataObj_]
+        if [] in self.dataObj_: self.dataObj_.remove([])
+        self.data = self.dataObj_
+        return self
+
     def note_addTagAll(self):
         """给所有的note加上tag"""
         tag = self.tag
@@ -212,17 +221,18 @@ class Input(object, metaclass=MetaClass_loger):
         return self
 
     def __setattr__(self, name, value):
+        """TODO 修改类型检查"""
         # console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
         if name == "data":
             if (type(value) == list and len(value) > 0):
                 if (type(value[0]) == list and len(value[0]) > 0) and isinstance(value[0][0], Pair):
                     v = [list(map(lambda x: x.__dict__, group)) for group in value]
                     self.__dict__[name]["IdDescPairs"] = v
-                elif isinstance(value[0], Pair):
+                elif (type(value[0]) == list and len(value[0]) > 0) and isinstance(value[0], Pair):
                     v = list(map(lambda x: [x.__dict__], value))
                     self.__dict__[name]["IdDescPairs"] = v
-                elif type(value[0][0]) == dict:
-                    self.__dict__[name] = value
+                elif (type(value[0]) == list and len(value[0]) > 0) and type(value[0][0]) == dict:
+                    self.__dict__[name]["IdDescPairs"] = value
                 else:
                     raise TypeError("无法处理数据:" + value.__str__())
                 self.valueStack.append(value)

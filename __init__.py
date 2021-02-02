@@ -3,7 +3,7 @@ from .MenuAdder import *
 from aqt.webview import AnkiWebPage
 
 
-def data_selectedFromBrowserTable(browser):
+def data_selectedFromBrowserTable(browser, *args, **kwargs):
     cardLi: List[str] = list(map(lambda x: str(x), browser.selectedCards()))
     inputObj = Input()
     if len(cardLi) > 0:
@@ -25,7 +25,7 @@ def shortcut_inputFile_clear(*args, **kwargs):
     func_clearInput()
 
 
-def shortcut_browserTableSelected_link(browser: Browser):
+def shortcut_browserTableSelected_link(browser: Browser, *args, **kwargs):
     """根据默认链接参数对选中的卡片进行链接, 如果是按组到组链接, 则强制每一个卡片为一组"""
     param = data_selectedFromBrowserTable(browser)
     if param is not None:
@@ -34,7 +34,7 @@ def shortcut_browserTableSelected_link(browser: Browser):
         console(say("未选择卡片")).talk.end()
 
 
-def shortcut_browserTableSelected_unlink(browser: Browser):
+def shortcut_browserTableSelected_unlink(browser: Browser, *args, **kwargs):
     """根据默认链接参数对选中的卡片进行反链接"""
     param = data_selectedFromBrowserTable(browser)
     if param is not None:
@@ -43,7 +43,7 @@ def shortcut_browserTableSelected_unlink(browser: Browser):
         console(say("未选择卡片")).talk.end()
 
 
-def shortcut_browserTableSelected_insert(browser: Browser):
+def shortcut_browserTableSelected_insert(browser: Browser, *args, **kwargs):
     """根据默认插入参数对选中的卡片进行插入"""
     param = data_selectedFromBrowserTable(browser)
     insertMode = {4: "", 5: "clear", 6: "group"}
@@ -86,5 +86,6 @@ browserShortcutDict = {
 }
 placeDict = {"all": globalShortcutDict, "Browser": browserShortcutDict}
 
-Browser.setupMenus = wrapper_shortcut(Browser.setupMenus)
-AnkiWebView.resetHandlers = wrapper_shortcut(AnkiWebView.resetHandlers)
+Browser.__init__ = wrapper_shortcut(Browser.__init__)
+AnkiWebView.__init__ = wrapper_shortcut(AnkiWebView.__init__)
+EditorWebView.__init__ = wrapper_shortcut(EditorWebView.__init__)
