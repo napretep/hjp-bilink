@@ -56,15 +56,16 @@ class InputDialog(QDialog, Ui_input):
         self.inputTree.setModel(self.model)
         self.model_loadFromJSON()
 
+
     # @debugWatcher
     def contextMenuOnInputTree(self, *args, **kwargs):
         """初始化右键菜单"""
         menu = self.inputTree.contextMenu = QMenu()
         prefix = consolerName
-        menu.addAction(prefix + say("全部展开/折叠")).triggered.connect(self.tree_toggleExpandCollapse)
+        menu.addAction(prefix + say("全部展开/折叠")).triggered.connect(self.view_toggleExpandCollapse)
         if len(self.inputTree.selectedIndexes()) > 0:
             self.JSON_loadFromSelected()
-            menu.addAction(prefix + say("选中删除")).triggered.connect(self.tree_selectedDelete)
+            menu.addAction(prefix + say("选中删除")).triggered.connect(self.view_selectedDelete)
             param = Params(menu=menu, parent=self.inputTree, features=["prefix", "selected"], actionTypes=["link"])
             MenuAdder.func_menuAddHelper(**param.__dict__)
         param = Params(menu=menu, parent=self.inputTree, features=["prefix"], actionTypes=["link", "clear_open"])
@@ -78,6 +79,7 @@ class InputDialog(QDialog, Ui_input):
         e = args[0]
 
         def removeChild(item: QStandardItem):
+            """移除孩子呗"""
             return item.parent().takeRow(item.row())
 
         selectedIndexesLi = self.inputTree.selectedIndexes()
@@ -130,9 +132,8 @@ class InputDialog(QDialog, Ui_input):
             self.input.dataReset().dataSave().end()
 
     # @debugWatcher
-    def tree_selectedDelete(self, *args, **kwargs):
+    def view_selectedDelete(self, *args, **kwargs):
         """选中的部分删除"""
-        self.isDeleting = True
         indexLi = self.inputTree.selectedIndexes()
         for i in range(len(indexLi)):
             index = self.inputTree.selectedIndexes()[0]
@@ -141,22 +142,11 @@ class InputDialog(QDialog, Ui_input):
             father.takeRow(row)
             if father.rowCount() == 0:
                 self.model_rootNode.takeRow(father.row())
-        # for index in indexLi:
-        #     item = self.model.itemFromIndex(index)
-        #     row, col = item.row(), item.column()
-        #     father = item.parent()
-        #     if father is not None:
-        #         father.takeRow(row)
-        #         if father.rowCount()==0:
-        #             self.model_rootNode.takeRow(father.row())
-        #     else:
-        #         self.model_rootNode.takeRow(row)
         self.model_saveToFile()
         console(say("已删除选中卡片")).talk.end()
-        self.isDeleting = False
 
     # @debugWatcher
-    def tree_toggleExpandCollapse(self, *args, **kwargs):
+    def view_toggleExpandCollapse(self, *args, **kwargs):
         """切换input对话框的折叠和展开状态"""
         if self.treeIsExpanded:
             root = self.model_rootNode
@@ -172,10 +162,9 @@ class InputDialog(QDialog, Ui_input):
     # @debugWatcher
     def model_saveToFile(self, *args, **kwargs):
         """保存文件"""
-        if not self.isDeleting:
-            self.JSON_loadFromModel()
-            self.input.data = self.model_data if self.model_data != [] else self.input.initDict
-            self.input.dataSave().end()
+        self.JSON_loadFromModel()
+        self.input.data = self.model_data if self.model_data != [] else self.input.initDict
+        self.input.dataSave().end()
 
     # @debugWatcher
     def model_loadTag(self, *args, **kwargs):
