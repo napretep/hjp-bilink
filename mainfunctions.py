@@ -50,7 +50,8 @@ def func_openInput(*args, **kwargs):
 
 def func_clearInput():
     """清空input文件"""
-    return Input().dataLoad().dataReset().dataSave()
+    Input().dataLoad().dataReset().dataSave()
+    console(say("input 已清空")).talk.end()
 
 
 def func_onProgramClose():

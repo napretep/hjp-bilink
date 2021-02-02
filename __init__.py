@@ -23,7 +23,6 @@ def shortcut_inputDialog_open(*args, **kwargs):
 def shortcut_inputFile_clear(*args, **kwargs):
     """清空input"""
     func_clearInput()
-    showInfo("clear")
 
 
 def shortcut_browserTableSelected_link(browser: Browser):
