@@ -232,9 +232,19 @@ class InputDialog(QDialog, Ui_input):
     def JSON_loadFromSelected(self):
         """从选中的项目中读取出JSON列表,保存在InputObj的data中,他只要不存到本地就没事情"""
         itemLi: List[QStandardItem] = [self.model.itemFromIndex(i) for i in self.inputTree.selectedIndexes()]
+        itemLi.sort(key=lambda x: x.parent().row())
+        pairLi = [[Pair(card_id=itemLi[0].child(0, 0).text(), desc=itemLi[0].child(0, 1).text())]]
 
-        pairLi = [[Pair(card_id=item.child(0, 0).text(),
-                        desc=item.child(0, 1).text())] for item in itemLi]
+        def areducer(x, y):
+            """用来做事情"""
+            if x is None or y is None:
+                return None
+            p = Pair(card_id=y.child(0, 0).text(), desc=y.child(0, 1).text())
+            pairLi[-1].append(p) if x.parent().row() == y.parent().row() else pairLi.append([p])
+            return y
+
+        reduce(lambda x, y: areducer(x, y), itemLi)
+        # showInfo(pairLi.__str__())
         self.input.data = pairLi
         self.input.tag = self.tagContent.text()
 
