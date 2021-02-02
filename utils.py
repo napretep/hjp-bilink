@@ -200,12 +200,13 @@ VERSION = """
 <p>快捷键:在browser浏览界面下,可以使用快捷键执行链接,反链接,清空input,打开input,插入选中卡片<\p>
 <p>可以在复习窗口,预览窗口点右键执行绝大部分功能<\p>
 """
+ISDEV = False
+ISDEBUG = False  # 别轻易开启,很卡的
 helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"
-configFileName = "user_files/config.json"
+configFileName = "user_files/config.json" if not ISDEV else "user_files/configdev.json"
 configSchemaFileName = "user_files/config.schema.json"
 helpFileName = "README.md"
-ISDEBUG = False  # 别轻易开启,很卡的
 relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"

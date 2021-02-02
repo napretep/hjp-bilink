@@ -47,7 +47,7 @@ def shortcut_browserTableSelected_unlink(browser: Browser):
 def shortcut_browserTableSelected_insert(browser: Browser):
     """根据默认插入参数对选中的卡片进行插入"""
     param = data_selectedFromBrowserTable(browser)
-    insertMode = {5: "clear", 6: "group"}
+    insertMode = {4: "", 5: "clear", 6: "group"}
     param.features += [insertMode[int(param.input.configObj.defaultInsertMode)], "noTag"]
     if param is not None:
         func_linkStarter(mode=4, **param.__dict__)
