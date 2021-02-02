@@ -8,7 +8,7 @@ from aqt.webview import AnkiWebView
 from .InputDialog import *
 from .language import rosetta as say
 from .utils import *
-
+from .configDialog import *
 
 def func_contactMe():
     showInfo("QQ群:891730352")
@@ -21,12 +21,11 @@ def func_supportMe():
 def func_anchorUpdate():
     """对外的接口"""
     Input().anchor_updateVersion()
-    return
 
 
 def func_config():
     """打开配置文件"""
-    return Input().config_open()
+    Input().config_open()
 
 
 def func_version():
@@ -36,7 +35,7 @@ def func_version():
 
 def func_help():
     """返回帮助页面"""
-    return Input().helpSite_open()
+    Input().helpSite_open()
 
 
 def func_openInput(*args, **kwargs):
@@ -128,7 +127,7 @@ def func_linkStarter(*args, **kwargs):
     browser.model.layoutChanged.emit()
     browser.editor.setNote(None)
     browser.model.reset()  # 关键作用
-    if param.input.config["addTagEnable"] == 1:
+    if param.input.config["addTagEnable"] == 1 and "noTag" not in param.features:
         param.input.note_addTagAll()
         browser.model.search(f"tag:{param.input.tag}*")
     if mw.state == "review": mw.reviewer.show()

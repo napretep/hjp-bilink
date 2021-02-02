@@ -38,10 +38,11 @@ class Input(object, metaclass=MetaClass_loger):
         self.inputDir = inputFileDir
         self.configDir = configFileDir
         self.config = json.load(open(configFileDir, "r", encoding="UTF-8", ))
+        self.configObj = Params(**self.config)
         self.insertPosi = self.config["appendNoteFieldPosition"]
         self.regexDescPosi = self.config["readDescFieldPosition"]
         self.linkstyle = self.config["linkStyle"]
-        self.seRegx = self.config["DEFAULT"]["regexForDescContent"] if self.config["regexForDescContent"] == 0 else \
+        self.seRegx = self.config["DEFAULT_regexForDescContent"] if self.config["regexForDescContent"] == 0 else \
             self.config["regexForDescContent"]
         self.HTMLmanage = HTML_converter()
         try:
@@ -160,7 +161,7 @@ class Input(object, metaclass=MetaClass_loger):
             direction = dirMap[dirposi]
             fieldcontent = note.fields[self.insertPosi]
             fieldcontent = self.HTMLmanage.feed(fieldcontent) \
-                .button_make(Id=Id, desc=desc, direction=direction, prefix=cfg.cidPrefix, linkStyle=cfg.linkStyle) \
+                .button_make(Id=Id, desc=desc, direction=direction, prefix="cidd", linkStyle=cfg.linkStyle) \
                 .HTML_get().HTML_text
             note.fields[self.insertPosi] = fieldcontent
             note.flush()
@@ -211,7 +212,7 @@ class Input(object, metaclass=MetaClass_loger):
         return self
 
     def __setattr__(self, name, value):
-        console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
+        # console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
         if name == "data":
             if (type(value) == list and len(value) > 0):
                 if (type(value[0]) == list and len(value[0]) > 0) and isinstance(value[0][0], Pair):

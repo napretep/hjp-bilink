@@ -23,13 +23,14 @@ def shortcut_inputDialog_open(*args, **kwargs):
 def shortcut_inputFile_clear(*args, **kwargs):
     """清空input"""
     func_clearInput()
+    showInfo("clear")
 
 
 def shortcut_browserTableSelected_link(browser: Browser):
     """根据默认链接参数对选中的卡片进行链接, 如果是按组到组链接, 则强制每一个卡片为一组"""
     param = data_selectedFromBrowserTable(browser)
     if param is not None:
-        func_linkStarter(mode=int(config.defaultLinkMode), **param.__dict__)
+        func_linkStarter(mode=int(param.input.configObj.defaultLinkMode), **param.__dict__)
     else:
         console(say("未选择卡片")).talk.end()
 
@@ -38,7 +39,7 @@ def shortcut_browserTableSelected_unlink(browser: Browser):
     """根据默认链接参数对选中的卡片进行反链接"""
     param = data_selectedFromBrowserTable(browser)
     if param is not None:
-        func_linkStarter(mode=int(config.defaultUnlinkMode), **param.__dict__)
+        func_linkStarter(mode=int(param.input.configObj.defaultUnlinkMode), **param.__dict__)
     else:
         console(say("未选择卡片")).talk.end()
 
@@ -46,14 +47,16 @@ def shortcut_browserTableSelected_unlink(browser: Browser):
 def shortcut_browserTableSelected_insert(browser: Browser):
     """根据默认插入参数对选中的卡片进行插入"""
     param = data_selectedFromBrowserTable(browser)
+    insertMode = {5: "clear", 6: "group"}
+    param.features += [insertMode[int(param.input.configObj.defaultInsertMode)], "noTag"]
     if param is not None:
-        func_linkStarter(mode=int(config.defaultInsertMode), **param.__dict__)
+        func_linkStarter(mode=4, **param.__dict__)
     else:
         console(say("未选择卡片")).talk.end()
 
 
 def wrapper_shortcut(func):
-    def looper(k, v, self_, *args, **kwargs):
+    def shortcutconnect(k, v, self_, *args, **kwargs):
         self_.__dict__["hjp_bilink_action" + k] = \
             QShortcut(QKeySequence(v[0]), self_, activated=lambda: v[1](self_, *args, **kwargs))
 
@@ -63,16 +66,15 @@ def wrapper_shortcut(func):
         result = func(self, *args, **kwargs)
         for place in placeDict:
             if place == "all":
-                list(map(lambda k: looper(k, placeDict[place][k], self, *args, **kwargs), placeDict[place]))
+                list(map(lambda k: shortcutconnect(k, placeDict[place][k], self, *args, **kwargs), placeDict[place]))
             elif place in self_:
-                list(map(lambda k: looper(k, placeDict[place][k], self, *args, **kwargs), placeDict[place]))
+                list(map(lambda k: shortcutconnect(k, placeDict[place][k], self, *args, **kwargs), placeDict[place]))
         return result
 
     return shortCut_add
 
 
 config = Params(**Input().config)
-
 globalShortcutDict = {
     "InputDialog_open": (config.shortcut_inputDialog_open, shortcut_inputDialog_open),
     "inputFile_clear": (config.shortcut_inputFile_clear, shortcut_inputFile_clear)

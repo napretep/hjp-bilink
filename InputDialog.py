@@ -1,5 +1,5 @@
 """
-这个是input 对话窗口
+这个是input 对话窗口 TODO,还没做完.
 """
 
 from . import MenuAdder
@@ -23,7 +23,7 @@ class InputDialog(QDialog, Ui_input):
         self.show()
         console("初始化完成!").log.end()
 
-    @debugWatcher
+    # @debugWatcher
     def UI_init(self, *args, **kwargs):
         """初始化UI"""
         self.setupUi(self)
@@ -31,7 +31,7 @@ class InputDialog(QDialog, Ui_input):
         self.inputTree.customContextMenuRequested.connect(self.contextMenuOnInputTree)
 
     # noinspection PyAttributeOutsideInit
-    @debugWatcher
+    # @debugWatcher
     def events_init(self, *args, **kwargs):
         """事件的初始化"""
         self.closeEvent = self.onClose
@@ -39,11 +39,11 @@ class InputDialog(QDialog, Ui_input):
         self.inputTree.dropEvent = self.onDrop
         self.fileWatcher = QFileSystemWatcher()
         self.fileWatcher.addPath(os.path.join(THIS_FOLDER, inputFileName))
-        self.fileWatcher.fileChanged.connect(self.model_loadJSON)
-        self.model.dataChanged.connect(self.tree_saveToFile)
+        self.fileWatcher.fileChanged.connect(self.model_loadFromJSON)
+        self.model.dataChanged.connect(self.model_saveToFile)
         self.tagContent.textChanged.connect(self.tag_saveToFile)
 
-    @debugWatcher
+    # @debugWatcher
     def model_init(self, *args, **kwargs):
         """模型数据的初始化"""
         self.model = QStandardItemModel()
@@ -52,12 +52,11 @@ class InputDialog(QDialog, Ui_input):
         self.model_rootNode.setEditable(False)
         self.model_rootNode.setSelectable(False)
         self.model_rootNode.setDragEnabled(False)
-        # self.model.setHorizontalHeaderLabels(["card_id|desc"])
         self.model.setHorizontalHeaderLabels(["card_id", "desc"])
         self.inputTree.setModel(self.model)
-        self.model_loadJSON()
+        self.model_loadFromJSON()
 
-    @debugWatcher
+    # @debugWatcher
     def contextMenuOnInputTree(self, *args, **kwargs):
         """初始化右键菜单"""
         menu = self.inputTree.contextMenu = QMenu()
@@ -73,7 +72,7 @@ class InputDialog(QDialog, Ui_input):
         menu.popup(QCursor.pos())
         menu.show()
 
-    @debugWatcher
+    # @debugWatcher
     def onDrop(self, *args, **kwargs):
         """掉落事件响应"""
         e = args[0]
@@ -106,9 +105,9 @@ class InputDialog(QDialog, Ui_input):
             targetItem = group
         removedItemLi = list(map(lambda x: removeChild(x), selectedItemLi))  # takeRow先取出后appenrow,这个顺序非常重要!!!!
         nothin = list(map(lambda x: targetItem.appendRow(x), removedItemLi))
-        self.tree_saveToFile()
+        self.model_saveToFile()
 
-    @debugWatcher
+    # @debugWatcher
     def onDoubleClick(self, index, *args, **kwargs):
         """双击事件响应"""
         item = self.model.itemFromIndex(index)
@@ -116,36 +115,47 @@ class InputDialog(QDialog, Ui_input):
             card = self.input.model.col.getCard(int(item.text()))
             cardPrevDialog(card)
 
-    @debugWatcher
+    # @debugWatcher
     def onRowRemoved(self, *args, **kwargs):
         """移除行时响应"""
-        self.tree_saveToFile()
+        self.model_saveToFile()
 
-    @debugWatcher
+    # @debugWatcher
     def onClose(self, QCloseEvent):
         """关闭时要保存数据,QCloseEvent是有用的参数,不能删掉,否则会报错"""
         mw.InputDialog = None
         if len(self.model_data) > 0:
-            self.tree_saveToFile()
+            self.model_saveToFile()
         else:
             self.input.dataReset().dataSave().end()
 
-    @debugWatcher
+    # @debugWatcher
     def tree_selectedDelete(self, *args, **kwargs):
         """选中的部分删除"""
+        self.isDeleting = True
         indexLi = self.inputTree.selectedIndexes()
-        for index in indexLi:
+        for i in range(len(indexLi)):
+            index = self.inputTree.selectedIndexes()[0]
             item = self.model.itemFromIndex(index)
-            row, col = item.row(), item.column()
-            father = item.parent()
-            if father is not None:
-                father.removeRow(row)
-            else:
-                self.model_rootNode.removeRow(row)
-        self.tree_saveToFile()
+            row, father = item.row(), item.parent()
+            father.takeRow(row)
+            if father.rowCount() == 0:
+                self.model_rootNode.takeRow(father.row())
+        # for index in indexLi:
+        #     item = self.model.itemFromIndex(index)
+        #     row, col = item.row(), item.column()
+        #     father = item.parent()
+        #     if father is not None:
+        #         father.takeRow(row)
+        #         if father.rowCount()==0:
+        #             self.model_rootNode.takeRow(father.row())
+        #     else:
+        #         self.model_rootNode.takeRow(row)
+        self.model_saveToFile()
         console(say("已删除选中卡片")).talk.end()
+        self.isDeleting = False
 
-    @debugWatcher
+    # @debugWatcher
     def tree_toggleExpandCollapse(self, *args, **kwargs):
         """切换input对话框的折叠和展开状态"""
         if self.treeIsExpanded:
@@ -159,19 +169,20 @@ class InputDialog(QDialog, Ui_input):
             self.inputTree.expandAll()
             self.treeIsExpanded = True
 
-    @debugWatcher
-    def tree_saveToFile(self, *args, **kwargs):
+    # @debugWatcher
+    def model_saveToFile(self, *args, **kwargs):
         """保存文件"""
-        self.JSON_loadFromModel()
-        self.input.data = self.model_data
-        self.input.dataSave().end()
+        if not self.isDeleting:
+            self.JSON_loadFromModel()
+            self.input.data = self.model_data if self.model_data != [] else self.input.initDict
+            self.input.dataSave().end()
 
-    @debugWatcher
+    # @debugWatcher
     def model_loadTag(self, *args, **kwargs):
         self.tagContent.setText(self.input.dataLoad().tag)
 
-    @debugWatcher
-    def model_loadJSON(self, *args, **kwargs):
+    # @debugWatcher
+    def model_loadFromJSON(self, *args, **kwargs):
         """从JSON读取到模型"""
         self.model_data: List[List[Pair]] = self.input.dataLoad().val()
         self.model_rootNode.clearData()
@@ -204,7 +215,7 @@ class InputDialog(QDialog, Ui_input):
         self.treeIsExpanded = True
         self.model_loadTag()
 
-    @debugWatcher
+    # @debugWatcher
     def JSON_loadFromModel(self, *args, **kwargs):
         """从树中读取json"""
 
@@ -212,7 +223,7 @@ class InputDialog(QDialog, Ui_input):
         self.input.tag = self.tagContent.text()
         self.JSON_loadFromModel_sub()
 
-    @debugWatcher
+    # @debugWatcher
     def JSON_loadFromModel_sub(self, *args, **kwargs):
         """是一个子函数"""
         for i in range(self.model_rootNode.rowCount()):
@@ -223,12 +234,13 @@ class InputDialog(QDialog, Ui_input):
                 continue
             else:
                 self.model_data.append([])
-                for j in range(self.model_rootNode.child(i).rowCount()):
-                    pair = Pair(card_id=self.model_rootNode.child(i).child(j).child(0, 0).text(),
-                                desc=self.model_rootNode.child(i).child(j).child(0, 1).text())
+                group = self.model_rootNode.child(i)
+                for j in range(group.rowCount()):
+                    pair_ = group.child(j)
+                    pair = Pair(card_id=pair_.child(0, 0).text(), desc=pair_.child(0, 1).text())
                     self.model_data[-1].append(pair)
 
-    @debugWatcher
+    # @debugWatcher
     def JSON_loadFromSelected(self):
         """从选中的项目中读取出JSON列表,保存在InputObj的data中,他只要不存到本地就没事情"""
         itemLi: List[QStandardItem] = [self.model.itemFromIndex(i) for i in self.inputTree.selectedIndexes()]
@@ -248,7 +260,7 @@ class InputDialog(QDialog, Ui_input):
         self.input.data = pairLi
         self.input.tag = self.tagContent.text()
 
-    @debugWatcher
+    # @debugWatcher
     def tag_saveToFile(self, *args, **kwargs):
         """将json保存到文件"""
         self.input.tag = self.tagContent.text()
