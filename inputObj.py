@@ -13,8 +13,6 @@ from .HTML_converter import HTML_converter
 from .utils import *
 
 
-
-
 class Input(object,
             # metaclass=MetaClass_loger
             ):
@@ -59,7 +57,6 @@ class Input(object,
         self.tag = self.data["addTag"]
         self.dataObj_ = self.dataObj().val()
         return self
-
 
     def dataObj(self):
         """将数据转换为对象,方便访问,修改 self.objdata """
@@ -226,27 +223,54 @@ class Input(object,
     def __setattr__(self, name, value):
         """TODO 修改类型检查, 尽量不给这里添乱."""
         # console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
-        if name == "data":
-            if (type(value) == list and len(value) > 0):
-                if (type(value[0]) == list and len(value[0]) > 0):
-                    if isinstance(value[0][0], Pair):
-                        v = [list(map(lambda x: x.__dict__, group)) for group in value]
-                        self.__dict__[name]["IdDescPairs"] = v
-                    elif isinstance(value[0], Pair):
-                        v = list(map(lambda x: [x.__dict__], value))
-                        self.__dict__[name]["IdDescPairs"] = v
-                    elif type(value[0]) == dict and "card_id" in value[0] and "desc" in value[0]:
+        if name == "data":  # 兼容了五种类型: list[list[pair]],list[list[dict]],list[pair],list[dict],dict
+            if type(value) == list:
+                if len(value) > 0:
+                    if type(value[0]) == list:
+                        if len(value[0]) > 0:
+                            if type(value[0][0]) == dict:  # list[list[dict]]
+                                self.__dict__[name]["IdDescPairs"] = value
+                            elif isinstance(value[0][0], Pair):  # list[list[pair]]
+                                v = [list(map(lambda x: x.__dict__, group)) for group in value]
+                                self.__dict__[name]["IdDescPairs"] = v
+                            else:
+                                raise TypeError("无法处理数据:" + value.__str__())
+                        else:  # 空列表
+                            self.__dict__[name]["IdDescPairs"] = []
+                    elif type(value[0]) == dict:  # list[dict]
                         v = list(map(lambda x: [x], value))
                         self.__dict__[name]["IdDescPairs"] = v
-                    elif type(value[0][0]) == dict:
-                        self.__dict__[name]["IdDescPairs"] = value
-                else:
-                    raise TypeError("无法处理数据:" + value.__str__())
-                self.valueStack.append(value)
-            elif type(value) == dict:
+                    elif isinstance(value[0], Pair):  # list[pair]
+                        v = list(map(lambda x: [x.__dict__], value))
+                        self.__dict__[name]["IdDescPairs"] = v
+                    else:  #
+                        raise TypeError("无法处理数据:" + value.__str__())
+                else:  # 空列表
+                    self.__dict__[name]["IdDescPairs"] = []
+            elif type(value) == dict and "IdDescPairs" in value and "addTag" in value:  # dict
                 self.__dict__[name] = value
             else:
                 raise TypeError("无法处理数据:" + value.__str__())
+            # if (type(value) == list and len(value) > 0):
+            #     if (type(value[0]) == list and len(value[0]) > 0):
+            #         if isinstance(value[0][0], Pair):
+            #             v = [list(map(lambda x: x.__dict__, group)) for group in value]
+            #             self.__dict__[name]["IdDescPairs"] = v
+            #         elif isinstance(value[0], Pair):
+            #             v = list(map(lambda x: [x.__dict__], value))
+            #             self.__dict__[name]["IdDescPairs"] = v
+            #         elif type(value[0]) == dict and "card_id" in value[0] and "desc" in value[0]:
+            #             v = list(map(lambda x: [x], value))
+            #             self.__dict__[name]["IdDescPairs"] = v
+            #         elif type(value[0][0]) == dict:
+            #             self.__dict__[name]["IdDescPairs"] = value
+            #     else:
+            #         raise TypeError("无法处理数据:" + value.__str__())
+            #     self.valueStack.append(value)
+            # elif type(value) == dict:
+            #     self.__dict__[name] = value
+            # else:
+            #     raise TypeError("无法处理数据:" + value.__str__())
             self.dataObj().end()
         else:
             if name == "tag": self.__dict__["data"]["addTag"] = value
@@ -256,4 +280,3 @@ class Input(object,
                 self.valueStack = []
             if name != "valueStack":
                 self.valueStack.append(value)
-
