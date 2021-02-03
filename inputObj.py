@@ -135,7 +135,10 @@ class Input(object,
 
         [list(map(lambda x: group.remove(x) if x.card_id == pair.card_id else None, group)) for group in self.dataObj_]
         if [] in self.dataObj_: self.dataObj_.remove([])
-        self.data = self.dataObj_
+        if len(self.dataObj_) > 0:
+            self.data = self.dataObj_
+        else:
+            self.data["IdDescPairs"] = self.initDict["IdDescPairs"]
         return self
 
     def note_addTagAll(self):
@@ -221,18 +224,22 @@ class Input(object,
         return self
 
     def __setattr__(self, name, value):
-        """TODO 修改类型检查"""
+        """TODO 修改类型检查, 尽量不给这里添乱."""
         # console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
         if name == "data":
             if (type(value) == list and len(value) > 0):
-                if (type(value[0]) == list and len(value[0]) > 0) and isinstance(value[0][0], Pair):
-                    v = [list(map(lambda x: x.__dict__, group)) for group in value]
-                    self.__dict__[name]["IdDescPairs"] = v
-                elif (type(value[0]) == list and len(value[0]) > 0) and isinstance(value[0], Pair):
-                    v = list(map(lambda x: [x.__dict__], value))
-                    self.__dict__[name]["IdDescPairs"] = v
-                elif (type(value[0]) == list and len(value[0]) > 0) and type(value[0][0]) == dict:
-                    self.__dict__[name]["IdDescPairs"] = value
+                if (type(value[0]) == list and len(value[0]) > 0):
+                    if isinstance(value[0][0], Pair):
+                        v = [list(map(lambda x: x.__dict__, group)) for group in value]
+                        self.__dict__[name]["IdDescPairs"] = v
+                    elif isinstance(value[0], Pair):
+                        v = list(map(lambda x: [x.__dict__], value))
+                        self.__dict__[name]["IdDescPairs"] = v
+                    elif type(value[0]) == dict and "card_id" in value[0] and "desc" in value[0]:
+                        v = list(map(lambda x: [x], value))
+                        self.__dict__[name]["IdDescPairs"] = v
+                    elif type(value[0][0]) == dict:
+                        self.__dict__[name]["IdDescPairs"] = value
                 else:
                     raise TypeError("无法处理数据:" + value.__str__())
                 self.valueStack.append(value)

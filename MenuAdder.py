@@ -85,11 +85,11 @@ def func_menuAddHelper(*args, **kwargs):
 
 def func_add_browsermenu(browser: Browser = None):
     """给browser的bar添加按钮"""
-    if hasattr(browser, "hjp_link"):
-        menu: QMenu = browser.hjp_Link
+    if hasattr(browser, "hjp_bilink"):
+        menu: QMenu = browser.hjp_bilink
     else:
-        menu = browser.hjp_Link = QMenu("hjp_link")
-        browser.menuBar().addMenu(browser.hjp_Link)
+        menu = browser.hjp_bilink = QMenu("hjp_bilink")
+        browser.menuBar().addMenu(browser.hjp_bilink)
     '''
     链接:5个,插入:3个,打开,清空,配置,版本,帮助
     '''
