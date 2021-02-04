@@ -86,6 +86,13 @@ browserShortcutDict = {
 }
 placeDict = {"all": globalShortcutDict, "Browser": browserShortcutDict}
 
-Browser.__init__ = wrapper_shortcut(Browser.__init__)
-AnkiWebView.__init__ = wrapper_shortcut(AnkiWebView.__init__)
-EditorWebView.__init__ = wrapper_shortcut(EditorWebView.__init__)
+
+def shortcut_addto_originalcode(*arg, **kwargs):
+    Browser.__init__ = wrapper_shortcut(Browser.__init__)
+    AnkiWebView.__init__ = wrapper_shortcut(AnkiWebView.__init__)
+    EditorWebView.__init__ = wrapper_shortcut(EditorWebView.__init__)
+
+
+# AnkiWebView.dropEvent=
+# AnkiWebView.allowDrops=True
+gui_hooks.profile_did_open.append(shortcut_addto_originalcode)

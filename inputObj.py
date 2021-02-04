@@ -251,26 +251,7 @@ class Input(object,
                 self.__dict__[name] = value
             else:
                 raise TypeError("无法处理数据:" + value.__str__())
-            # if (type(value) == list and len(value) > 0):
-            #     if (type(value[0]) == list and len(value[0]) > 0):
-            #         if isinstance(value[0][0], Pair):
-            #             v = [list(map(lambda x: x.__dict__, group)) for group in value]
-            #             self.__dict__[name]["IdDescPairs"] = v
-            #         elif isinstance(value[0], Pair):
-            #             v = list(map(lambda x: [x.__dict__], value))
-            #             self.__dict__[name]["IdDescPairs"] = v
-            #         elif type(value[0]) == dict and "card_id" in value[0] and "desc" in value[0]:
-            #             v = list(map(lambda x: [x], value))
-            #             self.__dict__[name]["IdDescPairs"] = v
-            #         elif type(value[0][0]) == dict:
-            #             self.__dict__[name]["IdDescPairs"] = value
-            #     else:
-            #         raise TypeError("无法处理数据:" + value.__str__())
-            #     self.valueStack.append(value)
-            # elif type(value) == dict:
-            #     self.__dict__[name] = value
-            # else:
-            #     raise TypeError("无法处理数据:" + value.__str__())
+
             self.dataObj().end()
         else:
             if name == "tag": self.__dict__["data"]["addTag"] = value
