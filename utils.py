@@ -4,7 +4,7 @@ debug函数
 """
 import datetime, types, functools, json
 from aqt.utils import *
-from aqt import mw
+from aqt import mw, AnkiQt
 from .language import rosetta as say
 import copy
 import json
@@ -71,11 +71,17 @@ class Empty:
 
 
 class Pair:
-    """卡片ID和卡片描述的键值对的对象"""
+    """卡片ID和卡片描述的键值对的对象
+    通用名字:card_id,desc,dir,
+    """
 
     def __init__(self, **pair):
-        self.card_id: str = pair["card_id"]
-        self.desc: str = pair["desc"]
+        self.card_id = pair["card_id"]
+        self.desc = pair["desc"]
+        if "dir" in pair:
+            self.dir = pair["dir"]
+        else:
+            self.dir = "→"
 
     @property
     def int_card_id(self):
@@ -192,20 +198,14 @@ class console:
         return self
 
 
-VERSION = """
-<p>版本:0.6.17<\p>
-<p>新增功能:<\p>
-<p>锚点改为按钮格式<\p>
-<p>input对话框,可拖拽,可双击打开卡片预览,可右键执行链接,删除,选中部分卡片链接等<\p>
-<p>快捷键:在browser浏览界面下,可以使用快捷键执行链接,反链接,清空input,打开input,插入选中卡片<\p>
-<p>可以在复习窗口,预览窗口点右键执行绝大部分功能<\p>
-"""
+
 ISDEV = False
 ISDEBUG = False  # 别轻易开启,很卡的
 helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"
 configFileName = "user_files/config.json" if not ISDEV else "user_files/configdev.json"
 configSchemaFileName = "user_files/config.schema.json"
+configTemplatesFileName = "config_template.json"
 helpFileName = "README.md"
 relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
@@ -220,7 +220,15 @@ algPathDict = {
     "desc": ["默认连接", "完全图连接", "组到组连接", "按结点取消连接", "按路径取消连接"],
     "mode": [999, 0, 1, 2, 3]
 }
-
+config_template = json.load(open(os.path.join(THIS_FOLDER, configTemplatesFileName)))
+VERSION = fr"""
+<p>版本:{config_template["VERSION"]}</p>
+<p>新增功能:</p>
+<p>锚点改为按钮格式</p>
+<p>input对话框,可拖拽,可双击打开卡片预览,可右键执行链接,删除,选中部分卡片链接等</p>
+<p>快捷键:在browser浏览界面下,可以使用快捷键执行链接,反链接,清空input,打开input,插入选中卡片</p>
+<p>可以在复习窗口,预览窗口点右键执行绝大部分功能</p>
+"""
 try:
     cardPrevDialog = __import__("1423933177").card_window.external_card_dialog
 except:
@@ -229,3 +237,22 @@ except:
 
 if not os.path.exists(os.path.join(PREV_FOLDER, advancedBrowserDir)):
     showInfo(say("请安装插件564851917,否则将无法折叠标签,我们每次链接都会产生标签"))
+
+
+class BaseInfo(object, ):
+    """基础信息"""
+
+    def __init__(self, inputFileDir: str = os.path.join(THIS_FOLDER, inputFileName),
+                 configFileDir: str = os.path.join(THIS_FOLDER, configFileName),
+                 helpDir: str = helpSite,
+                 relyDir: str = RELY_FOLDER,
+                 initDict: dict = inputSchema,
+                 model: AnkiQt = mw, ):
+        self.model = model
+        self.helpSite = helpDir
+        self.initDict = initDict
+        self.relyDir = relyDir
+        self.inputDir = inputFileDir
+        self.configDir = configFileDir
+        self.config = json.load(open(configFileDir, "r", encoding="UTF-8", ))
+        self.configObj = Params(**self.config)

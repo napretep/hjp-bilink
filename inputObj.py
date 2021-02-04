@@ -13,32 +13,19 @@ from .HTML_converter import HTML_converter
 from .utils import *
 
 
-class Input(object,
+class Input(BaseInfo,
             # metaclass=MetaClass_loger
             ):
     """集成input对象,满足增删查改需求
     当你保存dataobj到data的时候会自动类型转换
     """
 
-    def __init__(self,
-                 inputFileDir: str = os.path.join(THIS_FOLDER, inputFileName),
-                 configFileDir: str = os.path.join(THIS_FOLDER, configFileName),
-                 helpDir: str = helpSite,
-                 relyDir: str = RELY_FOLDER,
-                 initDict: dict = inputSchema,
-                 model: AnkiQt = mw,
-                 ):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.valueStack = []
         self.console = console(obj=self)
         self.dataflat_ = None
-        self.model = model
-        self.helpSite = helpDir
-        self.initDict = initDict
-        self.relyDir = relyDir
-        self.inputDir = inputFileDir
-        self.configDir = configFileDir
-        self.config = json.load(open(configFileDir, "r", encoding="UTF-8", ))
-        self.configObj = Params(**self.config)
+
         self.insertPosi = self.config["appendNoteFieldPosition"]
         self.regexDescPosi = self.config["readDescFieldPosition"]
         self.linkstyle = self.config["linkStyle"]
@@ -46,7 +33,7 @@ class Input(object,
             self.config["regexForDescContent"]
         self.HTMLmanage = HTML_converter()
         try:
-            self.data: dict = json.load(open(inputFileDir, "r", encoding="UTF-8", ))
+            self.data: dict = json.load(open(self.inputDir, "r", encoding="UTF-8", ))
             self.tag = self.data["addTag"]
         except:
             raise ValueError("读取input出现错误,请检查格式是否正确,或请点击'清空input'重置input文件")

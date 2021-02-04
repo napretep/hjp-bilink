@@ -2,15 +2,16 @@
 """
 写了个HTML toObject toJSON 解析器
 """
+import json
 import re
 
 from typing import List, Tuple, Dict
 from bs4 import BeautifulSoup, element
 
 if __name__ == "__main__":
-    from utils import console, MetaClass_loger, Params
+    from utils import console, MetaClass_loger, Params, Pair, BaseInfo
 else:
-    from .utils import console, MetaClass_loger, Params
+    from .utils import *
 
 
 class HTML_converter(object,
@@ -19,16 +20,30 @@ class HTML_converter(object,
     """格式转换综合对象"""
 
     def __init__(self, **args):
+
         self.parse = BeautifulSoup
         self.text = ""
         self.domRoot: element = None
         self.objJSON: Dict = {}
         self.HTML_text = ""
+        self.idPrefix = "cidd"
         self.regexName = re.compile(r"div|button")
         self.regexCard_id = re.compile(r"\d+")
         self.buttonDivId = "hjp_bilink_button"
+        self.buttonDivCSS = """
+display: grid;
+grid-template-columns: repeat(auto-fill,minmax(250px,auto));
+grid-template-rows: repeat(2,minmax(0px,auto));
+grid-auto-columns: minmax(250px,1fr);
+grid-auto-flow: row;
+overflow:auto;
+background-color: #F7F8F8;
+max-height:300px;
+}
+        """
         self.scriptId = "hjp_bilink_data"
         self.scriptVarName = "hjp_bilink_data"
+        self.card_linked_pairs: List[Pair] = []
 
     def feed(self, text):
         """把接口变得简单一点,domRoot修改"""
@@ -81,9 +96,34 @@ class HTML_converter(object,
         self.__init__()
         return self
 
-    def JSON_loadFromField(self, htmltext):
+    def HTML_makeButtonFromJSON(self, **args):
+        """制作按钮"""
+        cfg = BaseInfo().configObj
+        button_container: element = self.domRoot.select(f"[id={self.buttonDivId}]")
+        if not button_container:
+            button_container = self.domRoot.new_tag(name="div", id=self.buttonDivId, style=self.buttonDivCSS)
+            self.domRoot.insert(button_container, 0)
+        else:
+            button_container = button_container[0]
+        for pair in self.card_linked_pairs:
+            button = \
+                self.domRoot.new_tag(name="button", card_id=pair.card_id, dir=pair.dir,
+                                     onclick=f"""javascript:pycmd('{self.idPrefix}'+'{pair.card_id}');""",
+                                     style=f"""'displaystyle:inline;font-size:inherit;margin:2px;{cfg.linkStyle};""", )
+            button_container.append(button)
+        return self
+
+    def JSON_loadFromHTML(self):
         """从HTML中读取json"""
-        self.feed(htmltext).domRoot.find_all('script', attrs={"id"})
+        script_el = self.domRoot.select(f"script[id={self.scriptId}]")
+        if script_el:
+            script_el = script_el[0]
+            script_str = re.search(rf"(?<={self.scriptId}=)\[[\s\S]+?]", script_el.__str__())
+            if script_str is not None:
+                self.card_linked_pairs: List[Pair] = \
+                    list(map(lambda x: Pair(card_id=x["card_id"], desc=x["desc"], dir=x["dir"]),
+                             json.loads(script_str[0])))
+        return self
 
     def __setattr__(self, name, value):
         # console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
@@ -142,6 +182,16 @@ if __name__ == "__main__":
         <neighbor name="Colombia" direction="E"/>
     </country>
 </virtualRoot>
+    """
+    egHTML4 = """
+    <script id="hjp_bilink_data">
+hjp_bilink_data=[
+{"card_id":"1611035897919",
+"desc":"吃饭"
+}
+
+]
+</script>
     """
 
     eg = HTML_converter()

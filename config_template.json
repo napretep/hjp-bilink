@@ -1,5 +1,5 @@
 {
-  "VERSION": "0.6.19",
+  "VERSION": "0.7",
   "addLinkTo_Field_or_MetaInfo": "Field",
   "defaultLinkMode": 1,
   "defaultUnlinkMode": 2,
@@ -9,7 +9,7 @@
   "regexForDescContent": 0,
   "regexForDescFromTag": 0,
   "regexForDescFromDeck": 0,
-  "descMaxLength": 10,
+  "descMaxLength": 0,
   "linkFromSymbol": "←",
   "linkToSymbol": "→",
   "linkStyle": "",

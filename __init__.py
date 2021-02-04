@@ -80,7 +80,7 @@ def shortcut_addto_originalcode(*arg, **kwargs):
     EditorWebView.__init__ = wrapper_shortcut(EditorWebView.__init__)
 
 
-def HTML_injecttoweb(htmltxt, card, kind):
+def HTML_injecttoweb(htmltext, card, kind):
     """在web渲染前,注入html代码,"""
     if kind in [
         "previewQuestion",
@@ -90,9 +90,11 @@ def HTML_injecttoweb(htmltxt, card, kind):
         "clayoutQuestion",
         "clayoutAnswer",
     ]:
-        return htmltxt + "hello"
+        html_addedButton = HTML_converter().feed(
+            htmltext).JSON_loadFromHTML().HTML_makeButtonFromJSON().HTML_get().HTML_text
+        return html_addedButton
     else:
-        return htmltxt
+        return htmltext
 
 
 config = Params(**Input().config)
@@ -108,7 +110,5 @@ browserShortcutDict = {
 }
 placeDict = {"all": globalShortcutDict, "Browser": browserShortcutDict}
 
-# AnkiWebView.dropEvent=
-# AnkiWebView.allowDrops=True
 gui_hooks.profile_did_open.append(shortcut_addto_originalcode)
 gui_hooks.card_will_show.append(HTML_injecttoweb)
