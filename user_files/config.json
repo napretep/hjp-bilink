@@ -1,4 +1,5 @@
 {
+  "VERSION": "0.6.19",
   "addLinkTo_Field_or_MetaInfo": "Field",
   "defaultLinkMode": 1,
   "defaultUnlinkMode": 2,

@@ -13,7 +13,9 @@ else:
     from .utils import console, MetaClass_loger, Params
 
 
-class HTML_converter(object, metaclass=MetaClass_loger):
+class HTML_converter(object,
+                     # metaclass=MetaClass_loger
+                     ):
     """格式转换综合对象"""
 
     def __init__(self, **args):
@@ -25,6 +27,8 @@ class HTML_converter(object, metaclass=MetaClass_loger):
         self.regexName = re.compile(r"div|button")
         self.regexCard_id = re.compile(r"\d+")
         self.buttonDivId = "hjp_bilink_button"
+        self.scriptId = "hjp_bilink_data"
+        self.scriptVarName = "hjp_bilink_data"
 
     def feed(self, text):
         """把接口变得简单一点,domRoot修改"""
@@ -73,15 +77,20 @@ class HTML_converter(object, metaclass=MetaClass_loger):
         return self
 
     def clear(self):
+        """初始化自身"""
         self.__init__()
         return self
 
+    def JSON_loadFromField(self, htmltext):
+        """从HTML中读取json"""
+        self.feed(htmltext).domRoot.find_all('script', attrs={"id"})
+
     def __setattr__(self, name, value):
-        console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
+        # console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
         self.__dict__[name] = value
 
     def __getattr__(self, name):
-        console(f""" getattr→ {self.__class__.__name__}.{name}  """).log.end()
+        # console(f""" getattr→ {self.__class__.__name__}.{name}  """).log.end()
         return self.__dict__[name]
 
 

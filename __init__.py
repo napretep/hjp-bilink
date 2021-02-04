@@ -73,6 +73,28 @@ def wrapper_shortcut(func):
     return shortCut_add
 
 
+def shortcut_addto_originalcode(*arg, **kwargs):
+    """用来绑定快捷键,有些快捷键还是失效的,需要再改进 TODO"""
+    Browser.__init__ = wrapper_shortcut(Browser.__init__)
+    AnkiWebView.__init__ = wrapper_shortcut(AnkiWebView.__init__)
+    EditorWebView.__init__ = wrapper_shortcut(EditorWebView.__init__)
+
+
+def HTML_injecttoweb(htmltxt, card, kind):
+    """在web渲染前,注入html代码,"""
+    if kind in [
+        "previewQuestion",
+        "previewAnswer",
+        "reviewQuestion",
+        "reviewAnswer",
+        "clayoutQuestion",
+        "clayoutAnswer",
+    ]:
+        return htmltxt + "hello"
+    else:
+        return htmltxt
+
+
 config = Params(**Input().config)
 globalShortcutDict = {
     "InputDialog_open": (config.shortcut_inputDialog_open, shortcut_inputDialog_open),
@@ -86,13 +108,7 @@ browserShortcutDict = {
 }
 placeDict = {"all": globalShortcutDict, "Browser": browserShortcutDict}
 
-
-def shortcut_addto_originalcode(*arg, **kwargs):
-    Browser.__init__ = wrapper_shortcut(Browser.__init__)
-    AnkiWebView.__init__ = wrapper_shortcut(AnkiWebView.__init__)
-    EditorWebView.__init__ = wrapper_shortcut(EditorWebView.__init__)
-
-
 # AnkiWebView.dropEvent=
 # AnkiWebView.allowDrops=True
 gui_hooks.profile_did_open.append(shortcut_addto_originalcode)
+gui_hooks.card_will_show.append(HTML_injecttoweb)
