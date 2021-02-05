@@ -24,7 +24,6 @@ def checkUpdate():
 def data_selectedFromBrowserTable(browser, *args, **kwargs):
     cardLi: List[str] = list(map(lambda x: str(x), browser.selectedCards()))
     inputObj = Input()
-    showInfo("快捷键响应")
     if len(cardLi) > 0:
         inputObj.data = inputObj.pairLi_extract(cardLi)
         console("inputObj.data:" + inputObj.data.__str__()).log.end()
