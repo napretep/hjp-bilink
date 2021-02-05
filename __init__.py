@@ -2,6 +2,24 @@
 from .MenuAdder import *
 from aqt.webview import AnkiWebPage
 
+def checkUpdate():
+    """检查更新,检查配置表是否对应"""
+    config_template = json.load(open(os.path.join(THIS_FOLDER, configTemplateFileName), "r", encoding="utf-8"))
+    config = BaseInfo().config
+    needUpdate = False
+    if config_template["VERSION"] != config["VERSION"]:
+        needUpdate = True
+        config["VERSION"] = config_template["VERSION"]
+        for key, value in config_template.items():
+            if key not in config:
+                config[key] = value
+        for key, value in config.items():
+            if key not in config_template:
+                config.__deleteitem__(key)
+    if needUpdate:
+        json.dump(config, open(os.path.join(THIS_FOLDER, configFileName), "w", encoding="utf-8"), indent=4,
+                  ensure_ascii=False)
+        func_version()
 
 def data_selectedFromBrowserTable(browser, *args, **kwargs):
     cardLi: List[str] = list(map(lambda x: str(x), browser.selectedCards()))
@@ -91,12 +109,13 @@ def HTML_injecttoweb(htmltext, card, kind):
         "clayoutAnswer",
     ]:
         html_addedButton = HTML_converter().feed(
-            htmltext).JSON_loadFromHTML().HTML_makeButtonFromJSON().HTML_get().HTML_text
+            htmltext).pairLi_loadFromHTML().HTML_makeButtonFromPairLi().HTML_get().HTML_text
         return html_addedButton
     else:
         return htmltext
 
 
+checkUpdate()
 config = Params(**Input().config)
 globalShortcutDict = {
     "InputDialog_open": (config.shortcut_inputDialog_open, shortcut_inputDialog_open),

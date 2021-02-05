@@ -1,0 +1,48 @@
+/*
+以下花括号内的字符不可变动,出于格式化输出的需要,
+{container}:表示整体窗格,代表了配置表中 button_appendTo_AnchorId 指向的元素.
+{subcontainer}:表示按钮集合的容器,每个按钮是button元素, 自带card_id自定义属性
+{header}:是显示下拉按钮的那个元素id
+双花括号不可改为单花括号,否则会影响取值
+*/
+#{container},button[card_id] {{
+  display: inline-block;
+  text-decoration: none;
+  outline: none;
+  color: #fff;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 1px;
+  box-shadow: 0 2px #999;
+}}
+#{container}:hover {{background-color: #3e8e41}}
+
+#{container}:hover {{
+  background-color: #3e8e41;
+  box-shadow: 0 2px #666;
+  transform: translateY(2px);
+}}
+#{container}{{
+position: relative;
+display: block;
+
+max-width:150px;
+color:white;
+background-color: #4CAF50;
+}}
+
+#{subcontainer}{{
+display:none;
+position: absolute;
+}}
+
+#{container}:hover #{subcontainer}{{
+max-width:150px;
+display: grid;
+justify-items: start ;
+grid-gap:2px;
+}}
+
+#{header}{{
+
+}}

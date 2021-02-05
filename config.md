@@ -14,6 +14,8 @@ VERSION:"0.7", 用来标记配置表版本是否落后,从而从 config_template
 2-按结点取消,3-按路径取消,
 4-直接插入,5-清空后插入,6-编组插入
 
+
+
 "defaultLinkMode": 1, 用来定义默认的链接模式,  0 代表 完全图链接, 1,代表组到组链接,他会影响 shortcut browser Table Selected link, 对应的快捷键所执行的操作
 
 "defaultUnlinkMode": 2, 用来定义默认的取消链接模式, 其中的数字2,代表按节点取消链接, 3,代表按路径取消链接, 

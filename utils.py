@@ -4,7 +4,7 @@ debug函数
 """
 import datetime, types, functools, json
 from aqt.utils import *
-from aqt import mw, AnkiQt
+from aqt import mw, AnkiQt, dialogs
 from .language import rosetta as say
 import copy
 import json
@@ -15,7 +15,26 @@ from aqt.reviewer import Reviewer
 from aqt.webview import AnkiWebView
 
 
+def wrapper_browser_refresh(func):
+    """用来刷新browser"""
+
+    @functools.wraps(func)
+    def refresh(*args, **kwargs):
+        browser = dialogs.open("Browser", mw)
+        browser.maybeRefreshSidebar()
+        browser.model.layoutChanged.emit()
+        browser.editor.setNote(None)
+        result = func(*args, **kwargs)
+        browser.maybeRefreshSidebar()
+        browser.model.layoutChanged.emit()
+        browser.editor.setNote(None)
+        browser.model.reset()  # 关键作用
+        return result
+
+    return refresh
+
 def debugWatcher(func):
+    """debug专用"""
     @functools.wraps(func)
     def debugWatcher_sub(*args, **kwargs):
         if ISDEBUG:
@@ -77,7 +96,10 @@ class Pair:
 
     def __init__(self, **pair):
         self.card_id = pair["card_id"]
-        self.desc = pair["desc"]
+        if "desc" in pair:
+            self.desc = pair["desc"]
+        else:
+            self.desc = ""
         if "dir" in pair:
             self.dir = pair["dir"]
         else:
@@ -205,13 +227,14 @@ helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"
 configFileName = "user_files/config.json" if not ISDEV else "user_files/configdev.json"
 configSchemaFileName = "user_files/config.schema.json"
-configTemplatesFileName = "config_template.json"
+configTemplateFileName = "config_template.json"
 helpFileName = "README.md"
 relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"
 logFileName = "log.txt"
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+USER_FOLDER = os.path.join(THIS_FOLDER, "user_files")
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
 inputSchema = {"IdDescPairs": [], "addTag": ""}
@@ -220,15 +243,20 @@ algPathDict = {
     "desc": ["默认连接", "完全图连接", "组到组连接", "按结点取消连接", "按路径取消连接"],
     "mode": [999, 0, 1, 2, 3]
 }
-config_template = json.load(open(os.path.join(THIS_FOLDER, configTemplatesFileName)))
-VERSION = fr"""
-<p>版本:{config_template["VERSION"]}</p>
+
+config_template = json.load(open(os.path.join(THIS_FOLDER, configTemplateFileName), "r", encoding="utf-8"))
+VERSION = """
+<p>版本:{version}</p>
 <p>新增功能:</p>
-<p>锚点改为按钮格式</p>
+<p style="color:red;">锚点改为下拉弹出式,卡片渲染后注入按钮</p>
+<p style="color:red;">可升级旧版(0.4.x和0.6.x)的锚点,不过这些卡片要插入input才能升级</p>
+<p>锚点改为按钮格式,</p>
 <p>input对话框,可拖拽,可双击打开卡片预览,可右键执行链接,删除,选中部分卡片链接等</p>
 <p>快捷键:在browser浏览界面下,可以使用快捷键执行链接,反链接,清空input,打开input,插入选中卡片</p>
 <p>可以在复习窗口,预览窗口点右键执行绝大部分功能</p>
-"""
+<a href="https://ankiweb.net/shared/info/1420819673">点我看详情</a>
+""".format(version=config_template["VERSION"])
+
 try:
     cardPrevDialog = __import__("1423933177").card_window.external_card_dialog
 except:
@@ -248,6 +276,7 @@ class BaseInfo(object, ):
                  relyDir: str = RELY_FOLDER,
                  initDict: dict = inputSchema,
                  model: AnkiQt = mw, ):
+        self.valueStack = []
         self.model = model
         self.helpSite = helpDir
         self.initDict = initDict
@@ -256,3 +285,13 @@ class BaseInfo(object, ):
         self.configDir = configFileDir
         self.config = json.load(open(configFileDir, "r", encoding="UTF-8", ))
         self.configObj = Params(**self.config)
+
+    def anchorCSS_load(self):
+        """首先读取用户区域的这个文件,读不到再找本地的文件"""
+        path = os.path.join(USER_FOLDER, self.configObj.anchorCSSFileName)
+        if not os.path.exists(path):
+            path = os.path.join(THIS_FOLDER, "anchorCSS.txt")
+        s = open(path, "r", encoding="utf-8")
+        t = s.read()
+        s.close()
+        return t

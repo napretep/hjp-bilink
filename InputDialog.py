@@ -1,5 +1,5 @@
 """
-这个是input 对话窗口 TODO,还没做完.
+这个是input 对话窗口 DONE,还没做完.
 """
 
 from . import MenuAdder

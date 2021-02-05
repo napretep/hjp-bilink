@@ -13,7 +13,7 @@ def actionMenuConnector(menu, actionname, action, **kwargs):
     menu.addAction(actionname).triggered.connect(lambda: action(**kwargs))
 
 
-@debugWatcher
+# @debugWatcher
 def func_menuAddBrowserInsert(*args, **kwargs):
     """browser插入类函数集合"""
     param = Params(**kwargs)
@@ -75,7 +75,7 @@ def func_menuAddBaseMenu(*args, **kwargs):
     list(map(lambda x, y: menu.addAction(f"{say(x)}").triggered.connect(y), menuli, funcli))
 
 
-@debugWatcher
+# @debugWatcher
 def func_menuAddHelper(*args, **kwargs):
     """提供大部分类似的按钮添加操作帮助"""
     param = Params(**kwargs)
@@ -96,7 +96,7 @@ def func_add_browsermenu(browser: Browser = None):
     func_menuAddHelper(menu=menu, parent=browser, actionTypes=["link", "browserinsert", "clear_open", "basicMenu"])
 
 
-@debugWatcher
+# @debugWatcher
 def fun_add_browsercontextmenu(browser: Browser, menu: QMenu):
     """用来给browser加上下文菜单"""
     func_menuAddHelper(menu=menu, parent=browser, features=["prefix"], actionTypes=["browserinsert"])
