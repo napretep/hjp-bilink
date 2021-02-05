@@ -2,6 +2,7 @@
 debug函数
 一些常量
 """
+from typing import List, Tuple, Dict
 import datetime, types, functools, json
 from aqt.utils import *
 from aqt import mw, AnkiQt, dialogs

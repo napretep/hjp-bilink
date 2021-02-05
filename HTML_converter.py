@@ -5,7 +5,6 @@
 import json
 import re
 
-from typing import List, Tuple, Dict
 from bs4 import BeautifulSoup, element
 
 if __name__ == "__main__":
