@@ -248,8 +248,9 @@ config_template = json.load(open(os.path.join(THIS_FOLDER, configTemplateFileNam
 VERSION = """
 <p>版本:{version}</p>
 <p>新增功能:</p>
+<p style="color:red;">新增菜单:重置config文件</p>
 <p style="color:red;">锚点改为下拉弹出式,卡片渲染后注入按钮</p>
-<p style="color:red;">可升级旧版(0.4.x和0.6.x)的锚点,不过这些卡片要插入input才能升级</p>
+<p style="color:red;">可升级旧版(0.4.x和0.6.x)的锚点,卡片需要插入input操作</p>
 <p>锚点改为按钮格式,</p>
 <p>input对话框,可拖拽,可双击打开卡片预览,可右键执行链接,删除,选中部分卡片链接等</p>
 <p>快捷键:在browser浏览界面下,可以使用快捷键执行链接,反链接,清空input,打开input,插入选中卡片</p>

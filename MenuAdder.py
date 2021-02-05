@@ -12,6 +12,10 @@ def actionMenuConnector(menu, actionname, action, **kwargs):
     """执行动作链接的一个辅助函数"""
     menu.addAction(actionname).triggered.connect(lambda: action(**kwargs))
 
+def func_resetConfig():
+    json.dump(config_template, open(os.path.join(THIS_FOLDER, configFileName), "w", encoding="utf-8"), indent=4,
+              ensure_ascii=False)
+    showInfo(say("参数表重置成功"))
 
 # @debugWatcher
 def func_menuAddBrowserInsert(*args, **kwargs):
@@ -69,8 +73,8 @@ def func_menuAddClearOpen(*args, **kwargs):
 def func_menuAddBaseMenu(*args, **kwargs):
     """基础的如,help,config,version"""
     param = Params(**kwargs)
-    menuli = ["调整config", "查看版本和新特性", "打开插件页面", "升级旧版锚点", "联系作者", "支持作者"]
-    funcli = [func_config, func_version, func_help, func_anchorUpdate, func_contactMe, func_supportMe]
+    menuli = ["重置config", "调整config", "查看版本和新特性", "打开插件页面", "升级旧版锚点", "联系作者", "支持作者"]
+    funcli = [func_resetConfig, func_config, func_version, func_help, func_anchorUpdate, func_contactMe, func_supportMe]
     menu = param.menu.addMenu(say("其他"))
     list(map(lambda x, y: menu.addAction(f"{say(x)}").triggered.connect(y), menuli, funcli))
 

@@ -1,11 +1,11 @@
 from anki.lang import *
 
 
-def rosetta(text:str=""):
+def rosetta(text: str = ""):
     # return text
-    lang=currentLang
+    lang = currentLang
 
-    surrport=["zh-CN","zh_TW","en","en-GB"]
+    surrport = ["zh-CN", "zh_TW", "en", "en-GB"]
 
     def En(text):
         if text in Endict:
@@ -15,9 +15,10 @@ def rosetta(text:str=""):
 
     def Zh(text):
         return text
+
     if not (lang in surrport):
-        lang="en"
-    Endict ={
+        lang = "en"
+    Endict = {
         "默认链接": "default",
         "完全图链接": "complete map",
         "组到组链接": "group to group",
@@ -70,13 +71,15 @@ def rosetta(text:str=""):
         "已删除选中卡片": "selected card deleted",
         "input 已清空": "input cleared",
         "请安装插件1423933177,否则将无法点击链接预览卡片": "please install the addon 1423933177, otherwise you can't click the link and open preivew window",
-        "请安装插件564851917,否则将无法折叠标签,我们每次链接都会产生标签": "please install the addon 1423933177,otherwise you won't have hierarchical tag system, it's useful for collapse/expand the tag produced by hjp-bilink"
+        "请安装插件564851917,否则将无法折叠标签,我们每次链接都会产生标签": "please install the addon 1423933177,otherwise you won't have hierarchical tag system, it's useful for collapse/expand the tag produced by hjp-bilink",
+        "config重置成功": "config reseted",
+        "重置config": "config reset"
     }
     translateFuncs = {
-        "en":En,
+        "en": En,
         "en-GB": En,
-        "zh-CN":Zh,
-        "zh-TW":Zh,
+        "zh-CN": Zh,
+        "zh-TW": Zh,
     }
 
     return translateFuncs[lang](text)

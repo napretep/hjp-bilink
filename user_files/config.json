@@ -9,18 +9,18 @@
   "regexForDescContent": 0,
   "regexForDescFromTag": 0,
   "regexForDescFromDeck": 0,
-  "descMaxLength": 48,
+  "descMaxLength": 32,
   "linkFromSymbol": "←",
   "linkToSymbol": "→",
   "linkStyle": "",
   "addTagEnable": 1,
   "addTagRoot": "hjp-bilink",
-  "button_appendTo_AnchorId": "hjp_bilink_button",
+  "button_appendTo_AnchorId": "hjp_bilink_anchor_container",
+  "anchorCSSFileName": "anchorCSS.txt",
   "DEFAULT_regexForDescContent": "((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=\")[\\w\\-\\.]+)",
   "shortcut_browserTableSelected_link": "Alt+1",
   "shortcut_browserTableSelected_unlink": "Alt+2",
   "shortcut_browserTableSelected_insert": "Alt+3",
   "shortcut_inputFile_clear": "Alt+4",
-  "shortcut_inputDialog_open": "Alt+`",
-  "anchorCSSFileName": "anchorCSS.txt"
+  "shortcut_inputDialog_open": "Alt+`"
 }
