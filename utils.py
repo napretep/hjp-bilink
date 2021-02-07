@@ -221,13 +221,13 @@ class console:
         return self
 
 
-
 ISDEV = False
 ISDEBUG = False  # 别轻易开启,很卡的
 helpSite = "https://gitee.com/huangjipan/hjp-bilink"
 inputFileName = "input.json"
 configFileName = "user_files/config.json" if not ISDEV else "user_files/configdev.json"
-configSchemaFileName = "user_files/config.schema.json"
+configSchemaFileName = "config.schema.json"
+configHTMLFileName = "config.html"
 configTemplateFileName = "config_template.json"
 helpFileName = "README.md"
 relyLinkDir = "1423933177"

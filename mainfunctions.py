@@ -6,16 +6,20 @@ from aqt import dialogs
 from aqt.browser import Browser
 from aqt.webview import AnkiWebView
 from .InputDialog import *
+from .inputObj import *
 from .language import rosetta as say
 from .utils import *
 from .configDialog import *
 
+
 def func_contactMe():
-    showInfo("QQ群:891730352")
+    url = QUrl("https://jq.qq.com/?_wv=1027&k=ymObH667")
+    QDesktopServices.openUrl(url)
+    # showInfo("QQ群:891730352")
 
 
 def func_supportMe():
-    showInfo("谢谢支持")
+    showInfo("请多多转发支持!")
 
 
 def func_anchorUpdate():
@@ -25,7 +29,7 @@ def func_anchorUpdate():
 
 def func_config():
     """打开配置文件"""
-    Input().config_open()
+    ConfigDialog().exec()
 
 
 def func_version():

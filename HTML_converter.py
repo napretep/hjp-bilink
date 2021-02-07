@@ -23,14 +23,15 @@ class HTML_converter(
     def __init__(self, **args):
         self.parse = BeautifulSoup
         self.idPrefix = "cidd"
+        self.baseInfo = BaseInfo()
         self.regexName = re.compile(r"div|button")
         self.regexCard_id = re.compile(r"\d+")
-        self.anchor_containerId = "hjp_bilink_anchor_container"  # 最外层的容器
+        self.anchor_containerId = self.baseInfo.configObj.button_appendTo_AnchorId  # 最外层的容器
         self.anchor_subcontainerId = "hjp_bilink_buttonlist"  # 按钮包裹的容器
         self.buttonList_headerId = "hjp_bilink_anchor_header"  # 标题所在地
-        self.buttonDivCSS = BaseInfo().anchorCSS_load().format(container=self.anchor_containerId,
-                                                               subcontainer=self.anchor_subcontainerId,
-                                                               header=self.buttonList_headerId)
+        self.buttonDivCSS = self.baseInfo.anchorCSS_load().format(container=self.anchor_containerId,
+                                                                  subcontainer=self.anchor_subcontainerId,
+                                                                  header=self.buttonList_headerId)
         self.scriptId = "hjp_bilink_data"
         self.scriptVarName = "hjp_bilink_data"
         self.var_init()
@@ -62,7 +63,7 @@ class HTML_converter(
         divLi = self.domRoot.select("div[card_id]")
         pairLi = []
         for el in divLi:
-            desc = re.sub(r"^→|^←| cidd\d+", "", el.text)
+            desc = re.sub(r"^→|^←|\s*cidd\d+", "", el.text)
             dir_ = el.attrs["dir"] if "dir" in el.attrs else "→"
             pair = Pair(card_id=el.attrs["card_id"], desc=desc, dir=dir_)
             pairLi.append(pair)
@@ -178,23 +179,28 @@ class HTML_converter(
 
         return self
 
+    def _anchor_container_el_select(self, new=True) -> element:
+        """寻找锚点的容器,如果找不到,而且new为True时,就重做一个,否则保持空,返回容器元素"""
+        anchor_container: element = self.domRoot.select(f"[id={self.anchor_containerId}]")
+        if not anchor_container:
+            if new:
+                anchor_container = self.domRoot.new_tag(name="div", id=self.anchor_containerId, style=self.buttonDivCSS)
+            else:
+                return None
+        else:
+            anchor_container = anchor_container[0]
+        return anchor_container
+
     def HTML_makeButtonFromPairLi(self, **args):
         """制作按钮"""
         cfg = BaseInfo().configObj
-        anchor_container: element = self.domRoot.select(f"[id={self.anchor_containerId}]")
-        if not anchor_container:
-            anchor_container = self.domRoot.new_tag(name="div", id=self.anchor_containerId, style=self.buttonDivCSS)
-            self.domRoot.insert(1, anchor_container)
-        else:
-            anchor_container = anchor_container[0]
         anchor_header = self.domRoot.new_tag(name="div", id=self.buttonList_headerId)
         anchor_header.string = consolerName
-        anchor_container.append(anchor_header)
         style = self.domRoot.new_tag(name="style")
         style.string = self.buttonDivCSS
         self.domRoot.insert(1, style)
         buttonWrapper = self.domRoot.new_tag(name="div", id=self.anchor_subcontainerId)
-        anchor_container.append(buttonWrapper)
+
         for pair in self.card_linked_pairLi:
             button = \
                 self.domRoot.new_tag(name="button", card_id=pair.card_id, dir=pair.dir,
@@ -202,6 +208,12 @@ class HTML_converter(
                                      style=f"""'margin:12px;displaystyle:inline;font-size:inherit;{cfg.linkStyle};""", )
             button.string = pair.dir + pair.desc
             buttonWrapper.append(button)
+        if len(self.card_linked_pairLi) > 0:
+            anchor_container = self._anchor_container_el_select()
+            anchor_container.append(anchor_header)
+            anchor_container.append(buttonWrapper)
+            self.domRoot.insert(1, anchor_container)
+
         return self
 
     @debugWatcher

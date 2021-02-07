@@ -17,7 +17,7 @@
 }}
 #{container}:hover {{background-color: #3e8e41}}
 
-#{container}:hover {{
+#{container}:hover,button[card_id]:active {{
   background-color: #3e8e41;
   box-shadow: 0 2px #666;
   transform: translateY(2px);
@@ -30,15 +30,19 @@ max-width:150px;
 color:white;
 background-color: #4CAF50;
 }}
-
+button[card_id]{{
+width:100%;
+text-align:left;
+}}
 #{subcontainer}{{
 display:none;
 position: absolute;
 }}
 
 #{container}:hover #{subcontainer}{{
-max-width:150px;
+width:150px;
 display: grid;
+
 justify-items: start ;
 grid-gap:2px;
 }}

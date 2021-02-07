@@ -15,7 +15,7 @@ def actionMenuConnector(menu, actionname, action, **kwargs):
 def func_resetConfig():
     json.dump(config_template, open(os.path.join(THIS_FOLDER, configFileName), "w", encoding="utf-8"), indent=4,
               ensure_ascii=False)
-    showInfo(say("参数表重置成功"))
+    tooltip(say("参数表重置成功"))
 
 # @debugWatcher
 def func_menuAddBrowserInsert(*args, **kwargs):

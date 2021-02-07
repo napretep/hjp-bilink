@@ -4,10 +4,15 @@ from aqt.webview import AnkiWebPage
 
 def checkUpdate():
     """检查更新,检查配置表是否对应"""
-    config_template = json.load(open(os.path.join(THIS_FOLDER, configTemplateFileName), "r", encoding="utf-8"))
-    config = BaseInfo().config
     needUpdate = False
-    if config_template["VERSION"] != config["VERSION"]:
+    config_template = json.load(open(os.path.join(THIS_FOLDER, configTemplateFileName), "r", encoding="utf-8"))
+    user_config_dir = os.path.join(THIS_FOLDER, configFileName)
+    if os.path.isfile(user_config_dir) and os.path.exists(user_config_dir):
+        config = BaseInfo().config
+    else:
+        config = {}
+
+    if "VERSION" not in config or config_template["VERSION"] != config["VERSION"]:
         needUpdate = True
         config["VERSION"] = config_template["VERSION"]
         for key, value in config_template.items():

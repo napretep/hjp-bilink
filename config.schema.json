@@ -1,0 +1,56 @@
+{
+  "user_configable": [
+    "defaultLinkMode",
+    "defaultUnlinkMode",
+    "defaultInsertMode",
+    "appendNoteFieldPosition",
+    "readDescFieldPosition",
+    "descMaxLength",
+    "linkFromSymbol",
+    "linkToSymbol",
+    "linkStyle",
+    "addTagEnable",
+    "addTagRoot",
+    "button_appendTo_AnchorId",
+    "anchorCSSFileName",
+    "shortcut_browserTableSelected_link",
+    "shortcut_browserTableSelected_unlink",
+    "shortcut_browserTableSelected_insert",
+    "shortcut_inputFile_clear",
+    "shortcut_inputDialog_open"
+  ],
+  "data_schema": {
+    "allow_empty": [
+      "linkStyle",
+      "anchorCSSFileName"
+    ],
+    "data_range": {
+      "defaultLinkMode": [
+        0,
+        1
+      ],
+      "defaultUnlinkMode": [
+        2,
+        3
+      ],
+      "defaultInsertMode": [
+        4,
+        5,
+        6
+      ]
+    },
+    "data_type": {
+      "positive_int": [
+        "appendNoteFieldPosition",
+        "readDescFieldPosition",
+        "descMaxLength",
+        "defaultLinkMode",
+        "defaultUnlinkMode",
+        "defaultInsertMode"
+      ],
+      "filename": [
+        "anchorCSSFileName"
+      ]
+    }
+  }
+}

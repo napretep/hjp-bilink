@@ -3,7 +3,7 @@
 """
 
 from . import MenuAdder
-from .input_UI import Ui_input
+from .inputdialog_UI import Ui_input
 from .inputObj import *
 
 
@@ -216,9 +216,9 @@ class InputDialog(QDialog, Ui_input):
     def JSON_loadFromModel_sub(self, *args, **kwargs):
         """是一个子函数"""
         for i in range(self.model_rootNode.rowCount()):
-            console("model_data=" + self.model_data.__str__()).log.end()
-            console(f"self.model_rootNode.child({i.__str__()}).rowCount()=" + self.model_rootNode.child(
-                i).rowCount().__str__()).log.end()
+            # console("model_data=" + self.model_data.__str__()).log.end()
+            # console(f"self.model_rootNode.child({i.__str__()}).rowCount()=" + self.model_rootNode.child(
+            #     i).rowCount().__str__()).log.end()
             if self.model_rootNode.child(i).rowCount() == 0:
                 continue
             else:

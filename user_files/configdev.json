@@ -8,7 +8,7 @@
   "regexForDescContent": 0,
   "regexForDescFromTag": 0,
   "regexForDescFromDeck": 0,
-  "descMaxLength": 0,
+  "descMaxLength": 32,
   "linkFromSymbol": "←",
   "linkToSymbol": "→",
   "linkStyle": "",
