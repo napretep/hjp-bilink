@@ -42,7 +42,7 @@ class InputDialog(QDialog, Ui_input):
         """初始化UI"""
         self.setupUi(self)
         self.inputTree.parent = self
-        self.inputTree.customContextMenuRequested.connect(self.contextMenuOnInputTree)
+        self.inputTree.customContextMenuRequested.connect(self.onInputTree_contextMenu)
 
     # noinspection PyAttributeOutsideInit
     # @debugWatcher
@@ -73,7 +73,7 @@ class InputDialog(QDialog, Ui_input):
 
 
     # @debugWatcher
-    def contextMenuOnInputTree(self, *args, **kwargs):
+    def onInputTree_contextMenu(self, *args, **kwargs):
         """初始化右键菜单"""
         menu = self.inputTree.contextMenu = QMenu()
         prefix = BaseInfo().consolerName

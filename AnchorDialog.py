@@ -25,9 +25,9 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.HTMLmanage = self.input.HTMLmanage
         self.cfg = self.baseinfo.config_obj
         self.undo_stack: List[dict] = []
-        self.UI_init()
-        self.model_init()
-        self.events_init()
+        self.init_UI()
+        self.init_model()
+        self.init_events()
         self.show()
 
     def signup(self):
@@ -44,14 +44,15 @@ class AnchorDialog(QDialog, Ui_anchor):
         card_id = self.pair.card_id
         mw.__dict__[addonName][dialog][card_id] = None
 
-    def UI_init(self):
+    def init_UI(self):
         self.setupUi(self)
         self.setWindowTitle(f"Anchor of [desc={self.pair.desc},card_id={self.pair.card_id}]")
 
-    def events_init(self):
+    def init_events(self):
         """响应右键菜单,拖拽,绑定更新数据,思考如何实现变化后自动加载.如果实现不了,暂时先使用模态对话框 """
         self.closeEvent = self.onClose
         self.anchorTree.dropEvent = self.onDrop
+        self.anchorTree.customContextMenuRequested.connect(self.onAnchorTree_contextMenu)
         self.linkedEvent.connect(self.onRebuild)
         self.model.dataChanged.connect(self.model_field_save)
 
@@ -60,7 +61,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.signout()
 
     def onRebuild(self):
-        self.model_init()
+        self.init_model()
 
     def onDrop(self, *args, **kwargs):
         """掉落事件响应"""
@@ -118,6 +119,15 @@ class AnchorDialog(QDialog, Ui_anchor):
             if j == root.rowCount(): break
         if j > 0: console(say("空组已移除")).talk.end()
 
+    def onAnchorTree_contextMenu(self, *args, **kwargs):
+        """初始化右键菜单"""
+        menu = self.anchorTree.contextMenu = QMenu()
+        prefix = BaseInfo().consolerName
+        menu.addAction(prefix + say("全部展开/折叠")).triggered.connect(self.view_expandCollapse_toggle)
+        menu.addAction(prefix + say("新建组")).triggered.connect(self.model_group_create)
+        menu.popup(QCursor.pos())
+        menu.show()
+
     def itemChild_row_remove(self, item):
         """不需要parent,自己能产生parent"""
         parent = item[0].parent() if item[0].parent() is not None else self.model_rootNode
@@ -142,13 +152,41 @@ class AnchorDialog(QDialog, Ui_anchor):
         for i in templi:
             parent.appendRow(i)
 
-    def model_init(self, *args, **kwargs):
+    def model_group_create(self):
+        """create group to model"""
+        newgroupname = "new group"
+        while newgroupname in self.model_subgroupdict:
+            newgroupname = "new " + newgroupname
+        group = QStandardItem(newgroupname)
+        group.self_attrs = {
+            "level": 0,
+            "character": "subgroup",
+            "new": True
+        }
+        empty = QStandardItem("")
+        empty.setFlags(empty.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled)
+        self.model_subgroupdict[group.text()] = group
+        self.model_rootNode.appendRow([group, empty])
+
+    def view_expandCollapse_toggle(self):
+        if self.treeIsExpanded:
+            root = self.model_rootNode
+            tree = self.anchorTree
+            list(map(lambda i: tree.collapse(root.child(i).index()), list(range(root.rowCount()))))
+            self.treeIsExpanded = False
+        else:
+            self.anchorTree.expandAll()
+            self.treeIsExpanded = True
+
+    def init_model(self, *args, **kwargs):
         """模型数据的初始化"""
         self.model = QStandardItemModel()
         self.model_rootNode = self.model.invisibleRootItem()
         self.model.setHorizontalHeaderLabels(["id", "desc"])
         self.anchorTree.setModel(self.model)
         self.model_JSON_load()
+        self.anchorTree.expandAll()
+        self.treeIsExpanded = True
 
     def JSON_noteField_load(self):
         """从笔记中读取保存好的JSON数据,需要input读取数据,HTML进行转化"""
@@ -192,8 +230,12 @@ class AnchorDialog(QDialog, Ui_anchor):
                 else:
                     item_id.self_attrs["level"], item_desc.self_attrs["level"] = 0, 0
                     self.model.appendRow([item_id, item_desc])
-        self.anchorTree.expandAll()
+
         self.model_subgroupdict = index_dict
+
+    def groupEmpty_check(self):
+        """为空检查"""
+        pass
 
     def modelChanged_check(self, *args, **kwargs):
         """进行检查,及时合并名字相同的组 参数1,2是topLeft,bottomRight,如果没有处理ondrop事件,则会顺到这里来解决"""

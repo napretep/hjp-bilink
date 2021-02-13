@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'inputdialog.ui'
+# Form implementation generated from reading ui file 'C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\.useless\inputdialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.2
 #
@@ -88,4 +88,4 @@ class Ui_input(object):
         _translate = QtCore.QCoreApplication.translate
         input.setWindowTitle(_translate("input", "input"))
         self.label.setText(_translate("input", "tag:"))
-        self.info.setText(_translate("input", "注:pair可拖拽,desc可双击修改,card_id可双击预览,多选pair右键可针对选中项直接进行链接,小概率会出bug,欢迎报告bug"))
+        self.info.setText(_translate("input", "注:card_id可拖拽,可双击预览,多选右键可针对选中项直接进行链接或删除,desc可双击修改,小概率会出bug,欢迎报告bug"))
