@@ -16,10 +16,26 @@ from aqt.reviewer import Reviewer
 from aqt.webview import AnkiWebView
 
 ISDEV = False
-ISDEBUG = False  # 别轻易开启,很卡的
+ISDEBUG = True  # 别轻易开启,很卡的
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 baseInfoFileName = "baseInfo.json"
 baseInfoDir = os.path.join(THIS_FOLDER, baseInfoFileName)
+
+
+def wrapper_webview_refresh(func):
+    """刷新ankiWebView"""
+
+    def refresh(*args, **kwargs):
+        self = args[0]
+        parent = self.parent
+        result = func(*args, **kwargs)
+        if parent.title == "previewer":
+            parent.parent().render_card()
+        if parent.title == "main webview":
+            mw.reviewer.show()
+        return result
+
+    return refresh
 
 
 def wrapper_browser_refresh(func):
@@ -27,15 +43,18 @@ def wrapper_browser_refresh(func):
 
     @functools.wraps(func)
     def refresh(*args, **kwargs):
-        browser = dialogs.open("Browser", mw)
-        browser.maybeRefreshSidebar()
-        browser.model.layoutChanged.emit()
-        browser.editor.setNote(None)
-        result = func(*args, **kwargs)
-        browser.maybeRefreshSidebar()
-        browser.model.layoutChanged.emit()
-        browser.editor.setNote(None)
-        browser.model.reset()  # 关键作用
+        if dialogs._dialogs["Browser"][1] is not None:
+            browser = dialogs._dialogs["Browser"][1]
+            browser.maybeRefreshSidebar()
+            browser.model.layoutChanged.emit()
+            browser.editor.setNote(None)
+            result = func(*args, **kwargs)
+            browser.maybeRefreshSidebar()
+            browser.model.layoutChanged.emit()
+            browser.editor.setNote(None)
+            browser.model.reset()  # 关键作用
+        else:
+            result = func(*args, **kwargs)
         return result
 
     return refresh

@@ -116,7 +116,7 @@ def HTML_injecttoweb(htmltext, card, kind):
     ]:
 
         html_addedButton = HTML_converter().feed(htmltext) \
-            .pairLi_HTMLdata_load().HTML_pairLi_save().HTMLButton_PairLi_make().HTML_get().HTML_text
+            .HTMLdata_load().HTMLdata_save().HTMLButton_PairLi_make().HTML_get().HTML_text
         console("最终结果:" + html_addedButton).log.end()
         return html_addedButton
     else:

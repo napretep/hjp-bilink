@@ -21,7 +21,8 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.pair = pair
         self.pair.desc = self.input.desc_extract(self.pair)
         self.signup()
-        self.model_dataJSON: dict = {}
+        self.model_dataJSON: Dict[str, List[Dict]] = {}
+        self.field_dataPairLi: List[Pair] = []
         self.HTMLmanage = self.input.HTMLmanage
         self.cfg = self.baseinfo.config_obj
         self.undo_stack: List[dict] = []
@@ -54,15 +55,20 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.anchorTree.dropEvent = self.onDrop
         self.anchorTree.customContextMenuRequested.connect(self.onAnchorTree_contextMenu)
         self.linkedEvent.connect(self.onRebuild)
-        self.model.dataChanged.connect(self.model_field_save)
+        self.model.dataChanged.connect(self.field_model_save)
 
+    @wrapper_webview_refresh
+    @wrapper_browser_refresh
     def onClose(self, QCloseEvent):
         """保存数据,并且归零"""
+        self.pairLi_model_load().field_pairLi_save()
         self.signout()
 
     def onRebuild(self):
         self.init_model()
 
+    @wrapper_webview_refresh
+    @wrapper_browser_refresh
     def onDrop(self, *args, **kwargs):
         """掉落事件响应"""
 
@@ -110,14 +116,18 @@ class AnchorDialog(QDialog, Ui_anchor):
             gogroupcard_dict[group_or_card](parent, item_target, item_finalLi)
         else:
             for i in item_finalLi: root.appendRow(i)
-        j = 0
+        j, emptyremoved = 0, False
         for i in range(root.rowCount()):
             if root.child(j, 0).self_attrs["character"] == "subgroup" and root.child(j, 0).rowCount() == 0:
+                del self.model_subgroupdict[root.child(j, 0).text()]
                 root.takeRow(j)
+                emptyremoved = True
             else:
                 j += 1
             if j == root.rowCount(): break
-        if j > 0: console(say("空组已移除")).talk.end()
+        if emptyremoved: console(say("空组已移除")).talk.end()
+        self.pairLi_model_load()
+        self.field_pairLi_save()
 
     def onAnchorTree_contextMenu(self, *args, **kwargs):
         """初始化右键菜单"""
@@ -154,9 +164,9 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def model_group_create(self):
         """create group to model"""
-        newgroupname = "new group"
+        newgroupname = "new_group"
         while newgroupname in self.model_subgroupdict:
-            newgroupname = "new " + newgroupname
+            newgroupname = "new_" + newgroupname
         group = QStandardItem(newgroupname)
         group.self_attrs = {
             "level": 0,
@@ -188,24 +198,43 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.anchorTree.expandAll()
         self.treeIsExpanded = True
 
-    def JSON_noteField_load(self):
+    def JSON_field_load(self):
         """从笔记中读取保存好的JSON数据,需要input读取数据,HTML进行转化"""
         self.model_dataJSON = {}
-        note = self.input.note_loadFromId(self.pair)
+        note = self.input.note_id_load(self.pair)
         self.HTMLmanage.clear().feed(note.fields[self.cfg.readDescFieldPosition])
-        self.HTMLmanage.pairLi_HTMLdata_load()
+        self.HTMLmanage.HTMLdata_load()
         for card_obj in self.HTMLmanage.card_linked_pairLi:
             subgroup = card_obj.subgroup if "subgroup" in card_obj else ""
             if subgroup not in self.model_dataJSON:
                 self.model_dataJSON[subgroup] = []
             self.model_dataJSON[subgroup].append(card_obj.__dict__)
 
-    def JSON_model_load(self):
+    def pairLi_model_load(self):
         """从Model中读取"""
+        tempdict = []
+        root = self.model_rootNode
+        for i in range(root.rowCount()):
+            if root.child(i, 0).self_attrs["character"] == "subgroup":
+                group = root.child(i, 0)
+                for j in range(group.rowCount()):
+                    tempdict.append(
+                        Pair(card_id=group.child(j, 0).text(),
+                             desc=group.child(j, 1).text(),
+                             subgroup=group.text(),
+                             **group.child(j, 0).self_attrs["primData"]
+                             )
+                    )
+            else:
+                tempdict.append(Pair(card_id=root.child(i, 0).text(),
+                                     desc=root.child(i, 1).text(),
+                                     **root.child(i, 0).self_attrs["primData"]))
+        self.field_dataPairLi = tempdict
+        return self
 
     def model_JSON_load(self):
         """从JSON读取数据保存到模型中展示"""
-        self.JSON_noteField_load()
+        self.JSON_field_load()
         self.model_rootNode.clearData()
         self.model.removeRows(0, self.model.rowCount())
         index_dict = {}
@@ -215,8 +244,12 @@ class AnchorDialog(QDialog, Ui_anchor):
                 item_id.setFlags(item_id.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled)
                 item_desc.setFlags(item_desc.flags() & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
                 item_id.self_attrs, item_desc.self_attrs = {}, {}
-                item_id.self_attrs["character"], item_desc.self_attrs["character"] = "card_id", "desc"
+                del card["card_id"]
+                del card["desc"]
+                item_id.self_attrs = {"character": "card_id"}
+                item_desc.self_attrs = {"character": "desc"}
                 if subgroup != "":
+                    del card["subgroup"]
                     item_id.self_attrs["level"], item_desc.self_attrs["level"] = 1, 1
                     if subgroup not in index_dict:
                         item_subgroup = QStandardItem(subgroup)
@@ -230,7 +263,7 @@ class AnchorDialog(QDialog, Ui_anchor):
                 else:
                     item_id.self_attrs["level"], item_desc.self_attrs["level"] = 0, 0
                     self.model.appendRow([item_id, item_desc])
-
+                item_id.self_attrs["primData"] = card
         self.model_subgroupdict = index_dict
 
     def groupEmpty_check(self):
@@ -239,12 +272,16 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def modelChanged_check(self, *args, **kwargs):
         """进行检查,及时合并名字相同的组 参数1,2是topLeft,bottomRight,如果没有处理ondrop事件,则会顺到这里来解决"""
-        e, d = args[0], args[1]  #
+        e = args[0]  #
         item_src = self.model.itemFromIndex(e)
         f = self.model_subgroupdict
         chr, txt = item_src.self_attrs["character"], item_src.text()
         if chr == "subgroup":
             src_key = list(f.keys())[list(f.values()).index(item_src)]
+            if re.search(r"\W", txt):
+                console(say("抱歉,组名中暂时不能用空格与标点符号,否则会报错")).talk.end()
+                item_src.setText(src_key)
+                return
             del f[src_key]
             if txt in f:
                 item_target = f[txt]
@@ -256,9 +293,21 @@ class AnchorDialog(QDialog, Ui_anchor):
             else:
                 f[txt] = item_src
 
-    def model_field_save(self, *args, **kwargs):
+    @wrapper_webview_refresh
+    @wrapper_browser_refresh
+    def field_model_save(self, *args, **kwargs):
         """把model保存到Field"""
         self.modelChanged_check(*args, **kwargs)
+        self.pairLi_model_load()
+        self.field_pairLi_save()
+
+    def field_pairLi_save(self):
+        """save pairli to field"""
+        note = self.input.note_id_load(self.pair)
+        self.HTMLmanage.clear().feed(note.fields[self.cfg.readDescFieldPosition])
+        self.HTMLmanage.HTMLdata_load().card_linked_pairLi = self.field_dataPairLi
+        note.fields[self.cfg.readDescFieldPosition] = self.HTMLmanage.HTMLdata_save().HTML_get().HTML_text
+        note.flush()
 
     def QItem_remove(self, item: QStandardItem):
         """移除孩子呗"""

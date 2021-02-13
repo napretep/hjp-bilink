@@ -95,7 +95,7 @@ def func_completeMap(*args, **kwargs):
     pairLi = param.input.dataFlat().dataUnique().val()  # 不分group,只有pairs
     console(pairLi.__str__()).log.end()
     i = param.input
-    [list(map(lambda pairB: i.note_insertPair(pairA, pairB), pairLi)) for pairA in pairLi]
+    [list(map(lambda pairB: i.note_pair_insert(pairA, pairB), pairLi)) for pairA in pairLi]
     if "selected" in param.features:
         mode = say("多选模式")
     else:
@@ -171,7 +171,7 @@ class LinkStarter(QObject):
         if len(param.input.data["IdDescPairs"]) == 0:
             console(say("input中没有数据！")).showInfo.talk.end()
             return False
-        browser = param.parent if isinstance(param.parent, Browser) else dialogs.open("Browser", mw)
+        browser = dialogs.open("Browser", mw)
         browser.maybeRefreshSidebar()
         browser.model.layoutChanged.emit()
         browser.editor.setNote(None)

@@ -142,26 +142,26 @@ class Input(object
 
     def note_addTag(self, tag: str = "", pair: Pair = None):
         """一个加tag的子函数"""
-        note = self.note_loadFromId(pair)
+        note = self.note_id_load(pair)
         note.addTag(tag)
         note.flush()
         return self
 
     # @debugWatcher
-    def note_insertPair(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
+    def note_pair_insert(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
         """往A note 加 pairB,默认不给自己加pair"""
         html = self.HTMLmanage
         if diffInsert and pairA.card_id == pairB.card_id:
             return self
-        note = self.note_loadFromId(pairA)
-        html.clear().feed(note.fields[self.insertPosi]).pairLi_HTMLdata_load()
+        note = self.note_id_load(pairA)
+        html.clear().feed(note.fields[self.insertPosi]).HTMLdata_load()
         if self.Id_noFoundInNote(pairB):
             pairB.desc = pairB.desc if pairB.desc != "" else self.desc_extract(pairB)
             cfg = Empty()
             cfg.__dict__ = self.config
             dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
             pairB.dir = dirMap[dirposi]
-            fieldcontent = html.pairLi_pair_append(pair=pairB).HTML_pairLi_save().HTML_get().HTML_text
+            fieldcontent = html.pairLi_pair_append(pair=pairB).HTMLdata_save().HTML_get().HTML_text
             console("最终要写入字段的内容:" + fieldcontent).log.end()
             note.fields[self.insertPosi] = fieldcontent
             note.flush()
@@ -190,7 +190,7 @@ class Input(object
         """升级旧版锚点注入规则 """
         html = self.HTMLmanage
         for pair in self.dataflat_:
-            note = self.note_loadFromId(pair)
+            note = self.note_id_load(pair)
             cardLi = []
             for i in range(len(note.fields)):  # 这一步是为了提取所有的卡片id
                 # cardLi += self.HTMLmanage.clear().feed(note.fields[i]).pairLi_fromOldVer()
@@ -201,26 +201,26 @@ class Input(object
                 note.flush()
             html.clear().feed(note.fields[self.insertPosi])
             html.card_linked_pairLi = cardLi
-            html.HTML_pairLi_save()
+            html.HTMLdata_save()
             console("看看root:" + html.domRoot.__str__()).log.end()
             note.fields[self.insertPosi] = html.HTML_get().HTML_text
             note.flush()  # 把卡片对保存成字段中的JSON数据
             for pairB in cardLi:
-                self.note_insertPair(pair, pairB)
+                self.note_pair_insert(pair, pairB)
         console("升级完成,请检查,如失败请联系作者").talk.end()
         return self
 
     def anchor_delete(self, pairA: Pair, pairB: Pair):
         """A中删除B的id,返回自己"""
         HTML = self.HTMLmanage
-        note = self.note_loadFromId(pairA)
+        note = self.note_id_load(pairA)
         HTML.clear().feed(note.fields[self.insertPosi])
-        HTML.pairLi_pair_remove(pair=pairB).HTML_pairLi_save()
+        HTML.pairLi_pair_remove(pair=pairB).HTMLdata_save()
         note.fields[self.insertPosi] = HTML.HTML_get().HTML_text
         note.flush()
         return self
 
-    def note_loadFromId(self, pair: Pair = None) -> Note:
+    def note_id_load(self, pair: Pair = None) -> Note:
         """从卡片的ID获取note"""
         li = pair.int_card_id
         return self.model.col.getCard(li).note()
@@ -229,8 +229,8 @@ class Input(object
         """A组的每个pair链接到B组的每个pair,还有一个反向回链,是个reduce使用的函数 """
         for pairA in groupA:
             for pairB in groupB:
-                self.note_insertPair(pairA, pairB)
-                self.note_insertPair(pairB, pairA, dirposi="←")
+                self.note_pair_insert(pairA, pairB)
+                self.note_pair_insert(pairB, pairA, dirposi="←")
         return groupB
 
     def end(self):

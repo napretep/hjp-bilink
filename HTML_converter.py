@@ -45,9 +45,10 @@ class HTML_converter(
         self.container_L0_Id = self.baseInfo.config_obj.button_appendTo_AnchorId  # 最外层的容器
         self.container_body_L1_class = self.consolerName + self.baseInfo.container_body_L1_className  # 按钮包裹的容器
         self.container_header_L1_class = self.consolerName + self.baseInfo.container_header_L1_className  # 标题所在地
-        self.Accordion_L2_class = self.consolerName + self.baseInfo.Accordion_L2_className
-        self.Accordion_header_L3_class = self.consolerName + self.baseInfo.Accordion_header_L3_className
-        self.Accordion_body_L3_class = self.consolerName + self.baseInfo.Accordion_body_L3_className
+        self.accordion_L2_class = self.consolerName + self.baseInfo.accordion_L2_className
+        self.accordion_header_L3_class = self.consolerName + self.baseInfo.accordion_header_L3_className
+        self.accordion_body_L3_class = self.consolerName + self.baseInfo.accordion_body_L3_className
+        self.accordion_checkbox_L3_Id = self.consolerName + self.baseInfo.accordion_checkbox_L3_IdName
         self.containerDivCSS: str = self.baseInfo.anchorCSSFile
         self.linkdata_scriptId = self.consolerName + self.baseInfo.linkdata_scriptIdName  # 这个不好轻易变化, 大家的原始数据都在这里呢
         self.carddata_scriptId = self.consolerName + self.baseInfo.carddata_scriptIdName
@@ -180,7 +181,7 @@ class HTML_converter(
     # @debugWatcher
     def pairLi_pair_remove(self, **kwargs):
         """移除卡片数据对,操作card_linked_pairLi,接受两种参数:pair或pairLi"""
-        self.pairLi_HTMLdata_load()
+        self.HTMLdata_load()
         if self.script_el_dict == {}:
             return self
         elif "pair" in kwargs:
@@ -197,13 +198,13 @@ class HTML_converter(
     def pairLi_pair_append(self, **kwargs):
         """从pair中提取html格式的JSON,操作card_linked_pairLi,接受两种参数:pair或pairLi"""
         if "pair" in kwargs:
-            self.script_el_select().pairLi_HTMLdata_load().card_linked_pairLi.append(kwargs["pair"])
+            self.script_el_select().HTMLdata_load().card_linked_pairLi.append(kwargs["pair"])
         elif "pairLi" in kwargs:
-            self.script_el_select().pairLi_HTMLdata_load().card_linked_pairLi += kwargs["pairLi"]
+            self.script_el_select().HTMLdata_load().card_linked_pairLi += kwargs["pairLi"]
         return self
 
     # @debugWatcher
-    def HTML_pairLi_save(self, scriptId=""):
+    def HTMLdata_save(self, scriptId=""):
         """小功能给他做成单个函数,保存到self.script_el.string,把JSON数据保存到字段中"""
         s_e_dict = self.script_el_dict
         data_dict = {self.linkdata_scriptId: list(map(lambda x: x.__dict__, self.card_linked_pairLi)),
@@ -232,7 +233,7 @@ class HTML_converter(
         return anchor_container
 
     def HTMLButton_PairLi_make(self, **args):
-        """制作按钮"""
+        """制作按钮,anchor是总体锚点,container是容器,accordion是折叠主题"""
         if len(self.card_linked_pairLi) > 0:
             cfg = BaseInfo().config_obj
             anchor_header_L1 = self.domRoot.new_tag(name="div")
@@ -259,9 +260,10 @@ class HTML_converter(
                 container_L0=self.container_L0_Id,
                 container_body_L1=self.container_body_L1_class,
                 container_header_L1=self.container_header_L1_class,
-                Accordion_L2=self.Accordion_L2_class,
-                Accordion_header_L3=self.Accordion_header_L3_class,
-                Accordion_body_L3=self.Accordion_body_L3_class
+                accordion_L2=self.accordion_L2_class,
+                accordion_checkbox_L3=self.accordion_checkbox_L3_Id,
+                accordion_header_L3=self.accordion_header_L3_class,
+                accordion_body_L3=self.accordion_body_L3_class
             )
             self.domRoot.insert(1, style)
         else:
@@ -272,29 +274,34 @@ class HTML_converter(
     def HTMLAccordion_pair_make(self, pair: Pair, button, container_body_L1):
         """制造手风琴需要的pair"""
         console("container_body_L1的值為" + container_body_L1.__str__()).log.end()
-        Accordion_L2 = container_body_L1.select(f"[id={self.baseInfo.consolerName}{pair.subgroup}]")
-        console("Accordion_L2的值為" + Accordion_L2.__str__()).log.end()
-        if not Accordion_L2:
-            Accordion_L2 = self.domRoot \
+        accordion_L2 = container_body_L1.select(f"[id={self.baseInfo.consolerName}{pair.subgroup}]")
+        console("Accordion_L2的值為" + accordion_L2.__str__()).log.end()
+        if not accordion_L2:
+            accordion_L2 = self.domRoot \
                 .new_tag(name="div", attrs={
-                "class": self.Accordion_L2_class,
+                "class": self.accordion_L2_class,
                 "id": f"{self.baseInfo.consolerName}{pair.subgroup}"
             })
-            Accordion_header_L3 = self.domRoot \
-                .new_tag(name="div", attrs={"class": self.Accordion_header_L3_class})
-            Accordion_header_L3.string = pair.subgroup
-            Accordion_body_L3 = self.domRoot \
-                .new_tag(name="div", attrs={"class": self.Accordion_body_L3_class})
-            Accordion_L2.append(Accordion_header_L3)
-            Accordion_L2.append(Accordion_body_L3)
+            checkboxid = self.accordion_checkbox_L3_Id + pair.subgroup
+            checkboxclass = self.accordion_checkbox_L3_Id
+            accordion_header_L3 = self.domRoot.new_tag(name="label", attrs={"class": self.accordion_header_L3_class,
+                                                                            "for": checkboxid})
+            accordion_checkbox_L3 = self.domRoot.new_tag(name="input", attrs={"id": checkboxid,
+                                                                              "class": checkboxclass,
+                                                                              "type": "checkbox"})
+            accordion_header_L3.string = pair.subgroup
+            accordion_body_L3 = self.domRoot.new_tag(name="div", attrs={"class": self.accordion_body_L3_class})
+            accordion_L2.append(accordion_header_L3)
+            accordion_L2.append(accordion_checkbox_L3)
+            accordion_L2.append(accordion_body_L3)
         else:
-            Accordion_L2: element = Accordion_L2[0]
-            Accordion_body_L3 = Accordion_L2.select(f".{self.Accordion_body_L3_class}")[0]
-        Accordion_body_L3.append(button)
-        return Accordion_L2
+            accordion_L2: element = accordion_L2[0]
+            accordion_body_L3 = accordion_L2.select(f".{self.accordion_body_L3_class}")[0]
+        accordion_body_L3.append(button)
+        return accordion_L2
 
     # @debugWatcher
-    def pairLi_HTMLdata_load(self):
+    def HTMLdata_load(self):
         """从HTML中读取json,保存到 self.card_linked_pairLi 和 self.card_selfdata_dict"""
         self.script_el_select(new=False)
         if self.script_el_dict != {}:
