@@ -9,13 +9,13 @@ from .InputDialog import *
 from .inputObj import *
 from .language import rosetta as say
 from .utils import *
-from .configDialog import *
+from .AnchorDialog import *
+from .ConfigDialog import *
 
 
 def func_contactMe():
-    url = QUrl("https://jq.qq.com/?_wv=1027&k=ymObH667")
+    url = QUrl(BaseInfo().groupSite)
     QDesktopServices.openUrl(url)
-    # showInfo("QQ群:891730352")
 
 
 def func_supportMe():
@@ -34,22 +34,47 @@ def func_config():
 
 def func_version():
     """返回版本号"""
-    showInfo(VERSION, textFormat="rich")
+    base = BaseInfo()
+    vStr = base.versionFile
+    vJSON = base.configTemplateJSON
+    consolerName = base.consolerName
+    showInfo(vStr.format(version=vJSON["VERSION"], consolerName=consolerName), textFormat="rich")
 
 
 def func_help():
     """返回帮助页面"""
     Input().helpSite_open()
 
-
 def func_openInput(*args, **kwargs):
     """打开input对话框"""
-    if hasattr(mw, "InputDialog") and mw.InputDialog is not None:
-        mw.InputDialog.activateWindow()
+    consoler_Name = BaseInfo().dialogName
+    dialog = InputDialog.__name__
+    if dialog not in mw.__dict__[consoler_Name]:
+        mw.__dict__[consoler_Name][dialog] = None
+    if mw.__dict__[consoler_Name][dialog] is not None:
+        mw.__dict__[consoler_Name][dialog].activateWindow()
     else:
-        mw.InputDialog = InputDialog()
-        mw.InputDialog.exec()
+        mw.__dict__[consoler_Name][dialog] = InputDialog()
+        mw.__dict__[consoler_Name][dialog].exec()
     """返回input窗口"""
+
+
+def func_openAnchor(*args, **kwargs):
+    """打开anchor对话框"""
+    param = Params(**kwargs)
+    card_id = param.pair.card_id
+    dialog = AnchorDialog.__name__
+    consoler_Name = BaseInfo().dialogName
+    if dialog not in mw.__dict__[consoler_Name]:
+        mw.__dict__[consoler_Name][dialog] = {}
+    dialog_dict = mw.__dict__[consoler_Name][dialog]
+    if card_id not in dialog_dict:
+        dialog_dict[card_id] = None
+    if dialog_dict[card_id] is not None:
+        mw.__dict__[consoler_Name][dialog][card_id].activateWindow()
+    else:
+        mw.__dict__[consoler_Name][dialog][card_id] = AnchorDialog(param.pair, parent=param.parent)
+        mw.__dict__[consoler_Name][dialog][card_id].exec()
 
 
 def func_clearInput():
@@ -71,8 +96,11 @@ def func_completeMap(*args, **kwargs):
     console(pairLi.__str__()).log.end()
     i = param.input
     [list(map(lambda pairB: i.note_insertPair(pairA, pairB), pairLi)) for pairA in pairLi]
-    console(say("已按完全图完成链接")).talk.end()
-
+    if "selected" in param.features:
+        mode = say("多选模式")
+    else:
+        mode = say("普通模式")
+    console(f"""[{mode}]-{say("已按完全图完成链接")}""").talk.end()
 
 def func_GroupByGroup(*args, **kwargs):
     """组到组链接"""
@@ -81,8 +109,11 @@ def func_GroupByGroup(*args, **kwargs):
     PairLi: List[List[Pair]] = input_obj.dataObj_
     console(PairLi.__str__()).log.end()
     reduce(input_obj.group_bijectReducer, PairLi)
-    console(say("已按组到组完成链接")).talk.end()
-
+    if "selected" in param.features:
+        mode = say("多选模式")
+    else:
+        mode = say("普通模式")
+    console(f"""[{mode}]-{say("已按组到组完成链接")}""").talk.end()
 
 def func_unlinkByNode(*args, **kwargs):
     """按结点取消链接"""
@@ -91,8 +122,11 @@ def func_unlinkByNode(*args, **kwargs):
     pairLi = input_obj.dataFlat().dataUnique().val()
     console(pairLi.__str__()).log.end()
     [list(map(lambda pairB: input_obj.anchor_unbind(pairA, pairB), pairLi)) for pairA in pairLi]
-    console(say("已按结点取消链接")).talk.end()
-
+    if "selected" in param.features:
+        mode = say("多选模式")
+    else:
+        mode = say("普通模式")
+    console(f"""[{mode}]-{say("已按结点取消链接")}""").talk.end()
 
 def func_unlinkByPath(*args, **kwargs):
     """按路径取消链接"""
@@ -101,46 +135,60 @@ def func_unlinkByPath(*args, **kwargs):
     pairLi = input_obj.dataFlat().dataUnique().val()
     console("pairLi=" + list(map(lambda pair: pair.desc, pairLi)).__str__()).log.end()
     reduce(lambda x, y: input_obj.anchor_unbind(x, y), pairLi)
-    console(say("已按路径取消链接")).talk.end()
+    if "selected" in param.features:
+        mode = say("多选模式")
+    else:
+        mode = say("普通模式")
+    console(f"""[{mode}]-{say("已按路径取消链接")}""").talk.end()
 
 
 def func_addTagToAllNote(param: Params = None, ):
     """给所有的Note加tag"""
 
 
-def func_linkStarter(*args, **kwargs):
+class LinkStarter(QObject):
     """开始链接的入口,预处理,根据模式选择一种链接算法"""
-    param = Params(**kwargs)
-    if param.mode == 999: param.mode = param.input.config["defaultLinkMode"]
-    if "selected" in param.features:  # 如果是选中模式,直接读取dict
-        if isinstance(param.parent, QTreeView):
-            param.input = param.parent.parent.input
-        if "browserShortCut" in param.features and isinstance(param.parent, Browser):
-            pass
-    else:
-        param.input.dataLoad()
-    if mw.state == "review": mw.reviewer.cleanup()
-    if len(param.input.data["IdDescPairs"]) == 0:
-        console(say("input中没有数据！")).showInfo.talk.end()
-        return False
-    browser = param.parent if isinstance(param.parent, Browser) else dialogs.open("Browser", mw)
-    browser.maybeRefreshSidebar()
-    browser.model.layoutChanged.emit()
-    browser.editor.setNote(None)
-    funcli[param.mode](**param.__dict__)
-    browser.maybeRefreshSidebar()
-    browser.model.layoutChanged.emit()
-    browser.editor.setNote(None)
-    browser.model.reset()  # 关键作用
-    if param.input.config["addTagEnable"] == 1 and "noTag" not in param.features:
-        param.input.note_addTagAll()
-        browser.model.search(f"tag:{param.input.tag}*")
-    if mw.state == "review": mw.reviewer.show()
-    if isinstance(param.parent, AnkiWebView):
-        if param.parent.title == "previewer":
-            param.parent.parent().render_card()
-        if param.parent.title == "main webview":
-            mw.reviewer.show()
+    linkedSignal = CustomSignals.start().linkedEvent
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.signal = CustomSignals
+        self.func_linkStarter(*args, **kwargs)
+        self.linkedSignal.emit()
+
+    def func_linkStarter(self, *args, **kwargs):
+        """开始链接的入口,预处理,根据模式选择一种链接算法"""
+        param = Params(**kwargs)
+        if param.mode == 999: param.mode = param.input.baseinfo.config_obj.defaultLinkMode
+        if "selected" in param.features:  # 如果是选中模式,直接读取dict
+            if isinstance(param.parent, QTreeView):
+                param.input = param.parent.parent.input
+            if "browserShortCut" in param.features and isinstance(param.parent, Browser):
+                pass
+        else:
+            param.input.dataLoad()
+        if mw.state == "review": mw.reviewer.cleanup()
+        if len(param.input.data["IdDescPairs"]) == 0:
+            console(say("input中没有数据！")).showInfo.talk.end()
+            return False
+        browser = param.parent if isinstance(param.parent, Browser) else dialogs.open("Browser", mw)
+        browser.maybeRefreshSidebar()
+        browser.model.layoutChanged.emit()
+        browser.editor.setNote(None)
+        funcli[param.mode](**param.__dict__)
+        browser.maybeRefreshSidebar()
+        browser.model.layoutChanged.emit()
+        browser.editor.setNote(None)
+        browser.model.reset()  # 关键作用
+        if param.input.baseinfo.config_obj.addTagEnable == 1 and "noTag" not in param.features:
+            param.input.note_addTagAll()
+            browser.model.search(f"tag:{param.input.tag}*")
+        if mw.state == "review": mw.reviewer.show()
+        if isinstance(param.parent, AnkiWebView):
+            if param.parent.title == "previewer":
+                param.parent.parent().render_card()
+            if param.parent.title == "main webview":
+                mw.reviewer.show()
 
 
 def func_browserInsert(*args, **kwargs):

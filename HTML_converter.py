@@ -7,6 +7,7 @@ import re
 
 from bs4 import BeautifulSoup, element
 
+
 if __name__ == "__main__":
     from utils import console, MetaClass_loger, Params, Pair, BaseInfo
 else:
@@ -14,9 +15,10 @@ else:
 
 
 class HTML_converter(
-    metaclass=MetaClass_loger
+    # metaclass=MetaClass_loger
 ):
-    """格式转换综合对象"""
+    """格式转换综合对象, 主要的工作都是基于pairli在做,script用来读取和写入.
+    """
 
     #
 
@@ -24,16 +26,10 @@ class HTML_converter(
         self.parse = BeautifulSoup
         self.idPrefix = "cidd"
         self.baseInfo = BaseInfo()
+        self.consolerName = self.baseInfo.consoler_Name
+        self.config = self.baseInfo.config_obj
         self.regexName = re.compile(r"div|button")
         self.regexCard_id = re.compile(r"\d+")
-        self.anchor_containerId = self.baseInfo.configObj.button_appendTo_AnchorId  # 最外层的容器
-        self.anchor_subcontainerId = "hjp_bilink_buttonlist"  # 按钮包裹的容器
-        self.buttonList_headerId = "hjp_bilink_anchor_header"  # 标题所在地
-        self.buttonDivCSS = self.baseInfo.anchorCSS_load().format(container=self.anchor_containerId,
-                                                                  subcontainer=self.anchor_subcontainerId,
-                                                                  header=self.buttonList_headerId)
-        self.scriptId = "hjp_bilink_data"
-        self.scriptVarName = "hjp_bilink_data"
         self.var_init()
 
     def var_init(self):
@@ -43,7 +39,19 @@ class HTML_converter(
         self.objJSON: Dict = {}
         self.HTML_text = ""
         self.card_linked_pairLi: List[Pair] = []
-        self.script_el = None
+        self.card_selfdata_dict = {}
+        self.script_el_dict = {}
+        self.comment_el = None
+        self.container_L0_Id = self.baseInfo.config_obj.button_appendTo_AnchorId  # 最外层的容器
+        self.container_body_L1_class = self.consolerName + self.baseInfo.container_body_L1_className  # 按钮包裹的容器
+        self.container_header_L1_class = self.consolerName + self.baseInfo.container_header_L1_className  # 标题所在地
+        self.Accordion_L2_class = self.consolerName + self.baseInfo.Accordion_L2_className
+        self.Accordion_header_L3_class = self.consolerName + self.baseInfo.Accordion_header_L3_className
+        self.Accordion_body_L3_class = self.consolerName + self.baseInfo.Accordion_body_L3_className
+        self.containerDivCSS: str = self.baseInfo.anchorCSSFile
+        self.linkdata_scriptId = self.consolerName + self.baseInfo.linkdata_scriptIdName  # 这个不好轻易变化, 大家的原始数据都在这里呢
+        self.carddata_scriptId = self.consolerName + self.baseInfo.carddata_scriptIdName
+        self.linkdata_scriptVarName = self.consolerName + self.baseInfo.linkdata_scriptVarName  # 这个不好轻易变化, 大家的原始数据都在这里呢
 
     def feed(self, text):
         """把接口变得简单一点,domRoot修改"""
@@ -57,7 +65,7 @@ class HTML_converter(
         """获取TAG"""
         pass
 
-    @debugWatcher
+    # @debugWatcher
     def pairLi_fromOldVer(self) -> List[Pair]:
         """解决0.4,0.6两个版本的升级"""
         divLi = self.domRoot.select("div[card_id]")
@@ -77,29 +85,29 @@ class HTML_converter(
                 pair = Pair(card_id=el.attrs["card_id"], desc=desc, dir=dir_)
                 pairLi.append(pair)
             buttonContainer.extract()
-        console("这里做完了pairLi_fromOldVer,看看root的值" + self.domRoot.__str__()).log.end()
+        # console("这里做完了pairLi_fromOldVer,看看root的值" + self.domRoot.__str__()).log.end()
         return pairLi
 
-    def button_make(self, **args):
-        """用来创建按钮,需要提供pair,direction"""
-        # 新建bs4.element对象
-        self.fbtnmk_HTMLbutton = \
-            self.domRoot.new_tag(name="button", card_id=args["Id"], dir=args["direction"],
-                                 onclick=f"""javascript:pycmd('{args["prefix"]}'+'{args["Id"]}');""",
-                                 style=f"""'displaystyle:inline;font-size:inherit;{args["linkStyle"]};""", )
-        self.fbtnmk_HTMLbutton.string = args["direction"] + args["desc"]
-        self.fbtmk_div = self.domRoot.select(f"#{self.buttonDivId}")
-        if len(self.fbtmk_div) == 0:
-            self.fbtmk_div_ = self.domRoot.new_tag("div", id=self.buttonDivId)
-            self.fbtmk_div_.append(self.fbtnmk_HTMLbutton)
-            self.domRoot.append(self.domRoot.new_tag("br"))
-            self.domRoot.append(self.domRoot.new_tag("br"))
-            self.domRoot.append(self.fbtmk_div_)
-            self.domRoot.append(self.domRoot.new_tag("br"))
-            self.domRoot.append(self.domRoot.new_tag("br"))
-        else:
-            self.domRoot.select(f"#{self.buttonDivId}")[0].append(self.fbtnmk_HTMLbutton)
-        return self
+    # def button_make(self, **args):
+    #     """用来创建按钮,需要提供pair,direction"""
+    #     # 新建bs4.element对象
+    #     self.fbtnmk_HTMLbutton = \
+    #         self.domRoot.new_tag(name="button", card_id=args["Id"], dir=args["direction"],
+    #                              onclick=f"""javascript:pycmd('{args["prefix"]}'+'{args["Id"]}');""",
+    #                              style=f"""'displaystyle:inline;font-size:inherit;{args["linkStyle"]};""", )
+    #     self.fbtnmk_HTMLbutton.string = args["direction"] + args["desc"]
+    #     self.fbtmk_div = self.domRoot.select(f"#{self.buttonDivId}")
+    #     if len(self.fbtmk_div) == 0:
+    #         self.fbtmk_div_ = self.domRoot.new_tag("div", id=self.buttonDivId)
+    #         self.fbtmk_div_.append(self.fbtnmk_HTMLbutton)
+    #         self.domRoot.append(self.domRoot.new_tag("br"))
+    #         self.domRoot.append(self.domRoot.new_tag("br"))
+    #         self.domRoot.append(self.fbtmk_div_)
+    #         self.domRoot.append(self.domRoot.new_tag("br"))
+    #         self.domRoot.append(self.domRoot.new_tag("br"))
+    #     else:
+    #         self.domRoot.select(f"#{self.buttonDivId}")[0].append(self.fbtnmk_HTMLbutton)
+    #     return self
 
     def text_get(self, node=None):
         """外层非标签属性的所有文本"""
@@ -108,7 +116,9 @@ class HTML_converter(
 
     def HTML_get(self):
         """获取整个html"""
-        self.HTML_text = self.domRoot.__str__()
+        script_str = "\n".join(list(map(lambda x: re.sub(r"\n", "", x.__str__()), self.script_el_dict.values())))
+        root = re.sub(r"\n+$", "", self.domRoot.__str__())
+        self.HTML_text = root + "\n<!--" + script_str + "-->"
         return self
 
     def node_remove(self, name=None, **args):
@@ -123,32 +133,55 @@ class HTML_converter(
         self.var_init()
         return self
 
-    @debugWatcher
+    # @debugWatcher
     def script_el_remove(self):
         """临时删除script,减少干扰,不写入就行"""
         self.script_el_select(new=False)
-        if self.script_el:
-            self.script_el.extract()
+        if self.script_el_dict != {}:
+            list(map(lambda x: x.extract(), self.script_el_dict.values()))
         return self
 
-    @debugWatcher
-    def script_el_select(self, new=True):
-        """读取script元素,保存到self.script_el, new 表示如果找不到是否要新建一个"""
-        self.script_el = self.domRoot.select(f"[id={self.scriptId}]")
-        if not self.script_el and new:
-            self.script_el = self.domRoot.new_tag(name="script", id=self.scriptId)
-            self.domRoot.append(self.script_el)
-        elif self.script_el:
-            self.script_el = self.script_el[0]
+    def comment_el_select(self):
+        """读到注释后, 会从dom树中取出"""
+        parent_el, dataType = self.domRoot, self.consolerName
+        self.comment_el = parent_el.find(text=lambda text: isinstance(text, element.Comment) and dataType in text)
+        if self.comment_el is not None:
+            self.comment_el.extract()
+        return self
+
+    # @debugWatcher
+    def script_el_select(self, new=True, scriptId=""):
+        """读取script元素,保存到self.script_el, new 表示如果找不到是否要新建一个
+        20210212222602: 数据类型更新为注释中的HTML, 所以读取前要把它从注释中解放出来,对于旧版直接读取,并且会从DOM树中删除读取到的
+        """
+        # 如果注释不存在, 那么可能1是旧版锚点,2是新卡片没有打过锚点
+        self.comment_el_select()
+        parent_el = self.parse(self.comment_el, "html.parser") if self.comment_el is not None else self.domRoot
+        # 默认取的是dataID, 以后会取其他ID,比如 selfID
+        scriptId = scriptId if scriptId != "" else self.consolerName
+        tempel = {}
+        for el in parent_el.findAll(name="script", attrs={"id": re.compile(fr"{self.consolerName}\w+")}):
+            self.script_el_dict[el.attrs["id"]] = el
+        if self.script_el_dict == {} and new:
+            self.script_el_dict = {
+                self.linkdata_scriptId: parent_el.new_tag(name="script", id=self.linkdata_scriptId),
+                self.carddata_scriptId: parent_el.new_tag(name="script", id=self.carddata_scriptId)
+            }
+        elif self.script_el_dict != {}:
+            if self.carddata_scriptId not in self.script_el_dict:
+                self.script_el_dict[self.carddata_scriptId] = parent_el.new_tag(name="script",
+                                                                                id=self.carddata_scriptId)
+            for k, v in self.script_el_dict.items():
+                v.extract()
         else:
-            self.script_el = None
+            self.script_el_dict = {}
         return self
 
-    @debugWatcher
-    def pairLi_removePair(self, **kwargs):
+    # @debugWatcher
+    def pairLi_pair_remove(self, **kwargs):
         """移除卡片数据对,操作card_linked_pairLi,接受两种参数:pair或pairLi"""
-        self.pairLi_loadFromHTML()
-        if not self.script_el:
+        self.pairLi_HTMLdata_load()
+        if self.script_el_dict == {}:
             return self
         elif "pair" in kwargs:
             waitDelete = kwargs["pair"]
@@ -158,80 +191,127 @@ class HTML_converter(
                     break
         elif "pairLi" in kwargs:
             for pair in kwargs["pairLi"]:
-                self.pairLi_removePair(pair=pair)
+                self.pairLi_pair_remove(pair=pair)
         return self
 
-    def pairLi_appendPair(self, **kwargs):
+    def pairLi_pair_append(self, **kwargs):
         """从pair中提取html格式的JSON,操作card_linked_pairLi,接受两种参数:pair或pairLi"""
         if "pair" in kwargs:
-            self.script_el_select().pairLi_loadFromHTML().card_linked_pairLi.append(kwargs["pair"])
+            self.script_el_select().pairLi_HTMLdata_load().card_linked_pairLi.append(kwargs["pair"])
         elif "pairLi" in kwargs:
-            self.script_el_select().pairLi_loadFromHTML().card_linked_pairLi += kwargs["pairLi"]
+            self.script_el_select().pairLi_HTMLdata_load().card_linked_pairLi += kwargs["pairLi"]
         return self
 
-    @debugWatcher
-    def HTML_savePairLi(self):
+    # @debugWatcher
+    def HTML_pairLi_save(self, scriptId=""):
         """小功能给他做成单个函数,保存到self.script_el.string,把JSON数据保存到字段中"""
-        card_linked_JSONs = list(map(lambda x: x.__dict__, self.card_linked_pairLi))
+        s_e_dict = self.script_el_dict
+        data_dict = {self.linkdata_scriptId: list(map(lambda x: x.__dict__, self.card_linked_pairLi)),
+                     self.carddata_scriptId: self.card_selfdata_dict
+                     }
         self.script_el_select()  # 如果不存在应该换新
-        self.script_el.string = self.scriptId + "=" + json.dumps(card_linked_JSONs, ensure_ascii=False)
-        console("self.script_el.string:" + self.script_el.__str__()).log.end()
-
+        scriptId = scriptId if scriptId != "" else self.linkdata_scriptId
+        for k, v in s_e_dict.items():
+            v.string = k + "=" + json.dumps(data_dict[k], ensure_ascii=False)
+        console("self.script_el.string:" + self.script_el_dict.__str__()).log.end()
         return self
+
 
     def _anchor_container_el_select(self, new=True) -> element:
         """寻找锚点的容器,如果找不到,而且new为True时,就重做一个,否则保持空,返回容器元素"""
-        anchor_container: element = self.domRoot.select(f"[id={self.anchor_containerId}]")
+        anchor_container: element = self.domRoot.select(f"#{self.container_L0_Id}")
         if not anchor_container:
             if new:
-                anchor_container = self.domRoot.new_tag(name="div", id=self.anchor_containerId, style=self.buttonDivCSS)
+                anchor_container = self.domRoot.new_tag(name="div")
+                anchor_container.attrs["id"] = self.container_L0_Id
+                self.domRoot.insert(1, anchor_container)
             else:
                 return None
         else:
             anchor_container = anchor_container[0]
         return anchor_container
 
-    def HTML_makeButtonFromPairLi(self, **args):
+    def HTMLButton_PairLi_make(self, **args):
         """制作按钮"""
-        cfg = BaseInfo().configObj
-        anchor_header = self.domRoot.new_tag(name="div", id=self.buttonList_headerId)
-        anchor_header.string = consolerName
-        style = self.domRoot.new_tag(name="style")
-        style.string = self.buttonDivCSS
-        self.domRoot.insert(1, style)
-        buttonWrapper = self.domRoot.new_tag(name="div", id=self.anchor_subcontainerId)
-
-        for pair in self.card_linked_pairLi:
-            button = \
-                self.domRoot.new_tag(name="button", card_id=pair.card_id, dir=pair.dir,
-                                     onclick=f"""javascript:pycmd('{self.idPrefix}'+'{pair.card_id}');""",
-                                     style=f"""'margin:12px;displaystyle:inline;font-size:inherit;{cfg.linkStyle};""", )
-            button.string = pair.dir + pair.desc
-            buttonWrapper.append(button)
         if len(self.card_linked_pairLi) > 0:
-            anchor_container = self._anchor_container_el_select()
-            anchor_container.append(anchor_header)
-            anchor_container.append(buttonWrapper)
-            self.domRoot.insert(1, anchor_container)
+            cfg = BaseInfo().config_obj
+            anchor_header_L1 = self.domRoot.new_tag(name="div")
+            anchor_header_L1.attrs["class"] = self.container_header_L1_class
+            anchor_header_L1.string = self.consolerName
 
+            container_body_L1 = self.domRoot.new_tag(name="div")
+            container_body_L1.attrs["class"] = self.container_body_L1_class
+            for pair in self.card_linked_pairLi:
+                button_L2 = \
+                    self.domRoot.new_tag(name="button", card_id=pair.card_id, dir=pair.dir,
+                                         onclick=f"""javascript:pycmd('{self.idPrefix}'+'{pair.card_id}');""",
+                                         style=f"""margin:12px;displaystyle:inline;font-size:inherit;{cfg.linkStyle};""", )
+                button_L2.string = pair.dir + pair.desc
+
+                if "subgroup" in pair.__dict__:
+                    button_L2 = self.HTMLAccordion_pair_make(pair, button_L2, container_body_L1)
+                container_body_L1.append(button_L2)
+            anchor_container_L0 = self._anchor_container_el_select()
+            anchor_container_L0.append(anchor_header_L1)
+            anchor_container_L0.append(container_body_L1)
+            style = self.domRoot.new_tag(name="style")
+            style.string = self.containerDivCSS.format(
+                container_L0=self.container_L0_Id,
+                container_body_L1=self.container_body_L1_class,
+                container_header_L1=self.container_header_L1_class,
+                Accordion_L2=self.Accordion_L2_class,
+                Accordion_header_L3=self.Accordion_header_L3_class,
+                Accordion_body_L3=self.Accordion_body_L3_class
+            )
+            self.domRoot.insert(1, style)
+        else:
+            pass
+            # showInfo("card_pairLi==0!")
         return self
 
-    @debugWatcher
-    def pairLi_loadFromHTML(self):
-        """从HTML中读取json,保存到 self.card_linked_pairLi"""
-        self.script_el_select(new=False)
-        if self.script_el:
-            if self.script_el.string:
-                console("report:script_el" + self.script_el.__str__()).log.end()
-                script_str = re.sub(rf"{self.scriptId}=", "", self.script_el.string.__str__())
-            else:
-                script_str = "[]"
+    def HTMLAccordion_pair_make(self, pair: Pair, button, container_body_L1):
+        """制造手风琴需要的pair"""
+        console("container_body_L1的值為" + container_body_L1.__str__()).log.end()
+        Accordion_L2 = container_body_L1.select(f"[id={self.baseInfo.consolerName}{pair.subgroup}]")
+        console("Accordion_L2的值為" + Accordion_L2.__str__()).log.end()
+        if not Accordion_L2:
+            Accordion_L2 = self.domRoot \
+                .new_tag(name="div", attrs={
+                "class": self.Accordion_L2_class,
+                "id": f"{self.baseInfo.consolerName}{pair.subgroup}"
+            })
+            Accordion_header_L3 = self.domRoot \
+                .new_tag(name="div", attrs={"class": self.Accordion_header_L3_class})
+            Accordion_header_L3.string = pair.subgroup
+            Accordion_body_L3 = self.domRoot \
+                .new_tag(name="div", attrs={"class": self.Accordion_body_L3_class})
+            Accordion_L2.append(Accordion_header_L3)
+            Accordion_L2.append(Accordion_body_L3)
+        else:
+            Accordion_L2: element = Accordion_L2[0]
+            Accordion_body_L3 = Accordion_L2.select(f".{self.Accordion_body_L3_class}")[0]
+        Accordion_body_L3.append(button)
+        return Accordion_L2
 
-            if script_str:
-                console("report:script_str" + script_str).log.end()
-                self.card_linked_pairLi: List[Pair] = \
-                    list(map(lambda x: Pair(card_id=x["card_id"], desc=x["desc"], dir=x["dir"]),
-                             json.loads(script_str)))
+    # @debugWatcher
+    def pairLi_HTMLdata_load(self):
+        """从HTML中读取json,保存到 self.card_linked_pairLi 和 self.card_selfdata_dict"""
+        self.script_el_select(new=False)
+        if self.script_el_dict != {}:
+            linkdata = self.script_el_dict[self.linkdata_scriptId]
+            selfdata = self.script_el_dict[self.carddata_scriptId]
+            if linkdata.string:
+                linkdata_str = re.sub(rf"{self.linkdata_scriptId}=", "", linkdata.string.__str__())
+            else:
+                linkdata_str = "[]"
+            if selfdata.string:
+                selfdata_str = re.sub(rf"{self.carddata_scriptId}=", "", selfdata.string.__str__())
+            else:
+                selfdata_str = "{}"
+            console("report:script_str" + linkdata_str).log.end()
+            self.card_linked_pairLi: List[Pair] = list(map(lambda x: Pair(**x), json.loads(linkdata_str)))
+            self.card_selfdata_dict = json.loads(selfdata_str)
+
         return self
 
     def __setattr__(self, name, value):

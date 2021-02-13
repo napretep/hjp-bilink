@@ -5,10 +5,11 @@ from aqt.webview import AnkiWebPage
 def checkUpdate():
     """检查更新,检查配置表是否对应"""
     needUpdate = False
-    config_template = json.load(open(os.path.join(THIS_FOLDER, configTemplateFileName), "r", encoding="utf-8"))
-    user_config_dir = os.path.join(THIS_FOLDER, configFileName)
+    base = BaseInfo()
+    config_template = base.configTemplateJSON
+    user_config_dir = base.configDir
     if os.path.isfile(user_config_dir) and os.path.exists(user_config_dir):
-        config = BaseInfo().config
+        config = base.configJSON
     else:
         config = {}
 
@@ -22,7 +23,7 @@ def checkUpdate():
             if key not in config_template:
                 config.__deleteitem__(key)
     if needUpdate:
-        json.dump(config, open(os.path.join(THIS_FOLDER, configFileName), "w", encoding="utf-8"), indent=4,
+        json.dump(config, open(base.configDir, "w", encoding="utf-8"), indent=4,
                   ensure_ascii=False)
         func_version()
 
@@ -52,7 +53,7 @@ def shortcut_browserTableSelected_link(browser: Browser, *args, **kwargs):
     """根据默认链接参数对选中的卡片进行链接, 如果是按组到组链接, 则强制每一个卡片为一组"""
     param = data_selectedFromBrowserTable(browser)
     if param is not None:
-        func_linkStarter(mode=int(param.input.configObj.defaultLinkMode), **param.__dict__)
+        LinkStarter(mode=int(param.input.baseinfo.config_obj.defaultLinkMode), **param.__dict__)
     else:
         console(say("未选择卡片")).talk.end()
 
@@ -61,7 +62,7 @@ def shortcut_browserTableSelected_unlink(browser: Browser, *args, **kwargs):
     """根据默认链接参数对选中的卡片进行反链接"""
     param = data_selectedFromBrowserTable(browser)
     if param is not None:
-        func_linkStarter(mode=int(param.input.configObj.defaultUnlinkMode), **param.__dict__)
+        LinkStarter(mode=int(param.input.baseinfo.config_obj.defaultUnlinkMode), **param.__dict__)
     else:
         console(say("未选择卡片")).talk.end()
 
@@ -71,8 +72,8 @@ def shortcut_browserTableSelected_insert(browser: Browser, *args, **kwargs):
     param = data_selectedFromBrowserTable(browser)
     insertMode = {4: "", 5: "clear", 6: "group"}
     if param is not None:
-        param.features += [insertMode[int(param.input.configObj.defaultInsertMode)], "noTag"]
-        func_linkStarter(mode=4, **param.__dict__)
+        param.features += [insertMode[int(param.input.baseinfo.config_obj.defaultInsertMode)], "noTag"]
+        LinkStarter(mode=4, **param.__dict__)
     else:
         console(say("未选择卡片")).talk.end()
 
@@ -113,15 +114,20 @@ def HTML_injecttoweb(htmltext, card, kind):
         "clayoutQuestion",
         "clayoutAnswer",
     ]:
-        html_addedButton = HTML_converter().feed(
-            htmltext).pairLi_loadFromHTML().HTML_makeButtonFromPairLi().HTML_get().HTML_text
+
+        html_addedButton = HTML_converter().feed(htmltext) \
+            .pairLi_HTMLdata_load().HTML_pairLi_save().HTMLButton_PairLi_make().HTML_get().HTML_text
+        console("最终结果:" + html_addedButton).log.end()
         return html_addedButton
     else:
         return htmltext
 
 
 checkUpdate()
-config = Params(**Input().config)
+
+mw.__dict__[BaseInfo().dialogName] = {}
+config = BaseInfo().config_obj
+
 globalShortcutDict = {
     "InputDialog_open": (config.shortcut_inputDialog_open, shortcut_inputDialog_open),
     "inputFile_clear": (config.shortcut_inputFile_clear, shortcut_inputFile_clear)

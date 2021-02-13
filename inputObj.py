@@ -13,8 +13,8 @@ from .HTML_converter import HTML_converter
 from .utils import *
 
 
-class Input(BaseInfo,
-            metaclass=MetaClass_loger
+class Input(object
+            # metaclass=MetaClass_loger
             ):
     """集成input对象,满足增删查改需求
     当你保存dataobj到data的时候会自动类型转换
@@ -24,24 +24,27 @@ class Input(BaseInfo,
     #     __metaclass__ = MetaClass_loger
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.console = console(obj=self)
+        self.baseinfo = BaseInfo()
+        self.valueStack = []
+        self.initDict = {"IdDescPairs": [], "addTag": ""}
         self.dataflat_ = None
+        self.config = self.baseinfo.configJSON
         self.insertPosi = self.config["appendNoteFieldPosition"]
         self.regexDescPosi = self.config["readDescFieldPosition"]
         self.linkstyle = self.config["linkStyle"]
         self.seRegx = self.config["DEFAULT_regexForDescContent"] if self.config["regexForDescContent"] == 0 else \
             self.config["regexForDescContent"]
         self.HTMLmanage = HTML_converter()
+        self.model = mw
         try:
-            self.data: dict = json.load(open(self.inputDir, "r", encoding="UTF-8", ))
+            self.data: dict = json.load(open(self.baseinfo.inputDir, "r", encoding="UTF-8", ))
             self.tag = self.data["addTag"]
         except:
             raise ValueError("读取input出现错误,请检查格式是否正确,或请点击'清空input'重置input文件")
 
     def dataLoad(self):
         """数据读取, 修改self.data,tag,objdata"""
-        self.data: json = json.load(open(self.inputDir, "r", encoding="utf-8"))
+        self.data: json = json.load(open(self.baseinfo.inputDir, "r", encoding="utf-8"))
         self.tag = self.data["addTag"]
         self.dataObj_ = self.dataObj().val()
         return self
@@ -60,7 +63,7 @@ class Input(BaseInfo,
     def dataSave(self):
         """数据保存,尝试json.dump,否则self.dataReset.dataSave"""
         try:
-            json.dump(self.data, open(self.inputDir, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
+            json.dump(self.data, open(self.baseinfo.inputDir, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
         except:
             return self.dataReset().dataSave()
         return self
@@ -84,13 +87,13 @@ class Input(BaseInfo,
 
     def config_open(self):
         """打开配置文件"""
-        configUrl = QUrl.fromLocalFile(self.configDir)
+        configUrl = QUrl.fromLocalFile(self.baseinfo.configDir)
         QDesktopServices.openUrl(configUrl)
         return self
 
     def helpSite_open(self):
         """打开帮助页面"""
-        helpUrl = QUrl(self.helpSite)
+        helpUrl = QUrl(self.baseinfo.helpSite)
         QDesktopServices.openUrl(helpUrl)
 
     def pairLi_extract(self, cardLi: List[str] = None) -> List[Pair]:
@@ -144,25 +147,21 @@ class Input(BaseInfo,
         note.flush()
         return self
 
-    @debugWatcher
+    # @debugWatcher
     def note_insertPair(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
         """往A note 加 pairB,默认不给自己加pair"""
+        html = self.HTMLmanage
         if diffInsert and pairA.card_id == pairB.card_id:
             return self
         note = self.note_loadFromId(pairA)
-        self.HTMLmanage.clear().feed(note.fields[self.insertPosi])
-        self.HTMLmanage.pairLi_loadFromHTML()
+        html.clear().feed(note.fields[self.insertPosi]).pairLi_HTMLdata_load()
         if self.Id_noFoundInNote(pairB):
             pairB.desc = pairB.desc if pairB.desc != "" else self.desc_extract(pairB)
             cfg = Empty()
             cfg.__dict__ = self.config
             dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
             pairB.dir = dirMap[dirposi]
-            # fieldcontent = self.HTMLmanage.pairLi_appendPair(pair=pairB).HTML_savePairLi().HTML_get().HTML_text
-            self.HTMLmanage.pairLi_appendPair(pair=pairB)
-            self.HTMLmanage.HTML_savePairLi()
-            self.HTMLmanage.HTML_get()
-            fieldcontent = self.HTMLmanage.HTML_text
+            fieldcontent = html.pairLi_pair_append(pair=pairB).HTML_pairLi_save().HTML_get().HTML_text
             console("最终要写入字段的内容:" + fieldcontent).log.end()
             note.fields[self.insertPosi] = fieldcontent
             note.flush()
@@ -185,25 +184,26 @@ class Input(BaseInfo,
         self.anchor_delete(pairA, pairB).anchor_delete(pairB, pairA)
         return pairB
 
-    @debugWatcher
+    # @debugWatcher
     @wrapper_browser_refresh
     def anchor_updateVersion(self):
         """升级旧版锚点注入规则 """
+        html = self.HTMLmanage
         for pair in self.dataflat_:
             note = self.note_loadFromId(pair)
             cardLi = []
             for i in range(len(note.fields)):  # 这一步是为了提取所有的卡片id
                 # cardLi += self.HTMLmanage.clear().feed(note.fields[i]).pairLi_fromOldVer()
-                self.HTMLmanage.clear().feed(note.fields[i])
-                cardLi += self.HTMLmanage.pairLi_fromOldVer()
-                note.fields[i] = self.HTMLmanage.HTML_get().HTML_text
-                console("输入fields的HTML_text为" + self.HTMLmanage.HTML_get().HTML_text).log.end()
+                html.clear().feed(note.fields[i])
+                cardLi += html.pairLi_fromOldVer()
+                note.fields[i] = html.HTML_get().HTML_text
+                console("输入fields的HTML_text为" + html.HTML_get().HTML_text).log.end()
                 note.flush()
-            self.HTMLmanage.clear().feed(note.fields[self.insertPosi])
-            self.HTMLmanage.card_linked_pairLi = cardLi
-            self.HTMLmanage.HTML_savePairLi()
-            console("看看root:" + self.HTMLmanage.domRoot.__str__()).log.end()
-            note.fields[self.insertPosi] = self.HTMLmanage.domRoot.__str__()
+            html.clear().feed(note.fields[self.insertPosi])
+            html.card_linked_pairLi = cardLi
+            html.HTML_pairLi_save()
+            console("看看root:" + html.domRoot.__str__()).log.end()
+            note.fields[self.insertPosi] = html.HTML_get().HTML_text
             note.flush()  # 把卡片对保存成字段中的JSON数据
             for pairB in cardLi:
                 self.note_insertPair(pair, pairB)
@@ -212,9 +212,11 @@ class Input(BaseInfo,
 
     def anchor_delete(self, pairA: Pair, pairB: Pair):
         """A中删除B的id,返回自己"""
+        HTML = self.HTMLmanage
         note = self.note_loadFromId(pairA)
-        self.HTMLmanage.clear().feed(note.fields[self.insertPosi]).pairLi_removePair(pair=pairB).HTML_savePairLi()
-        note.fields[self.insertPosi] = self.HTMLmanage.HTML_get().HTML_text
+        HTML.clear().feed(note.fields[self.insertPosi])
+        HTML.pairLi_pair_remove(pair=pairB).HTML_pairLi_save()
+        note.fields[self.insertPosi] = HTML.HTML_get().HTML_text
         note.flush()
         return self
 
@@ -309,7 +311,7 @@ class Input(BaseInfo,
         else:
             if name == "tag": self.__dict__["data"]["addTag"] = value
             self.__dict__[name] = value
-            if len(self.valueStack) > 100:
-                self.valueStack = []
+            if "valueStack" not in self.__dict__ or len(self.__dict__["valueStack"]) > 100:
+                self.__dict__["valueStack"] = []
             if name != "valueStack":
-                self.valueStack.append(value)
+                self.__dict__["valueStack"].append(value)

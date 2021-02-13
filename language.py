@@ -73,7 +73,12 @@ def rosetta(text: str = ""):
         "请安装插件1423933177,否则将无法点击链接预览卡片": "please install the addon 1423933177, otherwise you can't click the link and open preivew window",
         "请安装插件564851917,否则将无法折叠标签,我们每次链接都会产生标签": "please install the addon 1423933177,otherwise you won't have hierarchical tag system, it's useful for collapse/expand the tag produced by hjp-bilink",
         "config重置成功": "config reseted",
-        "重置config": "config reset"
+        "重置config": "config reset",
+        "打开anchor": "open anchor",
+        "多选模式": "in multi-select mode",
+        "普通模式": "in default mode",
+        "同名组已合并": "the group with the same name has been merged",
+        "空组已移除": "the empty group has been removed"
     }
     translateFuncs = {
         "en": En,

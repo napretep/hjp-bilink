@@ -1,5 +1,5 @@
 {
-  "VERSION": "0.7.3",
+  "VERSION": "0.7.5",
   "addLinkTo_Field_or_MetaInfo": "Field",
   "defaultLinkMode": 1,
   "defaultUnlinkMode": 2,
@@ -15,7 +15,7 @@
   "linkStyle": "",
   "addTagEnable": 1,
   "addTagRoot": "hjp-bilink",
-  "button_appendTo_AnchorId": "hjp_bilink_anchor_container",
+  "button_appendTo_AnchorId": "anchor_container",
   "anchorCSSFileName": "anchorCSS.txt",
   "DEFAULT_regexForDescContent": "((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=\")[\\w\\-\\.]+)",
   "shortcut_browserTableSelected_link": "Alt+1",

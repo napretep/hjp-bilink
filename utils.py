@@ -15,6 +15,12 @@ from aqt.editor import EditorWebView, Editor
 from aqt.reviewer import Reviewer
 from aqt.webview import AnkiWebView
 
+ISDEV = False
+ISDEBUG = False  # 别轻易开启,很卡的
+THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+baseInfoFileName = "baseInfo.json"
+baseInfoDir = os.path.join(THIS_FOLDER, baseInfoFileName)
+
 
 def wrapper_browser_refresh(func):
     """用来刷新browser"""
@@ -34,8 +40,10 @@ def wrapper_browser_refresh(func):
 
     return refresh
 
+
 def debugWatcher(func):
     """debug专用"""
+
     @functools.wraps(func)
     def debugWatcher_sub(*args, **kwargs):
         if ISDEBUG:
@@ -75,6 +83,7 @@ def logfunc(func):
     return wrap_log
 
 
+
 class MetaClass_loger(type):
     """"监控元类"""
 
@@ -84,6 +93,17 @@ class MetaClass_loger(type):
             if isinstance(v, types.FunctionType):
                 attr_dict[k] = debugWatcher(v)
         return type.__new__(mcs, name, bases, attr_dict)
+
+
+class CustomSignals(QObject):
+    instance = None
+    linkedEvent = pyqtSignal()
+
+    @classmethod
+    def start(cls):
+        if cls.instance is None:
+            cls.instance = cls()
+        return cls.instance
 
 
 class Empty:
@@ -96,15 +116,10 @@ class Pair:
     """
 
     def __init__(self, **pair):
-        self.card_id = pair["card_id"]
-        if "desc" in pair:
-            self.desc = pair["desc"]
-        else:
-            self.desc = ""
-        if "dir" in pair:
-            self.dir = pair["dir"]
-        else:
+        self.__dict__ = pair
+        if "dir" not in pair:
             self.dir = "→"
+
 
     @property
     def int_card_id(self):
@@ -120,6 +135,13 @@ class Pair:
     def __repr__(self):
         return self.__str__()
 
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+    def __contains__(self, name):
+        if self.__dict__.__contains__(name) and self.__dict__[name] is not None:
+            return True
+        return False
 
 class Params:
     """参数对象"""
@@ -145,6 +167,12 @@ class Params:
         else:
             raise AttributeError(name + "这个属性不存在")
 
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
     def __contains__(self, name):
         if self.__dict__.__contains__(name) and self.__dict__[name] is not None:
             return True
@@ -154,15 +182,16 @@ class Params:
 class console:
     """debug用的"""
 
-    def __init__(self, text: str = "", func: callable = tooltip, terminal=None, logSwitcher=True, **need):
+    def __init__(self, text: str = "", func: callable = tooltip, terminal=None, logSwitcher=ISDEBUG, **need):
+        self.baseinfo = BaseInfo()
         self.logSwitcher = logSwitcher
         self.text = text
         self.say = func
-        self.prefix = terminal if terminal is not None else consolerName + " > "
+        self.prefix = terminal if terminal is not None else self.baseinfo.consolerName + " > "
         self.need = need
         self.timestamp = datetime.datetime.now().strftime("%H:%M:%S") + " > "
         self.who = f"""line{sys._getframe(1).f_lineno.__str__()}:{sys._getframe(1).f_code.co_name} >"""
-        self.logfile = os.path.join(THIS_FOLDER, logFileName)
+        self.logDir = self.baseinfo.logDir
         self.newline_ = "\n"
         self.breakline_ = "\n"
 
@@ -181,7 +210,7 @@ class console:
 
     def logFileWrite(self, text, mode="a"):
         """写入文件"""
-        f = open(self.logfile, mode, encoding="utf-8")
+        f = open(self.logDir, mode, encoding="utf-8")
         f.write(text)
         f.close()
 
@@ -221,20 +250,16 @@ class console:
         return self
 
 
-ISDEV = False
-ISDEBUG = False  # 别轻易开启,很卡的
-helpSite = "https://gitee.com/huangjipan/hjp-bilink"
-inputFileName = "input.json"
 configFileName = "user_files/config.json" if not ISDEV else "user_files/configdev.json"
 configSchemaFileName = "config.schema.json"
 configHTMLFileName = "config.html"
-configTemplateFileName = "config_template.json"
+configTemplateFileName = "config.template.json"
 helpFileName = "README.md"
+versionFileName = "version.html"
 relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"
 logFileName = "log.txt"
-THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 USER_FOLDER = os.path.join(THIS_FOLDER, "user_files")
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
@@ -245,21 +270,43 @@ algPathDict = {
     "mode": [999, 0, 1, 2, 3]
 }
 
-config_template = json.load(open(os.path.join(THIS_FOLDER, configTemplateFileName), "r", encoding="utf-8"))
-VERSION = """
-<p>{consolerName}</p>
-<p>版本:{version}</p>
-<p>新增功能:</p>
-<p style="color:red;">新增菜单:重置config文件</p>
-<p style="color:red;">锚点改为弹出式,卡片渲染后注入按钮</p>
-<p style="color:red;">可升级旧版(0.4.x和0.6.x)的锚点,需要插入input再操作,注意先备份</p>
-<p>锚点改为按钮格式,</p>
-<p>input对话框,可拖拽,可双击打开卡片预览,可右键执行链接,删除,选中部分卡片链接等</p>
-<p>快捷键:在browser浏览界面下,可以使用快捷键执行链接,反链接,清空input,打开input,插入选中卡片</p>
-<p>可以在复习窗口,预览窗口点右键执行绝大部分功能</p>
-<a href="https://ankiweb.net/shared/info/1420819673">点我看详情</a>
-""".format(version=config_template["VERSION"], consolerName=consolerName)
 
+class BaseInfo(object):
+    """解决大量赋值消耗内存的情况"""
+
+    def __init__(self):
+        self.baseinfo = Params(**json.load(open(baseInfoDir, "r", encoding="utf-8")))
+
+    def path_get(self, name, dirName=THIS_FOLDER):
+        """返回文件路径"""
+        return os.path.join(THIS_FOLDER, self.baseinfo[name + "FileName"])
+
+    def file_open_r(self, path, as_="JSON"):
+        """返回dict或者list"""
+        if as_ == "JSON":
+            return json.load(open(path, "r", encoding="utf-8"))
+        elif as_ == "_obj":
+            return Params(**self.file_open_r(path))
+        elif as_ == "File":
+            return open(path, "r", encoding="utf-8").read()
+
+    def __getattr__(self, name):
+        """一次赋值终生受益"""
+        if name not in self.__dict__:
+            if name[-3:] == "Dir":
+                self.__dict__[name] = self.path_get(name[:-3])
+            if name[-4:] in ["JSON", "File", "_obj"]:
+                self.__dict__[name] = self.file_open_r(self.path_get(name[:-4]), as_=name[-4:])
+            if name[-4:] in ["Site", "Name"]:
+                self.__dict__[name] = self.__dict__["baseinfo"][name]
+        elif name in self.__dict__["baseinfo"]:
+            self.__dict__[name] = self.__dict__["baseinfo"][name]
+        else:
+            raise TypeError("找不到数据:" + name)
+        return self.__dict__[name]
+
+
+"""开始的一段检测"""
 try:
     cardPrevDialog = __import__("1423933177").card_window.external_card_dialog
 except:
@@ -268,33 +315,3 @@ except:
 
 if not os.path.exists(os.path.join(PREV_FOLDER, advancedBrowserDir)):
     showInfo(say("请安装插件564851917,否则将无法折叠标签,我们每次链接都会产生标签"))
-
-
-class BaseInfo(object, ):
-    """基础信息"""
-
-    def __init__(self, inputFileDir: str = os.path.join(THIS_FOLDER, inputFileName),
-                 configFileDir: str = os.path.join(THIS_FOLDER, configFileName),
-                 helpDir: str = helpSite,
-                 relyDir: str = RELY_FOLDER,
-                 initDict: dict = inputSchema,
-                 model: AnkiQt = mw, ):
-        self.valueStack = []
-        self.model = model
-        self.helpSite = helpDir
-        self.initDict = initDict
-        self.relyDir = relyDir
-        self.inputDir = inputFileDir
-        self.configDir = configFileDir
-        self.config = json.load(open(configFileDir, "r", encoding="UTF-8", ))
-        self.configObj = Params(**self.config)
-
-    def anchorCSS_load(self):
-        """首先读取用户区域的这个文件,读不到再找本地的文件"""
-        path = os.path.join(USER_FOLDER, self.configObj.anchorCSSFileName)
-        if not os.path.exists(path):
-            path = os.path.join(THIS_FOLDER, "anchorCSS.txt")
-        s = open(path, "r", encoding="utf-8")
-        t = s.read()
-        s.close()
-        return t
