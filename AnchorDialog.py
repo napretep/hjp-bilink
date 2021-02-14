@@ -57,8 +57,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.linkedEvent.connect(self.onRebuild)
         self.model.dataChanged.connect(self.field_model_save)
 
-    @wrapper_webview_refresh
-    @wrapper_browser_refresh
+
     def onClose(self, QCloseEvent):
         """保存数据,并且归零"""
         self.pairLi_model_load().field_pairLi_save()
@@ -67,8 +66,6 @@ class AnchorDialog(QDialog, Ui_anchor):
     def onRebuild(self):
         self.init_model()
 
-    @wrapper_webview_refresh
-    @wrapper_browser_refresh
     def onDrop(self, *args, **kwargs):
         """掉落事件响应"""
 
@@ -293,14 +290,14 @@ class AnchorDialog(QDialog, Ui_anchor):
             else:
                 f[txt] = item_src
 
-    @wrapper_webview_refresh
-    @wrapper_browser_refresh
     def field_model_save(self, *args, **kwargs):
         """把model保存到Field"""
         self.modelChanged_check(*args, **kwargs)
         self.pairLi_model_load()
         self.field_pairLi_save()
 
+    @wrapper_webview_refresh
+    @wrapper_browser_refresh
     def field_pairLi_save(self):
         """save pairli to field"""
         note = self.input.note_id_load(self.pair)
