@@ -321,13 +321,13 @@ class HTML_converter(
 
         return self
 
-    def __setattr__(self, name, value):
-        console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
-        self.__dict__[name] = value
-
-    def __getattr__(self, name):
-        console(f""" getattr→ {self.__class__.__name__}.{name}  """).log.end()
-        return self.__dict__[name]
+    # def __setattr__(self, name, value):
+    #     console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
+    #     self.__dict__[name] = value
+    #
+    # def __getattr__(self, name):
+    #     console(f""" getattr→ {self.__class__.__name__}.{name}  """).log.end()
+    #     return self.__dict__[name]
 
 
 if __name__ == "__main__":
