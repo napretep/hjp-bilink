@@ -3,7 +3,7 @@
 {container_L0}:表示整体窗格,代表了配置表中 button_appendTo_AnchorId 指向的元素.
 {container_header_L1}:是显示下拉按钮的那个元素id
 {container_body_L1}:表示按钮集合的容器,每个按钮是button元素, 自带card_id自定义属性
-    一些button
+    一些button_L2
     {accordion_L2} 手风琴效果容器
         {accordion_header_L3} 手风琴效果标题
         {accordion_checkbox_L3} 点击触发,不必理会

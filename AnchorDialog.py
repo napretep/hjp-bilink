@@ -1,8 +1,7 @@
 """
 TODO:
     对话框,读取JSON,拖拽,双击修改,双击打开,右键删除,自动保存,
-TODO 20210216180715 新建group存在bug,需要修改:当我删去旧的group,新命名不会回到旧的.
-
+TODO 20210217015100 修改desc时报错,估计原因是找错了对象.
 selfdata数据结构:
     menu:是一个列表, 由cardinfo和groupinfo构成
     groupinfo:是一个字典,每个键是一个groupname,对应一个列表,里面是cardinfo
@@ -71,15 +70,15 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def init_events(self):
         """响应右键菜单,拖拽,绑定更新数据,思考如何实现变化后自动加载.如果实现不了,暂时先使用模态对话框 """
-        # self.closeEvent = self.onClose
+        self.closeEvent = self.onClose
         self.anchorTree.dropEvent = self.onDrop
         self.anchorTree.customContextMenuRequested.connect(self.onAnchorTree_contextMenu)
         self.linkedEvent.connect(self.onRebuild)
-        # self.model.dataChanged.connect(self.field_model_save)
+        self.model.dataChanged.connect(self.field_model_save_suite)
 
     def onClose(self, QCloseEvent):
         """保存数据,并且归零"""
-        self.dataJSON_model_load().field_pairLi_save()
+        self.field_model_save_suite(nocheck=True)
         self.signout()
 
     def onRebuild(self):
@@ -93,16 +92,17 @@ class AnchorDialog(QDialog, Ui_anchor):
             """对于卡片来说,group是最顶层,card 0, 1层都可以"""
             if item_target.self_attrs["character"] == "group":
                 for row in item_finalLi:
+                    row[0].self_attrs["level"] = 1
                     item_target.appendRow(row)
             else:
-                self.itemChild_row_insert(parent, item_target, item_finalLi)
+                self.itemChild_row_insertbefore(parent, item_target, item_finalLi)
 
         def gowithgroup(parent, item_target, item_finalLi):
             """对于组来说,不能放到1层,如果碰到1层应该上升层级"""
             if item_target.self_attrs["level"] == 1:
-                item_target = parent
-            parent = self.model_rootNode
-            self.itemChild_row_insert(parent, item_target, item_finalLi)
+                item_target = item_target.parent()
+                parent = self.model_rootNode
+            self.itemChild_row_insertbefore(parent, item_target, item_finalLi)
 
         gogroupcard_dict = {
             "card_id": gowithcard,
@@ -110,11 +110,14 @@ class AnchorDialog(QDialog, Ui_anchor):
         }
 
         e = args[0]
-        drop_row = self.anchorTree.indexAt(e.pos())
-        item_target = self.model.itemFromIndex(drop_row)
+
+        drop_index = self.anchorTree.indexAt(e.pos())
+        item_target = self.model.itemFromIndex(drop_index)
+        if item_target: showInfo(item_target.text())
         root = self.model_rootNode
         if item_target is not None:
             parent = item_target.parent() if item_target.parent() is not None else self.model_rootNode
+            if item_target.column() != 0: item_target = parent.child(item_target.row())
         else:
             parent = root
 
@@ -132,18 +135,19 @@ class AnchorDialog(QDialog, Ui_anchor):
         if item_target is not None:
             gogroupcard_dict[group_or_card](parent, item_target, item_finalLi)
         else:
-            for i in item_finalLi: root.appendRow(i)
+            for i in item_finalLi:
+                root.appendRow(i)
+                i[0].self_attrs["level"] = 0
         j, emptyremoved = 0, False
         for i in range(root.rowCount()):
             if root.child(j, 0).self_attrs["character"] == "group" and root.child(j, 0).rowCount() == 0:
-                root.takeRow(j)
+                item = root.takeRow(j)[0]
+                del self.model_dataobj["groupinfo"][item.text()]
                 emptyremoved = True
             else:
                 j += 1
             if j == root.rowCount(): break
         if emptyremoved:
-            if root != self.model_rootNode:
-                del self.model_dataobj["groupinfo"][root.text()]
             console(say("空组已移除")).talk.end()
         self.field_model_save_suite(nocheck=True)
         self.anchorTree.expandAll()
@@ -165,7 +169,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         parent = item[0].parent() if item[0].parent() is not None else self.model_rootNode
         return parent.takeRow(item[0].row())
 
-    def itemChild_row_insert(self, parent, item_after, item_insertLi):
+    def itemChild_row_insertbefore(self, parent, item_after, item_insertLi):
         """实现:1如果被插入对象是一个卡片,那么插入到下一排,2如果被插入对象是一个组,插入到组最后,
         插入方法是效率最低的那种:移除所有的,再重排回去"""
         templi, r = [], item_after.row()
@@ -178,7 +182,7 @@ class AnchorDialog(QDialog, Ui_anchor):
             index = templi.index(item_after_row)
         else:
             index = len(templi)
-        templi = templi[0:index + 1] + item_insertLi + templi[index + 1:]
+        templi = templi[0:index] + item_insertLi + templi[index:]
         for i in templi:
             parent.appendRow(i)
 
@@ -219,7 +223,12 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.model = QStandardItemModel()
         self.model_rootNode = self.model.invisibleRootItem()
         self.model_rootNode.self_attrs = {"character": "group", "level": -1, "primData": None}
-        self.model.setHorizontalHeaderLabels(["id", "desc"])
+        label_id = QStandardItem("card_id")
+        label_desc = QStandardItem("desc")
+        self.model.setHorizontalHeaderItem(0, label_id)
+        self.model.setHorizontalHeaderItem(1, label_desc)
+        # self.model.setHorizontalHeaderLabels(["id", "desc"])
+        self.model.horizontalHeaderItem(0)
         self.anchorTree.setModel(self.model)
         self.model_dataobj_load()
         self.anchorTree.expandAll()
@@ -333,7 +342,7 @@ class AnchorDialog(QDialog, Ui_anchor):
             item_id.setFlags(item_id.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled)
             item_desc.setFlags(item_desc.flags() & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
             item_id.self_attrs = {"character": "card_id", "level": level, "primData": pair}
-            item_desc.self_attrs = {"character": "desc", "level": level}
+            item_desc.self_attrs = {"character": "desc", "level": level, "primData": pair}
             parent.appendRow([item_id, item_desc])
 
         for info in menuli:
@@ -358,12 +367,12 @@ class AnchorDialog(QDialog, Ui_anchor):
         subitem_li = list(map(lambda x: self.item_remove(x), [groupB.child(i, 0) for i in range(groupB.rowCount())]))
         list(map(lambda x: groupA.appendRow(x), subitem_li))
 
-    def modelChanged_check(self, *args, **kwargs):
+    def dataChanged_check(self, *args, **kwargs):
         """进行检查,及时合并名字相同的组 参数1,2是topLeft,bottomRight,如果没有处理ondrop事件,则会顺到这里来解决"""
         e = args[0]  #
         item_src = self.model.itemFromIndex(e)
         groupinfo = self.model_dataobj["groupinfo"]
-        cardinfo = self.model_dataobj["groupinfo"]
+        cardinfo = self.model_dataobj["cardinfo"]
         character = item_src.self_attrs["character"]
         if character == "group":
             group_name_now = item_src.text()
@@ -372,23 +381,24 @@ class AnchorDialog(QDialog, Ui_anchor):
                 console(say("抱歉,组名中暂时不能用空格与标点符号,否则会报错")).talk.end()
                 item_src.setText(group_name_prev)
                 return
-            if group_name_now in groupinfo:
+            elif group_name_now in groupinfo and item_src != groupinfo[group_name_now]["model_item"]:
                 item_target = groupinfo[group_name_now]["model_item"]
                 self.itemgroup_children_move(item_target, item_src)
                 self.model_rootNode.takeRow(item_src.row())
                 del groupinfo[group_name_prev]
                 console(say("同名组已合并")).talk.end()
-            else:
+            elif group_name_now != group_name_prev:
                 groupinfo[group_name_now] = groupinfo[group_name_prev]
                 item_src.self_attrs["primData"]["self_name"] = group_name_now
-            del groupinfo[group_name_prev]
+                del groupinfo[group_name_prev]
+                console(say("已更新")).talk.end()
         else:
             item_src.self_attrs["primData"].desc = item_src.text()
 
     def field_model_save_suite(self, *args, **kwargs):
         """把model读取为pairLi,保存到Field"""
         if "nocheck" not in kwargs:
-            self.modelChanged_check(*args, **kwargs)
+            self.dataChanged_check(*args, **kwargs)
         self.dataObjCardinfo_model_load()
         self.dataJSON_model_load()
         self.linkedPairli_model_load()

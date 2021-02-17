@@ -38,6 +38,7 @@ class HTML_converter(
         self.domRoot: element = None
         self.objJSON: Dict = {}
         self.HTML_text = ""
+        self.cardinfo_dict = {}
         self.card_linked_pairLi: List[Pair] = []
         self.card_selfdata_dict = {}
         self.script_el_dict = {}
@@ -232,25 +233,28 @@ class HTML_converter(
             anchor_container = anchor_container[0]
         return anchor_container
 
-    def HTMLButton_PairLi_make(self, **args):
+    def HTMLButton_selfdata_make(self, **args):
         """制作按钮,anchor是总体锚点,container是容器,accordion是折叠主题"""
         if len(self.card_linked_pairLi) > 0:
-            cfg = BaseInfo().config_obj
+            cfg = self.config
             anchor_header_L1 = self.domRoot.new_tag(name="div")
             anchor_header_L1.attrs["class"] = self.container_header_L1_class
             anchor_header_L1.string = self.consolerName
 
             container_body_L1 = self.domRoot.new_tag(name="div")
             container_body_L1.attrs["class"] = self.container_body_L1_class
-            for pair in self.card_linked_pairLi:
-                button_L2 = \
-                    self.domRoot.new_tag(name="button", card_id=pair.card_id, dir=pair.dir,
-                                         onclick=f"""javascript:pycmd('{self.idPrefix}'+'{pair.card_id}');""",
-                                         style=f"""margin:12px;displaystyle:inline;font-size:inherit;{cfg.linkStyle};""", )
-                button_L2.string = pair.dir + pair.desc
-
-                if "subgroup" in pair.__dict__:
-                    button_L2 = self.HTMLAccordion_pair_make(pair, button_L2, container_body_L1)
+            for info in self.card_selfdata_dict["menuli"]:
+                if info["type"] == "cardinfo":
+                    pair = self.cardinfo_dict[info["card_id"]]
+                    button_L2 = \
+                        self.domRoot.new_tag(name="button", card_id=pair.card_id, dir=pair.dir,
+                                             onclick=f"""javascript:pycmd('{self.idPrefix}'+'{pair.card_id}');""",
+                                             style=f"""margin:12px;displaystyle:inline;font-size:inherit;{cfg.linkStyle};""", )
+                    button_L2.string = pair.dir + pair.desc
+                elif info["type"] == "groupinfo":
+                    pairli = [self.cardinfo_dict[id_] for id_ in
+                              self.card_selfdata_dict["groupinfo"][info["groupname"]]]
+                    button_L2 = self.HTMLAccordion_pairli_make(pairli, info["groupname"], container_body_L1)
                 container_body_L1.append(button_L2)
             anchor_container_L0 = self._anchor_container_el_select()
             anchor_container_L0.append(anchor_header_L1)
@@ -271,33 +275,36 @@ class HTML_converter(
             # showInfo("card_pairLi==0!")
         return self
 
-    def HTMLAccordion_pair_make(self, pair: Pair, button, container_body_L1):
+    def HTMLAccordion_pairli_make(self, pairli: List[Pair], groupname, container_body_L1):
         """制造手风琴需要的pair"""
+        cfg = self.config
+        accordion_L2 = self.domRoot \
+            .new_tag(name="div", attrs={
+            "class": self.accordion_L2_class,
+            "id": f"{self.baseInfo.consolerName}{groupname}"
+        })
         console("container_body_L1的值為" + container_body_L1.__str__()).log.end()
-        accordion_L2 = container_body_L1.select(f"[id={self.baseInfo.consolerName}{pair.subgroup}]")
+
         console("Accordion_L2的值為" + accordion_L2.__str__()).log.end()
-        if not accordion_L2:
-            accordion_L2 = self.domRoot \
-                .new_tag(name="div", attrs={
-                "class": self.accordion_L2_class,
-                "id": f"{self.baseInfo.consolerName}{pair.subgroup}"
-            })
-            checkboxid = self.accordion_checkbox_L3_Id + pair.subgroup
-            checkboxclass = self.accordion_checkbox_L3_Id
-            accordion_header_L3 = self.domRoot.new_tag(name="label", attrs={"class": self.accordion_header_L3_class,
-                                                                            "for": checkboxid})
-            accordion_checkbox_L3 = self.domRoot.new_tag(name="input", attrs={"id": checkboxid,
-                                                                              "class": checkboxclass,
-                                                                              "type": "checkbox"})
-            accordion_header_L3.string = pair.subgroup
-            accordion_body_L3 = self.domRoot.new_tag(name="div", attrs={"class": self.accordion_body_L3_class})
-            accordion_L2.append(accordion_header_L3)
-            accordion_L2.append(accordion_checkbox_L3)
-            accordion_L2.append(accordion_body_L3)
-        else:
-            accordion_L2: element = accordion_L2[0]
-            accordion_body_L3 = accordion_L2.select(f".{self.accordion_body_L3_class}")[0]
-        accordion_body_L3.append(button)
+        checkboxid = self.accordion_checkbox_L3_Id + groupname
+        checkboxclass = self.accordion_checkbox_L3_Id
+        accordion_header_L3 = self.domRoot.new_tag(name="label", attrs={"class": self.accordion_header_L3_class,
+                                                                        "for": checkboxid})
+        accordion_checkbox_L3 = self.domRoot.new_tag(name="input", attrs={"id": checkboxid,
+                                                                          "class": checkboxclass,
+                                                                          "type": "checkbox"})
+        accordion_header_L3.string = groupname
+        accordion_body_L3 = self.domRoot.new_tag(name="div", attrs={"class": self.accordion_body_L3_class})
+        accordion_L2.append(accordion_header_L3)
+        accordion_L2.append(accordion_checkbox_L3)
+        accordion_L2.append(accordion_body_L3)
+        for pair in pairli:
+            button_L2 = \
+                self.domRoot.new_tag(name="button", card_id=pair.card_id, dir=pair.dir,
+                                     onclick=f"""javascript:pycmd('{self.idPrefix}'+'{pair.card_id}');""",
+                                     style=f"""margin:12px;display:inline;font-size:inherit;{cfg.linkStyle};""", )
+            button_L2.string = pair.dir + pair.desc
+            accordion_body_L3.append(button_L2)
         return accordion_L2
 
     # @debugWatcher
@@ -318,16 +325,13 @@ class HTML_converter(
             console("report:script_str" + linkdata_str).log.end()
             self.card_linked_pairLi: List[Pair] = list(map(lambda x: Pair(**x), json.loads(linkdata_str)))
             self.card_selfdata_dict = json.loads(selfdata_str)
-
+            for pair in self.card_linked_pairLi:
+                self.cardinfo_dict[pair.card_id] = pair
+            if "menuli" not in self.card_selfdata_dict:
+                self.card_selfdata_dict["menuli"] = [{"card_id": pair.card_id, "type": "cardinfo"} for pair in
+                                                     self.card_linked_pairLi]
+                self.card_selfdata_dict["groupinfo"] = {}
         return self
-
-    # def __setattr__(self, name, value):
-    #     console(f"""{self.__class__.__name__}.{name}={value}""").log.end()
-    #     self.__dict__[name] = value
-    #
-    # def __getattr__(self, name):
-    #     console(f""" getattr→ {self.__class__.__name__}.{name}  """).log.end()
-    #     return self.__dict__[name]
 
 
 if __name__ == "__main__":

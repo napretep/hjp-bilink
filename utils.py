@@ -16,7 +16,7 @@ from aqt.reviewer import Reviewer
 from aqt.webview import AnkiWebView
 
 ISDEV = False
-ISDEBUG = False  # 别轻易开启,很卡的
+ISDEBUG = True  # 别轻易开启,很卡的
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 baseInfoFileName = "baseInfo.json"
 baseInfoDir = os.path.join(THIS_FOLDER, baseInfoFileName)
