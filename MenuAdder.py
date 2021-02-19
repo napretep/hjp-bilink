@@ -25,16 +25,21 @@ def func_resetConfig():
 def func_menuAddBrowserInsert(*args, **kwargs):
     """browser插入类函数集合"""
     param = Params(**kwargs)
-    prefix = "" if "prefix" not in param.features else BaseInfo().consolerName
+    prefix = "" if ("prefix" not in param.features) or "selected" in param.features else BaseInfo().consolerName
     menuNameLi = list(map(lambda x: prefix + say(x), ["清除后选中卡片插入", "将选中卡片插入", "将选中卡片编组插入"]))
-    featureli = ["clear", "", "group"]
+    featureli = [["clear"], [""], ["group"]]
+    if "selected" in param.features:
+        for feat in featureli: feat.append("selected")
     if "prefix" in param.features:
-        linkmenu = param.menu
+        if "selected" in param.features:
+            linkmenu = param.menu.addMenu(BaseInfo().consolerName + say("选中插入"))
+        else:
+            linkmenu = param.menu
     else:
         linkmenu = param.menu.addMenu(say("插入"))
     list(map(lambda i:
              func_actionMenuConnector(menu=linkmenu, actionName=menuNameLi[i], action=func_browserInsert,
-                                      parent=param.parent, features=[featureli[i]])
+                                      parent=param.parent, features=featureli[i])
              , range(len(featureli))))
 
 

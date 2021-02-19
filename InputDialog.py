@@ -79,7 +79,7 @@ class InputDialog(QDialog, Ui_input):
         prefix = BaseInfo().consolerName
         menu.addAction(prefix + say("全部展开/折叠")).triggered.connect(self.view_expandCollapse_toggle)
         if len(self.inputTree.selectedIndexes()) > 0:
-            self.JSON_selected_load()
+            self.pairli_selected_load()
             menu.addAction(prefix + say("选中删除")).triggered.connect(self.view_selected_delete)
             param = Params(menu=menu, parent=self.inputTree, features=["prefix", "selected"], actionTypes=["link"])
             MenuAdder.func_menuAddHelper(**param.__dict__)
@@ -258,7 +258,7 @@ class InputDialog(QDialog, Ui_input):
                     self.model_data[-1].append(pair)
 
     # @debugWatcher
-    def JSON_selected_load(self):
+    def pairli_selected_load(self):
         """从选中的项目中读取出JSON列表,保存在InputObj的data中,他只要不存到本地就没事情"""
         selectedItemLi_ = list(map(self.model.itemFromIndex, self.inputTree.selectedIndexes()))
         selectedItemLi = []

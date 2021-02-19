@@ -1,7 +1,6 @@
 """
 TODO:
     对话框,读取JSON,拖拽,双击修改,双击打开,右键删除,自动保存,
-TODO 20210217015100 修改desc时报错,估计原因是找错了对象.
 selfdata数据结构:
     menu:是一个列表, 由cardinfo和groupinfo构成
     groupinfo:是一个字典,每个键是一个groupname,对应一个列表,里面是cardinfo
@@ -18,7 +17,7 @@ model_dataobj: 从model_dataJSON 读取数据转换为对象属性,保存于此
             - cardinfo:Dict[card_id:pair]#大部分信息都在这里
 linked_pairLi: 导出到HTML需要
 """
-
+from . import MenuAdder
 from .inputObj import *
 from .anchordialog_UI import Ui_anchor
 
@@ -44,11 +43,21 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.model_dataJSON: Dict[str, List[Dict]] = {}
         self.model_linked_pairLi: List[Pair] = []
         self.undo_stack: List[dict] = []
+        self.selected_linked_pairLi = []
         self.init_UI()
         self.init_model()
         self.init_events()
         self.signup()
         self.show()
+
+    def init_var(self):
+        """变量初始化"""
+        self.pairdict: Dict = {}
+        self.model_dataobj: Dict = {}  # 从model_dataJSON读取保存为对象模型.
+        self.model_dataJSON: Dict[str, List[Dict]] = {}
+        self.model_linked_pairLi: List[Pair] = []
+        self.undo_stack: List[dict] = []
+        self.selected_linked_pairLi = []
 
     def signup(self):
         """注册到主窗口"""
@@ -66,6 +75,7 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def init_UI(self):
         self.setupUi(self)
+        self.anchorTree.parent = self
         self.setWindowTitle(f"Anchor of [desc={self.pair.desc},card_id={self.pair.card_id}]")
 
     def init_events(self):
@@ -83,7 +93,8 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def onRebuild(self):
         """重建模型,用于刷新"""
-        self.init_model()
+        self.init_var()
+        self.init_model(rebuild=True)
 
     def onDrop(self, *args, **kwargs):
         """掉落事件响应, 不涉及重写dataJSON"""
@@ -151,6 +162,7 @@ class AnchorDialog(QDialog, Ui_anchor):
             console(say("空组已移除")).talk.end()
         self.field_model_save_suite(nocheck=True)
         self.anchorTree.expandAll()
+        self.treeIsExpanded = True
 
     def onAnchorTree_contextMenu(self, *args, **kwargs):
         """初始化右键菜单"""
@@ -159,10 +171,26 @@ class AnchorDialog(QDialog, Ui_anchor):
         menu.addAction(prefix + say("全部展开/折叠")).triggered.connect(self.view_expandCollapse_toggle)
         menu.addAction(prefix + say("新建组")).triggered.connect(self.itemgroup_create)
         if len(self.anchorTree.selectedIndexes()) > 0:
-            self.dataJSON_model_load()
-            menu.addMenu(prefix + say("选中链接"))
+            self.pairli_selected_load()
+            menu.addAction(prefix + say("选中删除")).triggered.connect(self.view_selected_delete)
+            param = Params(menu=menu, parent=self.anchorTree, features=["prefix", "selected"],
+                           actionTypes=["link", "browserinsert"])
+            MenuAdder.func_menuAddHelper(**param.__dict__)
+        param = Params(menu=menu, parent=self.anchorTree, features=["prefix"], actionTypes=["clear_open"])
+        MenuAdder.func_menuAddHelper(**param.__dict__)
         menu.popup(QCursor.pos())
         menu.show()
+
+    def view_selected_delete(self, *args, **kwargs):
+        """选中的部分删除"""
+        selectedIndexesLi = self.anchorTree.selectedIndexes()
+        selectedItemLi_ = list(map(self.model.itemFromIndex, selectedIndexesLi))
+        selectedItemLi = []
+        for i in range(int(len(selectedItemLi_) / 2)):
+            selectedItemLi.append([selectedItemLi_[2 * i], selectedItemLi_[2 * i + 1]])
+        item_finalLi = [self.itemChild_row_remove(i) for i in selectedItemLi]
+        self.field_model_save_suite(nocheck=True)
+        console(say("已删除选中卡片")).talk.end()
 
     def itemChild_row_remove(self, item):
         """不需要parent,自己能产生parent"""
@@ -220,6 +248,8 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def init_model(self, *args, **kwargs):
         """模型数据的初始化"""
+        # if "rebuild" in kwargs:
+        #     showInfo("rebuild")
         self.model = QStandardItemModel()
         self.model_rootNode = self.model.invisibleRootItem()
         self.model_rootNode.self_attrs = {"character": "group", "level": -1, "primData": None}
@@ -227,7 +257,6 @@ class AnchorDialog(QDialog, Ui_anchor):
         label_desc = QStandardItem("desc")
         self.model.setHorizontalHeaderItem(0, label_id)
         self.model.setHorizontalHeaderItem(1, label_desc)
-        # self.model.setHorizontalHeaderLabels(["id", "desc"])
         self.model.horizontalHeaderItem(0)
         self.anchorTree.setModel(self.model)
         self.model_dataobj_load()
@@ -248,6 +277,8 @@ class AnchorDialog(QDialog, Ui_anchor):
             cardinfo[pair.card_id] = pair
         self.model_dataJSON: Dict = dataJSON
         self.model_dataobj["groupinfo"] = {}
+        if len(self.model_dataJSON["menuli"]) == 0:
+            self.model_dataJSON["menuli"] = [{"card_id": pair.card_id, "type": "cardinfo"} for pair in pairli]
         for k, v in self.model_dataJSON["groupinfo"].items():
             self.model_dataobj["groupinfo"][k] = {"menuli": v, "model_item": None, "self_name": k}
         self.model_dataobj["menuli"] = [Pair(**pair) for pair in self.model_dataJSON["menuli"]]
@@ -268,21 +299,21 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def pairli_selected_load(self):
         """读取选中的到datapairLi, 注意datapairLi的数据是变动流动的,所以不能长期保存数据,如果要调用必须先执行某行为
-         考虑问题: 如何保证以后pair数据升级了还能保持对应?
          返回数据: 应该是一个flatten的pair列表,进一步操作要交给input manager.
          在进行读取之前, 要更新一次cardinfo的数据.
          """
-        self.dataObjCardinfo_model_load()
-        selectedItemLi_ = list(map(self.model.itemFromIndex, self.inputTree.selectedIndexes()))
+        root = self.model_rootNode
+        self.data_model_update_suite()
+        selectedItemLi_ = list(map(self.model.itemFromIndex, self.anchorTree.selectedIndexes()))
         selectedItemLi = []
         for i in range(int(len(selectedItemLi_) / 2)):
             selectedItemLi.append([selectedItemLi_[2 * i], selectedItemLi_[2 * i + 1]])
-        selectedItemLi.sort(key=lambda x: x[0].parent().row())
+        selectedItemLi.sort(key=lambda x: (x[0].parent() if x[0].parent() else root).row())
         pairLi = []
         for row in selectedItemLi:
             if row[0].self_attrs["character"] == "card_id":
                 pairLi.append(row[0].self_attrs["primData"])
-        self.model_linked_pairLi = pairLi
+        self.input.data = pairLi
         return self
 
     def linkedPairli_model_load(self):
@@ -324,6 +355,14 @@ class AnchorDialog(QDialog, Ui_anchor):
                     t.append(item.child(j).text())
         self.model_dataJSON = tempdict
         return self
+
+    def data_model_update_suite(self):
+        """
+        从model 更新data :1 dataJSON, 2 data_obj_cardinfo,3 linkedPairli
+        """
+        self.dataObjCardinfo_model_load()
+        self.dataJSON_model_load()
+        self.linkedPairli_model_load()
 
     def model_dataobj_load(self):
         """从JSON读取数据保存到模型中展示
@@ -399,9 +438,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         """把model读取为pairLi,保存到Field"""
         if "nocheck" not in kwargs:
             self.dataChanged_check(*args, **kwargs)
-        self.dataObjCardinfo_model_load()
-        self.dataJSON_model_load()
-        self.linkedPairli_model_load()
+        self.data_model_update_suite()
         self.field_pairLi_save()
 
     @wrapper_webview_refresh

@@ -2,6 +2,7 @@
 from .MenuAdder import *
 from aqt.webview import AnkiWebPage
 
+
 def checkUpdate():
     """检查更新,检查配置表是否对应"""
     needUpdate = False
@@ -27,7 +28,9 @@ def checkUpdate():
                   ensure_ascii=False)
         func_version()
 
+
 def data_selectedFromBrowserTable(browser, *args, **kwargs):
+    """从?"""
     cardLi: List[str] = list(map(lambda x: str(x), browser.selectedCards()))
     inputObj = Input()
     if len(cardLi) > 0:
@@ -116,7 +119,7 @@ def HTML_injecttoweb(htmltext, card, kind):
     ]:
 
         html_addedButton = HTML_converter().feed(htmltext) \
-            .HTMLdata_load().HTMLdata_save().HTMLButton_selfdata_make().HTML_get().HTML_text
+            .HTMLdata_load().HTMLdata_save().HTMLButton_selfdata_make().HTMLdata_save().HTML_get().HTML_text
         console("最终结果:" + html_addedButton).log.end()
         return html_addedButton
     else:

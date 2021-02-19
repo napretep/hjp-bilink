@@ -30,7 +30,27 @@ class HTML_converter(
         self.config = self.baseInfo.config_obj
         self.regexName = re.compile(r"div|button")
         self.regexCard_id = re.compile(r"\d+")
-        self.var_init()
+        self.text = ""
+        self.domRoot: element = None
+        self.objJSON: Dict = {}
+        self.HTML_text = ""
+        self.cardinfo_dict = {}
+        self.exist_pairli = []
+        self.card_linked_pairLi: List[Pair] = []
+        self.card_selfdata_dict = {}
+        self.script_el_dict = {}
+        self.comment_el = None
+        self.container_L0_Id = self.baseInfo.config_obj.button_appendTo_AnchorId  # 最外层的容器
+        self.container_body_L1_class = self.consolerName + self.baseInfo.container_body_L1_className  # 按钮包裹的容器
+        self.container_header_L1_class = self.consolerName + self.baseInfo.container_header_L1_className  # 标题所在地
+        self.accordion_L2_class = self.consolerName + self.baseInfo.accordion_L2_className
+        self.accordion_header_L3_class = self.consolerName + self.baseInfo.accordion_header_L3_className
+        self.accordion_body_L3_class = self.consolerName + self.baseInfo.accordion_body_L3_className
+        self.accordion_checkbox_L3_Id = self.consolerName + self.baseInfo.accordion_checkbox_L3_IdName
+        self.containerDivCSS: str = self.baseInfo.anchorCSSFile
+        self.linkdata_scriptId = self.consolerName + self.baseInfo.linkdata_scriptIdName  # 这个不好轻易变化, 大家的原始数据都在这里呢
+        self.carddata_scriptId = self.consolerName + self.baseInfo.carddata_scriptIdName
+        self.linkdata_scriptVarName = self.consolerName + self.baseInfo.linkdata_scriptVarName  # 这个不好轻易变化, 大家的原始数据都在这里呢
 
     def var_init(self):
         """变量初始化"""
@@ -39,6 +59,7 @@ class HTML_converter(
         self.objJSON: Dict = {}
         self.HTML_text = ""
         self.cardinfo_dict = {}
+        self.syncpairli = []
         self.card_linked_pairLi: List[Pair] = []
         self.card_selfdata_dict = {}
         self.script_el_dict = {}
@@ -235,6 +256,7 @@ class HTML_converter(
 
     def HTMLButton_selfdata_make(self, **args):
         """制作按钮,anchor是总体锚点,container是容器,accordion是折叠主题"""
+
         if len(self.card_linked_pairLi) > 0:
             cfg = self.config
             anchor_header_L1 = self.domRoot.new_tag(name="div")
@@ -243,6 +265,7 @@ class HTML_converter(
 
             container_body_L1 = self.domRoot.new_tag(name="div")
             container_body_L1.attrs["class"] = self.container_body_L1_class
+
             for info in self.card_selfdata_dict["menuli"]:
                 if info["type"] == "cardinfo":
                     pair = self.cardinfo_dict[info["card_id"]]
@@ -256,6 +279,7 @@ class HTML_converter(
                               self.card_selfdata_dict["groupinfo"][info["groupname"]]]
                     button_L2 = self.HTMLAccordion_pairli_make(pairli, info["groupname"], container_body_L1)
                 container_body_L1.append(button_L2)
+
             anchor_container_L0 = self._anchor_container_el_select()
             anchor_container_L0.append(anchor_header_L1)
             anchor_container_L0.append(container_body_L1)
@@ -277,6 +301,7 @@ class HTML_converter(
 
     def HTMLAccordion_pairli_make(self, pairli: List[Pair], groupname, container_body_L1):
         """制造手风琴需要的pair"""
+
         cfg = self.config
         accordion_L2 = self.domRoot \
             .new_tag(name="div", attrs={
@@ -328,10 +353,41 @@ class HTML_converter(
             for pair in self.card_linked_pairLi:
                 self.cardinfo_dict[pair.card_id] = pair
             if "menuli" not in self.card_selfdata_dict:
-                self.card_selfdata_dict["menuli"] = [{"card_id": pair.card_id, "type": "cardinfo"} for pair in
-                                                     self.card_linked_pairLi]
+                self.card_selfdata_dict["menuli"] = []
                 self.card_selfdata_dict["groupinfo"] = {}
+            if len(self.card_linked_pairLi) == 0:
+                self.card_selfdata_dict["menuli"] = []
+            self.exist_pairli = []
+            menuli = self.card_selfdata_dict["menuli"]
+            groupinfo = self.card_selfdata_dict["groupinfo"]
+            cardinfo = self.cardinfo_dict
+            needremove = []
+            for info in menuli:
+                if info["type"] == "cardinfo":
+                    if info["card_id"] not in cardinfo:
+                        needremove.append(info)
+                        continue
+                    else:
+                        self.exist_pairli.append(info["card_id"])
+                elif info["type"] == "groupinfo":
+                    groupneedremove = []
+                    for card_id in groupinfo[info["groupname"]]:
+                        if card_id not in cardinfo:
+                            groupneedremove.append(card_id)
+                        else:
+                            self.exist_pairli.append(card_id)
+                    for card_id in groupneedremove:
+                        groupinfo[info["groupname"]].remove(card_id)
+            for info in needremove:
+                menuli.remove(info)
+            for k in cardinfo.keys():
+                if k not in self.exist_pairli:
+                    menuli.append(dict(card_id=k, type="cardinfo"))
+
         return self
+
+
+
 
 
 if __name__ == "__main__":
