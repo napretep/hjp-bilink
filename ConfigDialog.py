@@ -29,6 +29,8 @@ class ConfigDialog(QDialog, Ui_config):
         self.configTable.setAlternatingRowColors(True)
         self.configTable.verticalHeader().hide()
         self.configTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        iconDir = os.path.join(THIS_FOLDER, self.baseInfo.baseinfo["iconFile_config"])
+        self.setWindowIcon(QIcon(iconDir))
 
     def events_init(self, *args, **kwargs):
         """事件的初始化"""

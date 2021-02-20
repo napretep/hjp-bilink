@@ -145,3 +145,4 @@ placeDict = {"all": globalShortcutDict, "Browser": browserShortcutDict}
 
 gui_hooks.profile_did_open.append(shortcut_addto_originalcode)
 gui_hooks.card_will_show.append(HTML_injecttoweb)
+

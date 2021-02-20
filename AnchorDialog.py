@@ -77,6 +77,8 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.setupUi(self)
         self.anchorTree.parent = self
         self.setWindowTitle(f"Anchor of [desc={self.pair.desc},card_id={self.pair.card_id}]")
+        icondir = os.path.join(THIS_FOLDER, self.baseinfo.baseinfo["iconFile_anchor"])
+        self.setWindowIcon(QIcon(icondir))
 
     def init_events(self):
         """响应右键菜单,拖拽,绑定更新数据,思考如何实现变化后自动加载.如果实现不了,暂时先使用模态对话框 """
@@ -124,7 +126,7 @@ class AnchorDialog(QDialog, Ui_anchor):
 
         drop_index = self.anchorTree.indexAt(e.pos())
         item_target = self.model.itemFromIndex(drop_index)
-        if item_target: showInfo(item_target.text())
+        # if item_target: showInfo(item_target.text())
         root = self.model_rootNode
         if item_target is not None:
             parent = item_target.parent() if item_target.parent() is not None else self.model_rootNode

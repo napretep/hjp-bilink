@@ -195,8 +195,8 @@ def func_browserInsert(*args, **kwargs):
     """专门用于browser界面的id拷贝,clear参数代表清空后再插入, group参数代表编组插入,从入口处解决卡片重复问题,不带入input模型
     """
     param = Params(**kwargs)
-    showInfo(param.parent.parent.input.data["IdDescPairs"].__str__())
-    if "selected" in param.features:
+    if "selected" in param.features and hasattr(param.parent, "parent") and isinstance(param.parent.parent,
+                                                                                       AnchorDialog):
         cardLi: List[str] = [pair.card_id for pair in param.parent.parent.input.dataflat_]
     else:
         cardLi: List[str] = list(map(lambda x: str(x), param.parent.selectedCards()))

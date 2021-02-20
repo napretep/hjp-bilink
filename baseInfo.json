@@ -26,5 +26,8 @@
   "accordion_body_L3_className": "accordion_body_L3",
   "linkdata_scriptIdName": "data",
   "linkdata_scriptVarName": "data",
-  "carddata_scriptIdName": "selfdata"
+  "carddata_scriptIdName": "selfdata",
+  "iconFile_input": "resource/icon_input.ico",
+  "iconFile_anchor": "resource/icon_anchor.ico",
+  "iconFile_config": "resource/icon_config.ico"
 }

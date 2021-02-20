@@ -52,7 +52,7 @@ def rosetta(text: str = ""):
         '全部展开/折叠': "Expand/Collapse All",
         '选中删除': "deleteSelected",
         "选中链接": "linkSelected",
-        "升级旧版锚点": "old link anchor update",
+        "升级旧版锚点": "old version(<0.6) linked anchors update",
         "错误:字段中的HTML无法读取": "error:can't read HTML in card.field",
         "联系作者": "contact author",
         "支持作者": "support author",
@@ -64,10 +64,10 @@ def rosetta(text: str = ""):
         "张卡片已插入": "cards has been inserted",
         "刚插入的标签为:": "inserted tag:",
         "成功插入{卡片-描述}对:": "successfully insert the pair of card_id and desc",
-        "已按路径取消链接": "unlinked as given path",
-        "已按结点取消链接": "unlinked as given node",
-        "已按组到组完成链接": "linked as group to group",
-        "已按完全图完成链接": "linked as complete map",
+        "已按路径取消链接": "unlinked given path",
+        "已按结点取消链接": "unlinked given node",
+        "已按组到组完成链接": "linked, method: group to group",
+        "已按完全图完成链接": "linked, method: complete map",
         "已删除选中卡片": "selected card deleted",
         "input 已清空": "input cleared",
         "请安装插件1423933177,否则将无法点击链接预览卡片": "please install the addon 1423933177, otherwise you can't click the link and open preivew window",
@@ -78,7 +78,11 @@ def rosetta(text: str = ""):
         "多选模式": "in multi-select mode",
         "普通模式": "in default mode",
         "同名组已合并": "the group with the same name has been merged",
-        "空组已移除": "the empty group has been removed"
+        "空组已移除": "the empty group has been removed",
+        "新建组": "create new group",
+        "抱歉,组名中暂时不能用空格与标点符号,否则会报错": "the name of group cannot contain non-word character",
+        "已更新": "updated",
+        "选中插入": "selected insert to input"
     }
     translateFuncs = {
         "en": En,

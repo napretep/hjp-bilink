@@ -13,10 +13,11 @@ import time
 from aqt.browser import Browser
 from aqt.editor import EditorWebView, Editor
 from aqt.reviewer import Reviewer
+from aqt.previewer import Previewer
 from aqt.webview import AnkiWebView
 
 ISDEV = False
-ISDEBUG = True  # 别轻易开启,很卡的
+ISDEBUG = False  # 别轻易开启,很卡的
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 baseInfoFileName = "baseInfo.json"
 baseInfoDir = os.path.join(THIS_FOLDER, baseInfoFileName)
@@ -320,6 +321,7 @@ class BaseInfo(object):
                 self.__dict__[name] = self.__dict__["baseinfo"][name]
         elif name in self.__dict__["baseinfo"]:
             self.__dict__[name] = self.__dict__["baseinfo"][name]
+            return self.__dict__["baseinfo"][name]
         else:
             raise TypeError("找不到数据:" + name)
         return self.__dict__[name]
@@ -328,6 +330,7 @@ class BaseInfo(object):
 """开始的一段检测"""
 try:
     cardPrevDialog = __import__("1423933177").card_window.external_card_dialog
+    SingleCardPreviewer = __import__("1423933177").card_window.SingleCardPreviewer
 except:
     cardPrevDialog = None
     showInfo(say("请安装插件1423933177,否则将无法点击链接预览卡片"))
