@@ -84,6 +84,7 @@ class AnchorDialog(QDialog, Ui_anchor):
     def init_events(self):
         """响应右键菜单,拖拽,绑定更新数据,思考如何实现变化后自动加载.如果实现不了,暂时先使用模态对话框 """
         self.closeEvent = self.onClose
+        self.anchorTree.doubleClicked.connect(self.onDoubleClick)
         self.anchorTree.dropEvent = self.onDrop
         self.anchorTree.customContextMenuRequested.connect(self.onAnchorTree_contextMenu)
         self.linkedEvent.connect(self.onRebuild)
@@ -166,6 +167,13 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.field_model_save_suite(nocheck=True)
         self.anchorTree.expandAll()
         self.treeIsExpanded = True
+
+    def onDoubleClick(self, index, *args, **kwargs):
+        """双击事件响应"""
+        item = self.model.itemFromIndex(index)
+        if cardPrevDialog is not None and item.column() == 0 and item.self_attrs["character"] == "card_id":
+            card = self.input.model.col.getCard(int(item.text()))
+            cardPrevDialog(card)
 
     def onAnchorTree_contextMenu(self, *args, **kwargs):
         """初始化右键菜单"""

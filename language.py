@@ -30,7 +30,7 @@ def rosetta(text: str = ""):
         "将选中卡片编组插入": "insert as group",
         "调整config": "configuration",
         "查看版本和新特性": "version and what's new",
-        "打开插件页面": "open webSite",
+        "打开插件页面": "open code repository",
         "链接": "link",
         "清空input": "clear input",
         "打开input": "open input",
@@ -83,7 +83,8 @@ def rosetta(text: str = ""):
         "抱歉,组名中暂时不能用空格与标点符号,否则会报错": "the name of group cannot contain non-word character",
         "已更新": "updated",
         "选中插入": "selected insert to input",
-        "anchor数据为空": "the anchor data is empty"
+        "anchor数据为空": "the anchor data is empty",
+        "请多多转发支持!": "Please let more people know hjp-bilink "
     }
     translateFuncs = {
         "en": En,

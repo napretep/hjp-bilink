@@ -19,7 +19,7 @@ def func_contactMe():
 
 
 def func_supportMe():
-    showInfo("请多多转发支持!")
+    showInfo(say("请多多转发支持!"))
 
 
 def func_anchorUpdate():

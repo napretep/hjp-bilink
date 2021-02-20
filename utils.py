@@ -78,6 +78,9 @@ def wrapper_webview_refresh(func):
                 mw.reviewer.show()
         consoler_Name = BaseInfo().dialogName
         position = "card_preview"
+        if mw.state == "review":
+            mw.reviewer.cleanup()
+            mw.reviewer.show()
         if consoler_Name in mw.__dict__ and position in mw.__dict__[consoler_Name]:
             for k in mw.__dict__[consoler_Name][position]:
                 k.render_card()
