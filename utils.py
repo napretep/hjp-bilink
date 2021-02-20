@@ -23,17 +23,64 @@ baseInfoFileName = "baseInfo.json"
 baseInfoDir = os.path.join(THIS_FOLDER, baseInfoFileName)
 
 
+def wrapper_mw_previewer_register(func):
+    """注册到mw.__dict__[consoler_Name][previewer] """
+
+    def register(*args, **kwargs):
+        """用来给previewer对象加一些内容"""
+        consoler_Name = BaseInfo().dialogName
+        self = args[0]
+        result = func(*args, **kwargs)
+        position = "card_preview"
+        if consoler_Name not in mw.__dict__:
+            mw.__dict__[consoler_Name] = {}
+        consoler = mw.__dict__[consoler_Name]
+        if position not in consoler:
+            consoler[position] = {}
+        consoler[position][self] = self
+        return result
+
+    return register
+
+
+def wrapper_mw_previewer_unregister(func):
+    """注销mw.__dict__[consoler_Name][previewer] """
+
+    def register(*args, **kwargs):
+        """用来给previewer对象加一些内容"""
+        consoler_Name = BaseInfo().dialogName
+        position = "card_preview"
+        self = args[0]
+        result = func(*args, **kwargs)
+        if consoler_Name not in mw.__dict__:
+            mw.__dict__[consoler_Name] = {}
+        consoler = mw.__dict__[consoler_Name]
+        if position not in consoler:
+            consoler[position] = {}
+        del consoler[position][self]
+        return result
+
+    return register
+
+
 def wrapper_webview_refresh(func):
     """刷新ankiWebView"""
 
     def refresh(*args, **kwargs):
+        """在被包裹的函数执行完后刷新"""
         self = args[0]
         parent = self.parent
         result = func(*args, **kwargs)
-        if parent.title == "previewer":
-            parent.parent().render_card()
-        if parent.title == "main webview":
-            mw.reviewer.show()
+        if isinstance(parent, AnkiWebView):
+            if parent.title == "previewer":
+                parent.parent().render_card()
+            if parent.title == "main webview":
+                mw.reviewer.show()
+        consoler_Name = BaseInfo().dialogName
+        position = "card_preview"
+        if consoler_Name in mw.__dict__ and position in mw.__dict__[consoler_Name]:
+            for k in mw.__dict__[consoler_Name][position]:
+                k.render_card()
         return result
 
     return refresh
@@ -44,6 +91,7 @@ def wrapper_browser_refresh(func):
 
     @functools.wraps(func)
     def refresh(*args, **kwargs):
+        """在被包裹的函数执行完后刷新"""
         if dialogs._dialogs["Browser"][1] is not None:
             browser = dialogs._dialogs["Browser"][1]
             browser.maybeRefreshSidebar()
@@ -103,7 +151,6 @@ def logfunc(func):
     return wrap_log
 
 
-
 class MetaClass_loger(type):
     """"监控元类"""
 
@@ -140,7 +187,6 @@ class Pair:
         if "dir" not in pair:
             self.dir = "→"
 
-
     @property
     def int_card_id(self):
         """用方法伪装属性,好处是不必担心加入input出问题"""
@@ -162,6 +208,7 @@ class Pair:
         if self.__dict__.__contains__(name) and self.__dict__[name] is not None:
             return True
         return False
+
 
 class Params:
     """参数对象"""
@@ -270,12 +317,12 @@ class console:
         return self
 
 
-configFileName = "user_files/config.json" if not ISDEV else "user_files/configdev.json"
-configSchemaFileName = "config.schema.json"
-configHTMLFileName = "config.html"
-configTemplateFileName = "config.template.json"
-helpFileName = "README.md"
-versionFileName = "version.html"
+# configFileName = "user_files/config.json" if not ISDEV else "user_files/configdev.json"
+# configSchemaFileName = "config.schema.json"
+# configHTMLFileName = "config.html"
+# configTemplateFileName = "config.template.json"
+# helpFileName = "README.md"
+# versionFileName = "version.html"
 relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"
@@ -283,12 +330,14 @@ logFileName = "log.txt"
 USER_FOLDER = os.path.join(THIS_FOLDER, "user_files")
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
-inputSchema = {"IdDescPairs": [], "addTag": ""}
-consolerName = "hjp-bilink|"
-algPathDict = {
-    "desc": ["默认连接", "完全图连接", "组到组连接", "按结点取消连接", "按路径取消连接"],
-    "mode": [999, 0, 1, 2, 3]
-}
+
+
+# inputSchema = {"IdDescPairs": [], "addTag": ""}
+# consolerName = "hjp-bilink|"
+# algPathDict = {
+#     "desc": ["默认连接", "完全图连接", "组到组连接", "按结点取消连接", "按路径取消连接"],
+#     "mode": [999, 0, 1, 2, 3]
+# }
 
 
 class BaseInfo(object):
@@ -330,10 +379,15 @@ class BaseInfo(object):
 """开始的一段检测"""
 try:
     cardPrevDialog = __import__("1423933177").card_window.external_card_dialog
-    SingleCardPreviewer = __import__("1423933177").card_window.SingleCardPreviewer
+    SingleCardPreviewerMod = __import__("1423933177").card_window.SingleCardPreviewerMod
 except:
     cardPrevDialog = None
     showInfo(say("请安装插件1423933177,否则将无法点击链接预览卡片"))
 
 if not os.path.exists(os.path.join(PREV_FOLDER, advancedBrowserDir)):
     showInfo(say("请安装插件564851917,否则将无法折叠标签,我们每次链接都会产生标签"))
+
+Previewer.__init__ = wrapper_mw_previewer_register(Previewer.__init__)
+Previewer.close = wrapper_mw_previewer_unregister(Previewer.close)
+# SingleCardPreviewerMod.__init__ = wrapper_mw_previewer_register(SingleCardPreviewerMod.__init__)
+# SingleCardPreviewerMod.close = wrapper_mw_previewer_unregister(SingleCardPreviewerMod.close)

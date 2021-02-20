@@ -43,7 +43,8 @@ class InputDialog(QDialog, Ui_input):
         self.setupUi(self)
         self.inputTree.parent = self
         iconDir = os.path.join(THIS_FOLDER, self.baseinfo.baseinfo["iconFile_input"])
-        self.setWindowIcon(QIcon(iconDir))
+        # self.setWindowIcon(QIcon(iconDir))
+        self.setWindowIcon(QIcon(":/" + self.baseinfo.baseinfo["iconFile_input"]))
         self.inputTree.customContextMenuRequested.connect(self.onInputTree_contextMenu)
 
     # noinspection PyAttributeOutsideInit

@@ -82,7 +82,8 @@ def rosetta(text: str = ""):
         "新建组": "create new group",
         "抱歉,组名中暂时不能用空格与标点符号,否则会报错": "the name of group cannot contain non-word character",
         "已更新": "updated",
-        "选中插入": "selected insert to input"
+        "选中插入": "selected insert to input",
+        "anchor数据为空": "the anchor data is empty"
     }
     translateFuncs = {
         "en": En,

@@ -93,6 +93,7 @@ def func_menuAddAnchorMenu(*args, **kwargs):
     param = Params(**kwargs)
     cfg = BaseInfo()
     prefix = cfg.consolerName if "prefix" in param.features else ""
+
     func_actionMenuConnector(actionName=f"{prefix}{say('打开anchor')}", action=func_openAnchor, **kwargs)
 
 # @debugWatcher

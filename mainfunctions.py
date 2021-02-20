@@ -156,6 +156,8 @@ class LinkStarter(QObject):
         self.func_linkStarter(*args, **kwargs)
         self.linkedSignal.emit()
 
+    @wrapper_webview_refresh
+    @wrapper_browser_refresh
     def func_linkStarter(self, *args, **kwargs):
         """开始链接的入口,预处理,根据模式选择一种链接算法"""
         param = Params(**kwargs)
@@ -183,7 +185,6 @@ class LinkStarter(QObject):
         if param.input.baseinfo.config_obj.addTagEnable == 1 and "noTag" not in param.features:
             param.input.note_addTagAll()
             browser.model.search(f"tag:{param.input.tag}*")
-        if mw.state == "review": mw.reviewer.show()
         if isinstance(param.parent, AnkiWebView):
             if param.parent.title == "previewer":
                 param.parent.parent().render_card()

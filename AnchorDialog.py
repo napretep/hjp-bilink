@@ -28,6 +28,7 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def __init__(self, pair: Pair, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
+        self.anchorDataIsEmpty = False
         self.input = Input()
         self.parent = parent
         self.model_subgroupdict = {}
@@ -279,6 +280,13 @@ class AnchorDialog(QDialog, Ui_anchor):
             cardinfo[pair.card_id] = pair
         self.model_dataJSON: Dict = dataJSON
         self.model_dataobj["groupinfo"] = {}
+        if len(pairli) == 0:
+            self.anchorDataIsEmpty = True
+        if self.model_dataJSON is None:
+            self.model_dataJSON = {}
+        if "menuli" not in self.model_dataJSON:
+            self.model_dataJSON["menuli"] = []
+            self.model_dataJSON["groupinfo"] = {}
         if len(self.model_dataJSON["menuli"]) == 0:
             self.model_dataJSON["menuli"] = [{"card_id": pair.card_id, "type": "cardinfo"} for pair in pairli]
         for k, v in self.model_dataJSON["groupinfo"].items():
@@ -373,6 +381,8 @@ class AnchorDialog(QDialog, Ui_anchor):
         这里load时要做的事情是,把model_item和pairdict以及在本锚点管理器中用到的groupinfo关联起来,确保后面的联动修改.
         """
         self.dataobj_field_load()
+        if self.anchorDataIsEmpty:
+            return
         self.model_rootNode.clearData()
         self.model.removeRows(0, self.model.rowCount())
         menuli, groupinfo, root = self.model_dataobj["menuli"], self.model_dataobj["groupinfo"], self.model_rootNode
