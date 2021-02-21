@@ -28,7 +28,6 @@ def checkUpdate():
                   ensure_ascii=False)
         func_version()
 
-
 def data_selectedFromBrowserTable(browser, *args, **kwargs):
     """从?"""
     cardLi: List[str] = list(map(lambda x: str(x), browser.selectedCards()))

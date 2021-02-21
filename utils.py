@@ -344,14 +344,18 @@ RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
 
 
 class BaseInfo(object):
-    """解决大量赋值消耗内存的情况"""
+    """解决大量赋值消耗内存的情况
+    注意你提取的属性结尾
+    """
 
     def __init__(self):
+
         self.baseinfo = Params(**json.load(open(baseInfoDir, "r", encoding="utf-8")))
+        self.template = self.baseinfo.configTemplateJSON
 
     def path_get(self, name, dirName=THIS_FOLDER):
         """返回文件路径"""
-        return os.path.join(THIS_FOLDER, self.baseinfo[name + "FileName"])
+        return os.path.join(dirName, self.baseinfo[name + "FileName"])
 
     def file_open_r(self, path, as_="JSON"):
         """返回dict或者list"""
@@ -367,9 +371,9 @@ class BaseInfo(object):
         if name not in self.__dict__:
             if name[-3:] == "Dir":
                 self.__dict__[name] = self.path_get(name[:-3])
-            if name[-4:] in ["JSON", "File", "_obj"]:
+            elif name[-4:] in ["JSON", "File", "_obj"]:
                 self.__dict__[name] = self.file_open_r(self.path_get(name[:-4]), as_=name[-4:])
-            if name[-4:] in ["Site", "Name"]:
+            elif name[-4:] in ["Site", "Name"]:
                 self.__dict__[name] = self.__dict__["baseinfo"][name]
         elif name in self.__dict__["baseinfo"]:
             self.__dict__[name] = self.__dict__["baseinfo"][name]

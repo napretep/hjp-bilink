@@ -2,7 +2,7 @@ from anki.lang import *
 
 
 def rosetta(text: str = ""):
-    # return text
+    """# return text"""
     lang = currentLang
 
     surrport = ["zh-CN", "zh_TW", "en", "en-GB"]
@@ -52,7 +52,7 @@ def rosetta(text: str = ""):
         '全部展开/折叠': "Expand/Collapse All",
         '选中删除': "deleteSelected",
         "选中链接": "linkSelected",
-        "升级旧版锚点": "old version(<0.6) linked anchors update",
+        "升级旧版(小于等于0.6的版本)锚点": "old version(<=0.6) linked anchors update",
         "错误:字段中的HTML无法读取": "error:can't read HTML in card.field",
         "联系作者": "contact author",
         "支持作者": "support author",
@@ -84,7 +84,7 @@ def rosetta(text: str = ""):
         "已更新": "updated",
         "选中插入": "selected insert to input",
         "anchor数据为空": "the anchor data is empty",
-        "请多多转发支持!": "Please let more people know hjp-bilink "
+        "请多多转发支持!": "Please let more people know hjp-bilink! "
     }
     translateFuncs = {
         "en": En,
