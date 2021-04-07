@@ -5,7 +5,7 @@
 import json
 
 from .inputObj import *
-from .configdialog_UI import Ui_config
+from .UIdialog_Config import Ui_config
 
 
 class ConfigDialog(QDialog, Ui_config):

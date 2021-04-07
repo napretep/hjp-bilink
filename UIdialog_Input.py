@@ -13,6 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_input(object):
     def setupUi(self, input):
+
         input.setObjectName("input")
         input.setEnabled(True)
         input.resize(500, 300)
@@ -46,7 +47,7 @@ class Ui_input(object):
         self.inputTree.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.inputTree.setTabKeyNavigation(True)
         self.inputTree.setDragEnabled(True)
-        self.inputTree.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.inputTree.setDragDropMode(QtWidgets.QAbstractItemView.DragDrop)
         self.inputTree.setDefaultDropAction(QtCore.Qt.MoveAction)
         self.inputTree.setAlternatingRowColors(True)
         self.inputTree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)

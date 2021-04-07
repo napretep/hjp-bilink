@@ -7,6 +7,8 @@ from aqt import gui_hooks
 from .mainfunctions import *
 from .utils import *
 
+mw.__dict__[BaseInfo().dialogName] = {}
+
 
 def func_actionMenuConnector(*args, **kwargs):
     """执行动作链接的一个辅助函数"""
@@ -15,11 +17,21 @@ def func_actionMenuConnector(*args, **kwargs):
     menu.addAction(actionName).triggered.connect(lambda: action(**kwargs))
 
 
+def func_menuAddAlterDeck(*args, **kwargs):
+    """添加卡组操作:移动,创建"""
+
+
+def func_menuAddAlterTag(*args, **kwargs):
+    """添加标签操作:添加,移除,创建"""
+
+
 def func_resetConfig():
+    """重置config窗口"""
     base = BaseInfo()
     json.dump(base.configTemplateJSON, open(base.configDir, "w", encoding="utf-8"), indent=4,
               ensure_ascii=False)
     tooltip(say("参数表重置成功"))
+
 
 # @debugWatcher
 def func_menuAddBrowserInsert(*args, **kwargs):
@@ -104,51 +116,6 @@ def func_menuAddHelper(*args, **kwargs):
         func_menuAdderLi[action](**kwargs)
 
 
-def func_add_browsermenu(browser: Browser = None):
-    """给browser的bar添加按钮"""
-    if hasattr(browser, "hjp_bilink"):
-        menu: QMenu = browser.hjp_bilink
-    else:
-        menu = browser.hjp_bilink = QMenu("hjp_bilink")
-        browser.menuBar().addMenu(browser.hjp_bilink)
-    '''
-    链接:5个,插入:3个,打开,清空,配置,版本,帮助
-    '''
-    func_menuAddHelper(menu=menu, parent=browser, actionTypes=["link", "browserinsert", "clear_open", "basicMenu"])
-
-
-# @debugWatcher
-def fun_add_browsercontextmenu(browser: Browser, menu: QMenu):
-    """用来给browser加上下文菜单"""
-    func_menuAddHelper(menu=menu, parent=browser, features=["prefix"], actionTypes=["browserinsert"])
-
-
-def func_add_editorcontextmenu(view: AnkiWebView, menu: QMenu):
-    """用来给editor界面加上下文菜单"""
-    editor = view.editor
-    selected = editor.web.selectedText()
-    try:
-        card_id = editor.card.id
-    except:
-        console(say("由于这里无法读取card_id, 链接菜单不在这显示")).talk.end()
-        return
-
-    func_menuAddHelper(menu=menu, parent=view, pair=Pair(card_id=str(card_id), desc=selected),
-                       features=["prefix"], actionTypes=["insert", "clear_open", ])
-
-
-def func_add_webviewcontextmenu(view: AnkiWebView, menu: QMenu):
-    """正如其名,给webview加右键菜单"""
-    selected = view.page().selectedText()
-    cid = "0"
-    if view.title == "main webview" and mw.state == "review":
-        cid = mw.reviewer.card.id
-    elif view.title == "previewer" and view.parent() is not None and view.parent().card() is not None:
-        cid = view.parent().card().id
-    if cid != "0":
-        func_menuAddHelper(pair=Pair(desc=selected, card_id=str(cid)), features=["prefix"],
-                           parent=view, menu=menu, actionTypes=["link", "insert", "clear_open", "anchor"])
-
 
 func_menuAdderLi = {
     "link": func_menuAddLink,
@@ -156,11 +123,7 @@ func_menuAdderLi = {
     "clear_open": func_menuAddClearOpen,
     "basicMenu": func_menuAddBaseMenu,
     "insert": func_menuAddSingleInsert,
-    "anchor": func_menuAddAnchorMenu
+    "anchor": func_menuAddAnchorMenu,
+    "alter_deck": func_menuAddAlterDeck,
+    "alter_tag": func_menuAddAlterTag
 }
-
-gui_hooks.browser_menus_did_init.append(func_add_browsermenu)
-gui_hooks.browser_will_show_context_menu.append(fun_add_browsercontextmenu)
-gui_hooks.profile_will_close.append(func_onProgramClose)
-gui_hooks.editor_will_show_context_menu.append(func_add_editorcontextmenu)
-gui_hooks.webview_will_show_context_menu.append(func_add_webviewcontextmenu)

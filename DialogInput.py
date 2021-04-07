@@ -3,7 +3,7 @@
 """
 
 from . import MenuAdder
-from .inputdialog_UI import Ui_input
+from .UIdialog_Input import Ui_input
 from .inputObj import *
 
 
@@ -54,10 +54,11 @@ class InputDialog(QDialog, Ui_input):
         # self.closeEvent = self.onClose
         self.inputTree.doubleClicked.connect(self.onDoubleClick)
         self.inputTree.dropEvent = self.onDrop
+        self.inputTree.dragEnterEvent = self.onDragEnter
         self.closeEvent = self.onClose
         self.fileWatcher = QFileSystemWatcher()
         self.fileWatcher.addPath(self.baseinfo.inputDir)
-        self.fileWatcher.fileChanged.connect(self.model_JSON_load)
+        self.fileWatcher.fileChanged.connect(self.model_dataobj_load)
         self.model.dataChanged.connect(self.file_model_save)
         self.tagContent.textChanged.connect(self.file_tag_save)
 
@@ -72,8 +73,11 @@ class InputDialog(QDialog, Ui_input):
         self.model_rootNode.setDragEnabled(False)
         self.model.setHorizontalHeaderLabels(["card_id", "desc"])
         self.inputTree.setModel(self.model)
-        self.model_JSON_load()
+        self.model_dataobj_load()
 
+    def onDragEnter(self, e):
+        """移入事件"""
+        e.acceptProposedAction()
 
     # @debugWatcher
     def onInputTree_contextMenu(self, *args, **kwargs):
@@ -115,13 +119,30 @@ class InputDialog(QDialog, Ui_input):
         parent = item[0].parent() if item[0].parent() is not None else self.model_rootNode
         return parent.takeRow(item[0].row())
 
+    def itemGroup_create(self, parent=None):
+        """创建group"""
+        if parent:
+            root = parent
+        else:
+            root = self.model_rootNode
+        item_group = QStandardItem("group")
+        item_group.self_attrs = {"character": "group", "level": 0, "primData": item_group}
+        item_group.setFlags(item_group.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsSelectable)
+        item_empty = QStandardItem("")
+        item_empty.setFlags(item_empty.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
+        item_group.self_attrs = {"character": "empty", "level": 0, "primData": item_group}
+        root.appendRow([item_group, item_empty])
+        return item_group
+
     # @debugWatcher
     def onDrop(self, *args, **kwargs):
         """掉落事件响应"""
         e = args[0]
+        mimeData = e.mimeData()
         root = self.model_rootNode
         drop_row = self.inputTree.indexAt(e.pos())
         item_target = self.model.itemFromIndex(drop_row)
+
         selectedIndexesLi = self.inputTree.selectedIndexes()
         selectedItemLi_ = list(map(self.model.itemFromIndex, selectedIndexesLi))
         selectedItemLi = []
@@ -129,17 +150,13 @@ class InputDialog(QDialog, Ui_input):
             selectedItemLi.append([selectedItemLi_[2 * i], selectedItemLi_[2 * i + 1]])
         item_finalLi = [self.itemChild_row_remove(i) for i in selectedItemLi]
         if item_target is None:
-            group = QStandardItem("group")
-            group.level = 0
-            group.setFlags(group.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsSelectable)
-            self.model_rootNode.appendRow(group)
-            item_target = group
+            item_target = self.itemGroup_create()
         target_parent = item_target.parent() if item_target.parent() is not None else root
         if item_target.column() > 0:
             item_target = target_parent.child(item_target.row(), 0)
-        if item_target.level == 0:
+        if item_target.self_attrs["level"] == 0:
             list(map(lambda x: item_target.appendRow(x), item_finalLi))
-        if item_target.level == 1:
+        if item_target.self_attrs["level"] == 1:
             self.itemChild_row_insert(item_target.parent(), item_target, item_finalLi)
         j = 0
         for i in range(root.rowCount()):
@@ -154,7 +171,8 @@ class InputDialog(QDialog, Ui_input):
     def onDoubleClick(self, index, *args, **kwargs):
         """双击事件响应"""
         item = self.model.itemFromIndex(index)
-        if cardPrevDialog is not None and item.column() == 0 and item.level == 1 and item.character == "card_id":
+        if cardPrevDialog is not None and item.column() == 0 \
+                and item.self_attrs["level"] == 1 and item.self_attrs["character"] == "card_id":
             card = self.input.model.col.getCard(int(item.text()))
             cardPrevDialog(card)
 
@@ -209,32 +227,31 @@ class InputDialog(QDialog, Ui_input):
         self.tagContent.setText(self.input.dataLoad().tag)
 
     # @debugWatcher
-    def model_JSON_load(self, *args, **kwargs):
+    def model_dataobj_load(self, *args, **kwargs):
         """从JSON读取到模型"""
         self.model_data: List[List[Pair]] = self.input.dataLoad().val()
         self.model_rootNode.clearData()
         self.model.removeRows(0, self.model.rowCount())
+        root = self.model_rootNode
+
         for group in self.model_data:
-            parent = QStandardItem("group")
-            parent.level = 0
-            parent.setFlags(parent.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsSelectable)
-            emptyNode = QStandardItem("")
-            emptyNode.setFlags(
-                emptyNode.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsSelectable & ~Qt.ItemIsDropEnabled)
-            self.model_rootNode.appendRow([parent, emptyNode])
-            # self.model_rootNode.child(parent.row(), 1) = None
-            for pair in group:
-                child1, child2 = QStandardItem(pair.card_id), QStandardItem(pair.desc)
-                child1.setFlags(child1.flags() & ~Qt.ItemIsEditable)  # 不可编辑
-                child2.setFlags(child2.flags() & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
-                child1.level = child2.level = 1
-                child1.character = "card_id"
-                child2.character = "desc"
-                parent.appendRow([child1, child2])
+            parent = self.itemGroup_create()
+            for info in group:
+                self.carditem_make(info, level=1, parent=parent)
         self.lastrowcount = self.model_rootNode.rowCount()
         self.inputTree.expandAll()
         self.treeIsExpanded = True
         self.model_tag_load()
+
+    def carditem_make(self, pair, level=0, parent=None):
+        """一个简便的函数"""
+        if parent is None: parent = self.model_rootNode
+        item_id, item_desc = QStandardItem(pair.card_id), QStandardItem(pair.desc)
+        item_id.setFlags(item_id.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled)
+        item_desc.setFlags(item_desc.flags() & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
+        item_id.self_attrs = {"character": "card_id", "level": level, "primData": pair}
+        item_desc.self_attrs = {"character": "desc", "level": level, "primData": pair}
+        parent.appendRow([item_id, item_desc])
 
     # @debugWatcher
     def JSON_model_load(self, *args, **kwargs):

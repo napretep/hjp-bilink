@@ -2,7 +2,6 @@
 from .MenuAdder import *
 from aqt.webview import AnkiWebPage
 
-
 def checkUpdate():
     """检查更新,检查配置表是否对应"""
     needUpdate = False
@@ -82,8 +81,11 @@ def shortcut_browserTableSelected_insert(browser: Browser, *args, **kwargs):
 
 def wrapper_shortcut(func):
     def shortcutconnect(k, v, self_, *args, **kwargs):
-        self_.__dict__["hjp_bilink_action" + k] = \
-            QShortcut(QKeySequence(v[0]), self_, activated=lambda: v[1](self_, *args, **kwargs))
+        if v[0] != "":
+            self_.__dict__["hjp_bilink_action" + k] = \
+                QShortcut(QKeySequence(v[0]), self_, activated=lambda: v[1](self_, *args, **kwargs))
+        else:
+            return None
 
     @functools.wraps(func)
     def shortCut_add(self, *args, **kwargs):
@@ -102,8 +104,9 @@ def wrapper_shortcut(func):
 def shortcut_addto_originalcode(*arg, **kwargs):
     """用来绑定快捷键,有些快捷键还是失效的,需要再改进 TODO"""
     Browser.__init__ = wrapper_shortcut(Browser.__init__)
-    AnkiWebView.__init__ = wrapper_shortcut(AnkiWebView.__init__)
-    EditorWebView.__init__ = wrapper_shortcut(EditorWebView.__init__)
+    # 下面的快捷键不支持
+    # AnkiWebView.__init__ = wrapper_shortcut(AnkiWebView.__init__)
+    # EditorWebView.__init__ = wrapper_shortcut(EditorWebView.__init__)
 
 
 def HTML_injecttoweb(htmltext, card, kind):
@@ -125,9 +128,55 @@ def HTML_injecttoweb(htmltext, card, kind):
         return htmltext
 
 
+def func_add_browsermenu(browser: Browser = None):
+    """给browser的bar添加按钮"""
+    if hasattr(browser, "hjp_bilink"):
+        menu: QMenu = browser.hjp_bilink
+    else:
+        menu = browser.hjp_bilink = QMenu("hjp_bilink")
+        browser.menuBar().addMenu(browser.hjp_bilink)
+    '''
+    链接:5个,插入:3个,打开,清空,配置,版本,帮助
+    '''
+    func_menuAddHelper(menu=menu, parent=browser, actionTypes=["link", "browserinsert", "clear_open", "basicMenu"])
+
+
+# @debugWatcher
+def fun_add_browsercontextmenu(browser: Browser, menu: QMenu):
+    """用来给browser加上下文菜单"""
+    func_menuAddHelper(menu=menu, parent=browser, features=["prefix"], actionTypes=["browserinsert"])
+
+
+def func_add_editorcontextmenu(view: AnkiWebView, menu: QMenu):
+    """用来给editor界面加上下文菜单"""
+    editor = view.editor
+    selected = editor.web.selectedText()
+    try:
+        card_id = editor.card.id
+    except:
+        console(say("由于这里无法读取card_id, 链接菜单不在这显示")).talk.end()
+        return
+
+    func_menuAddHelper(menu=menu, parent=view, pair=Pair(card_id=str(card_id), desc=selected),
+                       features=["prefix"], actionTypes=["insert", "clear_open", ])
+
+
+def func_add_webviewcontextmenu(view: AnkiWebView, menu: QMenu):
+    """正如其名,给webview加右键菜单"""
+    selected = view.page().selectedText()
+    cid = "0"
+    if view.title == "main webview" and mw.state == "review":
+        cid = mw.reviewer.card.id
+    elif view.title == "previewer" and view.parent() is not None and view.parent().card() is not None:
+        cid = view.parent().card().id
+    if cid != "0":
+        func_menuAddHelper(pair=Pair(desc=selected, card_id=str(cid)), features=["prefix"],
+                           parent=view, menu=menu, actionTypes=["link", "insert", "clear_open", "anchor", "alter_deck",
+                                                                "alter_tag"])
+
+
 checkUpdate()
 
-mw.__dict__[BaseInfo().dialogName] = {}
 config = BaseInfo().config_obj
 
 globalShortcutDict = {
@@ -142,6 +191,10 @@ browserShortcutDict = {
 }
 placeDict = {"all": globalShortcutDict, "Browser": browserShortcutDict}
 
-gui_hooks.profile_did_open.append(shortcut_addto_originalcode)
+# gui_hooks.profile_did_open.append(shortcut_addto_originalcode)
 gui_hooks.card_will_show.append(HTML_injecttoweb)
-
+gui_hooks.browser_menus_did_init.append(func_add_browsermenu)
+gui_hooks.browser_will_show_context_menu.append(fun_add_browsercontextmenu)
+gui_hooks.profile_will_close.append(func_onProgramClose)
+gui_hooks.editor_will_show_context_menu.append(func_add_editorcontextmenu)
+gui_hooks.webview_will_show_context_menu.append(func_add_webviewcontextmenu)

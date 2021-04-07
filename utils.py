@@ -17,7 +17,7 @@ from aqt.previewer import Previewer
 from aqt.webview import AnkiWebView
 
 ISDEV = False
-ISDEBUG = False  # 别轻易开启,很卡的
+ISDEBUG = True  # 别轻易开启,很卡的
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 baseInfoFileName = "baseInfo.json"
 baseInfoDir = os.path.join(THIS_FOLDER, baseInfoFileName)
@@ -320,12 +320,6 @@ class console:
         return self
 
 
-# configFileName = "user_files/config.json" if not ISDEV else "user_files/configdev.json"
-# configSchemaFileName = "config.schema.json"
-# configHTMLFileName = "config.html"
-# configTemplateFileName = "config.template.json"
-# helpFileName = "README.md"
-# versionFileName = "version.html"
 relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"
@@ -334,13 +328,6 @@ USER_FOLDER = os.path.join(THIS_FOLDER, "user_files")
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
 
-
-# inputSchema = {"IdDescPairs": [], "addTag": ""}
-# consolerName = "hjp-bilink|"
-# algPathDict = {
-#     "desc": ["默认连接", "完全图连接", "组到组连接", "按结点取消连接", "按路径取消连接"],
-#     "mode": [999, 0, 1, 2, 3]
-# }
 
 
 class BaseInfo(object):
@@ -351,11 +338,12 @@ class BaseInfo(object):
     def __init__(self):
 
         self.baseinfo = Params(**json.load(open(baseInfoDir, "r", encoding="utf-8")))
-        self.template = self.baseinfo.configTemplateJSON
+        # self.template = self.configTemplateJSON
 
     def path_get(self, name, dirName=THIS_FOLDER):
         """返回文件路径"""
-        return os.path.join(dirName, self.baseinfo[name + "FileName"])
+        path = os.path.join(dirName, self.baseinfo[name + "FileName"])
+        return path
 
     def file_open_r(self, path, as_="JSON"):
         """返回dict或者list"""
@@ -392,7 +380,7 @@ except:
     showInfo(say("请安装插件1423933177,否则将无法点击链接预览卡片"))
 
 if not os.path.exists(os.path.join(PREV_FOLDER, advancedBrowserDir)):
-    showInfo(say("请安装插件564851917,否则将无法折叠标签,我们每次链接都会产生标签"))
+    NOadvancedBrowser = True
 
 Previewer.__init__ = wrapper_mw_previewer_register(Previewer.__init__)
 Previewer.close = wrapper_mw_previewer_unregister(Previewer.close)

@@ -5,17 +5,27 @@
 from aqt import dialogs
 from aqt.browser import Browser
 from aqt.webview import AnkiWebView
-from .InputDialog import *
+from .DialogInput import *
 from .inputObj import *
 from .language import rosetta as say
 from .utils import *
-from .AnchorDialog import *
-from .ConfigDialog import *
+from .DialogAnchor import *
+from .DialogConfig import *
+from .DialogVersion import VersionDialog
+from .test import testwindow
 
 
 def func_contactMe():
+    # url =  QUrl(r"start chrome 'G:/备份/数学书大全/微分方程/俄罗斯数学教材选译-常微分方程（庞特里亚金）.pdf#page=20'")
     url = QUrl(BaseInfo().groupSite)
     QDesktopServices.openUrl(url)
+    # QProcess.start()
+    # # app = QApplication(sys.argv)
+    # mainWin = testwindow()
+    # # availableGeometry = app.desktop().availableGeometry(mainWin)
+    # # mainWin.resize(availableGeometry.width() * 2 / 3, availableGeometry.height() * 2 / 3)
+    # mainWin.exec()
+    # # sys.exit(app.exec_())
 
 
 def func_supportMe():
@@ -34,30 +44,32 @@ def func_config():
 
 def func_version():
     """返回版本号"""
-    base = BaseInfo()
-    vStr = base.versionFile
-    vJSON = base.configTemplateJSON
-    consolerName = base.consolerName
-    showInfo(vStr.format(version=vJSON["VERSION"], consolerName=consolerName), textFormat="rich")
+    # VersionDialog().exec()
+    DialogSingleCheck(VersionDialog)
 
 
 def func_help():
     """返回帮助页面"""
     Input().helpSite_open()
 
+
 def func_openInput(*args, **kwargs):
     """打开input对话框"""
+    DialogSingleCheck(InputDialog)
+
+
+def DialogSingleCheck(Dialog):
+    """单一窗口的打开"""
     consoler_Name = BaseInfo().dialogName
-    dialog = InputDialog.__name__
+    dialog = Dialog.__name__
     if dialog not in mw.__dict__[consoler_Name]:
         mw.__dict__[consoler_Name][dialog] = None
     if mw.__dict__[consoler_Name][dialog] is not None:
         mw.__dict__[consoler_Name][dialog].activateWindow()
     else:
-        mw.__dict__[consoler_Name][dialog] = InputDialog()
+        mw.__dict__[consoler_Name][dialog] = Dialog()
         mw.__dict__[consoler_Name][dialog].exec()
     """返回input窗口"""
-
 
 def func_openAnchor(*args, **kwargs):
     """打开anchor对话框"""
@@ -183,8 +195,13 @@ class LinkStarter(QObject):
         browser.editor.setNote(None)
         browser.model.reset()  # 关键作用
         if param.input.baseinfo.config_obj.addTagEnable == 1 and "noTag" not in param.features:
-            param.input.note_addTagAll()
-            browser.model.search(f"tag:{param.input.tag}*")
+            if NOadvancedBrowser:
+                searchStr = " or ".join(["cid:" + p.card_id for p in param.input.dataflat_])
+            else:
+                param.input.note_addTagAll()
+                searchStr = f"tag:{param.input.tag}*"
+            console(searchStr).log.end()
+            browser.model.search(searchStr)
         if isinstance(param.parent, AnkiWebView):
             if param.parent.title == "previewer":
                 param.parent.parent().render_card()

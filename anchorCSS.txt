@@ -11,6 +11,10 @@
             一些button
 双花括号不可改为单花括号,否则会影响取值
 */
+#{container_L0} {{
+
+}}
+
 
 #{container_L0},
 button[card_id],

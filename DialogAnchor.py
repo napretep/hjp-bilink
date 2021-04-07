@@ -17,9 +17,11 @@ model_dataobj: 从model_dataJSON 读取数据转换为对象属性,保存于此
             - cardinfo:Dict[card_id:pair]#大部分信息都在这里
 linked_pairLi: 导出到HTML需要
 """
+from PyQt5 import QtWidgets
+
 from . import MenuAdder
 from .inputObj import *
-from .anchordialog_UI import Ui_anchor
+from .UIdialog_Anchor import Ui_anchor
 
 
 class AnchorDialog(QDialog, Ui_anchor):
@@ -75,20 +77,44 @@ class AnchorDialog(QDialog, Ui_anchor):
         mw.__dict__[addonName][dialog][card_id] = None
 
     def init_UI(self):
+        """UI初始化"""
         self.setupUi(self)
         self.anchorTree.parent = self
         self.setWindowTitle(f"Anchor of [desc={self.pair.desc},card_id={self.pair.card_id}]")
         icondir = os.path.join(THIS_FOLDER, self.baseinfo.baseinfo["iconFile_anchor"])
         self.setWindowIcon(QIcon(icondir))
+        self.setAcceptDrops(True)
+        self.acceptDrops()
+        self.anchorTree.setDragDropMode(QtWidgets.QAbstractItemView.DragDrop)
 
     def init_events(self):
         """响应右键菜单,拖拽,绑定更新数据,思考如何实现变化后自动加载.如果实现不了,暂时先使用模态对话框 """
         self.closeEvent = self.onClose
         self.anchorTree.doubleClicked.connect(self.onDoubleClick)
         self.anchorTree.dropEvent = self.onDrop
+        # self.anchorTree.mousePressEvent=self.onMousePress
         self.anchorTree.customContextMenuRequested.connect(self.onAnchorTree_contextMenu)
+        # self.anchorTree.mouseMoveEvent=self.onMouseMove
+        # self.anchorTree.dragLeaveEvent=self.onDragLeave
         self.linkedEvent.connect(self.onRebuild)
         self.model.dataChanged.connect(self.field_model_save_suite)
+
+    def onMousePress(self, e):
+        """鼠标点击事件"""
+        if e.button() == Qt.LeftButton:
+            self.drag_start_position = e.pos()
+
+    def onMouseMove(self, e):
+        drop_row = self.anchorTree.indexAt(e.pos())
+        item_target = self.model.itemFromIndex(drop_row)
+        drag = QDrag(self)
+        mimeData = QMimeData()
+        mimeData.setText("test")
+        drag.setMimeData(mimeData)
+        drag.exec_(Qt.MoveAction)
+
+    # def onDragLeave(self,e):
+    #     """leave事件重写"""
 
     def onClose(self, QCloseEvent):
         """保存数据,并且归零"""
@@ -397,6 +423,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         root.self_attrs["primData"] = {"menuli": menuli, "groupinfo": groupinfo, "model_item": root}
 
         def carditem_make(pair, level=0, parent=root):
+            """一个简便的函数"""
             item_id, item_desc = QStandardItem(pair.card_id), QStandardItem(pair.desc)
             item_id.setFlags(item_id.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled)
             item_desc.setFlags(item_desc.flags() & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
@@ -412,7 +439,10 @@ class AnchorDialog(QDialog, Ui_anchor):
                 item_group.self_attrs = {"character": "group", "level": 0, "primData": groupinfo[info.groupname]}
                 groupinfo[info.groupname]["model_item"] = item_group
                 item_empty = QStandardItem("")
-                item_empty.setFlags(item_empty.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled)
+                item_empty.setFlags(item_empty.flags()
+                                    & ~Qt.ItemIsEditable
+                                    & ~Qt.ItemIsDropEnabled
+                                    & ~Qt.ItemIsDragEnabled)
                 root.appendRow([item_group, item_empty])
                 for ginfo in groupinfo[info.groupname]["menuli"]:
                     carditem_make(self.model_dataobj["cardinfo"][ginfo], parent=item_group, level=1)
