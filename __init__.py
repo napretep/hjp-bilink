@@ -1,6 +1,9 @@
 """初试入口"""
-from .MenuAdder import *
-from aqt.webview import AnkiWebPage
+from aqt import gui_hooks
+
+from .lib.obj.HTML_converterObj import HTML_converter
+from .lib.obj.MenuAdder import *
+
 
 def checkUpdate():
     """检查更新,检查配置表是否对应"""
@@ -119,9 +122,12 @@ def HTML_injecttoweb(htmltext, card, kind):
         "clayoutQuestion",
         "clayoutAnswer",
     ]:
+        p = Input()
+        field = p.note_id_load(Pair(card_id=str(card.id))).fields[p.insertPosi]
+        fielddata = HTML_converter().feed(field).HTMLdata_load()
 
         html_addedButton = HTML_converter().feed(htmltext) \
-            .HTMLdata_load().HTMLdata_save().HTMLButton_selfdata_make().HTMLdata_save().HTML_get().HTML_text
+            .HTMLdata_load().HTMLdata_save().HTMLButton_selfdata_make(fielddata).HTMLdata_save().HTML_get().HTML_text
         console("最终结果:" + html_addedButton).log.end()
         return html_addedButton
     else:

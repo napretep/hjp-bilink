@@ -2,10 +2,8 @@
 配置文件的窗口
 """
 
-import json
-
-from .inputObj import *
-from .UIdialog_Config import Ui_config
+from ...lib.obj.inputObj import *
+from ...lib.dialogs.UIdialog_Config import Ui_config
 
 
 class ConfigDialog(QDialog, Ui_config):
@@ -19,11 +17,11 @@ class ConfigDialog(QDialog, Ui_config):
         self.configJSON: dict = {}
         self.configSchema = self.baseInfo.configSchemaJSON
         self.model_dataJSON = {}
-        self.UI_init()
-        self.model_init()
-        self.events_init()
+        self.init_UI()
+        self.init_model()
+        self.init_events()
 
-    def UI_init(self):
+    def init_UI(self):
         self.setupUi(self)
         self.textBrowser.setHtml(self.baseInfo.configHTMLFile)
         self.configTable.setAlternatingRowColors(True)
@@ -32,14 +30,14 @@ class ConfigDialog(QDialog, Ui_config):
         iconDir = os.path.join(THIS_FOLDER, self.baseInfo.baseinfo["iconFile_config"])
         self.setWindowIcon(QIcon(iconDir))
 
-    def events_init(self, *args, **kwargs):
+    def init_events(self, *args, **kwargs):
         """事件的初始化"""
         self.fileWatcher = QFileSystemWatcher()
         self.fileWatcher.addPath(self.baseInfo.configDir)
         self.fileWatcher.fileChanged.connect(self.model_JSON_load)
         self.model.dataChanged.connect(self.file_model_save)
 
-    def model_init(self, *args, **kwargs):
+    def init_model(self, *args, **kwargs):
         """模型数据的初始化"""
         self.model = QStandardItemModel()
         self.model_rootNode = self.model.invisibleRootItem()
@@ -74,9 +72,9 @@ class ConfigDialog(QDialog, Ui_config):
         item = self.model.itemFromIndex(topLeft)
         k = self.model_rootNode.child(item.row(), 0).text()
         v = self.model_rootNode.child(item.row(), 1).text()
-        v = self.safe_check(k, v)
-        if v != False:
-            self.configJSON[k] = v
+        isSafe = self.safe_check(k, v)
+        if isSafe:
+            self.configJSON[k] = self.value
             json.dump(self.configJSON, open(self.baseInfo.configDir, "w", encoding="utf-8"), indent=4,
                       ensure_ascii=False)
         else:
@@ -84,17 +82,21 @@ class ConfigDialog(QDialog, Ui_config):
 
     def safe_check(self, key, value):
         """检查数据合法性,
-        positive_int,检查数字合法性, filename检查文件名合法性
+        non_negative_int,检查数字合法性, filename检查文件名合法性
         默认都填入字符串,
         """
+        console(f"key={key},val={value}").log.end()
         data_schema = self.configSchema["data_schema"]
         if value == "" and key in data_schema["allow_empty"]:
             return True
         else:
-            if key in data_schema["data_type"]["positive_int"]:
+            if key in data_schema["data_type"]["non_negative_int"]:
                 try:
                     value = int(value)
                 except:
+                    tooltip(say(f"{value}不是正整数,不能成为{key}的值"))
+                    return False
+                if value < 0:
                     tooltip(say(f"{value}不是正整数,不能成为{key}的值"))
                     return False
             if key in data_schema["data_type"]["filename"]:
@@ -105,4 +107,5 @@ class ConfigDialog(QDialog, Ui_config):
                 if value not in data_schema["data_range"][key]:
                     tooltip(say(f"""{value}不能成为{key}的值,合法值为{data_schema["data_range"][key].__str__()}"""))
                     return False
-        return value
+        self.value = value
+        return True

@@ -12,12 +12,7 @@
     "addTagEnable",
     "addTagRoot",
     "button_appendTo_AnchorId",
-    "anchorCSSFileName",
-    "shortcut_browserTableSelected_link",
-    "shortcut_browserTableSelected_unlink",
-    "shortcut_browserTableSelected_insert",
-    "shortcut_inputFile_clear",
-    "shortcut_inputDialog_open"
+    "anchorCSSFileName"
   ],
   "data_schema": {
     "allow_empty": [
@@ -40,7 +35,7 @@
       ]
     },
     "data_type": {
-      "positive_int": [
+      "non_negative_int": [
         "appendNoteFieldPosition",
         "readDescFieldPosition",
         "descMaxLength",

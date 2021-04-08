@@ -1,15 +1,12 @@
 """
 用来设计input对象,把一些常用属性绑定起来.
 """
-import json
 from copy import deepcopy
 from functools import reduce
 
 from anki.notes import Note
-from aqt import mw
-from aqt.main import AnkiQt
 
-from .HTML_converter import HTML_converter
+from .HTML_converterObj import HTML_converter
 from .utils import *
 
 

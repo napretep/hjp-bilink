@@ -2,7 +2,6 @@
 专门用来加按钮的文件
 prefix 必须由consolerName规定
 """
-from aqt import gui_hooks
 
 from .mainfunctions import *
 from .utils import *
@@ -94,8 +93,8 @@ def func_menuAddClearOpen(*args, **kwargs):
 def func_menuAddBaseMenu(*args, **kwargs):
     """基础的如,help,config,version"""
     param = Params(**kwargs)
-    menuli = ["重置config", "调整config", "查看版本和新特性", "打开插件页面", "升级旧版(小于等于0.6的版本)锚点", "联系作者", "支持作者"]
-    funcli = [func_resetConfig, func_config, func_version, func_help, func_anchorUpdate, func_contactMe, func_supportMe]
+    menuli = ["调整config", "查看版本和新特性", "打开插件页面", "升级旧版(小于等于0.6的版本)锚点", "联系作者", "支持作者", "重置config"]
+    funcli = [func_config, func_version, func_help, func_anchorUpdate, func_contactMe, func_supportMe, func_resetConfig]
     menu = param.menu.addMenu(say("其他"))
     list(map(lambda x, y: menu.addAction(f"{say(x)}").triggered.connect(y), menuli, funcli))
 

@@ -1,9 +1,9 @@
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QAbstractItemView)
+from PyQt5.QtWidgets import (QAbstractItemView)
 import os
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from .utils import THIS_FOLDER, BaseInfo
+from ...lib.obj.utils import THIS_FOLDER, BaseInfo
 from aqt import mw
 
 VERSION_FOLDER = BaseInfo().baseinfo["versionsDir"]
@@ -63,7 +63,7 @@ class VersionDialog(QtWidgets.QDialog, Ui_version):
         fileLi = self.filelist
         self.list_model = QStandardItemModel()
         self.list_model_root = self.list_model.invisibleRootItem()
-        self.list_model.setHorizontalHeaderItem(0, QStandardItem("versions"))
+        self.list_model.setHorizontalHeaderItem(0, QStandardItem("../resource/versions"))
         self.versionlist.setModel(self.list_model)
         for filename in fileLi:
             self.list_model.appendRow(QStandardItem(filename[0:-5]))

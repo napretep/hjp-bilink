@@ -2,23 +2,20 @@
 debug函数
 一些常量
 """
-from typing import List, Tuple, Dict
-import datetime, types, functools, json
+import datetime, types, functools
 from aqt.utils import *
-from aqt import mw, AnkiQt, dialogs
-from .language import rosetta as say
-import copy
+from anki import version as V  # version 是 字符串 比如 "2.1.43"
+from aqt import mw, dialogs
+from .languageObj import rosetta as say
 import json
-import time
-from aqt.browser import Browser
-from aqt.editor import EditorWebView, Editor
-from aqt.reviewer import Reviewer
 from aqt.previewer import Previewer
 from aqt.webview import AnkiWebView
 
 ISDEV = False
 ISDEBUG = True  # 别轻易开启,很卡的
-THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+THIS_FOLDER = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+ver = [int(i) for i in V.split(".")]
 baseInfoFileName = "baseInfo.json"
 baseInfoDir = os.path.join(THIS_FOLDER, baseInfoFileName)
 
@@ -97,11 +94,11 @@ def wrapper_browser_refresh(func):
         """在被包裹的函数执行完后刷新"""
         if dialogs._dialogs["Browser"][1] is not None:
             browser = dialogs._dialogs["Browser"][1]
-            browser.maybeRefreshSidebar()
+            browser.sidebar.refresh()
             browser.model.layoutChanged.emit()
             browser.editor.setNote(None)
             result = func(*args, **kwargs)
-            browser.maybeRefreshSidebar()
+            browser.sidebar.refresh()
             browser.model.layoutChanged.emit()
             browser.editor.setNote(None)
             browser.model.reset()  # 关键作用
@@ -186,6 +183,9 @@ class Pair:
     """
 
     def __init__(self, **pair):
+        if "card_id" in pair:
+            if type(pair["card_id"]) is not str:
+                TypeError("card_id must be a string")
         self.__dict__ = pair
         if "dir" not in pair:
             self.dir = "→"
@@ -324,10 +324,9 @@ relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"
 logFileName = "log.txt"
-USER_FOLDER = os.path.join(THIS_FOLDER, "user_files")
+USER_FOLDER = os.path.join(THIS_FOLDER, "../../user_files")
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
-
 
 
 class BaseInfo(object):
@@ -370,6 +369,10 @@ class BaseInfo(object):
             raise TypeError("找不到数据:" + name)
         return self.__dict__[name]
 
+    def __getitem__(self, key):
+        """获取信息"""
+        return self.baseinfo[key]
+
 
 """开始的一段检测"""
 try:
@@ -379,8 +382,11 @@ except:
     cardPrevDialog = None
     showInfo(say("请安装插件1423933177,否则将无法点击链接预览卡片"))
 
-if not os.path.exists(os.path.join(PREV_FOLDER, advancedBrowserDir)):
-    NOadvancedBrowser = True
+if not os.path.exists(os.path.join(PREV_FOLDER, advancedBrowserDir)) and not (
+        ver[0] >= 2 and ver[1] >= 1 and ver[2] >= 43):
+    No_hierarchical_tag = True
+else:
+    No_hierarchical_tag = False
 
 Previewer.__init__ = wrapper_mw_previewer_register(Previewer.__init__)
 Previewer.close = wrapper_mw_previewer_unregister(Previewer.close)

@@ -2,9 +2,9 @@
 这个是input 对话窗口 DONE,还没做完.
 """
 
-from . import MenuAdder
-from .UIdialog_Input import Ui_input
-from .inputObj import *
+from ..obj import MenuAdder
+from ...lib.dialogs.UIdialog_Input import Ui_input
+from ...lib.obj.inputObj import *
 
 
 class InputDialog(QDialog, Ui_input):

@@ -2,16 +2,16 @@
 """
 写了个HTML toObject toJSON 解析器
 """
-import json
-import re
+from typing import Dict
 
 from bs4 import BeautifulSoup, element
 
+# from ..obj.inputObj import Input
 
 if __name__ == "__main__":
-    from utils import console, MetaClass_loger, Params, Pair, BaseInfo
+    from ...lib.obj.utils import console, MetaClass_loger, Params, Pair, BaseInfo
 else:
-    from .utils import *
+    from ...lib.obj.utils import *
 
 
 class HTML_converter(
@@ -111,27 +111,6 @@ class HTML_converter(
         # console("这里做完了pairLi_fromOldVer,看看root的值" + self.domRoot.__str__()).log.end()
         return pairLi
 
-    # def button_make(self, **args):
-    #     """用来创建按钮,需要提供pair,direction"""
-    #     # 新建bs4.element对象
-    #     self.fbtnmk_HTMLbutton = \
-    #         self.domRoot.new_tag(name="button", card_id=args["Id"], dir=args["direction"],
-    #                              onclick=f"""javascript:pycmd('{args["prefix"]}'+'{args["Id"]}');""",
-    #                              style=f"""'displaystyle:inline;font-size:inherit;{args["linkStyle"]};""", )
-    #     self.fbtnmk_HTMLbutton.string = args["direction"] + args["desc"]
-    #     self.fbtmk_div = self.domRoot.select(f"#{self.buttonDivId}")
-    #     if len(self.fbtmk_div) == 0:
-    #         self.fbtmk_div_ = self.domRoot.new_tag("div", id=self.buttonDivId)
-    #         self.fbtmk_div_.append(self.fbtnmk_HTMLbutton)
-    #         self.domRoot.append(self.domRoot.new_tag("br"))
-    #         self.domRoot.append(self.domRoot.new_tag("br"))
-    #         self.domRoot.append(self.fbtmk_div_)
-    #         self.domRoot.append(self.domRoot.new_tag("br"))
-    #         self.domRoot.append(self.domRoot.new_tag("br"))
-    #     else:
-    #         self.domRoot.select(f"#{self.buttonDivId}")[0].append(self.fbtnmk_HTMLbutton)
-    #     return self
-
     def text_get(self, node=None):
         """外层非标签属性的所有文本"""
         self.text = self.domRoot.text
@@ -159,7 +138,7 @@ class HTML_converter(
     # @debugWatcher
     def script_el_remove(self):
         """临时删除script,减少干扰,不写入就行"""
-        self.script_el_select(new=False)
+        self.script_el_select(if_not_exist_then_new=False)
         if self.script_el_dict != {}:
             list(map(lambda x: x.extract(), self.script_el_dict.values()))
         return self
@@ -173,8 +152,8 @@ class HTML_converter(
         return self
 
     # @debugWatcher
-    def script_el_select(self, new=True, scriptId=""):
-        """读取script元素,保存到self.script_el, new 表示如果找不到是否要新建一个
+    def script_el_select(self, if_not_exist_then_new=True, scriptId=""):
+        """读取script元素,保存到self.script_el_dict, new 表示如果找不到是否要新建一个
         20210212222602: 数据类型更新为注释中的HTML, 所以读取前要把它从注释中解放出来,对于旧版直接读取,并且会从DOM树中删除读取到的
         """
         # 如果注释不存在, 那么可能1是旧版锚点,2是新卡片没有打过锚点
@@ -185,7 +164,7 @@ class HTML_converter(
         tempel = {}
         for el in parent_el.findAll(name="script", attrs={"id": re.compile(fr"{self.consolerName}\w+")}):
             self.script_el_dict[el.attrs["id"]] = el
-        if self.script_el_dict == {} and new:
+        if self.script_el_dict == {} and if_not_exist_then_new:
             self.script_el_dict = {
                 self.linkdata_scriptId: parent_el.new_tag(name="script", id=self.linkdata_scriptId),
                 self.carddata_scriptId: parent_el.new_tag(name="script", id=self.carddata_scriptId)
@@ -254,8 +233,12 @@ class HTML_converter(
             anchor_container = anchor_container[0]
         return anchor_container
 
-    def HTMLButton_selfdata_make(self, **args):
+    def HTMLButton_selfdata_make(self, fielddata, **args):
         """制作按钮,anchor是总体锚点,container是容器,accordion是折叠主题"""
+
+        self.card_linked_pairLi = fielddata.card_linked_pairLi  # 卡片链接的列表
+        self.card_selfdata_dict = fielddata.card_selfdata_dict  # 卡片链接的结构
+        self.cardinfo_dict = fielddata.cardinfo_dict  #
 
         if len(self.card_linked_pairLi) > 0:
             cfg = self.config
@@ -335,10 +318,10 @@ class HTML_converter(
     # @debugWatcher
     def HTMLdata_load(self):
         """从HTML中读取json,保存到 self.card_linked_pairLi 和 self.card_selfdata_dict"""
-        self.script_el_select(new=False)
+        self.script_el_select(if_not_exist_then_new=False)
         if self.script_el_dict != {}:
-            linkdata = self.script_el_dict[self.linkdata_scriptId]
-            selfdata = self.script_el_dict[self.carddata_scriptId]
+            linkdata = self.script_el_dict[self.linkdata_scriptId]  # 链接的数据
+            selfdata = self.script_el_dict[self.carddata_scriptId]  # 自身的结构数据
             if linkdata.string:
                 linkdata_str = re.sub(rf"{self.linkdata_scriptId}=", "", linkdata.string.__str__())
             else:

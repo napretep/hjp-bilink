@@ -17,11 +17,14 @@ model_dataobj: 从model_dataJSON 读取数据转换为对象属性,保存于此
             - cardinfo:Dict[card_id:pair]#大部分信息都在这里
 linked_pairLi: 导出到HTML需要
 """
+from typing import Dict
+
 from PyQt5 import QtWidgets
 
-from . import MenuAdder
-from .inputObj import *
-from .UIdialog_Anchor import Ui_anchor
+# from ...lib.obj import MenuAdder
+from ..obj import MenuAdder
+from ...lib.obj.inputObj import *
+from ...lib.dialogs.UIdialog_Anchor import Ui_anchor
 
 
 class AnchorDialog(QDialog, Ui_anchor):

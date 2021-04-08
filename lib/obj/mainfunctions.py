@@ -1,18 +1,27 @@
 """
 这个文件保存常用函数
 """
+import copy
+from functools import reduce
+from typing import List
 
-from aqt import dialogs
+from PyQt5.QtCore import QUrl, QObject
+from PyQt5.QtGui import QDesktopServices
+from PyQt5.QtWidgets import QTreeView
+from aqt import mw, dialogs
 from aqt.browser import Browser
+from aqt.utils import showInfo
 from aqt.webview import AnkiWebView
-from .DialogInput import *
-from .inputObj import *
-from .language import rosetta as say
-from .utils import *
-from .DialogAnchor import *
-from .DialogConfig import *
-from .DialogVersion import VersionDialog
-from .test import testwindow
+
+from .languageObj import rosetta as say
+
+from .inputObj import Input
+from .utils import BaseInfo, console, Params, Pair, CustomSignals, wrapper_webview_refresh, wrapper_browser_refresh, \
+    No_hierarchical_tag
+from ..dialogs.DialogInput import InputDialog
+from ..dialogs.DialogAnchor import AnchorDialog
+from ..dialogs.DialogConfig import ConfigDialog
+from ..dialogs.DialogVersion import VersionDialog
 
 
 def func_contactMe():
@@ -186,16 +195,16 @@ class LinkStarter(QObject):
             console(say("input中没有数据！")).showInfo.talk.end()
             return False
         browser = dialogs.open("Browser", mw)
-        browser.maybeRefreshSidebar()
+        browser.sidebar.refresh()
         browser.model.layoutChanged.emit()
         browser.editor.setNote(None)
         funcli[param.mode](**param.__dict__)
-        browser.maybeRefreshSidebar()
+        browser.sidebar.refresh()
         browser.model.layoutChanged.emit()
         browser.editor.setNote(None)
         browser.model.reset()  # 关键作用
         if param.input.baseinfo.config_obj.addTagEnable == 1 and "noTag" not in param.features:
-            if NOadvancedBrowser:
+            if No_hierarchical_tag:
                 searchStr = " or ".join(["cid:" + p.card_id for p in param.input.dataflat_])
             else:
                 param.input.note_addTagAll()
