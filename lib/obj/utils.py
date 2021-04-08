@@ -17,7 +17,10 @@ THIS_FOLDER = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__
 
 ver = [int(i) for i in V.split(".")]
 baseInfoFileName = "baseInfo.json"
+userInfoFileName = r"config.json"
+
 baseInfoDir = os.path.join(THIS_FOLDER, baseInfoFileName)
+userInfoDir = os.path.join(THIS_FOLDER, "user_files", userInfoFileName)
 
 
 def wrapper_mw_previewer_register(func):
@@ -324,7 +327,7 @@ relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"
 logFileName = "log.txt"
-USER_FOLDER = os.path.join(THIS_FOLDER, "../../user_files")
+USER_FOLDER = os.path.join(THIS_FOLDER, "user_files")
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
 
@@ -335,9 +338,15 @@ class BaseInfo(object):
     """
 
     def __init__(self):
-
+        self.userinfo = Params(**json.load(open(userInfoDir, "r", encoding="utf-8")))
         self.baseinfo = Params(**json.load(open(baseInfoDir, "r", encoding="utf-8")))
-        # self.template = self.configTemplateJSON
+
+    def str_AnchorCSS_get(self):
+        """返回txt文件中的字符串,用来控制link表的样式"""
+        if self.userinfo.anchorCSSFileName == "":
+            return open(self.path_get("anchorCSS"), "r", encoding="utf-8").read()
+        else:
+            return open(os.path.join(USER_FOLDER, self.userinfo.anchorCSSFileName), "r", encoding="utf-8").read()
 
     def path_get(self, name, dirName=THIS_FOLDER):
         """返回文件路径"""

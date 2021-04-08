@@ -47,7 +47,7 @@ class HTML_converter(
         self.accordion_header_L3_class = self.consolerName + self.baseInfo.accordion_header_L3_className
         self.accordion_body_L3_class = self.consolerName + self.baseInfo.accordion_body_L3_className
         self.accordion_checkbox_L3_Id = self.consolerName + self.baseInfo.accordion_checkbox_L3_IdName
-        self.containerDivCSS: str = self.baseInfo.anchorCSSFile
+        self.containerDivCSS: str = self.baseInfo.str_AnchorCSS_get()
         self.linkdata_scriptId = self.consolerName + self.baseInfo.linkdata_scriptIdName  # 这个不好轻易变化, 大家的原始数据都在这里呢
         self.carddata_scriptId = self.consolerName + self.baseInfo.carddata_scriptIdName
         self.linkdata_scriptVarName = self.consolerName + self.baseInfo.linkdata_scriptVarName  # 这个不好轻易变化, 大家的原始数据都在这里呢

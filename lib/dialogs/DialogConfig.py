@@ -1,7 +1,7 @@
 """
 配置文件的窗口
 """
-
+from ...lib.obj.utils import wrapper_webview_refresh, wrapper_browser_refresh
 from ...lib.obj.inputObj import *
 from ...lib.dialogs.UIdialog_Config import Ui_config
 
@@ -45,6 +45,8 @@ class ConfigDialog(QDialog, Ui_config):
         self.configTable.setModel(self.model)
         self.model_JSON_load()
 
+    @wrapper_webview_refresh
+    @wrapper_browser_refresh
     def onClose(self, QCloseEvent):
         """关闭时要保存数据,QCloseEvent是有用的参数,不能删掉,否则会报错"""
         self.JSON_model_load()
@@ -67,6 +69,8 @@ class ConfigDialog(QDialog, Ui_config):
             v = self.model_rootNode.child(i, 1).text()
             self.model_dataJSON[k] = v
 
+    @wrapper_webview_refresh
+    @wrapper_browser_refresh
     def file_model_save(self, topLeft, *args, **kwargs):
         """保存文件"""
         item = self.model.itemFromIndex(topLeft)
@@ -88,6 +92,7 @@ class ConfigDialog(QDialog, Ui_config):
         console(f"key={key},val={value}").log.end()
         data_schema = self.configSchema["data_schema"]
         if value == "" and key in data_schema["allow_empty"]:
+            self.value = value
             return True
         else:
             if key in data_schema["data_type"]["non_negative_int"]:
