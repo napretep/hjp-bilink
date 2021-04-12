@@ -195,11 +195,11 @@ class LinkStarter(QObject):
             console(say("input中没有数据！")).showInfo.talk.end()
             return False
         browser = dialogs.open("Browser", mw)
-        browser.sidebar.refresh()
+        browser.hjp_bilink_compatibleSidebarRefresh()
         browser.model.layoutChanged.emit()
         browser.editor.setNote(None)
         funcli[param.mode](**param.__dict__)
-        browser.sidebar.refresh()
+        browser.hjp_bilink_compatibleSidebarRefresh()
         browser.model.layoutChanged.emit()
         browser.editor.setNote(None)
         browser.model.reset()  # 关键作用

@@ -5,7 +5,7 @@
 from ..obj import MenuAdder
 from ...lib.dialogs.UIdialog_Input import Ui_input
 from ...lib.obj.inputObj import *
-
+from .DialogCardPrev import external_card_dialog
 
 class InputDialog(QDialog, Ui_input):
     """INPUT对话窗口类"""
@@ -171,10 +171,9 @@ class InputDialog(QDialog, Ui_input):
     def onDoubleClick(self, index, *args, **kwargs):
         """双击事件响应"""
         item = self.model.itemFromIndex(index)
-        if cardPrevDialog is not None and item.column() == 0 \
-                and item.self_attrs["level"] == 1 and item.self_attrs["character"] == "card_id":
+        if item.column() == 0 and item.self_attrs["level"] == 1 and item.self_attrs["character"] == "card_id":
             card = self.input.model.col.getCard(int(item.text()))
-            cardPrevDialog(card)
+            external_card_dialog(card)
 
     # @debugWatcher
     def onRowRemoved(self, *args, **kwargs):

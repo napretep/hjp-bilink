@@ -2,7 +2,7 @@
 """
 写了个HTML toObject toJSON 解析器
 """
-from typing import Dict
+from typing import *
 
 from bs4 import BeautifulSoup, element
 
@@ -254,7 +254,8 @@ class HTML_converter(
                     pair = self.cardinfo_dict[info["card_id"]]
                     button_L2 = \
                         self.domRoot.new_tag(name="button", card_id=pair.card_id, dir=pair.dir,
-                                             onclick=f"""javascript:pycmd('{self.idPrefix}'+'{pair.card_id}');""",
+                                             # onclick=f"""javascript:pycmd('{self.idPrefix}'+'{pair.card_id}');""",
+                                             onclick=f"""javascript:pycmd('hjp-bilink-cid:{pair.card_id}');""",
                                              style=f"""margin:12px;displaystyle:inline;font-size:inherit;{cfg.linkStyle};""", )
                     button_L2.string = pair.dir + pair.desc
                 elif info["type"] == "groupinfo":

@@ -6,7 +6,9 @@ prefix 必须由consolerName规定
 from .mainfunctions import *
 from .utils import *
 
-mw.__dict__[BaseInfo().dialogName] = {}
+dialogName = BaseInfo().dialogName
+mw.__dict__[dialogName] = {}
+mw.__dict__[dialogName]["card_window"] = {}
 
 
 def func_actionMenuConnector(*args, **kwargs):
@@ -107,13 +109,13 @@ def func_menuAddAnchorMenu(*args, **kwargs):
 
     func_actionMenuConnector(actionName=f"{prefix}{say('打开anchor')}", action=func_openAnchor, **kwargs)
 
+
 # @debugWatcher
 def func_menuAddHelper(*args, **kwargs):
     """提供大部分类似的按钮添加操作帮助"""
     param = Params(**kwargs)
     for action in param.actionTypes:
         func_menuAdderLi[action](**kwargs)
-
 
 
 func_menuAdderLi = {

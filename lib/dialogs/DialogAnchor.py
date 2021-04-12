@@ -22,6 +22,7 @@ from typing import Dict
 from PyQt5 import QtWidgets
 
 # from ...lib.obj import MenuAdder
+from .DialogCardPrev import external_card_dialog
 from ..obj import MenuAdder
 from ...lib.obj.inputObj import *
 from ...lib.dialogs.UIdialog_Anchor import Ui_anchor
@@ -200,9 +201,9 @@ class AnchorDialog(QDialog, Ui_anchor):
     def onDoubleClick(self, index, *args, **kwargs):
         """双击事件响应"""
         item = self.model.itemFromIndex(index)
-        if cardPrevDialog is not None and item.column() == 0 and item.self_attrs["character"] == "card_id":
+        if item.column() == 0 and item.self_attrs["character"] == "card_id":
             card = self.input.model.col.getCard(int(item.text()))
-            cardPrevDialog(card)
+            external_card_dialog(card)
 
     def onAnchorTree_contextMenu(self, *args, **kwargs):
         """初始化右键菜单"""

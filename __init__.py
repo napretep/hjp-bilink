@@ -1,8 +1,10 @@
 """初试入口"""
 from aqt import gui_hooks
 
+from .lib.obj.handle_js import on_js_message
 from .lib.obj.HTML_converterObj import HTML_converter
 from .lib.obj.MenuAdder import *
+from .lib.obj.utils import userInfoDir
 
 
 def checkUpdate():
@@ -10,7 +12,7 @@ def checkUpdate():
     needUpdate = False
     base = BaseInfo()
     config_template = base.configTemplateJSON
-    user_config_dir = base.configDir
+    user_config_dir = userInfoDir
     if os.path.isfile(user_config_dir) and os.path.exists(user_config_dir):
         config = base.configJSON
     else:
@@ -26,7 +28,7 @@ def checkUpdate():
             if key not in config_template:
                 config.__deleteitem__(key)
     if needUpdate:
-        json.dump(config, open(base.configDir, "w", encoding="utf-8"), indent=4,
+        json.dump(config, open(user_config_dir, "w", encoding="utf-8"), indent=4,
                   ensure_ascii=False)
         func_version()
 
@@ -147,7 +149,6 @@ def func_add_browsermenu(browser: Browser = None):
     func_menuAddHelper(menu=menu, parent=browser, actionTypes=["link", "browserinsert", "clear_open", "basicMenu"])
 
 
-# @debugWatcher
 def fun_add_browsercontextmenu(browser: Browser, menu: QMenu):
     """用来给browser加上下文菜单"""
     func_menuAddHelper(menu=menu, parent=browser, features=["prefix"], actionTypes=["browserinsert"])
@@ -204,3 +205,4 @@ gui_hooks.browser_will_show_context_menu.append(fun_add_browsercontextmenu)
 gui_hooks.profile_will_close.append(func_onProgramClose)
 gui_hooks.editor_will_show_context_menu.append(func_add_editorcontextmenu)
 gui_hooks.webview_will_show_context_menu.append(func_add_webviewcontextmenu)
+gui_hooks.webview_did_receive_js_message.append(on_js_message)

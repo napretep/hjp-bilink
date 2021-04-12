@@ -2,6 +2,8 @@
 debug函数
 一些常量
 """
+
+from typing import *
 import datetime, types, functools
 from aqt.utils import *
 from anki import version as V  # version 是 字符串 比如 "2.1.43"
@@ -10,17 +12,35 @@ from .languageObj import rosetta as say
 import json
 from aqt.previewer import Previewer
 from aqt.webview import AnkiWebView
+from aqt.browser import Browser
 
 ISDEV = False
-ISDEBUG = True  # 别轻易开启,很卡的
+ISDEBUG = False  # 别轻易开启,很卡的
+relyLinkDir = "1423933177"
+advancedBrowserDir = "564851917"
+relyLinkConfigFileName = "config.json"
+logFileName = "log.txt"
 THIS_FOLDER = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+USER_FOLDER = os.path.join(THIS_FOLDER, "user_files")
+PREV_FOLDER = os.path.dirname(THIS_FOLDER)
+RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
 ver = [int(i) for i in V.split(".")]
 baseInfoFileName = "baseInfo.json"
 userInfoFileName = r"config.json"
 
 baseInfoDir = os.path.join(THIS_FOLDER, baseInfoFileName)
 userInfoDir = os.path.join(THIS_FOLDER, "user_files", userInfoFileName)
+
+if not os.path.exists(USER_FOLDER):
+    os.mkdir(USER_FOLDER)
+if not os.path.exists(userInfoDir):
+    json.dump({}, open(userInfoDir, "w", encoding="utf-8"), indent=4,
+              ensure_ascii=False)
+
+if ver[2] <= 40:
+    Browser.hjp_bilink_compatibleSidebarRefresh = Browser.maybeRefreshSidebar  # 版本小于40时,没有sidebar对象.
+else:
+    Browser.hjp_bilink_compatibleSidebarRefresh = Browser.sidebar.refresh
 
 
 def wrapper_mw_previewer_register(func):
@@ -97,11 +117,11 @@ def wrapper_browser_refresh(func):
         """在被包裹的函数执行完后刷新"""
         if dialogs._dialogs["Browser"][1] is not None:
             browser = dialogs._dialogs["Browser"][1]
-            browser.sidebar.refresh()
+            browser.hjp_bilink_compatibleSidebarRefresh()
             browser.model.layoutChanged.emit()
             browser.editor.setNote(None)
             result = func(*args, **kwargs)
-            browser.sidebar.refresh()
+            browser.hjp_bilink_compatibleSidebarRefresh()
             browser.model.layoutChanged.emit()
             browser.editor.setNote(None)
             browser.model.reset()  # 关键作用
@@ -323,13 +343,7 @@ class console:
         return self
 
 
-relyLinkDir = "1423933177"
-advancedBrowserDir = "564851917"
-relyLinkConfigFileName = "config.json"
-logFileName = "log.txt"
-USER_FOLDER = os.path.join(THIS_FOLDER, "user_files")
-PREV_FOLDER = os.path.dirname(THIS_FOLDER)
-RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
+
 
 
 class BaseInfo(object):
@@ -343,10 +357,11 @@ class BaseInfo(object):
 
     def str_AnchorCSS_get(self):
         """返回txt文件中的字符串,用来控制link表的样式"""
-        if self.userinfo.anchorCSSFileName == "":
-            return open(self.path_get("anchorCSS"), "r", encoding="utf-8").read()
+        user_filename = self.userinfo.anchorCSSFileName
+        if user_filename != "" and os.path.exists(os.path.join(USER_FOLDER, user_filename)):
+            return open(os.path.join(USER_FOLDER, user_filename), "r", encoding="utf-8").read()
         else:
-            return open(os.path.join(USER_FOLDER, self.userinfo.anchorCSSFileName), "r", encoding="utf-8").read()
+            return open(self.path_get("anchorCSS"), "r", encoding="utf-8").read()
 
     def path_get(self, name, dirName=THIS_FOLDER):
         """返回文件路径"""
@@ -384,12 +399,12 @@ class BaseInfo(object):
 
 
 """开始的一段检测"""
-try:
-    cardPrevDialog = __import__("1423933177").card_window.external_card_dialog
-    SingleCardPreviewerMod = __import__("1423933177").card_window.SingleCardPreviewerMod
-except:
-    cardPrevDialog = None
-    showInfo(say("请安装插件1423933177,否则将无法点击链接预览卡片"))
+# try:
+#     cardPrevDialog = __import__("1423933177").card_window.external_card_dialog
+#     SingleCardPreviewerMod = __import__("1423933177").card_window.SingleCardPreviewerMod
+# except:
+#     cardPrevDialog = None
+#     showInfo(say("请安装插件1423933177,否则将无法点击链接预览卡片"))
 
 if not os.path.exists(os.path.join(PREV_FOLDER, advancedBrowserDir)) and not (
         ver[0] >= 2 and ver[1] >= 1 and ver[2] >= 43):
