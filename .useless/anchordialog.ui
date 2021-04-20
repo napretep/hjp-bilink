@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>anchor</class>
+    <widget class="QWidget" name="anchor">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>416</width>
+                <height>300</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>anchor</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+                <widget class="QTreeView" name="anchorTree">
+                    <property name="contextMenuPolicy">
+                        <enum>Qt::CustomContextMenu</enum>
+                    </property>
+                    <property name="dragEnabled">
+                        <bool>true</bool>
+                    </property>
+                    <property name="dragDropMode">
+                        <enum>QAbstractItemView::InternalMove</enum>
+                    </property>
+                    <property name="defaultDropAction">
+                        <enum>Qt::MoveAction</enum>
+                    </property>
+                    <property name="alternatingRowColors">
+                        <bool>true</bool>
+                    </property>
+                    <property name="selectionMode">
+                        <enum>QAbstractItemView::ExtendedSelection</enum>
+                    </property>
+                    <property name="animated">
+                        <bool>true</bool>
+                    </property>
+                    <property name="wordWrap">
+                        <bool>true</bool>
+                    </property>
+                    <attribute name="headerDefaultSectionSize">
+                        <number>150</number>
+                    </attribute>
+                </widget>
+            </item>
+            <item>
+                <widget class="QLabel" name="label">
+                    <property name="text">
+                        <string>
+                            右键可新建group,可删除link,可拖拽link/group,可双击预览,可多选操作,如果你同时选中多个link和group进行拖拽,会忽略group,仅对link操作,如果你想专门拖拽group,那就不要选中link.
+                        </string>
+                    </property>
+                    <property name="wordWrap">
+                        <bool>true</bool>
+                    </property>
+                </widget>
+            </item>
+        </layout>
+    </widget>
+    <resources/>
+    <connections/>
+</ui>
