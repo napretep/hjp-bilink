@@ -28,6 +28,7 @@ class HTML_converter(
         self.baseInfo = BaseInfo()
         self.consolerName = self.baseInfo.consoler_Name
         self.config = self.baseInfo.config_obj
+        self.storageLocation = self.config.linkInfoStorageLocation
         self.regexName = re.compile(r"div|button")
         self.regexCard_id = re.compile(r"\d+")
         self.text = ""
@@ -49,7 +50,7 @@ class HTML_converter(
         self.accordion_checkbox_L3_Id = self.consolerName + self.baseInfo.accordion_checkbox_L3_IdName
         self.containerDivCSS: str = self.baseInfo.str_AnchorCSS_get()
         self.linkdata_scriptId = self.consolerName + self.baseInfo.linkdata_scriptIdName  # 这个不好轻易变化, 大家的原始数据都在这里呢
-        self.carddata_scriptId = self.consolerName + self.baseInfo.carddata_scriptIdName
+        self.selfdata_scriptId = self.consolerName + self.baseInfo.carddata_scriptIdName
         self.linkdata_scriptVarName = self.consolerName + self.baseInfo.linkdata_scriptVarName  # 这个不好轻易变化, 大家的原始数据都在这里呢
 
     def var_init(self):
@@ -73,7 +74,7 @@ class HTML_converter(
         self.accordion_checkbox_L3_Id = self.consolerName + self.baseInfo.accordion_checkbox_L3_IdName
         self.containerDivCSS: str = self.baseInfo.anchorCSSFile
         self.linkdata_scriptId = self.consolerName + self.baseInfo.linkdata_scriptIdName  # 这个不好轻易变化, 大家的原始数据都在这里呢
-        self.carddata_scriptId = self.consolerName + self.baseInfo.carddata_scriptIdName
+        self.selfdata_scriptId = self.consolerName + self.baseInfo.carddata_scriptIdName
         self.linkdata_scriptVarName = self.consolerName + self.baseInfo.linkdata_scriptVarName  # 这个不好轻易变化, 大家的原始数据都在这里呢
 
     def feed(self, text):
@@ -167,12 +168,12 @@ class HTML_converter(
         if self.script_el_dict == {} and if_not_exist_then_new:
             self.script_el_dict = {
                 self.linkdata_scriptId: parent_el.new_tag(name="script", id=self.linkdata_scriptId),
-                self.carddata_scriptId: parent_el.new_tag(name="script", id=self.carddata_scriptId)
+                self.selfdata_scriptId: parent_el.new_tag(name="script", id=self.selfdata_scriptId)
             }
         elif self.script_el_dict != {}:
-            if self.carddata_scriptId not in self.script_el_dict:
-                self.script_el_dict[self.carddata_scriptId] = parent_el.new_tag(name="script",
-                                                                                id=self.carddata_scriptId)
+            if self.selfdata_scriptId not in self.script_el_dict:
+                self.script_el_dict[self.selfdata_scriptId] = parent_el.new_tag(name="script",
+                                                                                id=self.selfdata_scriptId)
             for k, v in self.script_el_dict.items():
                 v.extract()
         else:
@@ -209,7 +210,7 @@ class HTML_converter(
         """小功能给他做成单个函数,保存到self.script_el.string,把JSON数据保存到字段中"""
         s_e_dict = self.script_el_dict
         data_dict = {self.linkdata_scriptId: list(map(lambda x: x.__dict__, self.card_linked_pairLi)),
-                     self.carddata_scriptId: self.card_selfdata_dict
+                     self.selfdata_scriptId: self.card_selfdata_dict
                      }
         self.script_el_select()  # 如果不存在应该换新
         scriptId = scriptId if scriptId != "" else self.linkdata_scriptId
@@ -233,12 +234,16 @@ class HTML_converter(
             anchor_container = anchor_container[0]
         return anchor_container
 
-    def HTMLButton_selfdata_make(self, fielddata, **args):
-        """制作按钮,anchor是总体锚点,container是容器,accordion是折叠主题"""
+    def HTMLButton_selfdata_make(self, linkdata, **args):
+        """制作按钮,anchor是总体锚点,container是容器,accordion是折叠主题
+        card_linked_pairLi 在本函数中只有判别是否需要制作按钮的作用.
+        card_selfdata_dict 给出了卡片链接的结构
+        cardinfo_dict 用来快速查表
+        """
 
-        self.card_linked_pairLi = fielddata.card_linked_pairLi  # 卡片链接的列表
-        self.card_selfdata_dict = fielddata.card_selfdata_dict  # 卡片链接的结构
-        self.cardinfo_dict = fielddata.cardinfo_dict  #
+        self.card_linked_pairLi = linkdata.card_linked_pairLi  # 卡片链接的列表
+        self.card_selfdata_dict = linkdata.card_selfdata_dict  # 卡片链接的结构
+        self.cardinfo_dict = linkdata.cardinfo_dict  #
 
         if len(self.card_linked_pairLi) > 0:
             cfg = self.config
@@ -322,13 +327,13 @@ class HTML_converter(
         self.script_el_select(if_not_exist_then_new=False)
         if self.script_el_dict != {}:
             linkdata = self.script_el_dict[self.linkdata_scriptId]  # 链接的数据
-            selfdata = self.script_el_dict[self.carddata_scriptId]  # 自身的结构数据
+            selfdata = self.script_el_dict[self.selfdata_scriptId]  # 自身的结构数据
             if linkdata.string:
                 linkdata_str = re.sub(rf"{self.linkdata_scriptId}=", "", linkdata.string.__str__())
             else:
                 linkdata_str = "[]"
             if selfdata.string:
-                selfdata_str = re.sub(rf"{self.carddata_scriptId}=", "", selfdata.string.__str__())
+                selfdata_str = re.sub(rf"{self.selfdata_scriptId}=", "", selfdata.string.__str__())
             else:
                 selfdata_str = "{}"
             console("report:script_str" + linkdata_str).log.end()
@@ -342,36 +347,77 @@ class HTML_converter(
             if len(self.card_linked_pairLi) == 0:
                 self.card_selfdata_dict["menuli"] = []
             self.exist_pairli = []
-            menuli = self.card_selfdata_dict["menuli"]
-            groupinfo = self.card_selfdata_dict["groupinfo"]
-            cardinfo = self.cardinfo_dict
-            needremove = []
-            for info in menuli:
-                if info["type"] == "cardinfo":
-                    if info["card_id"] not in cardinfo:
-                        needremove.append(info)
-                        continue
-                    else:
-                        self.exist_pairli.append(info["card_id"])
-                elif info["type"] == "groupinfo":
-                    groupneedremove = []
-                    for card_id in groupinfo[info["groupname"]]:
-                        if card_id not in cardinfo:
-                            groupneedremove.append(card_id)
-                        else:
-                            self.exist_pairli.append(card_id)
-                    for card_id in groupneedremove:
-                        groupinfo[info["groupname"]].remove(card_id)
-            for info in needremove:
-                menuli.remove(info)
-            for k in cardinfo.keys():
-                if k not in self.exist_pairli:
-                    menuli.append(dict(card_id=k, type="cardinfo"))
+            self.HTMLdata_version_update()
+            self.HTMLdata_sync()
+
+            #     elif info["type"] == "groupinfo":
+            #         groupneedremove = []
+            #         for item in groupinfo[info["groupname"]]:
+            #             if "card_id" in item:
+            #                 card_id = item["card_id"]
+            #                 if card_id not in cardinfo:
+            #                     groupneedremove.append(card_id)
+            #                 else:
+            #                     self.exist_pairli.append(card_id)
+            #         for card_id in groupneedremove:
+            #             groupinfo[info["groupname"]].remove(card_id)
+            # for k in cardinfo.keys():
+            #     if k not in self.exist_pairli:
+            #         menuli.append(dict(card_id=k, type="cardinfo"))
 
         return self
 
+    def HTMLdata_version_update(self):
+        """
+        # 20210419150629,下面这段用来升级JSON数据的格式,旧版(0.10.0以前)的groupinfo不存储其他groupinfo, 只存卡片ID, 现在要改进为也存groupinfo
+        """
+        totalgroup = {}
+        for groupname, cardli in self.card_selfdata_dict["groupinfo"].items():
+            new_groupinfo = []
+            for item in cardli:
+                if type(item) == str:
+                    new_groupinfo.append({"type": "cardinfo", "card_id": item})
+                elif type(item) == dict:
+                    new_groupinfo.append(item)
+            totalgroup[groupname] = new_groupinfo
+        self.card_selfdata_dict["groupinfo"] = totalgroup
 
-
+    def HTMLdata_sync(self):
+        """
+        主持数据同步
+        先依据cardinfo,剔除menuli和groupinfo中存在但cardinfo中不存在的
+        再依据cardinfo中存在的,但menuli不存在的,要加回去.
+        """
+        menuli = self.card_selfdata_dict["menuli"]
+        groupinfo: Dict[str, List[Dict]] = self.card_selfdata_dict["groupinfo"]
+        # 下面的流程在于剔除groupinfo和menuli中存在但是cardinfo中不存在的卡片,尽量保持数据的同步
+        cardinfo = self.cardinfo_dict  # 索引具体的卡片数据,键是card_Id,值是desc和dir
+        needremove = []  # 方法是通过设计一个需要移除的列表,然后逐个移除
+        exist_in_selfdata = []
+        for infodict in menuli:  # 首先解决info的内容
+            if infodict["type"] == "cardinfo":
+                if infodict["card_id"] not in cardinfo:  # 类型若是cardinfo就直接处理
+                    needremove.append(infodict)
+                else:
+                    exist_in_selfdata.append(infodict["card_id"])
+        for infodict in needremove:
+            menuli.remove(infodict)
+        for groupname, cardli in groupinfo.items():
+            groupcardneedremove = []
+            for infodict in cardli:
+                if infodict["type"] == "cardinfo":
+                    if infodict["card_id"] not in cardinfo:
+                        groupcardneedremove.append(infodict)
+                    else:
+                        exist_in_selfdata.append(infodict["card_id"])
+            for infodict in groupcardneedremove:
+                cardli.remove(infodict)
+            if len(cardli) == 0:
+                del groupinfo[groupname]
+        # 存在于cardinfo,但不存在于 exist_in_menuli, 需要加回去
+        for card_id in cardinfo:
+            if card_id not in exist_in_selfdata:
+                menuli.append({"type": "cardinfo", "card_id": card_id})
 
 
 if __name__ == "__main__":

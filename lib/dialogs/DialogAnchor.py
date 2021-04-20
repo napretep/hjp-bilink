@@ -1,11 +1,9 @@
 """
-TODO:
-    对话框,读取JSON,拖拽,双击修改,双击打开,右键删除,自动保存,
-selfdata数据结构:
+selfdata 数据结构:
     menu:是一个列表, 由cardinfo和groupinfo构成
     groupinfo:是一个字典,每个键是一个groupname,对应一个列表,里面是cardinfo
 
-model_dataJSON: HTMLmanage读取的HTML文本转换为JSON保存于此
+model_dataJSON: HTMLmanage读取的HTML文本转换为JSON保存于此,包含menuli和groupinfo的内容
 model_dataobj: 从model_dataJSON 读取数据转换为对象属性,保存于此
             - groupinfo
                 - group_name
@@ -51,6 +49,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.model_linked_pairLi: List[Pair] = []
         self.undo_stack: List[dict] = []
         self.selected_linked_pairLi = []
+        self.storageLocation = self.cfg.linkInfoStorageLocation
         self.init_UI()
         self.init_model()
         self.init_events()
@@ -59,10 +58,14 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def init_var(self):
         """变量初始化"""
+
         self.pairdict: Dict = {}
         self.model_dataobj: Dict = {}  # 从model_dataJSON读取保存为对象模型.
         self.model_dataJSON: Dict[str, List[Dict]] = {}
         self.model_linked_pairLi: List[Pair] = []
+        self.model = None
+        self.model_rootNode = None
+        self.model_subgroupdict = None
         self.undo_stack: List[dict] = []
         self.selected_linked_pairLi = []
 
@@ -400,7 +403,7 @@ class AnchorDialog(QDialog, Ui_anchor):
                 tempdict["groupinfo"][item.text()] = []
                 t = tempdict["groupinfo"][item.text()]
                 for j in range(item.rowCount()):
-                    t.append(item.child(j).text())
+                    t.append({"type": "cardinfo", "card": item.child(j).text()})
         self.model_dataJSON = tempdict
         return self
 
@@ -497,8 +500,44 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     @wrapper_webview_refresh
     @wrapper_browser_refresh
+    def pairLi_save(self):
+        """统一接口, 调用之前,请确保self.model_linked_pairLi和 self.model_dataJSON已经更新完毕
+        因为需要根据这两个数据来更新内容
+        """
+        if self.storageLocation == 0:
+            self.DB_pairli_save()
+        elif self.storageLocation == 1:
+            self.field_pairLi_save()
+
+    def DB_pairli_save(self):
+        """数据库的pairli保存, 保存只能在anchor上做, 不要把代码写到 LinkInfoDBmanager 中"""
+        DB = LinkInfoDBmanager()
+        cardinfo = DB.cardinfo_get(self.pair)
+        card_dict = {}
+        link_list = []
+        # self.model_linked_pairLi
+        for pair in self.model_linked_pairLi:
+            card_dict[pair.card_id] = pair.__dict__
+            link_list.append(pair.card_id)
+        cardinfo.info["card_dict"] = card_dict
+        cardinfo.info["link_list"] = link_list
+        # self.model_dataJSON
+        menuli = self.model_dataJSON["menuli"]  # 要和link_tree结合
+        groupinfo = self.model_dataJSON["groupinfo"]  # 和group_info结合
+        link_tree = []
+        for item in menuli:
+            if item["type"] == "cardinfo":
+                link_tree.append({"card_id": item["card_id"]})
+            elif item["type"] == "groupinfo":
+                link_tree.append({"groupname": item["groupname"]})
+        cardinfo.info["link_tree"] = link_tree
+        DB_groupinfo = {}
+        for k, v in groupinfo.items():
+            DB_groupinfo[k] = [{"card_id": card_id} for card_id in v]
+
     def field_pairLi_save(self):
-        """save pairli to field, 调用之前,请确保linked pairli 和 dataJSON已经更新完毕"""
+        """save pairli to field, 经过 card_linked_pairLi,card_selfdata_dict 保存到field
+        调用之前,请确保linked pairli 和 dataJSON已经更新完毕"""
         note = self.input.note_id_load(self.pair)
         self.HTMLmanage.clear().feed(note.fields[self.cfg.readDescFieldPosition])
         self.HTMLmanage.HTMLdata_load().card_selfdata_dict = self.model_dataJSON

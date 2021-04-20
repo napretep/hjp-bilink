@@ -92,20 +92,21 @@ class SingleCardPreviewerMod(SingleCardPreviewer):
         pass
 
 
-def unregister(id, *args, **kwargs):
-    dialogName = BaseInfo().dialogName
-    card_window = aqt.mw.__dict__[dialogName]["card_window"]
-    card_window[id] = None
+def unregister(card_id, *args, **kwargs):
+    addonName = BaseInfo().dialogName
+    card_window = aqt.mw.__dict__[addonName]["card_window"]
+    card_window[card_id] = None
 
 
 def external_card_dialog(card):
-    dialogName = BaseInfo().dialogName
-    card_window = aqt.mw.__dict__[dialogName]["card_window"]
-    if card.id not in card_window:
-        card_window[card.id] = None
-    if card_window[card.id] is not None:
-        card_window[card.id].activateWindow()
+    addonName = BaseInfo().dialogName
+    card_window = aqt.mw.__dict__[addonName]["card_window"]
+    card_id = str(card.id)
+    if card_id not in card_window:
+        card_window[card_id] = None
+    if card_window[card_id] is not None:
+        card_window[card_id].activateWindow()
     else:
-        d = SingleCardPreviewerMod(card=card, parent=aqt.mw, mw=aqt.mw, on_close=lambda: unregister(card.id))
+        d = SingleCardPreviewerMod(card=card, parent=aqt.mw, mw=aqt.mw, on_close=lambda: unregister(card_id))
         d.open()
-        card_window[card.id] = d
+        card_window[card_id] = d

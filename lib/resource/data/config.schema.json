@@ -5,6 +5,7 @@
     "defaultInsertMode",
     "appendNoteFieldPosition",
     "readDescFieldPosition",
+    "linkInfoStorageLocation",
     "descMaxLength",
     "linkFromSymbol",
     "linkToSymbol",
@@ -20,6 +21,10 @@
       "anchorCSSFileName"
     ],
     "data_range": {
+      "linkInfoStorageLocation": [
+        0,
+        1
+      ],
       "defaultLinkMode": [
         0,
         1

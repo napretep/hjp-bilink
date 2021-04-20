@@ -1,6 +1,8 @@
 """初试入口"""
 from aqt import gui_hooks
+from json.decoder import JSONDecodeError
 
+from .lib.obj.HTMLbutton_render import HTMLbutton_maker
 from .lib.obj.handle_js import on_js_message
 from .lib.obj.HTML_converterObj import HTML_converter
 from .lib.obj.MenuAdder import *
@@ -11,6 +13,7 @@ def checkUpdate():
     """检查更新,检查配置表是否对应"""
     needUpdate = False
     base = BaseInfo()
+    baseInfoJSON = base.baseinfo
     config_template = base.configTemplateJSON
     user_config_dir = userInfoDir
     if os.path.isfile(user_config_dir) and os.path.exists(user_config_dir):
@@ -18,9 +21,9 @@ def checkUpdate():
     else:
         config = {}
 
-    if "VERSION" not in config or config_template["VERSION"] != config["VERSION"]:
+    if "VERSION" not in config or baseInfoJSON["VERSION"] != config["VERSION"]:
         needUpdate = True
-        config["VERSION"] = config_template["VERSION"]
+        config["VERSION"] = baseInfoJSON["VERSION"]
         for key, value in config_template.items():
             if key not in config:
                 config[key] = value
@@ -31,6 +34,7 @@ def checkUpdate():
         json.dump(config, open(user_config_dir, "w", encoding="utf-8"), indent=4,
                   ensure_ascii=False)
         func_version()
+
 
 def data_selectedFromBrowserTable(browser, *args, **kwargs):
     """从?"""
@@ -121,17 +125,10 @@ def HTML_injecttoweb(htmltext, card, kind):
         "previewAnswer",
         "reviewQuestion",
         "reviewAnswer",
-        "clayoutQuestion",
-        "clayoutAnswer",
+        # "clayoutQuestion",
+        # "clayoutAnswer"
     ]:
-        p = Input()
-        field = p.note_id_load(Pair(card_id=str(card.id))).fields[p.insertPosi]
-        fielddata = HTML_converter().feed(field).HTMLdata_load()
-
-        html_addedButton = HTML_converter().feed(htmltext) \
-            .HTMLdata_load().HTMLdata_save().HTMLButton_selfdata_make(fielddata).HTMLdata_save().HTML_get().HTML_text
-        console("最终结果:" + html_addedButton).log.end()
-        return html_addedButton
+        return HTMLbutton_maker(htmltext, card)
     else:
         return htmltext
 

@@ -5,6 +5,8 @@ debug函数
 
 from typing import *
 import datetime, types, functools
+
+from aqt.reviewer import Reviewer
 from aqt.utils import *
 from anki import version as V  # version 是 字符串 比如 "2.1.43"
 from aqt import mw, dialogs
@@ -15,7 +17,7 @@ from aqt.webview import AnkiWebView
 from aqt.browser import Browser
 
 ISDEV = False
-ISDEBUG = False  # 别轻易开启,很卡的
+ISDEBUG = True  # 别轻易开启,很卡的
 relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"
@@ -37,10 +39,13 @@ if not os.path.exists(userInfoDir):
     json.dump({}, open(userInfoDir, "w", encoding="utf-8"), indent=4,
               ensure_ascii=False)
 
-if ver[2] <= 40:
-    Browser.hjp_bilink_compatibleSidebarRefresh = Browser.maybeRefreshSidebar  # 版本小于40时,没有sidebar对象.
-else:
-    Browser.hjp_bilink_compatibleSidebarRefresh = Browser.sidebar.refresh
+
+def compatible_browser_sidebar_refresh(browser: Browser):
+    """向下兼容browser的sidebar refresh api"""
+    if ver[2] <= 40:
+        browser.maybeRefreshSidebar()
+    else:
+        browser.sidebar.refresh()
 
 
 def wrapper_mw_previewer_register(func):
@@ -94,16 +99,17 @@ def wrapper_webview_refresh(func):
         if isinstance(parent, AnkiWebView):
             if parent.title == "previewer":
                 parent.parent().render_card()
-            if parent.title == "main webview":
-                mw.reviewer.show()
-        consoler_Name = BaseInfo().dialogName
-        position = "card_preview"
-        if mw.state == "review":
-            mw.reviewer.cleanup()
-            mw.reviewer.show()
-        if consoler_Name in mw.__dict__ and position in mw.__dict__[consoler_Name]:
-            for k in mw.__dict__[consoler_Name][position]:
-                k.render_card()
+            if parent.title == "main webview":  # reviewer是AnkiWebView的孩子!
+                mw.reset()
+        addonName = BaseInfo().dialogName
+        position = "card_window"
+        if mw.state == "review":  # 这个是有用的,当在其他窗口进行链接的时候,也要刷新这里.
+            mw.reset()
+        if addonName in mw.__dict__ and position in mw.__dict__[addonName]:
+            card_window = mw.__dict__[addonName][position]
+            for k in card_window:
+                if card_window[k] is not None: card_window[k].render_card()
+
         return result
 
     return refresh
@@ -117,11 +123,11 @@ def wrapper_browser_refresh(func):
         """在被包裹的函数执行完后刷新"""
         if dialogs._dialogs["Browser"][1] is not None:
             browser = dialogs._dialogs["Browser"][1]
-            browser.hjp_bilink_compatibleSidebarRefresh()
+            compatible_browser_sidebar_refresh(browser)
             browser.model.layoutChanged.emit()
             browser.editor.setNote(None)
             result = func(*args, **kwargs)
-            browser.hjp_bilink_compatibleSidebarRefresh()
+            compatible_browser_sidebar_refresh(browser)
             browser.model.layoutChanged.emit()
             browser.editor.setNote(None)
             browser.model.reset()  # 关键作用
@@ -341,9 +347,6 @@ class console:
 
     def end(self):
         return self
-
-
-
 
 
 class BaseInfo(object):

@@ -19,6 +19,9 @@ def rosetta(text: str = ""):
     if not (lang in surrport):
         lang = "en"
     Endict = {
+        "未知错误": "unknown error",
+        "错误信息": "Error info",
+        "链接列表渲染失败": "failed in render link list",
         "默认链接": "default",
         "完全图链接": "complete map",
         "组到组链接": "group to group",

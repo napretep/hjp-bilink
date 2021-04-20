@@ -17,7 +17,7 @@ from .languageObj import rosetta as say
 
 from .inputObj import Input
 from .utils import BaseInfo, console, Params, Pair, CustomSignals, wrapper_webview_refresh, wrapper_browser_refresh, \
-    No_hierarchical_tag
+    No_hierarchical_tag, compatible_browser_sidebar_refresh
 from ..dialogs.DialogInput import InputDialog
 from ..dialogs.DialogAnchor import AnchorDialog
 from ..dialogs.DialogConfig import ConfigDialog
@@ -85,17 +85,17 @@ def func_openAnchor(*args, **kwargs):
     param = Params(**kwargs)
     card_id = param.pair.card_id
     dialog = AnchorDialog.__name__
-    consoler_Name = BaseInfo().dialogName
-    if dialog not in mw.__dict__[consoler_Name]:
-        mw.__dict__[consoler_Name][dialog] = {}
-    dialog_dict = mw.__dict__[consoler_Name][dialog]
+    addonName = BaseInfo().dialogName
+    if dialog not in mw.__dict__[addonName]:
+        mw.__dict__[addonName][dialog] = {}
+    dialog_dict = mw.__dict__[addonName][dialog]
     if card_id not in dialog_dict:
         dialog_dict[card_id] = None
     if dialog_dict[card_id] is not None:
-        mw.__dict__[consoler_Name][dialog][card_id].activateWindow()
+        mw.__dict__[addonName][dialog][card_id].activateWindow()
     else:
-        mw.__dict__[consoler_Name][dialog][card_id] = AnchorDialog(param.pair, parent=param.parent)
-        mw.__dict__[consoler_Name][dialog][card_id].exec()
+        mw.__dict__[addonName][dialog][card_id] = AnchorDialog(param.pair, parent=param.parent)
+        mw.__dict__[addonName][dialog][card_id].exec()
 
 
 def func_clearInput():
@@ -116,7 +116,7 @@ def func_completeMap(*args, **kwargs):
     pairLi = param.input.dataFlat().dataUnique().val()  # 不分group,只有pairs
     console(pairLi.__str__()).log.end()
     i = param.input
-    [list(map(lambda pairB: i.note_pair_insert(pairA, pairB), pairLi)) for pairA in pairLi]
+    [list(map(lambda pairB: i.pair_insert(pairA, pairB), pairLi)) for pairA in pairLi]
     if "selected" in param.features:
         mode = say("多选模式")
     else:
@@ -190,16 +190,16 @@ class LinkStarter(QObject):
                 pass
         else:
             param.input.dataLoad()
-        if mw.state == "review": mw.reviewer.cleanup()
+        # if mw.state == "review": mw.reviewer.cleanup()
         if len(param.input.data["IdDescPairs"]) == 0:
             console(say("input中没有数据！")).showInfo.talk.end()
             return False
         browser = dialogs.open("Browser", mw)
-        browser.hjp_bilink_compatibleSidebarRefresh()
+        compatible_browser_sidebar_refresh(browser)
         browser.model.layoutChanged.emit()
         browser.editor.setNote(None)
         funcli[param.mode](**param.__dict__)
-        browser.hjp_bilink_compatibleSidebarRefresh()
+        compatible_browser_sidebar_refresh(browser)
         browser.model.layoutChanged.emit()
         browser.editor.setNote(None)
         browser.model.reset()  # 关键作用
@@ -211,11 +211,11 @@ class LinkStarter(QObject):
                 searchStr = f"tag:{param.input.tag}*"
             console(searchStr).log.end()
             browser.model.search(searchStr)
-        if isinstance(param.parent, AnkiWebView):
-            if param.parent.title == "previewer":
-                param.parent.parent().render_card()
-            if param.parent.title == "main webview":
-                mw.reviewer.show()
+        # if isinstance(param.parent, AnkiWebView):
+        #     if param.parent.title == "previewer":
+        #         param.parent.parent().render_card()
+        #     if param.parent.title == "main webview":
+        #         mw.reviewer.show()
 
 
 def func_browserInsert(*args, **kwargs):

@@ -7,6 +7,7 @@ from functools import reduce
 from anki.notes import Note
 
 from .HTML_converterObj import HTML_converter
+from .handle_DB import LinkInfoDBmanager
 from .utils import *
 
 
@@ -26,6 +27,7 @@ class Input(object
         self.initDict = {"IdDescPairs": [], "addTag": ""}
         self.dataflat_ = None
         self.config = self.baseinfo.configJSON
+        self.storageLocation = self.config["linkInfoStorageLocation"]
         self.insertPosi = self.config["appendNoteFieldPosition"]
         self.regexDescPosi = self.config["readDescFieldPosition"]
         self.linkstyle = self.config["linkStyle"]
@@ -38,6 +40,8 @@ class Input(object
             self.tag = self.data["addTag"]
         except:
             raise ValueError("读取input出现错误,请检查格式是否正确,或请点击'清空input'重置input文件")
+        if self.storageLocation == 0:
+            self.DB = LinkInfoDBmanager()
 
     def dataLoad(self):
         """数据读取, 修改self.data,tag,objdata"""
@@ -145,6 +149,29 @@ class Input(object
         return self
 
     # @debugWatcher
+    def pair_insert(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
+        """综合接口, 往A中加B的链接信息"""
+        pairB.desc = pairB.desc if pairB.desc != "" else self.desc_extract(pairB)
+        cfg = Empty()
+        cfg.__dict__ = self.config
+        dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
+        pairB.dir = dirMap[dirposi]
+        if self.storageLocation == 0:
+            self.DB_pair_insert(pairA, pairB)
+        elif self.storageLocation == 1:
+            self.note_pair_insert(pairA, pairB)
+        return self
+
+    def DB_pair_insert(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
+        """需要确保DB和note两者的一致性"""
+        dict_card_info = self.DB.cardinfo_get(pairA)
+        if pairB.card_id not in dict_card_info.card_dict:
+            dict_card_info.link_list.append(pairB.card_id)
+            dict_card_info.link_tree.append({"cardInfo": pairB.card_id})
+            dict_card_info.card_dict[pairB.card_id] = {"card_id": pairB.card_id, "dir": pairB.dir, "desc": pairB.desc}
+            self.DB.cardinfo_update(dict_card_info)
+        pass
+
     def note_pair_insert(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
         """往A note 加 pairB,默认不给自己加pair"""
         html = self.HTMLmanage
@@ -153,11 +180,6 @@ class Input(object
         note = self.note_id_load(pairA)
         html.clear().feed(note.fields[self.insertPosi]).HTMLdata_load()
         if self.Id_noFoundInNote(pairB):
-            pairB.desc = pairB.desc if pairB.desc != "" else self.desc_extract(pairB)
-            cfg = Empty()
-            cfg.__dict__ = self.config
-            dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
-            pairB.dir = dirMap[dirposi]
             fieldcontent = html.pairLi_pair_append(pair=pairB).HTMLdata_save().HTML_get().HTML_text
             console("最终要写入字段的内容:" + fieldcontent).log.end()
             note.fields[self.insertPosi] = fieldcontent
@@ -203,31 +225,65 @@ class Input(object
             note.fields[self.insertPosi] = html.HTML_get().HTML_text
             note.flush()  # 把卡片对保存成字段中的JSON数据
             for pairB in cardLi:
-                self.note_pair_insert(pair, pairB)
+                self.pair_insert(pair, pairB)
         console("升级完成,请检查,如失败请联系作者").talk.end()
         return self
 
     def anchor_delete(self, pairA: Pair, pairB: Pair):
         """A中删除B的id,返回自己"""
+        if self.storageLocation == 0:
+            self.DB_anchor_delete(pairA, pairB)
+        elif self.storageLocation == 1:
+            self.note_anchor_delete(pairA, pairB)
+        return self
+
+    def DB_anchor_delete(self, pairA: Pair, pairB: Pair):
+        dict_cardinfo = self.DB.cardinfo_get(pairA)
+        link_list = dict_cardinfo.link_list
+        link_tree = dict_cardinfo.link_tree
+        card_dict = dict_cardinfo.card_dict
+        group_info = dict_cardinfo.group_info
+        if pairB.card_id in card_dict:
+            del card_dict[pairB.card_id]
+            link_list.remove(pairB.card_id)
+            count = -1
+            for i in range(len(link_tree)):
+                if link_tree[i]["type"] == "card" and link_tree[i]["value"] == pairB.card_id:
+                    count = i
+                    break
+            if count != -1:
+                link_tree.remove(link_tree[count])
+            for group in group_info:
+                count = -1
+                for i in range(len(group)):
+                    if group[i]["type"] == "card" and group[i]["value"] == pairB.card_id:
+                        count = i
+                        break
+                if count != -1:
+                    group.remove(group[count])
+            self.DB.cardinfo_update(dict_cardinfo)
+        pass
+
+    def note_anchor_delete(self, pairA: Pair, pairB: Pair):
         HTML = self.HTMLmanage
         note = self.note_id_load(pairA)
-        HTML.clear().feed(note.fields[self.insertPosi])
+        HTML.clear().feed(note.fields[self.insertPosi]).HTMLdata_load()
         HTML.pairLi_pair_remove(pair=pairB).HTMLdata_save()
         note.fields[self.insertPosi] = HTML.HTML_get().HTML_text
         note.flush()
-        return self
+        pass
 
     def note_id_load(self, pair: Pair = None) -> Note:
         """从卡片的ID获取note"""
-        li = pair.int_card_id
-        return self.model.col.getCard(li).note()
+        card_id = pair.int_card_id
+        return self.model.col.getCard(card_id).note()
 
     def group_bijectReducer(self, groupA: List[Pair] = None, groupB: List[Pair] = None):
         """A组的每个pair链接到B组的每个pair,还有一个反向回链,是个reduce使用的函数 """
         for pairA in groupA:
             for pairB in groupB:
-                self.note_pair_insert(pairA, pairB)
-                self.note_pair_insert(pairB, pairA, dirposi="←")
+                self.pair_insert(pairA, pairB)
+                self.pair_insert(pairB, pairA, dirposi="←")
         return groupB
 
     def end(self):

@@ -6,9 +6,9 @@ prefix 必须由consolerName规定
 from .mainfunctions import *
 from .utils import *
 
-dialogName = BaseInfo().dialogName
-mw.__dict__[dialogName] = {}
-mw.__dict__[dialogName]["card_window"] = {}
+addonName = BaseInfo().dialogName
+mw.__dict__[addonName] = {}
+mw.__dict__[addonName]["card_window"] = {}
 
 
 def func_actionMenuConnector(*args, **kwargs):
