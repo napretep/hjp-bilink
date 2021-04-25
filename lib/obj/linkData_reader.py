@@ -1,61 +1,166 @@
-import json
+"""
+表结构:
+    20210417123432版本
+    旧版兼容接口
+    card_linked_pairLi:List[Pair], 以Pair类型为元素的列表
+    card_selfdata_dict={
+        "menuli":[{"type": "cardinfo", "card_id": "1611035897919" },
+        {"type":"groupinfo","groupname":"new group"}]
+        "groupinfo":{#groupinfo不做嵌套处理, 因为不需要这么多.
+            "new group": [1611035897919]
+        }
+    }, 表达链接的存储结构
+    cardinfo_dict:{"card_id":Pair} 用来查询卡片的具体内容
 
+    新版数据库JSON格式规范
+    字段1 : card_id : 123456789
+    字段2 : info:
+            {'link_list':
+                [{'card_id': '1618912345046', 'desc': 'B', 'dir': '→'},
+                {'card_id': '1618912351734', 'desc': 'D', 'dir': '→'},
+                {'card_id': '1618912346117', 'desc': 'C', 'dir': '→'}],
+
+            'root':
+                [{'card_id': '1618912345046'},
+                {'nodename': 'new_group'},
+                {'card_id': '1618912346117'},
+                {'card_id': '1618912351734'}],
+            'node': {
+                'new_group': [{'card_id': '1618912351734'}, {'card_id': '1618912346117'}],
+                '1618912345046': {'card_id': '1618912345046', 'desc': 'B', 'dir': '→'},
+                '1618912351734': {'card_id': '1618912351734', 'desc': 'D', 'dir': '→'},
+                '1618912346117': {'card_id': '1618912346117', 'desc': 'C', 'dir': '→'}
+                }
+
+            }
+
+
+    <!--<script id="hjp_bilink_data">hjp_bilink_data=[{"card_id": "1618912345046", "desc": "B", "dir": "→"}]</script>
+<script id="hjp_bilink_selfdata">hjp_bilink_selfdata={"menuli": [], "groupinfo": {}}</script>-->
+
+最新的id 是 hjp_bilink_info_v1
+"""
+
+import json, re
+from anki.notes import Note
 from aqt.utils import showInfo
 
 from .handle_DB import LinkInfoDBmanager
 from .languageObj import rosetta as say
-from .HTML_converterObj import HTML_converter
 from .cardInfo_obj import CardLinkInfo
-from .inputObj import Input
-from .utils import BaseInfo, Pair, console
+from .linkData_syncer import DataSyncer
+from .utils import BaseInfo, Pair, console, Config
+from bs4 import BeautifulSoup, element
+from aqt import mw
 
 
-class LinkData_reader:
+# class FieldHandler(Config):
+# """可能是将来的统一类, 用来操作从field中提取"""
+
+class LinkData_reader(Config):
     """
     用来统一读取链接数据的接口.
     """
 
-    def __init__(self, config=None):
-        self.config = config if config is not None else BaseInfo()
-        self.storageLocation = self.config.userinfo["linkInfoStorageLocation"]
+    def __init__(self, card_id):
+        super().__init__()
+        self.card_id = card_id
+        self.storageLocation = self.user_cfg["linkInfoStorageLocation"]
+        self.consolerName = self.base_cfg["consoler_Name"]
+        self.data_version = self.base_cfg["data_version"]
+        self.readFuncDict = {
+            0: DataDBReader,
+            1: DataFieldReader,
+            2: DataJSONReader
+        }
 
-    def linkdata_read(self, card_id: str):
+    def read(self):
         """用来读取链接信息为下一步的按钮渲染做准备, 并且作兼容处理, """
-        if self.storageLocation == 0:
-            return self.linkData_DB_read(card_id)
-        elif self.storageLocation == 1:
-            return self.linkData_field_read(card_id)
+        data = self.readFuncDict[self.storageLocation](self.card_id).read()
+        return DataSyncer(data).sync().data
+
+
+class DataFieldReader(Config):
+    """
+    从字段中读取的工具
+    """
+
+    def __init__(self, card_id):
+        super().__init__()
+        if type(card_id) == str:
+            card_id = int(card_id)
+        self.card_id = card_id
+        self.consolerName = self.base_cfg["consoler_Name"]
+        self.data_version = self.base_cfg["data_version"]
+        self.note: Note = mw.col.getCard(card_id).note()
+        self.field = self.note.fields[self.user_cfg["appendNoteFieldPosition"]]
+        self.domRoot = BeautifulSoup(self.field, "html.parser")
+        self.comment_el = self.comment_el_select()
+        self.script_el_li = self.script_el_select()
+        self.json_data = self.json_data_make()
+        self.link_list = self.json_data["link_list"]
+        self.root = self.json_data["root"]
+        self.node = self.json_data["node"]
+
+    def json_data_make(self):
+        """制作JSON数据"""
+        json_data = {
+            "version": self.data_version,
+            "link_list": [],
+            "self_data": {
+                "card_id": str(self.card_id),
+                "desc": ""
+            },
+            "root": [],
+            "node": {}
+        }
+        old_keywords1 = ["menuli", "groupinfo"]
+        if self.script_el_li != [None, None]:
+            for el in self.script_el_li:
+                el_str = el.string
+                try:
+                    el_json = json.loads(re.sub(fr"{self.consolerName}\w+=", "", el_str))
+                except json.JSONDecodeError as e:
+                    print(repr(e))
+
+                # 我们要将最终数据直接保存成json_data变量中的样子,所以下面的写法,要兼容新版和旧版.
+                if "version" in el_json:
+                    if el_json["version"] == 1:  # 这个版本直接就提取了
+                        json_data = el_json
+                    else:  # 目前还没有其他版本.
+                        pass
+                else:  # 连版本字段都不存在,那就是最旧的版本.
+                    if "hjp_bilink_data" in el_str:
+                        json_data["link_list"] = el_json
+                    if "hjp_bilink_selfdata" in el_str:
+                        json_data["root"] = el_json["menuli"]
+                        json_data["node"] = el_json["groupinfo"]
+
+        return json_data
+
+    def script_el_select(self):
+        """读取指定的脚本内容"""
+        if self.comment_el is not None:
+            comment = BeautifulSoup(self.comment_el.string, "html.parser")
+            return comment.find_all(name="script", attrs={"id": re.compile(fr"{self.consolerName}\w+")})
         else:
-            return None
+            return [None, None]
 
-    def linkData_DB_read(self, card_id: str):
-        DB = LinkInfoDBmanager()
-        link_card_info = DB.cardinfo_get(Pair(card_id=card_id, desc=""))
-        card_dict = link_card_info.card_dict
-        link_card_info.card_linked_pairLi = list(map(lambda x: Pair(**card_dict[x]), link_card_info.link_list))
-        for pair in link_card_info.card_linked_pairLi:
-            link_card_info.cardinfo_dict[pair.card_id] = pair
-        for item in link_card_info.link_tree:
-            newitem = {}
-            if "card_id" in item:
-                newitem["type"] = "cardinfo"
-                newitem["card_id"] = item["card_id"]
-            elif "groupname" in item:
-                newitem["type"] = "groupinfo"
-                newitem["groupname"] = item["groupname"]
-            link_card_info.card_selfdata_dict["menuli"].append(newitem)
+    def comment_el_select(self):
+        """读取指定的注释内容"""
+        parent_el, dataType = self.domRoot, self.consolerName
+        return parent_el.find(text=lambda text: isinstance(text, element.Comment) and dataType in text)
 
-        return link_card_info
+    def read(self):
+        """这是从JSON,DB,FIELD读取数据的统一接口"""
+        return self.json_data
 
-    def linkData_field_read(self, card_id):
-        dict_cardinfo = CardLinkInfo(card_id)
-        p = Input()
-        field = p.note_id_load(Pair(card_id=card_id, desc="")).fields[p.insertPosi]
-        try:
-            fielddata = HTML_converter().feed(field).HTMLdata_load()
-            dict_cardinfo.card_linked_pairLi = fielddata.card_linked_pairLi
-            dict_cardinfo.card_selfdata_dict = fielddata.card_selfdata_dict
-            dict_cardinfo.cardinfo_dict = fielddata.cardinfo_dict
-        except json.JSONDecodeError as e:
-            console(f"""{say("链接列表渲染失败")},{say("错误信息")}:{repr(e)}""", func=showInfo).talk.end()
-        return dict_cardinfo
+
+class DataDBReader(Config):
+    """从数据库中读取数据"""
+    pass
+
+
+class DataJSONReader(Config):
+    """从JSON文件中读取数据"""
+    pass

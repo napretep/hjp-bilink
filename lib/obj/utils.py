@@ -191,6 +191,13 @@ class MetaClass_loger(type):
         return type.__new__(mcs, name, bases, attr_dict)
 
 
+class Config:
+    def __init__(self):
+        self.baseinfo = BaseInfo()
+        self.user_cfg = self.baseinfo.userinfo
+        self.base_cfg = self.baseinfo.baseinfo
+
+
 class CustomSignals(QObject):
     instance = None
     linkedEvent = pyqtSignal()

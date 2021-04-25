@@ -2,7 +2,7 @@
 from aqt import gui_hooks
 from json.decoder import JSONDecodeError
 
-from .lib.obj.HTMLbutton_render import HTMLbutton_maker
+from .lib.obj.HTMLbutton_render import HTMLbutton_make
 from .lib.obj.handle_js import on_js_message
 from .lib.obj.HTML_converterObj import HTML_converter
 from .lib.obj.MenuAdder import *
@@ -124,11 +124,9 @@ def HTML_injecttoweb(htmltext, card, kind):
         "previewQuestion",
         "previewAnswer",
         "reviewQuestion",
-        "reviewAnswer",
-        # "clayoutQuestion",
-        # "clayoutAnswer"
+        "reviewAnswer"
     ]:
-        return HTMLbutton_maker(htmltext, card)
+        return HTMLbutton_make(htmltext, card)
     else:
         return htmltext
 

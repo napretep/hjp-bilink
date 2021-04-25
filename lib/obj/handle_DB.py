@@ -1,33 +1,4 @@
-"""
-表结构:
-    20210417123432版本
-    旧版兼容接口
-    card_linked_pairLi:List[Pair], 以Pair类型为元素的列表
-    card_selfdata_dict={
-        "menuli":[{"type": "cardinfo", "card_id": "1611035897919" },
-        {"type":"groupinfo","groupname":"new group"}]
-        "groupinfo":{#groupinfo不做嵌套处理, 因为不需要这么多.
-            "new group": [1611035897919]
-        }
-    }, 表达链接的存储结构
-    cardinfo_dict:{"card_id":Pair} 用来查询卡片的具体内容
 
-    新版数据库JSON格式规范
-    字段1 : card_id : 123456789
-    字段2 : info:{
-        "card_id":"123456789",
-        "link_list":["123456789","123456789","123456789","123456789","123"]
-        "link_tree":[{"card_id":"123456789"},{"groupname":"1234567"},{"card_id":"123"},{"groupname":"123456789"]
-        "card_dict":{
-            "123456789":{"card_id":"123456789","desc":"ABCDE","dir":"→"},
-            "123456789":{"card_id":"123456789","desc":"ABCDE","dir":"→"}
-        }
-        group_info:{
-            "new group":[{"card_id":"123456789"},{"groupname":"1234567"},{"card_id":"123"},{"groupname":"123456789"],
-            "new group2":[{"card_id":"123456789"},{"groupname":"1234567"},{"card_id":"123"},{"groupname":"123456789"]
-        }
-    }
-"""
 
 import os
 import sqlite3, json
