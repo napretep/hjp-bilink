@@ -9,13 +9,13 @@ from .linkData_reader import LinkData_reader
 
 
 class ButtonMaker(Config):
-
+    pass
 
 def HTMLbutton_make(htmltext, card):
     result = htmltext
     data = LinkData_reader(str(card.id)).read()
     if len(data["link_list"]) > 0:
-
+        pass
     # showInfo(linkdata.__str__())
     # htmltext1 = HTML_converter().feed(htmltext).HTMLButton_selfdata_make(linkdata).HTMLdata_save().HTML_get().HTML_text
     return htmltext
