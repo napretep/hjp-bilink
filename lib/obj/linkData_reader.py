@@ -15,24 +15,18 @@
     新版数据库JSON格式规范
     字段1 : card_id : 123456789
     字段2 : info:
-            {'link_list':
-                [{'card_id': '1618912345046', 'desc': 'B', 'dir': '→'},
-                {'card_id': '1618912351734', 'desc': 'D', 'dir': '→'},
-                {'card_id': '1618912346117', 'desc': 'C', 'dir': '→'}],
-
-            'root':
-                [{'card_id': '1618912345046'},
-                {'nodename': 'new_group'},
-                {'card_id': '1618912346117'},
-                {'card_id': '1618912351734'}],
-            'node': {
-                'new_group': [{'card_id': '1618912351734'}, {'card_id': '1618912346117'}],
-                '1618912345046': {'card_id': '1618912345046', 'desc': 'B', 'dir': '→'},
-                '1618912351734': {'card_id': '1618912351734', 'desc': 'D', 'dir': '→'},
-                '1618912346117': {'card_id': '1618912346117', 'desc': 'C', 'dir': '→'}
-                }
-
-            }
+            {   "version": 1,
+                "self_data": {"card_id": "1234567", "desc": "334455"},
+                "link_list":
+                [{"card_id": "1618912345046", "desc": "B", "dir": "→"},
+                {"card_id": "1618912351734", "desc": "D", "dir": "→"},
+                {"card_id": "1618912346117", "desc": "C", "dir": "→"}],
+                "root": [{"card_id": "1618912345046"}, {"nodename": "new_group"}],
+                "node":
+                {"new_group": [{"card_id": "1618912351734"}, {"card_id": "1618912346117"}],
+                "1618912345046": {"card_id": "1618912345046", "desc": "B", "dir": "→"},
+                "1618912351734": {"card_id": "1618912351734", "desc": "D", "dir": "→"},
+                "1618912346117": {"card_id": "1618912346117", "desc": "C", "dir": "→"}}}
 
 
     <!--<script id="hjp_bilink_data">hjp_bilink_data=[{"card_id": "1618912345046", "desc": "B", "dir": "→"}]</script>
@@ -57,7 +51,7 @@ from aqt import mw
 # class FieldHandler(Config):
 # """可能是将来的统一类, 用来操作从field中提取"""
 
-class LinkData_reader(Config):
+class LinkDataReader(Config):
     """
     用来统一读取链接数据的接口.
     """

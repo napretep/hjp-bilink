@@ -53,7 +53,6 @@ def func_config():
 
 def func_version():
     """返回版本号"""
-    # VersionDialog().exec()
     DialogSingleCheck(VersionDialog)
 
 
@@ -211,11 +210,6 @@ class LinkStarter(QObject):
                 searchStr = f"tag:{param.input.tag}*"
             console(searchStr).log.end()
             browser.model.search(searchStr)
-        # if isinstance(param.parent, AnkiWebView):
-        #     if param.parent.title == "previewer":
-        #         param.parent.parent().render_card()
-        #     if param.parent.title == "main webview":
-        #         mw.reviewer.show()
 
 
 def func_browserInsert(*args, **kwargs):

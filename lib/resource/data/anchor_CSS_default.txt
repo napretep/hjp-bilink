@@ -1,0 +1,41 @@
+.container_L0,
+button[card_id] {
+        margin:0 !important;
+        display:block;
+        color:#fff; /*锚点字体的颜色*/
+        background-color:green;/*锚点的背景色*/
+        border:none;
+        border-radius:1px;
+        position:relative;
+        max-width:150px;
+        color:white;
+        overflow-wrap: anywhere;
+        font-size:15px
+}
+button[card_id] {
+    width:100%;
+    text-align:left;
+    margin:1px !important;
+    padding:1px;
+}
+
+.container_body_L1 {
+    position:absolute;
+    display:none;
+}
+
+.container_L0:hover .container_body_L1
+{
+    width:100%;
+    background-color:green;/*锚点的背景色*/
+    position:absolute;
+    display:grid;
+}
+.hjp_bilink.details{
+    text-align:left;
+}
+
+.hjp_bilink.details div{
+    text-align:left;
+    margin-left:6px;
+}

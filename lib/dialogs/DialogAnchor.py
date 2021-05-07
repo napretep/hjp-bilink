@@ -14,6 +14,16 @@ model_dataobj: 从model_dataJSON 读取数据转换为对象属性,保存于此
             - menuli: List[card_id or group_name, type]#Menuli 只提供一个引导作用.
             - cardinfo:Dict[card_id:pair]#大部分信息都在这里
 linked_pairLi: 导出到HTML需要
+
+
+基本功能:
+    打开anchor
+    数据载入-整理成树形结构
+    anchor树可以拖拽调整
+    自动保存
+    自动更新
+    重名检测
+    手工链接
 """
 from typing import Dict
 
@@ -24,6 +34,7 @@ from .DialogCardPrev import external_card_dialog
 from ..obj import MenuAdder
 from ...lib.obj.inputObj import *
 from ...lib.dialogs.UIdialog_Anchor import Ui_anchor
+from ...lib.obj.linkData_reader import LinkDataReader
 
 
 class AnchorDialog(QDialog, Ui_anchor):
@@ -33,6 +44,7 @@ class AnchorDialog(QDialog, Ui_anchor):
     def __init__(self, pair: Pair, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.anchorDataIsEmpty = False
+        self.data = LinkDataReader(pair.card_id).read()
         self.input = Input()
         self.parent = parent
         self.model_subgroupdict = {}
@@ -93,6 +105,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.setAcceptDrops(True)
         self.acceptDrops()
         self.anchorTree.setDragDropMode(QtWidgets.QAbstractItemView.DragDrop)
+        self.anchorTree.setIndentation(8)
 
     def init_events(self):
         """响应右键菜单,拖拽,绑定更新数据,思考如何实现变化后自动加载.如果实现不了,暂时先使用模态对话框 """
@@ -303,19 +316,67 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.model.setHorizontalHeaderItem(1, label_desc)
         self.model.horizontalHeaderItem(0)
         self.anchorTree.setModel(self.model)
-        self.model_dataobj_load()
+        # self.model_dataobj_load()
+        self.model_datadict_load()
         self.anchorTree.expandAll()
         self.treeIsExpanded = True
+
+    def model_datadict_load(self):
+        if len(self.data["link_list"]) == 0:
+            return
+        self.model_rootNode.clearData()
+        self.model.removeRows(0, self.model.rowCount())
+        mroot = self.model_rootNode
+        root = self.data["root"]
+        node = self.data["node"]
+        for item in root:
+            if "card_id" in item:
+                self.create_carditem(item)
+            elif "nodename" in item:
+                self.create_groupitem(item)
+
+    def create_groupitem(self, item, parent=None, level=0):
+        if parent is None:
+            parent = self.model_rootNode
+        groupname = item["nodename"]
+        groupli = self.data["node"][groupname]
+        item_group = QStandardItem(groupname)
+        item_group.self_attrs = {"character": "group", "level": level, "primData": groupli}
+        item_empty = QStandardItem("")
+        item_empty.setFlags(item_empty.flags()
+                            & ~Qt.ItemIsEditable
+                            & ~Qt.ItemIsDropEnabled
+                            & ~Qt.ItemIsDragEnabled)
+        parent.appendRow([item_group, item_empty])
+        for subitem in groupli:
+            if "card_id" in subitem:
+                self.create_carditem(subitem, parent=item_group, level=level + 1)
+            elif "nodename" in subitem:
+                self.create_groupitem(subitem, parent=item_group, level=level + 1)
+
+    def create_carditem(self, item, parent=None, level=0):
+        if parent is None:
+            parent = self.model_rootNode
+        cardinfo = self.data["node"][item["card_id"]]
+        card_id, desc = cardinfo["card_id"], cardinfo["desc"]
+        item_id, item_desc = QStandardItem(card_id), QStandardItem(desc)
+        item_desc.setFlags(item_desc.flags() & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
+        item_id.self_attrs = {"character": "card_id", "level": level, "primData": cardinfo}
+        item_desc.self_attrs = {"character": "desc", "level": level, "primData": cardinfo}
+        parent.appendRow([item_id, item_desc])
 
     def dataobj_field_load(self):
         """从笔记中读取保存好的JSON数据,需要input读取数据,HTML进行转化
         这里cardinfo是需要后期指定更新的,其他的不必更新,对应的东西会自己更新.
         """
-        note = self.input.note_id_load(self.pair)
-        self.HTMLmanage.clear().feed(note.fields[self.cfg.readDescFieldPosition])
-        self.HTMLmanage.HTMLdata_load()
-        pairli = self.HTMLmanage.card_linked_pairLi
-        dataJSON = self.HTMLmanage.card_selfdata_dict
+        data = LinkDataReader(self.pair.card_id).read()
+        pairli = [Pair(**i) for i in data["link_list"]]
+        # note = self.input.note_id_load(self.pair)
+        # self.HTMLmanage.clear().feed(note.fields[self.cfg.readDescFieldPosition])
+        # self.HTMLmanage.HTMLdata_load()
+        # pairli = self.HTMLmanage.card_linked_pairLi
+        # dataJSON = self.HTMLmanage.card_selfdata_dict
+        dataJSON = data["root"]
         cardinfo: Dict = {}
         for pair in pairli:
             cardinfo[pair.card_id] = pair
@@ -411,6 +472,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         """
         从model 更新data :1 dataJSON, 2 data_obj_cardinfo,3 linkedPairli
         """
+        new_datadict = {}
         self.dataObjCardinfo_model_load()
         self.dataJSON_model_load()
         self.linkedPairli_model_load()

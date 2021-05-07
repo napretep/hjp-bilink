@@ -5,7 +5,7 @@ from copy import deepcopy
 from functools import reduce
 
 from anki.notes import Note
-from .linkData_reader import LinkData_reader
+from .linkData_reader import LinkDataReader
 from .linkData_syncer import DataSyncer
 from .linkData_writer import LinkData_writer
 from .HTML_converterObj import HTML_converter
@@ -153,12 +153,14 @@ class Input(object
     # @debugWatcher
     def pair_insert(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
         """综合接口, 往A中加B的链接信息"""
+        if pairA.card_id == pairB.card_id:
+            return self
         pairB.desc = pairB.desc if pairB.desc != "" else self.desc_extract(pairB)
         cfg = Empty()
         cfg.__dict__ = self.config
         dirMap = {"→": cfg.linkToSymbol, '←': cfg.linkFromSymbol}
         pairB.dir = dirMap[dirposi]
-        dataA = LinkData_reader(pairA.card_id).read()
+        dataA = LinkDataReader(pairA.card_id).read()
         dataA["link_list"].append(pairB.__dict__)
         LinkData_writer(pairA.card_id, dataA).write()
         return self
@@ -232,7 +234,7 @@ class Input(object
 
     def anchor_delete(self, pairA: Pair, pairB: Pair):
         """A中删除B的id,返回自己"""
-        dataA = LinkData_reader(pairA.card_id).read()
+        dataA = LinkDataReader(pairA.card_id).read()
         dataA["link_list"] = list(filter(lambda x: x["card_id"] != pairB.card_id, dataA["link_list"]))
         console(dataA.__str__()).log.end()
         LinkData_writer(pairA.card_id, dataA).write()
