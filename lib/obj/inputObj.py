@@ -7,7 +7,7 @@ from functools import reduce
 from anki.notes import Note
 from .linkData_reader import LinkDataReader
 from .linkData_syncer import DataSyncer
-from .linkData_writer import LinkData_writer
+from .linkData_writer import LinkDataWriter
 from .HTML_converterObj import HTML_converter
 from .handle_DB import LinkInfoDBmanager
 from .utils import *
@@ -162,7 +162,7 @@ class Input(object
         pairB.dir = dirMap[dirposi]
         dataA = LinkDataReader(pairA.card_id).read()
         dataA["link_list"].append(pairB.__dict__)
-        LinkData_writer(pairA.card_id, dataA).write()
+        LinkDataWriter(pairA.card_id, dataA).write()
         return self
 
     def DB_pair_insert(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
@@ -237,7 +237,7 @@ class Input(object
         dataA = LinkDataReader(pairA.card_id).read()
         dataA["link_list"] = list(filter(lambda x: x["card_id"] != pairB.card_id, dataA["link_list"]))
         console(dataA.__str__()).log.end()
-        LinkData_writer(pairA.card_id, dataA).write()
+        LinkDataWriter(pairA.card_id, dataA).write()
         return self
 
     def DB_anchor_delete(self, pairA: Pair, pairB: Pair):

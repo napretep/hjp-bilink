@@ -6,7 +6,7 @@ from aqt import mw
 from bs4 import BeautifulSoup, element
 
 
-class LinkData_writer(Config):
+class LinkDataWriter(Config):
 
     def __init__(self, card_id, data: dict):
         super().__init__()
