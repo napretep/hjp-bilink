@@ -1,0 +1,32 @@
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.baseinfo=<hjp-bilink.lib.obj.utils.BaseInfo object at 0x000001F10CDEFFD0>
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.valueStack=[]
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.initDict={'IdDescPairs': [], 'addTag': ''}
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.dataflat_=None
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.config={'VERSION': '0.9.6', 'addLinkTo_Field_or_MetaInfo': 'Field', 'defaultLinkMode': 1, 'defaultUnlinkMode': 2, 'defaultInsertMode': 4, 'appendNoteFieldPosition': 0, 'readDescFieldPosition': 0, 'regexForDescContent': 0, 'regexForDescFromTag': 0, 'regexForDescFromDeck': 0, 'descMaxLength': 32, 'linkFromSymbol': '←', 'linkToSymbol': '→', 'linkStyle': '', 'addTagEnable': 1, 'addTagRoot': 'hjp-bilink', 'button_appendTo_AnchorId': 'anchor_container', 'anchorCSSFileName': '', 'DEFAULT_regexForDescContent': '((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=")[\\w\\-\\.]+)', 'shortcut_browserTableSelected_link': 'Alt+1', 'shortcut_browserTableSelected_unlink': 'Alt+2', 'shortcut_browserTableSelected_insert': 'Alt+3', 'shortcut_inputFile_clear': 'Alt+4', 'shortcut_inputDialog_open': 'Alt+`', 'linkInfoStorageLocation': 1}
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.storageLocation=1
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.insertPosi=0
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.regexDescPosi=0
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.linkstyle=
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.seRegx=((?<=<div>)[\s\S]+?(?=</div>)|^[\w:;\-\[\]{}@#$%^&*().\|]+|(?<=src=")[\w\-\.]+)
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.HTMLmanage=<hjp-bilink.lib.obj.HTML_converterObj.HTML_converter object at 0x000001F10CDEF640>
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.model=<aqt.main.AnkiQt object at 0x000001F17F66F310>
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.data={'IdDescPairs': [], 'addTag': ''}
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.dataObj_=[]
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.dataflat_=[]
+07:54:54 > hjp-bilink_ > line297:__setattr__ >
+Input.tag=

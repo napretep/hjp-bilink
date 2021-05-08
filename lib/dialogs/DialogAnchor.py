@@ -36,13 +36,13 @@ from ...lib.obj.inputObj import *
 from ...lib.dialogs.UIdialog_Anchor import Ui_anchor
 from ...lib.obj.linkData_reader import LinkDataReader
 
+
 class AnchorItem(QStandardItem):
-    def __init__(self,itemname,character="card_id",level=0,primData=None):
+    def __init__(self, itemname, character="card_id", level=0, primData=None):
         super().__init__(itemname)
         self.character = character
         self.level = level
         self.primData = primData
-
 
 
 class AnchorDialog(QDialog, Ui_anchor):
@@ -154,24 +154,63 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.init_var()
         self.init_model(rebuild=True)
 
-    def onDrop(self,e):
+    def onDrop(self, e):
         """
-        利用光标偏移的结果是否还在原item中,判断属于何种插入方式.
+        利用光标偏移的结果是否还在原item中,判断属于何种插入方式.(上中下,底层)代码分别是1,0,-1,-2
+        允许组嵌套,但不允许重复.
         """
         pos = e.pos()
         drop_index = self.anchorTree.indexAt(pos)
-        indexheight = self.anchorTree.rowHeight(drop_index) #
-        drop_index_offset_up = self.anchorTree.indexAt(pos-QPoint(0,indexheight/4)) #高处为0
-        drop_index_offset_down = self.anchorTree.indexAt(pos+QPoint(0,indexheight/4))
-        insertPosi=0 #0中间,1上面,-1下面
-        if drop_index_offset_down==drop_index_offset_up: insertPosi=0
-        else:
-            if drop_index!=drop_index_offset_up:insertPosi=1
-            elif drop_index!=drop_index_offset_down:insertPosi=-1
         item_target = self.model.itemFromIndex(drop_index)
-        if item_target.character=="card_id":
-            if insertPosi==0:insertPosi=-1
+        insert_posi = self.position_insert_check(pos, drop_index)
+        item_target,insert_posi = self.item_target_recorrect(item_target,insert_posi)
+        # if insert_posi == 0:
+        #     insert_target = item_target
+        # elif insert_posi == 1:
+        selected_row_li=self.rowli_index_make()
+        # for row in selected_row_li:
 
+
+    def rowli_index_make(self):
+        """# 源item每次都会选择一行的所有列,而且所有列编成1维数组,所以需要下面的步骤重新组回来."""
+        selected_indexes_li = self.anchorTree.selectedIndexes()
+        selected_items_li = list(map(self.model.itemFromIndex, selected_indexes_li))
+        selected_row_li = []
+        for i in range(int(len(selected_items_li) / 2)):
+            selected_row_li.append([selected_items_li[2 * i], selected_items_li[2 * i + 1]])
+        return selected_row_li
+
+    def position_insert_check(self, pos, drop_index):
+        """测定插入位置"""
+        index_height = self.anchorTree.rowHeight(drop_index)  #
+        drop_index_offset_up = self.anchorTree.indexAt(pos - QPoint(0, index_height / 4))  # 高处为0
+        drop_index_offset_down = self.anchorTree.indexAt(pos + QPoint(0, index_height / 4))
+        insertPosi = 0  # 0中间,1上面,-1下面,-2底部
+        if drop_index_offset_down == drop_index_offset_up:
+            insertPosi = 0
+        else:
+            if drop_index != drop_index_offset_up:
+                insertPosi = 1
+            elif drop_index != drop_index_offset_down:
+                insertPosi = -1
+        return insertPosi
+
+    def item_target_recorrect(self, item_target, insertPosi):
+        """修正插入的对象和插入的位置"""
+        #拉到底部
+        if item_target is None:
+            insertPosi = -2
+            item_target = self.model_rootNode
+        # 卡片不允许成为组
+        elif item_target.character == "card_id":
+            if insertPosi == 0: insertPosi = -1
+        # 目标item不能是第二列,如果是要调回第一列
+        if item_target.column() > 0:
+            if item_target.level == 0:
+                item_target = self.model_rootNode.child(item_target.row(), 0)
+            elif item_target.level > 0:
+                item_target = item_target.parent().child(item_target.row(), 0)
+        return item_target, insertPosi
 
     def onDrop_(self, *args, **kwargs):
         """掉落事件响应, 不涉及重写dataJSON"""
@@ -371,12 +410,12 @@ class AnchorDialog(QDialog, Ui_anchor):
         groupname = item["nodename"]
         groupli = self.data["node"][groupname]
         # item_group = QStandardItem(groupname)
-        item_group = AnchorItem(groupname,character="group",level=level,primData=groupli)
-        item_group.self_attrs = {"character": "group", "level": level, "primData": groupli}
-        item_empty = AnchorItem("")
+        item_group = AnchorItem(groupname, character="group", level=level, primData=groupli)
+        # item_group.self_attrs = {"character": "group", "level": level, "primData": groupli}
+        item_empty = AnchorItem("", character="empty", level=level, primData=groupli)
         item_empty.setFlags(item_empty.flags()
                             & ~Qt.ItemIsEditable
-                            & ~Qt.ItemIsDropEnabled
+                            # & ~Qt.ItemIsDropEnabled
                             & ~Qt.ItemIsDragEnabled)
         parent.appendRow([item_group, item_empty])
         for subitem in groupli:
@@ -395,9 +434,11 @@ class AnchorDialog(QDialog, Ui_anchor):
         # item_desc = QStandardItem(desc)
         # item_desc.self_attrs={"character":"desc","level":level,"primData":cardinfo}
         item_id, item_desc = \
-            AnchorItem(card_id,level=level,primData=cardinfo), \
-            AnchorItem(desc,level=level)
-        item_desc.setFlags(item_desc.flags() & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
+            AnchorItem(card_id, level=level, primData=cardinfo), \
+            AnchorItem(desc, character="desc", level=level, primData=cardinfo)
+        item_desc.setFlags(item_desc.flags()
+                           # &~Qt.ItemIsDropEnabled
+                           & ~Qt.ItemIsDragEnabled)
         parent.appendRow([item_id, item_desc])
 
     def dataobj_field_load(self):
@@ -597,63 +638,61 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def data_save(self):
         tempdict = self.data_model_load()
-        self.data["link_list"]=tempdict["link_list"]
+        self.data["link_list"] = tempdict["link_list"]
         self.data["root"] = tempdict["root"]
         self.data["node"] = tempdict["node"]
+        self.data = DataSyncer(self.data).sync().data
         LinkDataWriter(self.pair.card_id, self.data).write()
 
     def data_model_load(self):
         """从model中读取数据保存"""
         mroot = self.model_rootNode
         tempdict = {
-            "link_list":[],
-            "root":[],
-            "node":{}
+            "link_list": [],
+            "root": [],
+            "node": {}
         }
         for i in range(mroot.rowCount()):
-            child=mroot.child(i,0)
+            child = mroot.child(i, 0)
             if child.character == "card_id":
-            # if child.self_attrs["character"] == "card_id":
-                self.data_model_load_card(child,tempdict)
+                # if child.self_attrs["character"] == "card_id":
+                self.data_model_load_card(child, tempdict)
             elif child.character == "group":
-            # elif child.self_attrs["character"] == "group":
-                self.data_model_load_group(child,tempdict)
+                # elif child.self_attrs["character"] == "group":
+                self.data_model_load_group(child, tempdict)
         return tempdict
 
-
-    def data_model_load_card(self,child,tempdict):
+    def data_model_load_card(self, child, tempdict):
         cardinfo = child.primData
         # cardinfo = child.self_attrs["primData"]
         if child.level == 0:
-        # if child.self_attrs["level"] == 0:
-            tempdict["root"].append({"card_id":child.text()})
+            # if child.self_attrs["level"] == 0:
+            tempdict["root"].append({"card_id": child.text()})
         else:
             parent = child.parent().text()
-            tempdict["node"][parent].append({"card_id":child.text()})
+            tempdict["node"][parent].append({"card_id": child.text()})
 
-        desc = child.parent().child(child.row(),1) \
-            if child.parent() is not None else self.model_rootNode.child(child.row(),1)
-        cardinfo["desc"]=desc.text()
+        desc = child.parent().child(child.row(), 1) \
+            if child.parent() is not None else self.model_rootNode.child(child.row(), 1)
+        cardinfo["desc"] = desc.text()
         tempdict["link_list"].append(cardinfo)
 
-    def data_model_load_group(self,child:AnchorItem,tempdict):
-        tempdict["node"][child.text()]=[]
+    def data_model_load_group(self, child: AnchorItem, tempdict):
+        tempdict["node"][child.text()] = []
         if child.level == 0:
-        # if child.self_attrs["level"] == 0:
-            tempdict["root"].append({"nodename":child.text()})
+            # if child.self_attrs["level"] == 0:
+            tempdict["root"].append({"nodename": child.text()})
         else:
             parent = child.parent().text()
-            tempdict["node"][parent].append({"nodename":child.text()})
+            tempdict["node"][parent].append({"nodename": child.text()})
         for i in range(child.rowCount()):
-            childchild = child.child(i,0)
+            childchild = child.child(i, 0)
             if childchild.character == "card_id":
-            # if child.self_attrs["character"] == "card_id":
-                self.data_model_load_card(childchild,tempdict)
-            elif childchild.character =="group":
-            # elif child.self_attrs["character"] == "group":
-                self.data_model_load_group(childchild,tempdict)
-
-
+                # if child.self_attrs["character"] == "card_id":
+                self.data_model_load_card(childchild, tempdict)
+            elif childchild.character == "group":
+                # elif child.self_attrs["character"] == "group":
+                self.data_model_load_group(childchild, tempdict)
 
     @wrapper_webview_refresh
     @wrapper_browser_refresh
