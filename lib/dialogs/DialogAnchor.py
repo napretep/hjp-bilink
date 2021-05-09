@@ -60,15 +60,6 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.model_subgroupdict = {}
         self.baseinfo = self.input.baseinfo
         self.customSignals = CustomSignals()
-        self.busy = False
-        self.HTMLmanage = self.input.HTMLmanage
-        self.cfg = self.baseinfo.config_obj
-        self.pairdict: Dict = {}
-        self.model_dataobj: Dict = {}  # 从model_dataJSON读取保存为对象模型.
-        self.model_dataJSON: Dict[str, List[Dict]] = {}
-        self.model_linked_pairLi: List[Pair] = []
-        self.undo_stack: List[dict] = []
-        self.selected_linked_pairLi = []
         self.init_UI()
         self.init_lineEdit()
         self.init_model()
@@ -79,10 +70,6 @@ class AnchorDialog(QDialog, Ui_anchor):
     def init_var(self):
         """变量初始化"""
         self.data = LinkDataReader(self.pair.card_id).read()
-        self.pairdict: Dict = {}
-        self.model_dataobj: Dict = {}  # 从model_dataJSON读取保存为对象模型.
-        self.model_dataJSON: Dict[str, List[Dict]] = {}
-        self.model_linked_pairLi: List[Pair] = []
         self.model = None
         self.model_rootNode = None
 

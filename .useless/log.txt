@@ -11,3 +11,6 @@
 3 anchor对话框在取消链接时不同步
 
 4 pairLi_pair_append 只更新了卡片的pair,没有更新selfdata对应的内容, 在这里应该是对应pair的卡片
+
+
+pyuic5 -o destination.py source.ui
