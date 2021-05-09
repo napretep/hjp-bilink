@@ -99,6 +99,30 @@ def HTMLbutton_make(htmltext, card):
     else:
         return htmltext
 
+testdata = {"version": 1,
+            "link_list": [
+                {"card_id": "1620315134937", "desc": "A", "dir": "→"},
+                {"card_id": "1620315139164", "desc": "B", "dir": "→"},
+                {"card_id": "1620315139728", "desc": "C", "dir": "→"},
+                {"card_id": "1620315140556", "desc": "D", "dir": "→"}],
+            "self_data":
+                {"card_id": "1620315134937", "desc": ""},
+            "root": [
+                {"nodename":"yes"},
+                {"card_id": "1620315140556"}],
+            "node": {
+                "yes":[{"card_id": "1620315134937"},
+                       {"card_id": "1620315139164"},
+                       {"nodename":"no"}
+                       ],
+                "no":[{"card_id": "1620315139728"}],
+                "1620315134937":{"card_id": "1620315134937", "desc": "A", "dir": "→"},
+                "1620315139164":{"card_id": "1620315139164", "desc": "B", "dir": "→"},
+                "1620315139728":{"card_id": "1620315139728", "desc": "C", "dir": "→"},
+                "1620315140556":{"card_id": "1620315140556", "desc": "D", "dir": "→"}
+            }}
+
+
 """
 <!DOCTYPE html>
 <html lang="en">

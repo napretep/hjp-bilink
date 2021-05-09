@@ -51,15 +51,15 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def __init__(self, pair: Pair, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.anchorDataIsEmpty = False
-        self.data = LinkDataReader(pair.card_id).read()
         self.input = Input()
+        self.pair = pair
+        self.pair.desc = self.input.desc_extract(self.pair)
+        self.data = LinkDataReader(pair.card_id).read()
+        self.anchorDataIsEmpty = False
         self.parent = parent
         self.model_subgroupdict = {}
         self.baseinfo = self.input.baseinfo
         self.customSignals = CustomSignals()
-        self.pair = pair
-        self.pair.desc = self.input.desc_extract(self.pair)
         self.busy = False
         self.HTMLmanage = self.input.HTMLmanage
         self.cfg = self.baseinfo.config_obj
@@ -78,7 +78,7 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def init_var(self):
         """变量初始化"""
-
+        self.data = LinkDataReader(self.pair.card_id).read()
         self.pairdict: Dict = {}
         self.model_dataobj: Dict = {}  # 从model_dataJSON读取保存为对象模型.
         self.model_dataJSON: Dict[str, List[Dict]] = {}
@@ -125,7 +125,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         # self.anchorTree.mouseMoveEvent=self.onMouseMove
         # self.anchorTree.dragLeaveEvent=self.onDragLeave
         self.linkedEvent.connect(self.onRebuild)
-        # self.model.dataChanged.connect(self.field_model_save_suite)
+        self.model.dataChanged.connect(self.field_model_save_suite)
 
     def onMousePress(self, e):
         """鼠标点击事件"""
@@ -163,13 +163,40 @@ class AnchorDialog(QDialog, Ui_anchor):
         drop_index = self.anchorTree.indexAt(pos)
         item_target = self.model.itemFromIndex(drop_index)
         insert_posi = self.position_insert_check(pos, drop_index)
-        item_target,insert_posi = self.item_target_recorrect(item_target,insert_posi)
-        # if insert_posi == 0:
-        #     insert_target = item_target
-        # elif insert_posi == 1:
-        selected_row_li=self.rowli_index_make()
-        # for row in selected_row_li:
+        item_target, insert_posi = self.item_target_recorrect(item_target, insert_posi)
+        selected_row_li = self.rowli_index_make()
+        # 下面是根据不同的插入情况做出选择。
+        self.rowli_selected_insert(insert_posi, selected_row_li, item_target)
+        self.anchorTree.expandAll()
+        self.data_save()
 
+    def rowli_selected_insert(self, insert_posi, selected_row_li, item_target):
+        for row in selected_row_li: self.itemChild_row_remove(row)
+        temp_rows_li = []
+        if insert_posi == 0:  # 中间
+            for row in selected_row_li:
+                item_target.appendRow(row)
+                row[0].level = item_target.level + 1
+                row[1].level = item_target.level + 1
+        elif insert_posi != -2:
+            for row in selected_row_li:
+                row[0].level = item_target.level
+                row[1].level = item_target.level
+            posi_row = item_target.row()
+            parent = item_target.parent() if item_target.level > 0 else self.model_rootNode
+            while parent.rowCount() > 0:
+                temp_rows_li.append(parent.takeRow(0))
+            if insert_posi == 1:  # 上面
+                final_rows_li = temp_rows_li[0:posi_row] + selected_row_li + temp_rows_li[posi_row:]
+            else:
+                final_rows_li = temp_rows_li[0:posi_row + 1] + selected_row_li + temp_rows_li[posi_row + 1:]
+            for row in final_rows_li:
+                parent.appendRow(row)
+        else:
+            for row in selected_row_li:
+                row[0].level = self.model_rootNode.level + 1
+                row[1].level = self.model_rootNode.level + 1
+                self.model_rootNode.appendRow(row)
 
     def rowli_index_make(self):
         """# 源item每次都会选择一行的所有列,而且所有列编成1维数组,所以需要下面的步骤重新组回来."""
@@ -197,7 +224,7 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def item_target_recorrect(self, item_target, insertPosi):
         """修正插入的对象和插入的位置"""
-        #拉到底部
+        # 拉到底部
         if item_target is None:
             insertPosi = -2
             item_target = self.model_rootNode
@@ -212,78 +239,10 @@ class AnchorDialog(QDialog, Ui_anchor):
                 item_target = item_target.parent().child(item_target.row(), 0)
         return item_target, insertPosi
 
-    def onDrop_(self, *args, **kwargs):
-        """掉落事件响应, 不涉及重写dataJSON"""
-
-        def gowithcard(parent, item_target, item_finalLi):
-            """对于卡片来说,group是最顶层,card 0, 1层都可以"""
-            if item_target.self_attrs["character"] == "group":
-                for row in item_finalLi:
-                    row[0].self_attrs["level"] = 1
-                    item_target.appendRow(row)
-            else:
-                self.itemChild_row_insertbefore(parent, item_target, item_finalLi)
-
-        def gowithgroup(parent, item_target, item_finalLi):
-            """对于组来说,不能放到1层,如果碰到1层应该上升层级"""
-            if item_target.self_attrs["level"] == 1:
-                item_target = item_target.parent()
-                parent = self.model_rootNode
-            self.itemChild_row_insertbefore(parent, item_target, item_finalLi)
-
-        gogroupcard_dict = {
-            "card_id": gowithcard,
-            "group": gowithgroup
-        }
-
-        e = args[0]
-
-        drop_index = self.anchorTree.indexAt(e.pos())
-        item_target = self.model.itemFromIndex(drop_index)
-        # if item_target: showInfo(item_target.text())
-        root = self.model_rootNode
-        if item_target is not None:
-            parent = item_target.parent() if item_target.parent() is not None else self.model_rootNode
-            if item_target.column() != 0: item_target = parent.child(item_target.row())
-        else:
-            parent = root
-
-        selectedIndexesLi = self.anchorTree.selectedIndexes()
-        selectedItemLi_ = list(map(self.model.itemFromIndex, selectedIndexesLi))
-        selectedItemLi = []
-        for i in range(int(len(selectedItemLi_) / 2)):
-            selectedItemLi.append([selectedItemLi_[2 * i], selectedItemLi_[2 * i + 1]])
-        groupItemLi, cardItemLi = [], []
-        list(map(lambda x: groupItemLi.append(x) if x[0].self_attrs["character"] == "group" else cardItemLi.append(x),
-                 selectedItemLi))
-        item_finalLi_ = groupItemLi if len(cardItemLi) == 0 else cardItemLi  # 要么全是card,要么全是group,优先考虑card
-        item_finalLi = [self.itemChild_row_remove(i) for i in item_finalLi_]
-        group_or_card = item_finalLi[0][0].self_attrs["character"]
-        if item_target is not None:
-            gogroupcard_dict[group_or_card](parent, item_target, item_finalLi)
-        else:
-            for i in item_finalLi:
-                root.appendRow(i)
-                i[0].self_attrs["level"] = 0
-        j, emptyremoved = 0, False
-        for i in range(root.rowCount()):
-            if root.child(j, 0).self_attrs["character"] == "group" and root.child(j, 0).rowCount() == 0:
-                item = root.takeRow(j)[0]
-                del self.model_dataobj["groupinfo"][item.text()]
-                emptyremoved = True
-            else:
-                j += 1
-            if j == root.rowCount(): break
-        if emptyremoved:
-            console(say("空组已移除")).talk.end()
-        self.field_model_save_suite(nocheck=True)
-        self.anchorTree.expandAll()
-        self.treeIsExpanded = True
-
     def onDoubleClick(self, index, *args, **kwargs):
         """双击事件响应"""
         item = self.model.itemFromIndex(index)
-        if item.column() == 0 and item.self_attrs["character"] == "card_id":
+        if item.column() == 0 and item.character == "card_id":
             card = self.input.model.col.getCard(int(item.text()))
             external_card_dialog(card)
 
@@ -294,7 +253,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         menu.addAction(prefix + say("全部展开/折叠")).triggered.connect(self.view_expandCollapse_toggle)
         menu.addAction(prefix + say("新建组")).triggered.connect(self.itemgroup_create)
         if len(self.anchorTree.selectedIndexes()) > 0:
-            self.pairli_selected_load()
+            self.data_selected_load()
             menu.addAction(prefix + say("选中删除")).triggered.connect(self.view_selected_delete)
             param = Params(menu=menu, parent=self.anchorTree, features=["prefix", "selected"],
                            actionTypes=["link", "browserinsert"])
@@ -320,44 +279,16 @@ class AnchorDialog(QDialog, Ui_anchor):
         parent = item[0].parent() if item[0].parent() is not None else self.model_rootNode
         return parent.takeRow(item[0].row())
 
-    def itemChild_row_insertbefore(self, parent, item_after, item_insertLi):
-        """实现:1如果被插入对象是一个卡片,那么插入到下一排,2如果被插入对象是一个组,插入到组最后,
-        插入方法是效率最低的那种:移除所有的,再重排回去"""
-        templi, r = [], item_after.row()
-        item_after_row = [parent.child(r, 0), parent.child(r, 1)]
-        while parent.rowCount() > 0:
-            row0 = parent.takeRow(0)
-            templi.append(row0)
-        [templi.remove(i) if i in templi else None for i in item_insertLi]
-        if item_after_row[0] != None:
-            index = templi.index(item_after_row)
-        else:
-            index = len(templi)
-        templi = templi[0:index] + item_insertLi + templi[index:]
-        for i in templi:
-            parent.appendRow(i)
-
     def itemgroup_create(self):
         """create group to model"""
         newgroupname = "new_group"
-        while newgroupname in self.model_dataobj["groupinfo"]:
+        while newgroupname in self.data["node"]:
             newgroupname = "new_" + newgroupname
-        self.model_dataobj["groupinfo"][newgroupname] = {
-            "menuli": [],
-            "self_name": newgroupname,
-            "model_item": None
-        }
-        group = QStandardItem(newgroupname)
-        group.self_attrs = {
-            "level": 0,
-            "character": "group",
-            "primData": self.model_dataobj["groupinfo"][newgroupname]
-        }
-        self.model_dataobj["groupinfo"][newgroupname]["model_item"] = group
-        empty = QStandardItem("")
-        empty.setFlags(empty.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled)
+        group = AnchorItem(newgroupname,character="group",level=0,primData=[])
+        empty = AnchorItem("",character="empty",level=0,primData=group.primData)
+        empty.setFlags(empty.flags() & ~Qt.ItemIsEditable)
         self.model_rootNode.appendRow([group, empty])
-        # self.model_rootNode.self_attrs["primData"]["menuli"].append(groupname=newgroupname, type="groupinfo")
+        self.data_save()
 
     def view_expandCollapse_toggle(self):
         if self.treeIsExpanded:
@@ -485,23 +416,24 @@ class AnchorDialog(QDialog, Ui_anchor):
                     subcard, subdesc = card.child(j, 0), card.child(j, 1)
                     cardinfo[subcard.text()].desc = subdesc.text()
 
-    def pairli_selected_load(self):
+    def data_selected_load(self):
         """读取选中的到datapairLi, 注意datapairLi的数据是变动流动的,所以不能长期保存数据,如果要调用必须先执行某行为
          返回数据: 应该是一个flatten的pair列表,进一步操作要交给input manager.
          在进行读取之前, 要更新一次cardinfo的数据.
          """
         root = self.model_rootNode
-        self.data_model_update_suite()
+        # self.data_model_update_suite()
+        tempdict = self.data_model_load()
         selectedItemLi_ = list(map(self.model.itemFromIndex, self.anchorTree.selectedIndexes()))
         selectedItemLi = []
         for i in range(int(len(selectedItemLi_) / 2)):
             selectedItemLi.append([selectedItemLi_[2 * i], selectedItemLi_[2 * i + 1]])
         selectedItemLi.sort(key=lambda x: (x[0].parent() if x[0].parent() else root).row())
-        pairLi = []
+        data_li = []
         for row in selectedItemLi:
-            if row[0].self_attrs["character"] == "card_id":
-                pairLi.append(row[0].self_attrs["primData"])
-        self.input.data = pairLi
+            if row[0].character=="card_id":
+                data_li.append(tempdict["node"][row[0].text()])
+        self.input.data = data_li
         return self
 
     def linkedPairli_model_load(self):
@@ -602,6 +534,28 @@ class AnchorDialog(QDialog, Ui_anchor):
         list(map(lambda x: groupA.appendRow(x), subitem_li))
 
     def dataChanged_check(self, *args, **kwargs):
+        """基本原理： 重命名group后， 将原先的group集A和当前修改过的group集B相减，得到的结果就是被修改的那个group，
+        然后再B-A，如果为空集，说明修改不合法，还原，如果不是空集，说明改了新的名字，那么把旧的指向的列表给他，旧的删掉，留下新的。
+        """
+        e = args[0]  #
+        item_src = self.model.itemFromIndex(e)
+        tempdict = self.data_model_load()
+        changed_set = set(filter(lambda x: type(tempdict["node"][x])==list ,tempdict["node"].keys()))
+        origin_set = set(filter(lambda x: type(self.data["node"][x])==list ,self.data["node"].keys()))
+        which_changed = origin_set-changed_set
+        if which_changed == set():
+            tooltip("无修改")
+            return
+        else:
+            changed_name = changed_set-origin_set
+            if changed_name == set() or len(changed_set)<len(origin_set): #说明重复
+                item_src.setText(which_changed.pop())
+                tooltip("组名重复")
+            else: #一切正常再继续
+                self.data_save()
+                tooltip("修改成功")
+
+    def dataChanged_check_(self, *args, **kwargs):
         """进行检查,及时合并名字相同的组 参数1,2是topLeft,bottomRight,如果没有处理ondrop事件,则会顺到这里来解决"""
         e = args[0]  #
         item_src = self.model.itemFromIndex(e)
@@ -636,6 +590,8 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.data_model_load()
         self.data_save()
 
+    @wrapper_browser_refresh
+    @wrapper_webview_refresh
     def data_save(self):
         tempdict = self.data_model_load()
         self.data["link_list"] = tempdict["link_list"]
@@ -660,6 +616,8 @@ class AnchorDialog(QDialog, Ui_anchor):
             elif child.character == "group":
                 # elif child.self_attrs["character"] == "group":
                 self.data_model_load_group(child, tempdict)
+        for i in tempdict["link_list"]:
+            tempdict["node"][i["card_id"]]=i
         return tempdict
 
     def data_model_load_card(self, child, tempdict):

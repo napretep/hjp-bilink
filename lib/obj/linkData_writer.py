@@ -22,6 +22,7 @@ class LinkDataWriter(Config):
             2: self.JSON_data_write
         }
 
+
     def write(self):
         self.data = DataSyncer(self.data).sync().remove_leaves().data
         self.method_dict[self.storageLocation]()
