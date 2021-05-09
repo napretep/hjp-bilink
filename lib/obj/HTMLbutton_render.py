@@ -2,7 +2,7 @@ import json
 from bs4 import BeautifulSoup, element
 from aqt.utils import showInfo
 from .inputObj import Input
-from .handle_DB import LinkInfoDBmanager
+from .handle_DB import LinkDataDBmanager
 from .utils import BaseInfo, Pair, console, Config, THIS_FOLDER
 from .HTML_converterObj import HTML_converter
 from .linkData_reader import LinkDataReader

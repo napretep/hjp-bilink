@@ -24,11 +24,12 @@ relyLinkConfigFileName = "config.json"
 logFileName = "log.txt"
 THIS_FOLDER = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 USER_FOLDER = os.path.join(THIS_FOLDER, "user_files")
+JSONFile_FOLDER = os.path.join(USER_FOLDER,"linkdata")
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
 RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
 ver = [int(i) for i in V.split(".")]
 baseInfoFileName = "baseInfo.json"
-userInfoFileName = r"config.json"
+userInfoFileName = "config.json"
 
 baseInfoDir = os.path.join(THIS_FOLDER, baseInfoFileName)
 userInfoDir = os.path.join(THIS_FOLDER, "user_files", userInfoFileName)

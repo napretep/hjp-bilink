@@ -9,7 +9,7 @@ from .linkData_reader import LinkDataReader
 from .linkData_syncer import DataSyncer
 from .linkData_writer import LinkDataWriter
 from .HTML_converterObj import HTML_converter
-from .handle_DB import LinkInfoDBmanager
+from .handle_DB import LinkDataDBmanager
 from .utils import *
 
 
@@ -43,7 +43,7 @@ class Input(object
         except:
             raise ValueError("读取input出现错误,请检查格式是否正确,或请点击'清空input'重置input文件")
         if self.storageLocation == 0:
-            self.DB = LinkInfoDBmanager()
+            self.DB = LinkDataDBmanager()
 
     def dataLoad(self):
         """数据读取, 修改self.data,tag,objdata"""

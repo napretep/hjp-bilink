@@ -1,9 +1,10 @@
-import json
+import json,os
 
 from .linkData_syncer import DataSyncer
-from .utils import Config
+from .utils import Config,JSONFile_FOLDER
 from aqt import mw
 from bs4 import BeautifulSoup, element
+from .handle_DB import LinkDataDBmanager
 
 
 class LinkDataWriter(Config):
@@ -29,6 +30,8 @@ class LinkDataWriter(Config):
         pass
 
     def DB_data_write(self):
+        DB = LinkDataDBmanager()
+        DB.data_update(self.card_id,self.data)
         pass
 
     def Field_data_write(self):
@@ -46,4 +49,11 @@ class LinkDataWriter(Config):
         pass
 
     def JSON_data_write(self):
+        if not os.path.exists(JSONFile_FOLDER):
+            os.mkdir(JSONFile_FOLDER)
+        json_str = json.dumps(self.data,ensure_ascii=False,sort_keys=True, indent=4, separators=(',', ':'))
+        path = os.path.join(JSONFile_FOLDER,str(self.card_id)+".json")
+        f = open(path, "w", encoding="utf-8")
+        f.write(json_str)
+        f.close()
         pass

@@ -36,20 +36,23 @@
 """
 
 import json, re
+import os
+
 from anki.notes import Note
 from aqt.utils import showInfo
 
-from .handle_DB import LinkInfoDBmanager
+from .handle_DB import LinkDataDBmanager
 from .languageObj import rosetta as say
-from .cardInfo_obj import CardLinkInfo
 from .linkData_syncer import DataSyncer
-from .utils import BaseInfo, Pair, console, Config
+from .utils import BaseInfo, Pair, console, Config, USER_FOLDER,JSONFile_FOLDER
 from bs4 import BeautifulSoup, element
 from aqt import mw
 
 
 # class FieldHandler(Config):
 # """可能是将来的统一类, 用来操作从field中提取"""
+
+
 
 class LinkDataReader(Config):
     """
@@ -73,7 +76,18 @@ class LinkDataReader(Config):
         data = self.readFuncDict[self.storageLocation](self.card_id).read()
         return DataSyncer(data).sync().data
 
-
+def template_data(card_id,version):
+    json_data = {
+        "version": version,
+        "link_list": [],
+        "self_data": {
+            "card_id": str(card_id),
+            "desc": ""
+        },
+        "root": [],
+        "node": {}
+    }
+    return json_data
 class DataFieldReader(Config):
     """
     从字段中读取的工具
@@ -98,16 +112,7 @@ class DataFieldReader(Config):
 
     def json_data_make(self):
         """制作JSON数据"""
-        json_data = {
-            "version": self.data_version,
-            "link_list": [],
-            "self_data": {
-                "card_id": str(self.card_id),
-                "desc": ""
-            },
-            "root": [],
-            "node": {}
-        }
+        json_data = template_data(self.card_id,self.data_version)
         old_keywords1 = ["menuli", "groupinfo"]
         if self.script_el_li != [None, None]:
             for el in self.script_el_li:
@@ -152,9 +157,55 @@ class DataFieldReader(Config):
 
 class DataDBReader(Config):
     """从数据库中读取数据"""
+    def __init__(self,card_id):
+        super().__init__()
+        if type(card_id) == str:
+            card_id = int(card_id)
+        self.card_id = card_id
+        self.consolerName = self.base_cfg["consoler_Name"]
+        self.data_version = self.base_cfg["data_version"]
+        self.DB=LinkDataDBmanager()
+        self.results = self.DB.data_fetch(card_id)
+        self.jsondata_make()
+
+    def jsondata_make(self):
+        if self.results!=[]: #即存在
+            json_str = self.results[0][1]
+            self.data = json.loads(json_str)
+        else:#不存在就设计这个。
+            self.data = template_data(self.card_id,self.data_version)
+            self.DB.data_update(self.card_id,self.data)
+
+    def read(self):
+        return self.data
+
     pass
 
 
 class DataJSONReader(Config):
     """从JSON文件中读取数据"""
+    def __init__(self,card_id):
+        super().__init__()
+        if type(card_id) == str:
+            card_id = int(card_id)
+        self.card_id = card_id
+        self.consolerName = self.base_cfg["consoler_Name"]
+        self.data_version = self.base_cfg["data_version"]
+        self.jsondata_make()
+
+    def jsondata_make(self):
+        path = os.path.join(JSONFile_FOLDER,str(self.card_id)+".json")
+        if not os.path.exists(JSONFile_FOLDER):
+            os.mkdir(JSONFile_FOLDER)
+        if os.path.exists(path):
+            json_str = open(path, "r", encoding="utf-8").read()
+            self.data = json.loads(json_str)
+        else:
+            self.data = template_data(self.card_id,self.data_version)
+            json_str=json.dumps(self.data,ensure_ascii=False,sort_keys=True, indent=4, separators=(',', ':'))
+            f = open(path, "w", encoding="utf-8")
+            f.write(json_str)
+            f.close()
+    def read(self):
+        return self.data
     pass
