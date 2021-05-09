@@ -52,9 +52,9 @@ class Ui_Dialog(object):
         self.horizontalLayout.setStretch(0, 2)
         self.horizontalLayout.setStretch(1, 1)
         self.verticalLayout.addLayout(self.horizontalLayout)
-        self.label = QtWidgets.QLabel(Dialog)
-        self.label.setObjectName("label")
-        self.verticalLayout.addWidget(self.label)
+        self.label_comment = QtWidgets.QLabel(Dialog)
+        self.label_comment.setObjectName("label")
+        self.verticalLayout.addWidget(self.label_comment)
         self.verticalLayout.setStretch(0, 1)
         self.verticalLayout.setStretch(1, 1)
 
@@ -68,4 +68,4 @@ class Ui_Dialog(object):
         self.label_to.setText(_translate("Dialog", "转移到"))
         self.label_switchMode.setText(_translate("Dialog", "转移模式"))
         self.button_correct.setText(_translate("Dialog", "确定"))
-        self.label.setText(_translate("Dialog", "注意：当数据从A转移到B，会删除A中的数据记录"))
+        self.label_comment.setText(_translate("Dialog", "注意：当数据从A转移到B，会删除A中的数据记录"))

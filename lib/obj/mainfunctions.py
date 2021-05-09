@@ -21,6 +21,7 @@ from .utils import BaseInfo, console, Params, Pair, CustomSignals, wrapper_webvi
 from ..dialogs.DialogInput import InputDialog
 from ..dialogs.DialogAnchor import AnchorDialog
 from ..dialogs.DialogConfig import ConfigDialog
+from ..dialogs.DialogStorageSwitcher import StorageSwitcherDialog
 from ..dialogs.DialogVersion import VersionDialog
 
 
@@ -36,6 +37,9 @@ def func_contactMe():
     # mainWin.exec()
     # # sys.exit(app.exec_())
 
+
+def func_dataTransfer():
+    StorageSwitcherDialog().exec()
 
 def func_supportMe():
     showInfo(say("请多多转发支持!"))

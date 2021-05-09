@@ -11,6 +11,7 @@ mw.__dict__[addonName] = {}
 mw.__dict__[addonName]["card_window"] = {}
 
 
+
 def func_actionMenuConnector(*args, **kwargs):
     """执行动作链接的一个辅助函数"""
     param = Params(**kwargs)
@@ -101,9 +102,11 @@ def func_menuAddBaseMenu(*args, **kwargs):
               "升级旧版(小于等于0.6的版本)锚点",
               "联系作者",
               "支持作者",
-              "重置config"
+              "重置config",
+              "链接数据迁移"
               ]
-    funcli = [func_config, func_version, func_help, func_anchorUpdate, func_contactMe, func_supportMe, func_resetConfig]
+    funcli = [func_config, func_version, func_help, func_anchorUpdate,
+              func_contactMe, func_supportMe, func_resetConfig,func_dataTransfer]
     menu = param.menu.addMenu(say("其他"))
     list(map(lambda x, y: menu.addAction(f"{say(x)}").triggered.connect(y), menuli, funcli))
 
