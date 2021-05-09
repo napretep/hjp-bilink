@@ -42,8 +42,6 @@ class Input(object
             self.tag = self.data["addTag"]
         except:
             raise ValueError("读取input出现错误,请检查格式是否正确,或请点击'清空input'重置input文件")
-        if self.storageLocation == 0:
-            self.DB = LinkDataDBmanager()
 
     def dataLoad(self):
         """数据读取, 修改self.data,tag,objdata"""
