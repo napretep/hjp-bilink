@@ -115,10 +115,12 @@ class Input(object
             raise TypeError("参数类型不支持:" + c.__str__())
         cfg: dict = self.config
         note = self.model.col.getCard(cid).note()
-        content = note.fields[self.regexDescPosi]
-        desc = self.HTMLmanage.clear().feed(content).script_el_remove().text_get().text
-        desc = re.sub(r"\n+", "", desc)
-        desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
+        desc = LinkDataReader(cid).read()["self_data"]["desc"]
+        if desc == "":
+            content = note.fields[self.regexDescPosi]
+            desc = self.HTMLmanage.clear().feed(content).script_el_remove().text_get().text
+            desc = re.sub(r"\n+", "", desc)
+            desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc
 
     def card_remove(self, pair: Pair = None):

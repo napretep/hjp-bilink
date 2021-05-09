@@ -29,11 +29,20 @@ class Ui_anchor(object):
         self.anchorTree.setObjectName("anchorTree")
         self.anchorTree.header().setDefaultSectionSize(150)
         self.verticalLayout.addWidget(self.anchorTree)
+        self.self_desc_label = QtWidgets.QLabel(anchor)
+        self.self_desc_label.setObjectName("self_desc")
+        self.self_desc_label.setText("self_desc")
+        self.self_desc = QtWidgets.QLineEdit(self.self_desc_label)
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setSpacing(8)
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.horizontalLayout_2.addWidget(self.self_desc_label)
+        self.horizontalLayout_2.addWidget(self.self_desc)
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.label = QtWidgets.QLabel(anchor)
         self.label.setWordWrap(True)
         self.label.setObjectName("label")
         self.verticalLayout.addWidget(self.label)
-
         self.retranslateUi(anchor)
         QtCore.QMetaObject.connectSlotsByName(anchor)
 
@@ -41,4 +50,6 @@ class Ui_anchor(object):
         _translate = QtCore.QCoreApplication.translate
         anchor.setWindowTitle(_translate("anchor", "anchor"))
         self.label.setText(_translate("anchor",
-                                      "右键可新建group,可删除link,可拖拽link/group,可双击预览,可多选操作,如果你同时选中多个link和group进行拖拽,会忽略group,仅对link操作,如果你想专门拖拽group,那就不要选中link."))
+                                      """右键可新建group,可删除link,可拖拽link/group形成层级结构,可双击预览,可多选操作
+self_desc是anchor所属的卡片本身的名字，链接时会提取他，如果为空会从卡片正文中提取。
+                                      """))

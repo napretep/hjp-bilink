@@ -69,8 +69,8 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.model_linked_pairLi: List[Pair] = []
         self.undo_stack: List[dict] = []
         self.selected_linked_pairLi = []
-        self.storageLocation = self.cfg.linkInfoStorageLocation
         self.init_UI()
+        self.init_lineEdit()
         self.init_model()
         self.init_events()
         self.signup()
@@ -85,9 +85,6 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.model_linked_pairLi: List[Pair] = []
         self.model = None
         self.model_rootNode = None
-        self.model_subgroupdict = None
-        self.undo_stack: List[dict] = []
-        self.selected_linked_pairLi = []
 
     def signup(self):
         """注册到主窗口"""
@@ -107,7 +104,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         """UI初始化"""
         self.setupUi(self)
         self.anchorTree.parent = self
-        self.setWindowTitle(f"Anchor of [desc={self.pair.desc},card_id={self.pair.card_id}]")
+        self.windowTitle_set()
         icondir = os.path.join(THIS_FOLDER, self.baseinfo.baseinfo["iconFile_anchor"])
         self.setWindowIcon(QIcon(icondir))
         self.setAcceptDrops(True)
@@ -120,38 +117,25 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.closeEvent = self.onClose
         self.anchorTree.doubleClicked.connect(self.onDoubleClick)
         self.anchorTree.dropEvent = self.onDrop
-        # self.anchorTree.mousePressEvent=self.onMousePress
         self.anchorTree.customContextMenuRequested.connect(self.onAnchorTree_contextMenu)
-        # self.anchorTree.mouseMoveEvent=self.onMouseMove
-        # self.anchorTree.dragLeaveEvent=self.onDragLeave
         self.linkedEvent.connect(self.onRebuild)
-        self.model.dataChanged.connect(self.field_model_save_suite)
+        self.model.dataChanged.connect(self.data_model_save_suite)
+        self.self_desc.textChanged.connect(lambda:self.data_model_save_suite(nocheck=True,setTitle=True))
 
-    def onMousePress(self, e):
-        """鼠标点击事件"""
-        if e.button() == Qt.LeftButton:
-            self.drag_start_position = e.pos()
-
-    def onMouseMove(self, e):
-        drop_row = self.anchorTree.indexAt(e.pos())
-        item_target = self.model.itemFromIndex(drop_row)
-        drag = QDrag(self)
-        mimeData = QMimeData()
-        mimeData.setText("test")
-        drag.setMimeData(mimeData)
-        drag.exec_(Qt.MoveAction)
-
-    # def onDragLeave(self,e):
-    #     """leave事件重写"""
+    def init_lineEdit(self):
+        text1 = self.data["self_data"]["desc"]
+        text2 = text1 if text1!="" else self.input.desc_extract(self.pair)
+        self.self_desc.setText(text2)
 
     def onClose(self, QCloseEvent):
         """保存数据,并且归零"""
-        self.field_model_save_suite(nocheck=True)
+        self.data_model_save_suite(nocheck=True)
         self.signout()
 
     def onRebuild(self):
         """重建模型,用于刷新"""
         self.init_var()
+        self.init_lineEdit()
         self.init_model(rebuild=True)
 
     def onDrop(self, e):
@@ -271,7 +255,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         for i in range(int(len(selectedItemLi_) / 2)):
             selectedItemLi.append([selectedItemLi_[2 * i], selectedItemLi_[2 * i + 1]])
         item_finalLi = [self.itemChild_row_remove(i) for i in selectedItemLi]
-        self.field_model_save_suite(nocheck=True)
+        self.data_model_save_suite(nocheck=True)
         console(say("已删除选中卡片")).talk.end()
 
     def itemChild_row_remove(self, item):
@@ -372,49 +356,6 @@ class AnchorDialog(QDialog, Ui_anchor):
                            & ~Qt.ItemIsDragEnabled)
         parent.appendRow([item_id, item_desc])
 
-    def dataobj_field_load(self):
-        """从笔记中读取保存好的JSON数据,需要input读取数据,HTML进行转化
-        这里cardinfo是需要后期指定更新的,其他的不必更新,对应的东西会自己更新.
-        """
-        data = LinkDataReader(self.pair.card_id).read()
-        pairli = [Pair(**i) for i in data["link_list"]]
-        # note = self.input.note_id_load(self.pair)
-        # self.HTMLmanage.clear().feed(note.fields[self.cfg.readDescFieldPosition])
-        # self.HTMLmanage.HTMLdata_load()
-        # pairli = self.HTMLmanage.card_linked_pairLi
-        # dataJSON = self.HTMLmanage.card_selfdata_dict
-        dataJSON = data["root"]
-        cardinfo: Dict = {}
-        for pair in pairli:
-            cardinfo[pair.card_id] = pair
-        self.model_dataJSON: Dict = dataJSON
-        self.model_dataobj["groupinfo"] = {}
-        if len(pairli) == 0:
-            self.anchorDataIsEmpty = True
-        if self.model_dataJSON is None:
-            self.model_dataJSON = {}
-        if "menuli" not in self.model_dataJSON:
-            self.model_dataJSON["menuli"] = []
-            self.model_dataJSON["groupinfo"] = {}
-        if len(self.model_dataJSON["menuli"]) == 0:
-            self.model_dataJSON["menuli"] = [{"card_id": pair.card_id, "type": "cardinfo"} for pair in pairli]
-        for k, v in self.model_dataJSON["groupinfo"].items():
-            self.model_dataobj["groupinfo"][k] = {"menuli": v, "model_item": None, "self_name": k}
-        self.model_dataobj["menuli"] = [Pair(**pair) for pair in self.model_dataJSON["menuli"]]
-        self.model_dataobj["cardinfo"] = cardinfo
-
-    def dataObjCardinfo_model_load(self):
-        """利用dataobj 将cardinfo中的数据更新掉"""
-        root = self.model_rootNode
-        cardinfo = self.model_dataobj["cardinfo"]
-        for i in range(root.rowCount()):
-            card, desc = root.child(i, 0), root.child(i, 1)
-            if card.self_attrs["character"] == "card_id":
-                cardinfo[card.text()].desc = desc.text()
-            elif card.self_attrs["character"] == "group":
-                for j in range(card.rowCount()):
-                    subcard, subdesc = card.child(j, 0), card.child(j, 1)
-                    cardinfo[subcard.text()].desc = subdesc.text()
 
     def data_selected_load(self):
         """读取选中的到datapairLi, 注意datapairLi的数据是变动流动的,所以不能长期保存数据,如果要调用必须先执行某行为
@@ -435,103 +376,6 @@ class AnchorDialog(QDialog, Ui_anchor):
                 data_li.append(tempdict["node"][row[0].text()])
         self.input.data = data_li
         return self
-
-    def linkedPairli_model_load(self):
-        """默认不涉及其他环节,单纯更新这个变量,所以调用他之前,要确保其他环节已经跟进."""
-        temppairli = []
-        cardinfo = self.model_dataobj["cardinfo"]
-        root = self.model_rootNode
-        for i in range(root.rowCount()):
-            item = root.child(i, 0)
-            if item.self_attrs["character"] == "card_id":
-                temppairli.append(cardinfo[item.text()])
-            elif item.self_attrs["character"] == "group":
-                for j in range(item.rowCount()):
-                    temppairli.append(cardinfo[item.child(j, 0).text()])
-        self.model_linked_pairLi = temppairli
-
-    def dataJSON_model_load(self):
-        """从Model中读取,不更新cardinfo 因為他属于linkedpairli的结果.
-        dataJSON:
-            - menuli:List[card_id or name,type]
-            - groupinfo
-                - group_name:List[card_id]
-                ...
-        """
-        root = self.model_rootNode
-        tempdict = {
-            "menuli": [],
-            "groupinfo": {}
-        }
-        for i in range(root.rowCount()):
-            item = root.child(i, 0)
-            if item.character == "card_id":
-                tempdict["menuli"].append(dict(card_id=item.text(), type="cardinfo"))
-            elif item.character == "group":
-                tempdict["menuli"].append(dict(groupname=item.text(), type="groupinfo"))
-                tempdict["groupinfo"][item.text()] = []
-                t = tempdict["groupinfo"][item.text()]
-                for j in range(item.rowCount()):
-                    t.append({"type": "cardinfo", "card": item.child(j).text()})
-        self.model_dataJSON = tempdict
-        return self
-
-    def data_model_update_suite(self):
-        """
-        从model 更新data :1 dataJSON, 2 data_obj_cardinfo,3 linkedPairli
-        """
-        new_datadict = {}
-        self.dataObjCardinfo_model_load()
-        self.dataJSON_model_load()
-        self.linkedPairli_model_load()
-
-    def model_dataobj_load(self):
-        """从JSON读取数据保存到模型中展示
-        这里有两个数据类型:一个是对接HTML方面的pairdict,一个是对接View的model_item
-        pairdict是一个查询字典,用来找卡片对的,他是HTML中linked_pairLi的映射.
-        这里load时要做的事情是,把model_item和pairdict以及在本锚点管理器中用到的groupinfo关联起来,确保后面的联动修改.
-        """
-        self.dataobj_field_load()
-        if self.anchorDataIsEmpty:
-            return
-        self.model_rootNode.clearData()
-        self.model.removeRows(0, self.model.rowCount())
-        menuli, groupinfo, root = self.model_dataobj["menuli"], self.model_dataobj["groupinfo"], self.model_rootNode
-        root.self_attrs["primData"] = {"menuli": menuli, "groupinfo": groupinfo, "model_item": root}
-
-        def carditem_make(pair, level=0, parent=root):
-            """一个简便的函数"""
-            item_id, item_desc = QStandardItem(pair.card_id), QStandardItem(pair.desc)
-            item_id.setFlags(item_id.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled)
-            item_desc.setFlags(item_desc.flags() & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
-            item_id.self_attrs = {"character": "card_id", "level": level, "primData": pair}
-            item_desc.self_attrs = {"character": "desc", "level": level, "primData": pair}
-            parent.appendRow([item_id, item_desc])
-
-        for info in menuli:
-            if info.type == "cardinfo":
-                carditem_make(self.model_dataobj["cardinfo"][info.card_id])
-            elif info.type == "groupinfo":
-                item_group = QStandardItem(info.groupname)
-                item_group.self_attrs = {"character": "group", "level": 0, "primData": groupinfo[info.groupname]}
-                groupinfo[info.groupname]["model_item"] = item_group
-                item_empty = QStandardItem("")
-                item_empty.setFlags(item_empty.flags()
-                                    & ~Qt.ItemIsEditable
-                                    & ~Qt.ItemIsDropEnabled
-                                    & ~Qt.ItemIsDragEnabled)
-                root.appendRow([item_group, item_empty])
-                for ginfo in groupinfo[info.groupname]["menuli"]:
-                    carditem_make(self.model_dataobj["cardinfo"][ginfo], parent=item_group, level=1)
-
-    def itemgroupEmpty_check(self):
-        """为空检查"""
-        pass
-
-    def itemgroup_children_move(self, groupA: QStandardItem, groupB: QStandardItem):
-        """move a groupchild to another group,move GB'chilren to GA"""
-        subitem_li = list(map(lambda x: self.item_remove(x), [groupB.child(i, 0) for i in range(groupB.rowCount())]))
-        list(map(lambda x: groupA.appendRow(x), subitem_li))
 
     def dataChanged_check(self, *args, **kwargs):
         """基本原理： 重命名group后， 将原先的group集A和当前修改过的group集B相减，得到的结果就是被修改的那个group，
@@ -555,40 +399,17 @@ class AnchorDialog(QDialog, Ui_anchor):
                 self.data_save()
                 tooltip("修改成功")
 
-    def dataChanged_check_(self, *args, **kwargs):
-        """进行检查,及时合并名字相同的组 参数1,2是topLeft,bottomRight,如果没有处理ondrop事件,则会顺到这里来解决"""
-        e = args[0]  #
-        item_src = self.model.itemFromIndex(e)
-        groupinfo = self.model_dataobj["groupinfo"]
-        cardinfo = self.model_dataobj["cardinfo"]
-        character = item_src.self_attrs["character"]
-        if character == "group":
-            group_name_now = item_src.text()
-            group_name_prev = item_src.self_attrs["primData"]["self_name"]
-            if re.search(r"\W", group_name_now):
-                console(say("抱歉,组名中暂时不能用空格与标点符号,否则会报错")).talk.end()
-                item_src.setText(group_name_prev)
-                return
-            elif group_name_now in groupinfo and item_src != groupinfo[group_name_now]["model_item"]:
-                item_target = groupinfo[group_name_now]["model_item"]
-                self.itemgroup_children_move(item_target, item_src)
-                self.model_rootNode.takeRow(item_src.row())
-                del groupinfo[group_name_prev]
-                console(say("同名组已合并")).talk.end()
-            elif group_name_now != group_name_prev:
-                groupinfo[group_name_now] = groupinfo[group_name_prev]
-                item_src.self_attrs["primData"]["self_name"] = group_name_now
-                del groupinfo[group_name_prev]
-                console(say("已更新")).talk.end()
-        else:
-            item_src.self_attrs["primData"].desc = item_src.text()
-
-    def field_model_save_suite(self, *args, **kwargs):
+    def data_model_save_suite(self, *args, **kwargs):
         """把model读取为pairLi,保存到Field"""
         if "nocheck" not in kwargs:
             self.dataChanged_check(*args, **kwargs)
-        self.data_model_load()
         self.data_save()
+        if "setTitle" in kwargs:
+            self.windowTitle_set()
+
+    def windowTitle_set(self):
+        self.setWindowTitle("""Anchor of [desc={desc},card_id={card_id}]""".format(
+            desc=self.input.desc_extract(self.pair), card_id=self.data["self_data"]["card_id"]))
 
     @wrapper_browser_refresh
     @wrapper_webview_refresh
@@ -597,6 +418,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         self.data["link_list"] = tempdict["link_list"]
         self.data["root"] = tempdict["root"]
         self.data["node"] = tempdict["node"]
+        self.data["self_data"]=tempdict["self_data"]
         self.data = DataSyncer(self.data).sync().data
         LinkDataWriter(self.pair.card_id, self.data).write()
 
@@ -604,6 +426,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         """从model中读取数据保存"""
         mroot = self.model_rootNode
         tempdict = {
+            "self_data":{"card_id":self.pair.card_id,"desc":self.self_desc.text()},
             "link_list": [],
             "root": [],
             "node": {}
@@ -652,62 +475,3 @@ class AnchorDialog(QDialog, Ui_anchor):
                 # elif child.self_attrs["character"] == "group":
                 self.data_model_load_group(childchild, tempdict)
 
-    @wrapper_webview_refresh
-    @wrapper_browser_refresh
-    def pairLi_save(self):
-        """统一接口, 调用之前,请确保self.model_linked_pairLi和 self.model_dataJSON已经更新完毕
-        因为需要根据这两个数据来更新内容
-        """
-        if self.storageLocation == 0:
-            self.DB_pairli_save()
-        elif self.storageLocation == 1:
-            self.field_pairLi_save()
-
-    def DB_pairli_save(self):
-        """数据库的pairli保存, 保存只能在anchor上做, 不要把代码写到 LinkInfoDBmanager 中"""
-        DB = LinkInfoDBmanager()
-        cardinfo = DB.cardinfo_get(self.pair)
-        card_dict = {}
-        link_list = []
-        # self.model_linked_pairLi
-        for pair in self.model_linked_pairLi:
-            card_dict[pair.card_id] = pair.__dict__
-            link_list.append(pair.card_id)
-        cardinfo.info["card_dict"] = card_dict
-        cardinfo.info["link_list"] = link_list
-        # self.model_dataJSON
-        menuli = self.model_dataJSON["menuli"]  # 要和link_tree结合
-        groupinfo = self.model_dataJSON["groupinfo"]  # 和group_info结合
-        link_tree = []
-        for item in menuli:
-            if item["type"] == "cardinfo":
-                link_tree.append({"card_id": item["card_id"]})
-            elif item["type"] == "groupinfo":
-                link_tree.append({"groupname": item["groupname"]})
-        cardinfo.info["link_tree"] = link_tree
-        DB_groupinfo = {}
-        for k, v in groupinfo.items():
-            DB_groupinfo[k] = [{"card_id": card_id} for card_id in v]
-
-    def field_pairLi_save(self):
-        """save pairli to field, 经过 card_linked_pairLi,card_selfdata_dict 保存到field
-        调用之前,请确保linked pairli 和 dataJSON已经更新完毕"""
-        note = self.input.note_id_load(self.pair)
-        self.HTMLmanage.clear().feed(note.fields[self.cfg.readDescFieldPosition])
-        self.HTMLmanage.HTMLdata_load().card_selfdata_dict = self.model_dataJSON
-        self.HTMLmanage.card_linked_pairLi = self.model_linked_pairLi
-        note.fields[self.cfg.readDescFieldPosition] = self.HTMLmanage.HTMLdata_save().HTML_get().HTML_text
-        note.flush()
-
-    def item_remove(self, item: QStandardItem):
-        """移除孩子呗"""
-        if type(item) == list:
-            item = item[0]
-        if item.parent() is not None:
-            return item.parent().takeRow(item.row())
-        else:
-            return self.model_rootNode.takeRow(item.row())
-
-    def item_delete(self):
-        """删除item"""
-        pass
