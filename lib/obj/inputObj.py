@@ -135,7 +135,8 @@ class Input(object
         """给所有的note加上tag"""
         tag = self.tag
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        tagbase = self.config["addTagRoot"] + "::"
+        addTagRoot = self.config["addTagRoot"] if self.config["addTagRoot"]!="" else "hjp-bilink"
+        tagbase = addTagRoot + "::"
         tagtail = tag if tag != "" else timestamp
         pairLi = self.dataObj().dataFlat().dataUnique().val()
         tag = tagbase + tagtail

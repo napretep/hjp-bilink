@@ -1,5 +1,6 @@
 {
     "VERSION": "0.9.6",
+    "linkInfoStorageLocation": 0,
     "addLinkTo_Field_or_MetaInfo": "Field",
     "defaultLinkMode": 1,
     "defaultUnlinkMode": 2,
@@ -14,14 +15,13 @@
     "linkToSymbol": "→",
     "linkStyle": "",
     "addTagEnable": 1,
-    "addTagRoot": "hjp-bilink",
-    "button_appendTo_AnchorId": "anchor_container",
+    "addTagRoot": "",
+    "button_appendTo_AnchorId": "",
     "anchorCSSFileName": "",
     "DEFAULT_regexForDescContent": "((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=\")[\\w\\-\\.]+)",
     "shortcut_browserTableSelected_link": "Alt+1",
     "shortcut_browserTableSelected_unlink": "Alt+2",
     "shortcut_browserTableSelected_insert": "Alt+3",
     "shortcut_inputFile_clear": "Alt+4",
-    "shortcut_inputDialog_open": "Alt+`",
-    "linkInfoStorageLocation": 0
+    "shortcut_inputDialog_open": "Alt+`"
 }

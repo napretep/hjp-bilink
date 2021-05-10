@@ -24,6 +24,7 @@ def checkUpdate():
     if "VERSION" not in config or baseInfoJSON["VERSION"] != config["VERSION"]:
         needUpdate = True
         config["VERSION"] = baseInfoJSON["VERSION"]
+        config_template["VERSION"] = baseInfoJSON["VERSION"]
         for key, value in config_template.items():
             if key not in config:
                 config[key] = value

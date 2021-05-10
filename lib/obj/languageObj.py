@@ -14,6 +14,8 @@ def rosetta(text: str = ""):
             return text
 
     def Zh(text):
+        if text in ZHdict:
+            return ZHdict[text]
         return text
 
     if not (lang in surrport):
@@ -87,7 +89,33 @@ def rosetta(text: str = ""):
         "已更新": "updated",
         "选中插入": "selected insert to input",
         "anchor数据为空": "the anchor data is empty",
-        "请多多转发支持!": "Please let more people know hjp-bilink! "
+        "请多多转发支持!": "Please let more people know hjp-bilink! ",
+        "开启":"enabled",
+        "关闭":"disabled",
+        "sqlite数据库存储":"sqlite3 DB",
+        "卡片字段存储":"card field",
+        "JSON文件存储":"JSON File",
+        "清空后插入":"clean and insert",
+        "编组插入":"insert as a group",
+        "选择文件":"choose a file"
+    }
+    ZHdict = {
+        "defaultLinkMode":"默认链接方式",
+        "defaultUnlinkMode":"默认取消链接方式",
+        "defaultInsertMode":"默认插入input方式",
+        "addTagEnable":"开启链接自动加标签的功能",
+        "appendNoteFieldPosition":"数据存于卡片字段的位置（对应模式开启有效）",
+        "readDescFieldPosition":"描述读取于卡片字段的位置",
+        "linkInfoStorageLocation":"链接数据保存的模式",
+        "descMaxLength":"自动读取描述的最大长度",
+        "addTagRoot":"自动加的标签其根部名称",
+        "button_appendTo_AnchorId":"添加按钮锚点的HTML元素 ID（不懂可不管）",
+        "shortcut_inputDialog_open":"打开input的快捷键",
+        "shortcut_browserTableSelected_link":"browser下链接快捷键",
+        "shortcut_browserTableSelected_unlink":"browser下取消链接快捷键",
+        "shortcut_browserTableSelected_insert":"browser下插入input快捷键",
+        "shortcut_inputFile_clear":"input清空快捷键",
+        "anchorCSSFileName":"按钮锚点的CSS样式文件（不懂可不管）"
     }
     translateFuncs = {
         "en": En,

@@ -3,55 +3,74 @@
     "defaultLinkMode",
     "defaultUnlinkMode",
     "defaultInsertMode",
+    "addTagEnable",
     "appendNoteFieldPosition",
     "readDescFieldPosition",
     "linkInfoStorageLocation",
     "descMaxLength",
-    "linkFromSymbol",
-    "linkToSymbol",
-    "linkStyle",
-    "addTagEnable",
     "addTagRoot",
     "button_appendTo_AnchorId",
+    "shortcut_inputDialog_open",
+    "shortcut_browserTableSelected_link",
+    "shortcut_browserTableSelected_unlink",
+    "shortcut_browserTableSelected_insert",
+    "shortcut_inputFile_clear",
     "anchorCSSFileName"
   ],
   "data_schema": {
     "allow_empty": [
       "linkStyle",
-      "anchorCSSFileName"
+      "anchorCSSFileName",
+      "button_appendTo_AnchorId",
+      "shortcut_browserTableSelected_link",
+      "shortcut_browserTableSelected_unlink",
+      "shortcut_browserTableSelected_insert",
+      "shortcut_inputFile_clear",
+      "shortcut_inputDialog_open",
+      "addTagRoot"
     ],
     "data_range": {
-      "linkInfoStorageLocation": [
-        0,
-        1,
-        2
-      ],
-      "defaultLinkMode": [
-        0,
-        1
-      ],
-      "defaultUnlinkMode": [
-        2,
-        3
-      ],
-      "defaultInsertMode": [
-        4,
-        5,
-        6
-      ]
+      "addTagEnable":{
+      "开启":1,
+        "关闭": 0
+    },
+      "linkInfoStorageLocation": {
+        "sqlite数据库存储":0,
+        "卡片字段存储":1,
+        "JSON文件存储":2
+      },
+      "defaultLinkMode": {
+        "完全图链接":0,
+        "组到组链接":1
+      },
+      "defaultUnlinkMode": {
+        "按结点取消链接":2,
+        "按路径取消链接":3
+      },
+      "defaultInsertMode": {
+        "直接插入":4,
+        "清空后插入":5,
+        "编组插入":6
+      }
     },
     "data_type": {
       "non_negative_int": [
         "appendNoteFieldPosition",
         "readDescFieldPosition",
         "descMaxLength",
-        "defaultLinkMode",
-        "defaultUnlinkMode",
-        "defaultInsertMode",
         "linkInfoStorageLocation"
       ],
       "filename": [
         "anchorCSSFileName"
+      ],
+      "string":[
+        "button_appendTo_AnchorId",
+        "shortcut_browserTableSelected_link",
+        "shortcut_browserTableSelected_unlink",
+        "shortcut_browserTableSelected_insert",
+        "shortcut_inputFile_clear",
+        "shortcut_inputDialog_open",
+        "addTagRoot"
       ]
     }
   }

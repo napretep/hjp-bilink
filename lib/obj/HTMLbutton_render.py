@@ -26,7 +26,8 @@ class ButtonMaker(Config):
 
     def __init__(self, html: str, data: dict):
         super().__init__()
-        self.anchorname = self.user_cfg["button_appendTo_AnchorId"]
+        self.anchorname = self.user_cfg["button_appendTo_AnchorId"] \
+            if self.user_cfg["button_appendTo_AnchorId"] !="" else "anchor_container"
         self.html_str = html
         self.output_str = ""
         self.html_page = BeautifulSoup(self.html_str, "html.parser")
