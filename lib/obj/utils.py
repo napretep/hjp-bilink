@@ -17,7 +17,7 @@ from aqt.webview import AnkiWebView
 from aqt.browser import Browser
 
 ISDEV = False
-ISDEBUG = True  # 别轻易开启,很卡的
+ISDEBUG = False  # 别轻易开启,很卡的
 relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"
@@ -40,6 +40,18 @@ if not os.path.exists(userInfoDir):
     json.dump({}, open(userInfoDir, "w", encoding="utf-8"), indent=4,
               ensure_ascii=False)
 
+def template_data(card_id,version):
+    json_data = {
+        "version": version,
+        "link_list": [],
+        "self_data": {
+            "card_id": str(card_id),
+            "desc": ""
+        },
+        "root": [],
+        "node": {}
+    }
+    return json_data
 
 def compatible_browser_sidebar_refresh(browser: Browser):
     """向下兼容browser的sidebar refresh api"""
@@ -95,7 +107,7 @@ def wrapper_webview_refresh(func):
     def refresh(*args, **kwargs):
         """在被包裹的函数执行完后刷新"""
         self = args[0]
-        parent = self.parent
+        parent = self.parent if hasattr(self,"parent") else None
         result = func(*args, **kwargs)
         if isinstance(parent, AnkiWebView):
             if parent.title == "previewer":

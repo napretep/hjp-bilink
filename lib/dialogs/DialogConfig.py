@@ -2,8 +2,13 @@
 配置文件的窗口
 """
 from ...lib.obj.utils import wrapper_webview_refresh, wrapper_browser_refresh
+from PyQt5 import QtCore, QtGui, QtWidgets
 from ...lib.obj.inputObj import *
-from ...lib.dialogs.UIdialog_Config import Ui_config
+# from ...lib.dialogs.UIdialog_Config import Ui_config
+class Ui_config(object):
+    def setupUi(self,config):
+        config.setObjectName("config")
+        self.v_layout = QtWidgets.QVBoxLayout(config)
 
 
 class ConfigDialog(QDialog, Ui_config):

@@ -72,7 +72,7 @@ class DataSyncer:
                     node_del_set = nodeset - linkset
                     addset -= nodeset
                     for i in node_del_set:
-                        k.remove({"card_id": i})
+                        v.remove({"card_id": i})
             for i in addset:
                 self.root.append({"card_id": i})
 

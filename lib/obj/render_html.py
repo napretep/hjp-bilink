@@ -18,6 +18,4 @@ def makelinklist_over_context(htmltext, card):
     except:
         console(f"""{say("链家列表渲染失败")}:{say("未知错误")}""", func=showInfo).talk.end()
     return htmltext
-    html_addedButton = HTML_converter().feed(htmltext) \
-        .HTMLdata_load().HTMLdata_save().HTMLButton_selfdata_make(fielddata).HTMLdata_save().HTML_get().HTML_text
-    console("最终结果:" + html_addedButton).log.end()
+

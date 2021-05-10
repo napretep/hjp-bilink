@@ -418,6 +418,8 @@ class AnchorDialog(QDialog, Ui_anchor):
             "root": [],
             "node": {}
         }
+        if mroot is None:
+            return tempdict
         for i in range(mroot.rowCount()):
             child = mroot.child(i, 0)
             if child.character == "card_id":

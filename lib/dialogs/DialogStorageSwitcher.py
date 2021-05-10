@@ -3,19 +3,21 @@ from PyQt5.QtWidgets import QDialog
 from aqt.utils import showInfo
 from ..obj.inputObj import Input
 from .UIdialog_storage_switcher import Ui_Dialog
+from ..obj.linkData_deleter import LinkDataDeleter
 from ..obj.linkData_reader import LinkDataReader
 from ..obj.linkData_writer import LinkDataWriter
-
+from ..obj.languageObj import rosetta as say
+from ..obj.utils import wrapper_webview_refresh,wrapper_browser_refresh
 
 class StorageSwitcherDialog(QDialog,Ui_Dialog):
 
     def __init__(self, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.from_Li=["卡片字段存储","sqlite数据库存储","JSON文件存储"]
         self.to_Li=["卡片字段存储","sqlite数据库存储","JSON文件存储"]
         self.switchMode = ["数据覆盖","数据合并"]
         self.storage_num = {
-            "卡片字段存储":1, "sqlite数据库存储":0, "JSON文件存储":2
+            self.to_Li[0]:1, self.to_Li[1]:0, self.to_Li[2]:2,
+            say(self.to_Li[0]):1,say(self.to_Li[0]):0,say(self.to_Li[0]):2
         }
         self.init_UI()
         self.init_model()
@@ -31,7 +33,7 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
         self.button_correct.setText("执行")
         pass
     def init_model(self):
-        self.comboBox_from.addItems(self.from_Li)
+        self.comboBox_from.addItems(self.to_Li)
         self.comboBox_to.addItems(self.to_Li[1:])
         self.comboBox_switchMode.addItems(self.switchMode)
         pass
@@ -46,6 +48,9 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
         for i in self.to_Li:
             if text !=i:
                 self.comboBox_to.addItem(i)
+
+    @wrapper_browser_refresh
+    @wrapper_webview_refresh
     def onButtonCorrectClicked(self, ):
         data_from = self.comboBox_from.currentText()
         data_to = self.comboBox_to.currentText()
@@ -58,8 +63,41 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
             L.storageLocation = self.storage_num[data_from]
             cardinfo[card_id] = L.read()
         if data_mode == "数据覆盖":
-            for id,data in cardinfo.items():
-                L = LinkDataWriter(id, data)
+            for card_idA,data in cardinfo.items():
+                L = LinkDataWriter(card_idA, data)
                 L.storageLocation = self.storage_num[data_to]
                 L.write()
-        # else:
+        else:
+            for card_idA,data in cardinfo.items():
+                L = LinkDataReader(card_idA)
+                L.storageLocation = self.storage_num[data_to]
+                linkdata_A =L.read()
+                linklist_A_li  = [i["card_id"] for i in linkdata_A["link_list"]]
+                root_A_li = [ i["card_id"] if "card_id" in i else i["nodename"]
+                        for i in linkdata_A["root"]]
+
+                for i in data["link_list"]:
+                    if i["card_id"] not in linklist_A_li:
+                        linkdata_A["link_list"].append(i)
+                    else:
+                        index = linklist_A_li.index(i["card_id"])
+                        linkdata_A[index]["desc"]=i["desc"]
+                for i in data["root"]:
+                    info  = i["card_id"] if "card_id" in i else i["nodename"]
+                    if info not in root_A_li:
+                        linkdata_A["root"].append(i)
+                for k,v in data["node"].keys():
+                    if type(v)==list:
+                        if k in linkdata_A["node"]:
+                            linkdata_A["node"][k]+=v
+                        else:
+                            linkdata_A["node"][k]=v
+                L = LinkDataWriter(card_idA,linkdata_A)
+                L.storageLocation = self.storage_num[data_to]
+                L.write()
+        for card_id in card_li:
+            L = LinkDataDeleter(card_id)
+            L.storageLocation = self.storage_num[data_from]
+            L.delete()
+
+        showInfo("OK!")

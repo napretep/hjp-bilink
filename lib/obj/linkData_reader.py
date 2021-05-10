@@ -15,18 +15,17 @@
     新版数据库JSON格式规范
     字段1 : card_id : 123456789
     字段2 : info:
-            {   "version": 1,
-                "self_data": {"card_id": "1234567", "desc": "334455"},
-                "link_list":
-                [{"card_id": "1618912345046", "desc": "B", "dir": "→"},
-                {"card_id": "1618912351734", "desc": "D", "dir": "→"},
-                {"card_id": "1618912346117", "desc": "C", "dir": "→"}],
-                "root": [{"card_id": "1618912345046"}, {"nodename": "new_group"}],
-                "node":
-                {"new_group": [{"card_id": "1618912351734"}, {"card_id": "1618912346117"}],
-                "1618912345046": {"card_id": "1618912345046", "desc": "B", "dir": "→"},
-                "1618912351734": {"card_id": "1618912351734", "desc": "D", "dir": "→"},
-                "1618912346117": {"card_id": "1618912346117", "desc": "C", "dir": "→"}}}
+            {
+            "link_list":[
+                {"card_id":"1620468291507","desc":"d","dir":"→"},
+                {"card_id":"1620468290938","desc":"c","dir":"→"},
+                {"card_id":"1620468289832","desc":"b","dir":"→"}
+            ],
+            "node":{"new_group":[{"card_id":"1620468291507"},{"card_id":"1620468290938"}, {"card_id":"1620468289832"}]},
+            "root":[{"nodename":"new_group"}],
+            "self_data":{"card_id":"1620468288991","desc":"A"},
+            "version":1
+            }
 
 
     <!--<script id="hjp_bilink_data">hjp_bilink_data=[{"card_id": "1618912345046", "desc": "B", "dir": "→"}]</script>
@@ -44,7 +43,7 @@ from aqt.utils import showInfo
 from .handle_DB import LinkDataDBmanager
 from .languageObj import rosetta as say
 from .linkData_syncer import DataSyncer
-from .utils import BaseInfo, Pair, console, Config, USER_FOLDER,JSONFile_FOLDER
+from .utils import BaseInfo, Pair, console, Config, USER_FOLDER, JSONFile_FOLDER, template_data
 from bs4 import BeautifulSoup, element
 from aqt import mw
 
@@ -76,18 +75,7 @@ class LinkDataReader(Config):
         data = self.readFuncDict[self.storageLocation](self.card_id).read()
         return DataSyncer(data).sync().data
 
-def template_data(card_id,version):
-    json_data = {
-        "version": version,
-        "link_list": [],
-        "self_data": {
-            "card_id": str(card_id),
-            "desc": ""
-        },
-        "root": [],
-        "node": {}
-    }
-    return json_data
+
 class DataFieldReader(Config):
     """
     从字段中读取的工具
