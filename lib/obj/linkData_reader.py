@@ -112,7 +112,7 @@ class DataFieldReader(Config):
 
                 # 我们要将最终数据直接保存成json_data变量中的样子,所以下面的写法,要兼容新版和旧版.
                 if "version" in el_json:
-                    if el_json["version"] == 1:  # 这个版本直接就提取了
+                    if el_json["version"] == self.base_cfg["data_version"]:  # 这个版本直接就提取了
                         json_data = el_json
                     else:  # 目前还没有其他版本.
                         pass

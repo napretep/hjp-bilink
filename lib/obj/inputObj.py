@@ -109,6 +109,8 @@ class Input(object
             cid = c.int_card_id
         elif isinstance(c, str):
             cid = int(c)
+        elif type(c)==int:
+            cid=c
         else:
             raise TypeError("参数类型不支持:" + c.__str__())
         cfg: dict = self.config

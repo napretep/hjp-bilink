@@ -1,4 +1,6 @@
 import json
+import re
+
 from bs4 import BeautifulSoup, element
 from aqt.utils import showInfo
 from .inputObj import Input
@@ -9,7 +11,15 @@ from .linkData_reader import LinkDataReader
 import os
 
 
-class ButtonMaker(Config):
+class FieldHTMLData(Config):
+    def __init__(self, html: str):
+        super().__init__()
+        self.html_str = html
+        self.output_str = ""
+        self.html_page = BeautifulSoup(self.html_str, "html.parser")
+
+
+class AnchorButtonMaker(FieldHTMLData):
     """用来制作按钮
     div.container_L0
         div.header_L1
@@ -24,14 +34,45 @@ class ButtonMaker(Config):
                         div
     """
 
-    def __init__(self, html: str, data: dict):
-        super().__init__()
-        self.anchorname = self.user_cfg["button_appendTo_AnchorId"] \
-            if self.user_cfg["button_appendTo_AnchorId"] !="" else "anchor_container"
-        self.html_str = html
-        self.output_str = ""
-        self.html_page = BeautifulSoup(self.html_str, "html.parser")
+    def build(self, data: dict):
+        """直接的出口, 返回HTML的string"""
         self.data = data
+        self.anchor_el_find()
+        self.style_el_create()
+        self.cascadeDIV_create()
+        self.backlink_create()
+        return self.html_page.__str__()
+
+    def backlink_create(self):
+        h = self.html_page
+        if "backlink" in self.data:
+            card_id_li = self.data["backlink"]
+        else:
+            return None
+        details = self.html_page.new_tag("details", attrs={"class": "hjp_bilink details","open":""})
+        summary = self.html_page.new_tag("summary")
+        summary.string = "referenced_in_text"
+        details.append(summary)
+        for card_id in card_id_li:
+            data = LinkDataReader(card_id).read()["self_data"]
+            b = h.new_tag("button", attrs={"card_id": card_id,"class":"hjp-bilink anchor button",
+                                       "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
+            b.string = "→"+data["desc"]
+            details.append(b)
+        body_L1 = self.html_page.select("div.container_body_L1")[0]
+        body_L1.append(details)
+
+    def button_make(self, card_id):
+        h = self.html_page
+        b = h.new_tag("button", attrs={"card_id": card_id,"class":"hjp-bilink anchor button",
+                                       "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
+        cardinfo = self.data["node"][card_id]
+        b.string = cardinfo["dir"] + cardinfo["desc"]
+        return b
+
+    def anchor_el_find(self):
+        self.anchorname = self.user_cfg["button_appendTo_AnchorId"] \
+            if self.user_cfg["button_appendTo_AnchorId"] != "" else "anchor_container"
         resultli = self.html_page.select(f"#{self.anchorname}")
         if len(resultli) > 0:
             self.anchor_el: element.Tag = resultli[0]
@@ -39,13 +80,7 @@ class ButtonMaker(Config):
             self.anchor_el: element.Tag = self.html_page.new_tag("div", attrs={"id": self.anchorname})
             self.html_page.insert(1, self.anchor_el)
 
-    def build(self):
-        """直接的出口, 返回HTML的string"""
-        self.create_style_el()
-        self.create_cascadeDIV()
-        return self.html_page.__str__()
-
-    def create_cascadeDIV(self):
+    def cascadeDIV_create(self):
         L0 = self.html_page.new_tag("div", attrs={"class": "container_L0"})
         header_L1 = self.html_page.new_tag("div", attrs={"class": "container_header_L1"})
         header_L1.string = "hjp_bilink"
@@ -54,21 +89,13 @@ class ButtonMaker(Config):
         L0.append(body_L1)
         for item in self.data["root"]:
             if "card_id" in item:
-                L2 = self.makebutton(item["card_id"])
+                L2 = self.button_make(item["card_id"])
             elif "nodename" in item:
-                L2 = self.makedetails(item["nodename"])
+                L2 = self.details_make(item["nodename"])
             body_L1.append(L2)
         self.anchor_el.append(L0)
 
-    def makebutton(self, card_id):
-        h = self.html_page
-        b = h.new_tag("button", attrs={"card_id": card_id,
-                                       "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
-        cardinfo = self.data["node"][card_id]
-        b.string = cardinfo["dir"] + cardinfo["desc"]
-        return b
-
-    def makedetails(self, nodename):
+    def details_make(self, nodename):
         li = self.data["node"][nodename]
         details = self.html_page.new_tag("details", attrs={"class": "hjp_bilink details"})
         summary = self.html_page.new_tag("summary")
@@ -78,13 +105,13 @@ class ButtonMaker(Config):
         details.append(div)
         for item in li:
             if "card_id" in item:
-                L2 = self.makebutton(item["card_id"])
+                L2 = self.button_make(item["card_id"])
             elif "nodename" in item:
-                L2 = self.makedetails(item["nodename"])
+                L2 = self.details_make(item["nodename"])
             div.append(L2)
         return details
 
-    def create_style_el(self):
+    def style_el_create(self):
         style_str = open(os.path.join(THIS_FOLDER, self.base_cfg["anchorCSSFileName"]), "r", encoding="utf-8").read()
         style = self.html_page.new_tag("style")
         style.string = style_str
@@ -93,12 +120,81 @@ class ButtonMaker(Config):
     pass
 
 
+class InTextButtonMaker(FieldHTMLData):
+
+    def build(self):
+        buttonli=self.backlink_get()
+        if len(buttonli)>0:
+            finalstring = self.html_str[0:buttonli[0]["span"][0]]
+            for i in range(len(buttonli)-1):
+                prevEnd,nextBegin  = buttonli[i]["span"][1],buttonli[i+1]["span"][0]
+                finalstring += self.button_make(buttonli[i])+self.html_str[prevEnd:nextBegin]
+            finalstring += self.button_make(buttonli[-1])+self.html_str[buttonli[-1]["span"][1]:]
+        else:
+            finalstring = self.html_str
+        return finalstring
+
+    def backlink_get(self):
+        buttonli = []
+        baseindex = 0
+        html_str = self.html_str
+        result = self.markup_find(html_str, baseindex)
+        while result is not None and baseindex < len(self.html_str):
+            buttonli.append(result)
+            baseindex = result["span"][1]
+            result = self.markup_find(html_str, baseindex)
+        return buttonli
+
+    def button_make(self,data):
+        card_id = data["card_id"]
+        desc = data["desc"]
+        h = self.html_page
+        b = h.new_tag("button", attrs={"card_id": card_id,"class":"hjp-bilink intext button",
+                                       "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
+        b.string = desc
+        return b.__str__()
+
+    def markup_find(self,html_str_origin,baseindex):
+        """html_str要从上一个link结束后开始，baseindex是原始文本的绝对位置"""
+        html_str = html_str_origin[baseindex:]
+        index_of_head = re.search(r"\[\[link:",html_str)
+        if index_of_head is None: return None #如果找不到，那就直接退出了，后面都不会有了
+        beginindex = index_of_head.span()[0]
+        headendindex = index_of_head.span()[1]
+        html_str = html_str[headendindex:]
+        r = re.search(r"\d+",html_str,)
+        if r is None: return None
+        card_id_span, card_id = r.span(), r.group()
+        if card_id_span[0] != 0 : return None
+        if card_id_span[1]==len(html_str): return None
+        if html_str[card_id_span[1]] != "_": return None
+        html_str = html_str[card_id_span[1]:]
+        r2 = re.search(r"_]]", html_str)
+        if r2 is None: return None
+        tail_begin = r2.span()[0]
+        tail_end = r2.span()[1]
+        desc = html_str[1:tail_begin]
+        endindex = headendindex+card_id_span[1]+tail_end
+        return {
+            "status": True,
+            "span":(baseindex+beginindex,baseindex+endindex),
+            "desc":desc,
+            "card_id":card_id
+        }
+
+
 def HTMLbutton_make(htmltext, card):
+    html_string = htmltext
     data = LinkDataReader(str(card.id)).read()
-    if len(data["link_list"]) > 0:
-        return ButtonMaker(htmltext,data).build()
-    else:
-        return htmltext
+    hasInTextButton = len(re.findall(r"\[\[link:\d+_[^\n]+_\]\]", html_string)) > 0
+    if hasInTextButton:
+        html_string = InTextButtonMaker(html_string).build()
+    if "backlink" not in data: data["backlink"] =[]
+    if len(data["link_list"]) > 0 or len(data["backlink"])>0:
+        html_string = AnchorButtonMaker(html_string).build(data)
+
+    return html_string
+
 
 testdata = {"version": 1,
             "link_list": [
@@ -109,22 +205,22 @@ testdata = {"version": 1,
             "self_data":
                 {"card_id": "1620315134937", "desc": ""},
             "root": [
-                {"nodename":"yes"},
+                {"nodename": "yes"},
                 {"card_id": "1620315140556"}],
             "node": {
-                "yes":[{"card_id": "1620315134937"},
-                       {"card_id": "1620315139164"},
-                       {"nodename":"no"}
-                       ],
-                "no":[{"card_id": "1620315139728"}],
-                "1620315134937":{"card_id": "1620315134937", "desc": "A", "dir": "→"},
-                "1620315139164":{"card_id": "1620315139164", "desc": "B", "dir": "→"},
-                "1620315139728":{"card_id": "1620315139728", "desc": "C", "dir": "→"},
-                "1620315140556":{"card_id": "1620315140556", "desc": "D", "dir": "→"}
+                "yes": [{"card_id": "1620315134937"},
+                        {"card_id": "1620315139164"},
+                        {"nodename": "no"}
+                        ],
+                "no": [{"card_id": "1620315139728"}],
+                "1620315134937": {"card_id": "1620315134937", "desc": "A", "dir": "→"},
+                "1620315139164": {"card_id": "1620315139164", "desc": "B", "dir": "→"},
+                "1620315139728": {"card_id": "1620315139728", "desc": "C", "dir": "→"},
+                "1620315140556": {"card_id": "1620315140556", "desc": "D", "dir": "→"}
             }}
 
 
-"""
+teststring = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -135,7 +231,7 @@ testdata = {"version": 1,
 <style>
 
 .container_L0,
-button[card_id] {
+button[card_id].hjp-bilink.anchor.button {
         margin:0 !important;
         display:block;
         color:#fff; /*锚点字体的颜色*/
@@ -148,7 +244,7 @@ button[card_id] {
         overflow-wrap: anywhere;
         font-size:15px
 }
-button[card_id] {
+button[card_id].hjp-bilink.anchor.button {
     width:100%;
     text-align:left;
     margin:1px !important;
@@ -167,11 +263,18 @@ button[card_id] {
     position:absolute;
     display:grid;
 }
-.hjp-bilink.details div{
+.hjp_bilink.details{
+    text-align:left;
+}
+
+.hjp_bilink.details div{
+    text-align:left;
     margin-left:6px;
 }
 </style>
-<div class=""></div>
+<div class="">
+[[link:1620468288991_A啊!_]]_]] "
+</div>
 <div class = "container_L0">
     <div class="container_header_L1">hjp-bilink</div>
     <div class = "container_body_L1">
@@ -190,7 +293,14 @@ button[card_id] {
         </details>
     </div>
 </div>
+[[link:1620468289832_b_]]
 123123
+ [[link:1620468290938_c_]] 
+ [[link:1620468291507_d1231_]]
 </body>
 </html>
 """
+
+if __name__ == "__main__":
+    I = InTextButtonMaker(teststring)
+    s = I.build()

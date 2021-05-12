@@ -1,5 +1,5 @@
 .container_L0,
-button[card_id] {
+button[card_id].hjp-bilink.anchor.button {
         margin:0 !important;
         display:block;
         color:#fff; /*锚点字体的颜色*/
@@ -12,7 +12,7 @@ button[card_id] {
         overflow-wrap: anywhere;
         font-size:15px
 }
-button[card_id] {
+button[card_id].hjp-bilink.anchor.button {
     width:100%;
     text-align:left;
     margin:1px !important;

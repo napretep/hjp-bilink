@@ -56,6 +56,16 @@ def func_menuAddBrowserInsert(*args, **kwargs):
                                       parent=param.parent, features=featureli[i])
              , range(len(featureli))))
 
+def func_menuAddBrowserCopylink(*args, **kwargs):
+    param = Params(**kwargs)
+    prefix = "" if ("prefix" not in param.features) or "selected" in param.features else BaseInfo().consolerName
+    menuNameLi = list(map(lambda x: prefix + say(x), ["复制为文内链接"]))
+    featureli = ["browser_copy"]
+    linkmenu = param.menu
+    list(map(lambda i:
+                 func_actionMenuConnector(menu=linkmenu, actionName=menuNameLi[i], action=func_Copylink,
+                                          parent=param.parent,features=featureli[i])
+                 , range(len(menuNameLi))))
 
 def func_menuAddSingleInsert(*args, **kwargs):
     """用来添加常规插入按钮组"""
@@ -131,6 +141,7 @@ def func_menuAddHelper(*args, **kwargs):
 func_menuAdderLi = {
     "link": func_menuAddLink,
     "browserinsert": func_menuAddBrowserInsert,
+    "browsercopylink":func_menuAddBrowserCopylink,
     "clear_open": func_menuAddClearOpen,
     "basicMenu": func_menuAddBaseMenu,
     "insert": func_menuAddSingleInsert,

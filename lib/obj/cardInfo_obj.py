@@ -3,7 +3,7 @@ import json
 
 linktemplate = {
     "card_id": "",
-    "self_desc": "",
+    "self_desc": {},
     "link_list": [],
     "link_tree": [],
     "card_dict": {},

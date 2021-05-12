@@ -27,6 +27,7 @@
       "shortcut_browserTableSelected_insert",
       "shortcut_inputFile_clear",
       "shortcut_inputDialog_open",
+      "shortcut_copylink",
       "addTagRoot"
     ],
     "data_range": {
@@ -70,6 +71,7 @@
         "shortcut_browserTableSelected_insert",
         "shortcut_inputFile_clear",
         "shortcut_inputDialog_open",
+        "shortcut_copylink",
         "addTagRoot"
       ]
     }

@@ -84,6 +84,8 @@ class DataSyncer:
         self.data["link_list"] = self.link_list
         self.data["root"] = self.root
         self.data["node"] = self.node
+        if "backlink" in self.data:
+            self.data["backlink"] = list(set(self.data["backlink"]))
         return self
 
     def remove_leaves(self):

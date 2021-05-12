@@ -13,10 +13,9 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
 
     def __init__(self, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.to_Li=["卡片字段存储","sqlite数据库存储","JSON文件存储"]
-        self.switchMode = ["数据覆盖","数据合并"]
+        self.to_Li=[say(i) for i in ["卡片字段存储","sqlite数据库存储","JSON文件存储"]]
+        self.switchMode = [say("数据覆盖"),say("数据合并")]
         self.storage_num = {
-            self.to_Li[0]:1, self.to_Li[1]:0, self.to_Li[2]:2,
             say(self.to_Li[0]):1,say(self.to_Li[0]):0,say(self.to_Li[0]):2
         }
         self.init_UI()
@@ -27,10 +26,14 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
     def init_UI(self):
         self.setupUi(self)
         self.setWindowModality(Qt.ApplicationModal)
-        self.setWindowTitle("链接数据迁移对话框")
+        self.setWindowTitle(say("链接数据迁移对话框"))
         self.label_comment.setText(
-            """注意1:当数据从A转移到B，会删除A中的数据记录,\n注意2:先把想要转移的卡片插入到input""")
-        self.button_correct.setText("执行")
+            f"""{say("注意1:当数据从A转移到B，会删除A中的数据记录")},\n{say("注意2:先把想要转移的卡片插入到input")}""")
+        self.button_correct.setText(say("执行"))
+        self.label_from.setText(say('从'))
+        self.label_to.setText(say("转移到"))
+        self.label_switchMode.setText(say("写入模式"))
+
         pass
     def init_model(self):
         self.comboBox_from.addItems(self.to_Li)
@@ -62,7 +65,7 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
             L = LinkDataReader(card_id)
             L.storageLocation = self.storage_num[data_from]
             cardinfo[card_id] = L.read()
-        if data_mode == "数据覆盖":
+        if data_mode == say("数据覆盖"):
             for card_idA,data in cardinfo.items():
                 L = LinkDataWriter(card_idA, data)
                 L.storageLocation = self.storage_num[data_to]

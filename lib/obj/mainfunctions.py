@@ -6,11 +6,12 @@ from functools import reduce
 from typing import List
 
 from PyQt5.QtCore import QUrl, QObject
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QTreeView
+from PyQt5.QtGui import QDesktopServices,QClipboard
+from PyQt5.QtWidgets import QTreeView, QApplication
 from aqt import mw, dialogs
 from aqt.browser import Browser
-from aqt.utils import showInfo
+from aqt.previewer import Previewer
+from aqt.utils import showInfo, tooltip
 from aqt.webview import AnkiWebView
 
 from .languageObj import rosetta as say
@@ -18,12 +19,14 @@ from .languageObj import rosetta as say
 from .inputObj import Input
 from .utils import BaseInfo, console, Params, Pair, CustomSignals, wrapper_webview_refresh, wrapper_browser_refresh, \
     No_hierarchical_tag, compatible_browser_sidebar_refresh
+from ..dialogs import DialogSupport
 from ..dialogs.DialogInput import InputDialog
 from ..dialogs.DialogAnchor import AnchorDialog
 from ..dialogs.DialogConfig import ConfigDialog
 from ..dialogs.DialogStorageSwitcher import StorageSwitcherDialog
 from ..dialogs.DialogVersion import VersionDialog
-
+from ..dialogs.DialogCardPrev import SingleCardPreviewerMod
+from ..dialogs.DialogSupport import SupportDialog
 
 def func_contactMe():
     # url =  QUrl(r"start chrome 'G:/备份/数学书大全/微分方程/俄罗斯数学教材选译-常微分方程（庞特里亚金）.pdf#page=20'")
@@ -42,7 +45,7 @@ def func_dataTransfer():
     StorageSwitcherDialog().exec()
 
 def func_supportMe():
-    showInfo(say("请多多转发支持!"))
+    SupportDialog().exec()
 
 
 def func_anchorUpdate():
@@ -289,5 +292,25 @@ def func_singleInsert(*args, **kwargs):
     return inputObj.dataSave()
 
 
+def func_Copylink(*args, **kwargs):
+    def linkformat(card_id,desc):
+        return f"""[[link:{card_id}_{desc}_]]"""
+    param = Params(**kwargs)
+    parent = param.parent
+    cardLi = []
+    if isinstance(parent,Browser):
+        browser = parent
+        cardLi: List[str] = list(map(lambda x: str(x), browser.selectedCards()))
+    I=Input()
+    copylinkLi = list(map(lambda x: linkformat(x,I.desc_extract(x)),cardLi))
+    clipstring = " ".join(copylinkLi)
+    if clipstring =="":
+        tooltip(f"""{say("未选择卡片")}""")
+    else:
+        clipboard = QApplication.clipboard()
+        clipboard.setText(clipstring)
+        tooltip(f"""{say("已复制到剪贴板")}：{clipstring}""")
+    pass
+
 funcli = [func_completeMap, func_GroupByGroup, func_unlinkByNode, func_unlinkByPath,
-          func_browserInsert, func_singleInsert]
+          func_browserInsert, func_singleInsert,func_Copylink]

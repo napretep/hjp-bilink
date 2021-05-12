@@ -42,6 +42,7 @@ if not os.path.exists(userInfoDir):
 
 def template_data(card_id,version):
     json_data = {
+        "backlink":[],
         "version": version,
         "link_list": [],
         "self_data": {

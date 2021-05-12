@@ -22,6 +22,7 @@
   "shortcut_browserTableSelected_link": "Alt+1",
   "shortcut_browserTableSelected_unlink": "Alt+2",
   "shortcut_browserTableSelected_insert": "Alt+3",
+  "shortcut_copylink":"Alt+q",
   "shortcut_inputFile_clear": "Alt+4",
   "shortcut_inputDialog_open": "Alt+`"
 }
