@@ -24,5 +24,7 @@
   "shortcut_browserTableSelected_insert": "Alt+3",
   "shortcut_copylink":"Alt+q",
   "shortcut_inputFile_clear": "Alt+4",
-  "shortcut_inputDialog_open": "Alt+`"
+  "shortcut_inputDialog_open": "Alt+`",
+  "base_deck_name":"",
+  "base_tag_name":""
 }

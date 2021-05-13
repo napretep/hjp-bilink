@@ -2,6 +2,9 @@
 专门用来加按钮的文件
 prefix 必须由consolerName规定
 """
+from anki.cards import Card
+from anki.decks import Deck
+from anki.notes import Note
 
 from .mainfunctions import *
 from .utils import *
@@ -20,12 +23,77 @@ def func_actionMenuConnector(*args, **kwargs):
 
 
 def func_menuAddAlterDeck(*args, **kwargs):
-    """添加卡组操作:移动,创建"""
+    """添加卡组操作:移动,创建
+    使用者需要先设置一个读取的卡组,输入根部名称,菜单会自动读取
+    """
+    param = Params(**kwargs)
+    cfg = Config()
+    card_id = param.pair.int_card_id
+    prefix = "" if "prefix" not in param.features else BaseInfo().consolerName
+    base_deck_name = cfg.user_cfg["base_deck_name"]
+    menu:QMenu = param.menu
+    newmenu = menu.addMenu(prefix+say("转移卡片到卡组"))
+    if base_deck_name == "":
+        m = newmenu.addAction(say("请先到配置表中设置根卡组"))
+        m.setDisabled(True)
+        return
+    basedeck = mw.col.decks.byName(base_deck_name)
+    if basedeck is None:
+        m = newmenu.addAction(say("根卡组不存在"))
+        m.setDisabled(True)
+        return
+    d = [ [mw.col.decks.get(i)["name"],i] for i in list(mw.col.decks.child_ids(base_deck_name))]
+    d = [[basedeck["name"],basedeck["id"]]]+d
+    def actadd(item,menu):
+        a = menu.addAction(item[0])
+        a.setData(item[1])
+        a.triggered.connect(lambda:action_change_deck(card_id,a))
+    list(map(lambda i:actadd(i,newmenu),d))
+
+    @wrapper_browser_refresh
+    @wrapper_webview_refresh
+    def action_change_deck(card_id, action: QAction):
+        did = action.data()
+        # showInfo(did.__str__())
+        c = mw.col.getCard(int(card_id))
+        c.odid = did
+        c.flush()
 
 
 def func_menuAddAlterTag(*args, **kwargs):
     """添加标签操作:添加,移除,创建"""
+    def add_action(item,menu,note,func):
+        y = menu.addAction(item)
+        y.setData(item)
+        y.triggered.connect(lambda:func(note,y))
+    @wrapper_browser_refresh
+    @wrapper_webview_refresh
+    def addtag(note,action):
+        note.addTag(action.data())
+        note.flush()
+    @wrapper_browser_refresh
+    @wrapper_webview_refresh
+    def deltag(note,action):
+        note.delTag(action.data())
+        note.flush()
+    param = Params(**kwargs)
+    cfg = Config()
+    card_id = param.pair.int_card_id
+    prefix = "" if "prefix" not in param.features else BaseInfo().consolerName
+    note:Note = mw.col.getCard(card_id).note()
+    base_tag_name = cfg.user_cfg["base_tag_name"]
+    menu: QMenu = param.menu
+    deltagmenu = menu.addMenu(prefix+say("移除标签"))
+    card_tag_li = note.tags
+    addtagmenu = menu.addMenu(prefix+say("添加标签"))
+    if base_tag_name == "":
+        addtagmenu.addAction(say("请先到配置表中设置根标签")).setDisabled(True)
+    else:
+        base_tag_li = list(filter(lambda x: x.startswith(base_tag_name) , mw.col.tags.all()))
+        base_tag_li.sort()
+        list(map(lambda x: add_action(x,addtagmenu,note,addtag),base_tag_li))
 
+    list(map(lambda x: add_action(x, deltagmenu, note, deltag), card_tag_li))
 
 def func_resetConfig():
     """重置config窗口"""

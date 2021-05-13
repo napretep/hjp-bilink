@@ -243,6 +243,8 @@ def backlinkdata_modifycheck(changed:bool,note:Note,position:int):
     return False
 
 def backlink_realtime_check(txt,editor:Editor):
+    if editor.card is None:
+        return txt
     self_card_id = editor.card.id
     HTML_str = txt + "\n".join(editor.note.fields)
     nowbacklink = set([x["card_id"] for x in InTextButtonMaker(HTML_str).backlink_get()])

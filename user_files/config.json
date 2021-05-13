@@ -1,5 +1,5 @@
 {
-    "VERSION": "0.9.6",
+    "VERSION": "0.9.8",
     "linkInfoStorageLocation": 2,
     "addLinkTo_Field_or_MetaInfo": "Field",
     "defaultLinkMode": 1,
@@ -24,5 +24,7 @@
     "shortcut_browserTableSelected_insert": "Alt+3",
     "shortcut_copylink": "Alt+q",
     "shortcut_inputFile_clear": "Alt+4",
-    "shortcut_inputDialog_open": "Alt+`"
+    "shortcut_inputDialog_open": "Alt+`",
+    "base_deck_name": "系统预置",
+    "base_tag_name": "a"
 }
