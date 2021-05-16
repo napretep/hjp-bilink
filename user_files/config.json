@@ -1,6 +1,6 @@
 {
-    "VERSION": "0.9.8",
-    "linkInfoStorageLocation": 2,
+    "VERSION": "0.10.0",
+    "linkInfoStorageLocation": 0,
     "addLinkTo_Field_or_MetaInfo": "Field",
     "defaultLinkMode": 1,
     "defaultUnlinkMode": 2,
@@ -18,13 +18,13 @@
     "addTagRoot": "",
     "button_appendTo_AnchorId": "",
     "anchorCSSFileName": "",
+    "base_deck_name": "",
+    "base_tag_name": "",
     "DEFAULT_regexForDescContent": "((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=\")[\\w\\-\\.]+)",
     "shortcut_browserTableSelected_link": "Alt+1",
     "shortcut_browserTableSelected_unlink": "Alt+2",
     "shortcut_browserTableSelected_insert": "Alt+3",
     "shortcut_copylink": "Alt+q",
     "shortcut_inputFile_clear": "Alt+4",
-    "shortcut_inputDialog_open": "Alt+`",
-    "base_deck_name": "系统预置",
-    "base_tag_name": "a"
+    "shortcut_inputDialog_open": "Alt+`"
 }

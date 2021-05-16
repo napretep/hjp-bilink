@@ -58,6 +58,7 @@ def func_menuAddAlterDeck(*args, **kwargs):
         c = mw.col.getCard(int(card_id))
         c.odid = did
         c.flush()
+        tooltip(say("移动到组")+":"+mw.col.decks.name(did))
 
 
 def func_menuAddAlterTag(*args, **kwargs):
@@ -71,11 +72,13 @@ def func_menuAddAlterTag(*args, **kwargs):
     def addtag(note,action):
         note.addTag(action.data())
         note.flush()
+        tooltip(say("添加标签")+":"+action.data())
     @wrapper_browser_refresh
     @wrapper_webview_refresh
     def deltag(note,action):
         note.delTag(action.data())
         note.flush()
+        tooltip(say("移除标签:")+":"+ action.data())
     param = Params(**kwargs)
     cfg = Config()
     card_id = param.pair.int_card_id
@@ -88,6 +91,8 @@ def func_menuAddAlterTag(*args, **kwargs):
     addtagmenu = menu.addMenu(prefix+say("添加标签"))
     if base_tag_name == "":
         addtagmenu.addAction(say("请先到配置表中设置根标签")).setDisabled(True)
+    elif len(mw.col.findCards(f"tag:{base_tag_name}"))==0:
+        addtagmenu.addAction(say("根标签不存在")).setDisabled(True)
     else:
         base_tag_li = list(filter(lambda x: x.startswith(base_tag_name) , mw.col.tags.all()))
         base_tag_li.sort()
@@ -132,6 +137,19 @@ def func_menuAddBrowserCopylink(*args, **kwargs):
     linkmenu = param.menu
     list(map(lambda i:
                  func_actionMenuConnector(menu=linkmenu, actionName=menuNameLi[i], action=func_Copylink,
+                                          parent=param.parent,features=featureli[i])
+                 , range(len(menuNameLi))))
+
+
+def func_menuAddWebviewCopylink(*args, **kwargs):
+    param = Params(**kwargs)
+    cfg = BaseInfo()
+    prefix = "" if ("prefix" not in param.features) or "selected" in param.features else BaseInfo().consolerName
+    featureli = ["webview_copy"]
+    menuNameLi = list(map(lambda x: prefix + say(x), ["复制为文内链接"]))
+    linkmenu = param.menu
+    list(map(lambda i:
+                 func_actionMenuConnector(pair=param.pair,menu=linkmenu, actionName=menuNameLi[i], action=func_Copylink,
                                           parent=param.parent,features=featureli[i])
                  , range(len(menuNameLi))))
 
@@ -188,6 +206,11 @@ def func_menuAddBaseMenu(*args, **kwargs):
     menu = param.menu.addMenu(say("其他"))
     list(map(lambda x, y: menu.addAction(f"{say(x)}").triggered.connect(y), menuli, funcli))
 
+def func_menuAddBrowserStorageDir(*args, **kwargs):
+    param = Params(**kwargs)
+    cfg = BaseInfo()
+    param.menu.addAction(say("打开链接信息保存目录")).triggered.connect(func_openStorageDir)
+
 
 def func_menuAddAnchorMenu(*args, **kwargs):
     """加打开anchor的按钮,传来的参数有:pair,features,parent,menu"""
@@ -196,6 +219,7 @@ def func_menuAddAnchorMenu(*args, **kwargs):
     prefix = cfg.consolerName if "prefix" in param.features else ""
 
     func_actionMenuConnector(actionName=f"{prefix}{say('打开anchor')}", action=func_openAnchor, **kwargs)
+
 
 
 # @debugWatcher
@@ -210,10 +234,12 @@ func_menuAdderLi = {
     "link": func_menuAddLink,
     "browserinsert": func_menuAddBrowserInsert,
     "browsercopylink":func_menuAddBrowserCopylink,
-    "clear_open": func_menuAddClearOpen,
+    "clear_open_input": func_menuAddClearOpen,
     "basicMenu": func_menuAddBaseMenu,
     "insert": func_menuAddSingleInsert,
     "anchor": func_menuAddAnchorMenu,
     "alter_deck": func_menuAddAlterDeck,
-    "alter_tag": func_menuAddAlterTag
+    "alter_tag": func_menuAddAlterTag,
+    "webviewcopylink":func_menuAddWebviewCopylink,
+    "openStorageDir":func_menuAddBrowserStorageDir
 }

@@ -74,10 +74,7 @@ class EditNoteWindowFromThisLinkAddon(QDialog):
         self.setMinimumWidth(250)
         self.form.buttonBox.button(QDialogButtonBox.Close).setShortcut(
             QKeySequence("Ctrl+Return"))
-        if False:  # gc("when editing note externally - no reset"):
-            self.editor = MyEditor(self.mw, self.form.fieldsArea, self)
-        else:
-            self.editor = aqt.editor.Editor(self.mw, self.form.fieldsArea, self)
+        self.editor = aqt.editor.Editor(self.mw, self.form.fieldsArea, self)
         self.editor.setNote(note, focusTo=0)
         restoreGeom(self, "note_edit")
         self.show()
@@ -91,18 +88,6 @@ class EditNoteWindowFromThisLinkAddon(QDialog):
         self.editor.saveNow(self._saveAndClose)
 
     def _saveAndClose(self):
-        # remHook("reset", self.onReset)
-        # r = self.mw.reviewer
-        # try:
-        #     r.card.load()
-        # except:
-        #     # card was removed by clayout
-        #     pass
-        # else:
-        #     self.mw.reviewer.cardQueue.append(self.mw.reviewer.card)
-
-        # saveNow calls self.saveTags which calls self.note.flush()
-        # self.editor.cleanup()
         saveGeom(self, "note_edit")
         QDialog.reject(self)
 

@@ -36,6 +36,6 @@ class LinkDataDeleter(Config):
         note.flush()
 
     def JSON_data_delete(self):
-        path = os.path.join(JSONFile_FOLDER,self.card_id+".json")
+        path = os.path.join(JSONFile_FOLDER,str(self.card_id)+".json")
         if os.path.exists(path):
             os.remove(path)

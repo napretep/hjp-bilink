@@ -5,7 +5,7 @@ debug函数
 
 from typing import *
 import datetime, types, functools
-
+import time
 from aqt.reviewer import Reviewer
 from aqt.utils import *
 from anki import version as V  # version 是 字符串 比如 "2.1.43"
@@ -104,6 +104,15 @@ def wrapper_mw_previewer_unregister(func):
 
 def wrapper_webview_refresh(func):
     """刷新ankiWebView"""
+    def prev_refresh(p:Previewer):
+        # return False
+        _last_state = p._last_state
+        _card_changed = p._card_changed
+        p._last_state = None
+        p._card_changed = True
+        p._render_scheduled()
+        p._last_state =_last_state
+        p._card_changed = _card_changed
 
     def refresh(*args, **kwargs):
         """在被包裹的函数执行完后刷新"""
@@ -111,18 +120,25 @@ def wrapper_webview_refresh(func):
         parent = self.parent if hasattr(self,"parent") else None
         result = func(*args, **kwargs)
         if isinstance(parent, AnkiWebView):
-            if parent.title == "previewer":
-                parent.parent().render_card()
+            if parent.title == "previewer":# browser的previewer不会来这里过
+                p = parent.parent()
+                prev_refresh(p)
             if parent.title == "main webview":  # reviewer是AnkiWebView的孩子!
                 mw.reset()
         addonName = BaseInfo().dialogName
         position = "card_window"
+        browser:Browser = dialogs._dialogs["Browser"][1]
+        if browser is not None and browser._previewer is not None:
+            prev_refresh(browser._previewer)
         if mw.state == "review":  # 这个是有用的,当在其他窗口进行链接的时候,也要刷新这里.
             mw.reset()
         if addonName in mw.__dict__ and position in mw.__dict__[addonName]:
-            card_window = mw.__dict__[addonName][position]
-            for k in card_window:
-                if card_window[k] is not None: card_window[k].render_card()
+
+            card_window_dict = mw.__dict__[addonName][position]
+            # showInfo(card_window.__str__())
+            for k,v in card_window_dict.items():
+                if v is not None:
+                    prev_refresh(v)
 
         return result
 
@@ -150,6 +166,15 @@ def wrapper_browser_refresh(func):
         return result
 
     return refresh
+
+
+@wrapper_webview_refresh
+def webview_refresh(self):
+    return True
+
+@wrapper_browser_refresh
+def browser_refresh(self):
+    return True
 
 
 def debugWatcher(func):

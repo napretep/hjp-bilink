@@ -5,6 +5,7 @@ from json.decoder import JSONDecodeError
 
 from aqt.editor import EditorWebView,Editor
 
+from .lib.obj.backlink_reader import BackLinkReader
 from .lib.obj.handle_backlink import backlink_append, backlink_append_remove
 from .lib.obj.linkData_reader import LinkDataReader
 from .lib.obj.linkData_writer import LinkDataWriter
@@ -12,7 +13,7 @@ from .lib.obj.HTMLbutton_render import HTMLbutton_make, InTextButtonMaker
 from .lib.obj.handle_js import on_js_message
 from .lib.obj.HTML_converterObj import HTML_converter
 from .lib.obj.MenuAdder import *
-from .lib.obj.utils import userInfoDir
+from .lib.obj.utils import userInfoDir,browser_refresh,webview_refresh
 from .lib.dialogs.DialogAnchor import AnchorDialog
 from .lib.dialogs.DialogCardPrev import  SingleCardPreviewerMod,EditNoteWindowFromThisLinkAddon
 from aqt.editcurrent import  EditCurrent
@@ -160,7 +161,8 @@ def func_add_browsermenu(browser: Browser = None):
     '''
     链接:5个,插入:3个,打开,清空,配置,版本,帮助
     '''
-    func_menuAddHelper(menu=menu, parent=browser, actionTypes=["link", "browserinsert", "clear_open", "basicMenu"])
+    func_menuAddHelper(menu=menu, parent=browser,
+                       actionTypes=["link", "browserinsert", "clear_open_input", "basicMenu","openStorageDir"])
 
 
 def fun_add_browsercontextmenu(browser: Browser, menu: QMenu):
@@ -170,16 +172,17 @@ def fun_add_browsercontextmenu(browser: Browser, menu: QMenu):
 
 def func_add_editorcontextmenu(view: AnkiWebView, menu: QMenu):
     """用来给editor界面加上下文菜单"""
-    editor = view.editor
+
+    editor:Editor = view.editor
     selected = editor.web.selectedText()
     try:
-        card_id = editor.card.id
+        card_id = editor.note.card_ids()[0]
     except:
         console(say("由于这里无法读取card_id, 链接菜单不在这显示")).talk.end()
         return
 
     func_menuAddHelper(menu=menu, parent=view, pair=Pair(card_id=str(card_id), desc=selected),
-                       features=["prefix"], actionTypes=["insert", "clear_open", ])
+                       features=["prefix"], actionTypes=["insert", "clear_open_input", ])
 
 
 def func_add_webviewcontextmenu(view: AnkiWebView, menu: QMenu):
@@ -192,8 +195,8 @@ def func_add_webviewcontextmenu(view: AnkiWebView, menu: QMenu):
         cid = view.parent().card().id
     if cid != "0":
         func_menuAddHelper(pair=Pair(desc=selected, card_id=str(cid)), features=["prefix"],
-                           parent=view, menu=menu, actionTypes=["link", "insert", "clear_open", "anchor", "alter_deck",
-                                                                "alter_tag"])
+                           parent=view, menu=menu, actionTypes=["webviewcopylink" ,"link", "insert", "alter_deck",
+                                                                "alter_tag", "clear_open_input", "anchor"])
 
 def editor_shortcuts(cuts,editor):
     if not editor.addMode:
@@ -204,70 +207,55 @@ def mw_shortcuts(state, shortcuts):
     if state == "review":
         shortcuts.extend(list(globalShortcutDict.values()))
 
-def test_func(*args, **kwargs):
+def test_func(note, ):
     # for i in args:
     #     showInfo(i.__str__())
     # for k,v in kwargs.items():
     #     showInfo(f"{k}:{v}")
-    tooltip(f"""args={args.__str__()}""")
-    return args[0]
+    showInfo(f"""args={note.__str__()}""")
 
-
-def backlinkdata_extract(editor:Editor):
-    """从field中提取html字符串，然后再从其中提取出反向链接"""
-    note  = editor.note
-    note.hjp_bilink_backlink=[]
-    self_card_id = editor.note.card_ids()[0].__str__()
-    for i in note.fields:
-        backlink = set([x["card_id"] for x in InTextButtonMaker(i).backlink_get()])
-        note.hjp_bilink_backlink.append(backlink)
-        backlink_append(self_card_id,backlink)
 
 def backlinkdata_extract2(editor:Editor):
     """从field中提取html字符串，然后再从其中提取出反向链接"""
     note  = editor.note
-    L = []
-    self_card_id = editor.note.card_ids()[0].__str__()
+    self_card_id = editor.note.card_ids()[0].__str__() if len(editor.note.card_ids())>0 else None
+    if self_card_id is None:
+        return
     htmltxt = "\n".join(note.fields)
-    backlink = set([x["card_id"] for x in InTextButtonMaker(htmltxt).backlink_get()])
-    backlink_append(self_card_id,backlink)
+    backlink = set([x["card_id"] for x in BackLinkReader(html_str=htmltxt).backlink_get()])
+    needrefresh = backlink_append(self_card_id,backlink)
     note.hjp_bilink_backlink=backlink
+    if needrefresh:
+        webview_refresh(True)
 
-def backlinkdata_modifycheck(changed:bool,note:Note,position:int):
-    self_card_id = note.card_ids()[0].__str__()
-    nowbacklink = set([x["card_id"] for x in InTextButtonMaker(note.fields[position]).backlink_get()])
-    originbacklink = note.hjp_bilink_backlink[position]
-    if nowbacklink!= originbacklink:
-        backlink_append_remove(self_card_id,nowbacklink,originbacklink)
-        note.hjp_bilink_backlink[position] = nowbacklink
-    return False
 
 def backlink_realtime_check(txt,editor:Editor):
-    if editor.card is None:
+    if editor.note is None:
+        tooltip("editor.note is None")
         return txt
-    self_card_id = editor.card.id
+    self_card_id = editor.note.card_ids()[0]
     HTML_str = txt + "\n".join(editor.note.fields)
-    nowbacklink = set([x["card_id"] for x in InTextButtonMaker(HTML_str).backlink_get()])
+    nowbacklink = set([x["card_id"] for x in BackLinkReader(html_str=HTML_str).backlink_get()])
+    # tooltip("now:"+nowbacklink.__str__())
     originbacklink = editor.note.hjp_bilink_backlink
     if nowbacklink!= originbacklink:
+        editor.note.flush()
         backlink_append_remove(self_card_id,nowbacklink,originbacklink)
         editor.note.hjp_bilink_backlink = nowbacklink
+        webview_refresh(True)
     return txt
 
-def firetyping_backlink_check(note:Note):
-    HTML_str = " ".join(note.fields)
-    if not hasattr(note,"hjp_bilink_cache"):
-        note.hjp_bilink_cache=None
-    if note.hjp_bilink_cache == hash(HTML_str):
-        return
-    else:
-        note.hjp_bilink_cache = hash(HTML_str)
+def field_unfocus_backlink_check(changed: bool, note: anki.notes.Note,current_field_idx: int):
+    HTML_str = "\n".join(note.fields)
+    nowbacklink = set([x["card_id"] for x in BackLinkReader(html_str=HTML_str).backlink_get()])
     self_card_id = note.card_ids()[0]
-    nowbacklink = set([x["card_id"] for x in InTextButtonMaker(HTML_str).backlink_get()])
     originbacklink = note.hjp_bilink_backlink
-    if nowbacklink != originbacklink:
-        backlink_append_remove(self_card_id, nowbacklink, originbacklink)
+    if nowbacklink!= originbacklink:
+        backlink_append_remove(self_card_id,nowbacklink,originbacklink)
         note.hjp_bilink_backlink = nowbacklink
+        webview_refresh(True)
+    return changed
+
 
 checkUpdate()
 
@@ -292,12 +280,11 @@ placeDict = {"all": globalShortcutDict, Browser: browserShortcutDict}
 
 gui_hooks.state_shortcuts_will_change.append(mw_shortcuts)
 gui_hooks.editor_did_init_shortcuts.append(editor_shortcuts)
-# gui_hooks.editor_will_load_note.append(test_func)
 gui_hooks.editor_did_load_note.append(backlinkdata_extract2)
-gui_hooks.editor_will_munge_html.append(backlink_realtime_check) #实时监测
-# gui_hooks.editor_did_unfocus_field.append(backlinkdata_modifycheck)
-# gui_hooks.editor_did_fire_typing_timer(firetyping_backlink_check)
+# gui_hooks.editor_will_munge_html.append(backlink_realtime_check) #实时监测
+gui_hooks.editor_did_unfocus_field.append(field_unfocus_backlink_check)
 gui_hooks.editor_will_show_context_menu.append(func_add_editorcontextmenu)
+# gui_hooks.editor_did_fire_typing_timer(test_func)
 gui_hooks.profile_did_open.append(shortcut_addto_originalcode)
 gui_hooks.profile_will_close.append(func_onProgramClose)
 gui_hooks.card_will_show.append(HTML_injecttoweb)

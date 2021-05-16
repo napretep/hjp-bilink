@@ -15,7 +15,10 @@
     "shortcut_browserTableSelected_unlink",
     "shortcut_browserTableSelected_insert",
     "shortcut_inputFile_clear",
-    "anchorCSSFileName"
+    "shortcut_copylink",
+    "anchorCSSFileName",
+    "base_deck_name",
+    "base_tag_name"
   ],
   "data_schema": {
     "allow_empty": [
@@ -28,7 +31,9 @@
       "shortcut_inputFile_clear",
       "shortcut_inputDialog_open",
       "shortcut_copylink",
-      "addTagRoot"
+      "addTagRoot",
+      "base_deck_name",
+      "base_tag_name"
     ],
     "data_range": {
       "addTagEnable":{
@@ -72,7 +77,9 @@
         "shortcut_inputFile_clear",
         "shortcut_inputDialog_open",
         "shortcut_copylink",
-        "addTagRoot"
+        "addTagRoot",
+        "base_deck_name",
+        "base_tag_name"
       ]
     }
   }

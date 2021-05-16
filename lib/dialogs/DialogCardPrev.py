@@ -7,7 +7,7 @@ from anki.cards import Card
 from aqt.utils import tooltip
 from ..obj.utils import BaseInfo
 
-from .DialogCardEditor import EditNoteWindowFromThisLinkAddon
+from .DialogCardEditor import EditNoteWindowFromThisLinkAddon, external_note_dialog
 
 
 class SingleCardPreviewer(Previewer):
@@ -72,7 +72,7 @@ class SingleCardPreviewerMod(SingleCardPreviewer):
         for child in self.bbox.children():
             if isinstance(child, QCheckBox):
                 self.both_sides_button = child
-        self._show_both_sides = True
+        self._show_both_sides = False
         self.both_sides_button.setChecked(self._show_both_sides)
 
     def _on_browser_button(self):
@@ -84,8 +84,7 @@ class SingleCardPreviewerMod(SingleCardPreviewer):
 
     def _on_edit_button(self):
         note = self.mw.col.getNote(self.card().nid)
-        d = EditNoteWindowFromThisLinkAddon(self.mw, note)
-        d.show()
+        external_note_dialog(note)
         aqt.QDialog.reject(self)
 
     def onShowRatingBar(self):

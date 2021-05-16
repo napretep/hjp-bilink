@@ -1,0 +1,24 @@
+# operation in anchor
+- 打开anchor/ open anchor
+- <img src="https://s3.ax1x.com/2021/02/20/y5f0IA.gif">
+- 修改链接描述/modify the description of links
+- <img src="https://s3.ax1x.com/2021/02/20/y5fwad.gif">
+- 拖拽修改排列/drag-drop to alter the position of links
+- <img src="https://s3.ax1x.com/2021/02/20/y5fdVH.gif">
+- 组也可以拖动/group also can be drag-drop
+- <img src="https://s3.ax1x.com/2021/02/20/y5fDPI.gif">
+- 双击预览/double-click the card_id to preview
+- <img src="https://s3.ax1x.com/2021/02/20/y5fUqe.gif">
+- 多选插入input/multiselect to insert input
+- <img src="https://s3.ax1x.com/2021/02/20/y5fsRP.gif">
+- 多选直接链接(使用默认方法)/multiselect to link(using default link method)
+- <img src="https://s3.ax1x.com/2021/02/20/y5frGt.gif">
+- 创建组/create group
+- ![](https://z3.ax1x.com/2021/05/16/ggm47d.png)
+- 双击以修改组名/double-click to alter group name
+- ![](https://z3.ax1x.com/2021/05/16/ggneE9.gif)
+- 组与组可以嵌套/Groups and groups can be nested
+- ![](https://z3.ax1x.com/2021/05/16/ggnYEd.gif)
+- 修改卡片自身的名称/alter card itself description
+- ![](https://z3.ax1x.com/2021/05/16/gge2Zj.png)
+- ![](https://z3.ax1x.com/2021/05/16/ggm00J.gif)

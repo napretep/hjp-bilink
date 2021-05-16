@@ -2,6 +2,7 @@
 这个文件保存常用函数
 """
 import copy
+import os
 from functools import reduce
 from typing import List
 
@@ -18,7 +19,7 @@ from .languageObj import rosetta as say
 
 from .inputObj import Input
 from .utils import BaseInfo, console, Params, Pair, CustomSignals, wrapper_webview_refresh, wrapper_browser_refresh, \
-    No_hierarchical_tag, compatible_browser_sidebar_refresh
+    No_hierarchical_tag, compatible_browser_sidebar_refresh, USER_FOLDER
 from ..dialogs import DialogSupport
 from ..dialogs.DialogInput import InputDialog
 from ..dialogs.DialogAnchor import AnchorDialog
@@ -40,6 +41,8 @@ def func_contactMe():
     # mainWin.exec()
     # # sys.exit(app.exec_())
 
+def func_openStorageDir():
+    os.startfile(USER_FOLDER)
 
 def func_dataTransfer():
     StorageSwitcherDialog().exec()
@@ -298,11 +301,15 @@ def func_Copylink(*args, **kwargs):
     param = Params(**kwargs)
     parent = param.parent
     cardLi = []
+    desc = ""
     if isinstance(parent,Browser):
         browser = parent
         cardLi: List[str] = list(map(lambda x: str(x), browser.selectedCards()))
+    elif isinstance(parent,AnkiWebView):
+        cardLi = [param.pair.card_id]
+        desc = param.pair.desc
     I=Input()
-    copylinkLi = list(map(lambda x: linkformat(x,I.desc_extract(x)),cardLi))
+    copylinkLi = list(map(lambda x: linkformat(x,desc if desc!="" else I.desc_extract(x)),cardLi))
     clipstring = " ".join(copylinkLi)
     if clipstring =="":
         tooltip(f"""{say("未选择卡片")}""")

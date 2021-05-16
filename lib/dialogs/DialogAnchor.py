@@ -229,7 +229,7 @@ class AnchorDialog(QDialog, Ui_anchor):
             param = Params(menu=menu, parent=self.anchorTree, features=["prefix", "selected"],
                            actionTypes=["link", "browserinsert"])
             MenuAdder.func_menuAddHelper(**param.__dict__)
-        param = Params(menu=menu, parent=self.anchorTree, features=["prefix"], actionTypes=["clear_open"])
+        param = Params(menu=menu, parent=self.anchorTree, features=["prefix"], actionTypes=["clear_open_input"])
         MenuAdder.func_menuAddHelper(**param.__dict__)
         menu.popup(QCursor.pos())
         menu.show()

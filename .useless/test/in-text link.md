@@ -1,0 +1,15 @@
+- # 文内链接/in-text link
+- 文内链接用于个性化需求绑定卡片/In-text links used for binding cards in custom requirements
+- ![](https://z3.ax1x.com/2021/05/16/ggPcSH.gif)
+- 基本操作流程: /Basic operation process:
+  - 复制卡片为文内链接/Copy the card as an in-text link
+  - ![](https://z3.ax1x.com/2021/05/16/ggiN4S.png)
+  - ![](https://z3.ax1x.com/2021/05/16/ggioHx.png)
+  - 粘贴到指定的卡片内/Paste it into the specified card
+  - ![](https://z3.ax1x.com/2021/05/16/ggizDI.png)
+  - ## 点击一下编辑器的其他位置(很重要)/Click other zone of the editor (important)
+  - ![](https://z3.ax1x.com/2021/05/16/ggFyMd.png)
+- 动画演示:/animation showing:
+  - ![](https://z3.ax1x.com/2021/05/15/gyGZLT.gif)
+- 快捷键/shortcuts
+  - `alt+q` 在browser中快速拷贝(仅browser下有效)/to quick copy the in-text link (only work in browser)

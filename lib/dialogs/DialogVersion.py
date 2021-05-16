@@ -1,3 +1,5 @@
+import re
+
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import (QAbstractItemView)
 import os
@@ -14,7 +16,21 @@ page_empty = '''
 <body></body>
 </html>
 '''
+class addon_version:
+    def __init__(self,v_str):
+        self.v = [int(i) for i in v_str.split(".")]
 
+    def __lt__(self, other):
+        if self.v[0]!=other.v[0]:
+            return self.v[0]< other.v[0]
+        elif self.v[1]!=other.v[1]:
+            return self.v[1]< other.v[1]
+        else:
+            return self.v[2]< other.v[2]
+def cmpkey(path):
+    filename = os.path.basename(path)
+    v_str = re.search(r"\d+\.\d+\.\d",filename).group()
+    return addon_version(v_str)
 
 class Ui_version(object):
     def setupUi(self, version):
@@ -72,19 +88,24 @@ class VersionDialog(QtWidgets.QDialog, Ui_version):
         # self.list_model.setHorizontalHeaderItem(0, QStandardItem("../resource/versions"))
         self.parent_versions = QStandardItem("versions")
         self.parent_introDoc = QStandardItem("introDoc")
+        self.basic_concept = QStandardItem("basic_concept")
+        self.parent_introDoc.appendRow(self.basic_concept)
         self.list_model_root.appendRow(self.parent_introDoc)
         self.list_model_root.appendRow(self.parent_versions)
         self.viewList_HTMLFilename.setModel(self.list_model)
-        versions_fileLi = self.fileLi_get()
+        versions_fileLi = self.versionfileLi_get()
         for name, direction in versions_fileLi:
             item = QStandardItem(name[0:-5])
             item.dir = direction
             self.parent_versions.appendRow(item)
-        introDoc_fileLi = self.fileLi_get(relative_path=INTRO_FOLDER, sort=False)
+        introDoc_fileLi = self.versionfileLi_get(relative_path=INTRO_FOLDER, sort=False)
         for name, direction in introDoc_fileLi:
             item = QStandardItem(name[0:-5])
             item.dir = direction
-            self.parent_introDoc.appendRow(item)
+            if "text link" in name:
+                self.basic_concept.appendRow(item)
+            else:
+                self.parent_introDoc.appendRow(item)
         self.viewList_HTMLFilename.expandAll()
 
     def init_webview(self):
@@ -111,10 +132,11 @@ class VersionDialog(QtWidgets.QDialog, Ui_version):
         self.webView1.setHtml(html)
         pass
 
-    def fileLi_get(self, relative_path=None, sort=True):
+    def versionfileLi_get(self, relative_path=None, sort=True):
         if relative_path is None: relative_path = VERSION_FOLDER
         path1 = os.path.join(THIS_FOLDER, relative_path)
         liname = os.listdir(path1)
-        if sort: liname.sort(reverse=True)
+        if sort: liname.sort(reverse=True,key = cmpkey)
         li_dirfilename = [[filename, os.path.join(path1, filename)] for filename in liname]
         return li_dirfilename
+

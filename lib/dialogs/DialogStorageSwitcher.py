@@ -7,7 +7,8 @@ from ..obj.linkData_deleter import LinkDataDeleter
 from ..obj.linkData_reader import LinkDataReader
 from ..obj.linkData_writer import LinkDataWriter
 from ..obj.languageObj import rosetta as say
-from ..obj.utils import wrapper_webview_refresh,wrapper_browser_refresh
+from ..obj.utils import wrapper_webview_refresh, wrapper_browser_refresh, webview_refresh, browser_refresh
+
 
 class StorageSwitcherDialog(QDialog,Ui_Dialog):
 
@@ -16,7 +17,7 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
         self.to_Li=[say(i) for i in ["卡片字段存储","sqlite数据库存储","JSON文件存储"]]
         self.switchMode = [say("数据覆盖"),say("数据合并")]
         self.storage_num = {
-            say(self.to_Li[0]):1,say(self.to_Li[0]):0,say(self.to_Li[0]):2
+            self.to_Li[0]:1,self.to_Li[1]:0,self.to_Li[2]:2
         }
         self.init_UI()
         self.init_model()
@@ -36,8 +37,14 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
 
         pass
     def init_model(self):
-        self.comboBox_from.addItems(self.to_Li)
-        self.comboBox_to.addItems(self.to_Li[1:])
+        for i in range(len(self.to_Li)):
+            self.comboBox_from.addItem(self.to_Li[i])
+            self.comboBox_from.setItemData(i,self.storage_num[self.to_Li[i]])
+        count = 0
+        for i in range(1,len(self.to_Li)):
+            self.comboBox_to.addItem(self.to_Li[i])
+            self.comboBox_to.setItemData(count,self.storage_num[self.to_Li[i]])
+            count +=1
         self.comboBox_switchMode.addItems(self.switchMode)
         pass
     def init_events(self):
@@ -48,32 +55,35 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
     def onFromChanged(self,index):
         text = self.comboBox_from.currentText()
         self.comboBox_to.clear()
-        for i in self.to_Li:
-            if text !=i:
-                self.comboBox_to.addItem(i)
+        count=0
+        for i in range(len(self.to_Li)):
+            if text !=self.to_Li[i]:
+                self.comboBox_to.addItem(self.to_Li[i])
+                self.comboBox_to.setItemData(count,self.storage_num[self.to_Li[i]])
+                count +=1
 
-    @wrapper_browser_refresh
-    @wrapper_webview_refresh
-    def onButtonCorrectClicked(self, ):
-        data_from = self.comboBox_from.currentText()
-        data_to = self.comboBox_to.currentText()
+
+    def onButtonCorrectClicked(self ):
+        data_from = self.comboBox_from.currentData()
+        data_to = self.comboBox_to.currentData()
         data_mode = self.comboBox_switchMode.currentText()
+        # showInfo("{} {} {}".format(data_from,data_to,data_mode))
         #三步走: 1读取,2写入,3删除
         card_li = [item.card_id for item in Input().dataflat_]
         cardinfo = {}
         for card_id in card_li:
             L = LinkDataReader(card_id)
-            L.storageLocation = self.storage_num[data_from]
+            L.storageLocation = data_from
             cardinfo[card_id] = L.read()
         if data_mode == say("数据覆盖"):
             for card_idA,data in cardinfo.items():
                 L = LinkDataWriter(card_idA, data)
-                L.storageLocation = self.storage_num[data_to]
+                L.storageLocation = data_to
                 L.write()
         else:
             for card_idA,data in cardinfo.items():
                 L = LinkDataReader(card_idA)
-                L.storageLocation = self.storage_num[data_to]
+                L.storageLocation = data_to
                 linkdata_A =L.read()
                 linklist_A_li  = [i["card_id"] for i in linkdata_A["link_list"]]
                 root_A_li = [ i["card_id"] if "card_id" in i else i["nodename"]
@@ -95,12 +105,17 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
                             linkdata_A["node"][k]+=v
                         else:
                             linkdata_A["node"][k]=v
+                if "backlink" in data:
+                    for i in data["backlink"]:
+                        if i not in linkdata_A["backlink"]:
+                            linkdata_A["backlink"].append(i)
                 L = LinkDataWriter(card_idA,linkdata_A)
-                L.storageLocation = self.storage_num[data_to]
+                L.storageLocation = data_to
                 L.write()
         for card_id in card_li:
             L = LinkDataDeleter(card_id)
-            L.storageLocation = self.storage_num[data_from]
+            L.storageLocation = data_from
             L.delete()
-
         showInfo("OK!")
+        webview_refresh(True)
+        browser_refresh(True)

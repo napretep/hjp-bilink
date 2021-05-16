@@ -90,7 +90,7 @@ class InputDialog(QDialog, Ui_input):
             menu.addAction(prefix + say("选中删除")).triggered.connect(self.view_selected_delete)
             param = Params(menu=menu, parent=self.inputTree, features=["prefix", "selected"], actionTypes=["link"])
             MenuAdder.func_menuAddHelper(**param.__dict__)
-        param = Params(menu=menu, parent=self.inputTree, features=["prefix"], actionTypes=["link", "clear_open"])
+        param = Params(menu=menu, parent=self.inputTree, features=["prefix"], actionTypes=["link", "clear_open_input"])
         MenuAdder.func_menuAddHelper(**param.__dict__)
         menu.popup(QCursor.pos())
         menu.show()
@@ -129,7 +129,11 @@ class InputDialog(QDialog, Ui_input):
         item_group.self_attrs = {"character": "group", "level": 0, "primData": item_group}
         item_group.setFlags(item_group.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsSelectable)
         item_empty = QStandardItem("")
-        item_empty.setFlags(item_empty.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
+        item_empty.setFlags(item_empty.flags()
+                            & ~Qt.ItemIsEditable
+                            & ~Qt.ItemIsDropEnabled
+                            & ~Qt.ItemIsDragEnabled
+                            & ~Qt.ItemIsSelectable)
         item_group.self_attrs = {"character": "empty", "level": 0, "primData": item_group}
         root.appendRow([item_group, item_empty])
         return item_group

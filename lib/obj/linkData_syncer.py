@@ -3,6 +3,10 @@
 """
 import json
 
+from aqt.utils import showInfo
+
+from .backlink_reader import BackLinkReader
+from aqt import mw
 
 class DataSyncer:
     """
@@ -78,6 +82,7 @@ class DataSyncer:
 
     def sync(self):
         """更新一些内容,把旧的锚点更新过来"""
+        self.invalid_card_delete()
         self.node_data_update()
         self.data_sync_update()
         self.node_data_update()
@@ -87,7 +92,20 @@ class DataSyncer:
         if "backlink" in self.data:
             self.data["backlink"] = list(set(self.data["backlink"]))
         return self
-
+    def invalid_card_delete(self):
+        def valid_backlink(card_id):
+            type_correct = type(card_id)==str
+            if not type_correct:return False
+            card_exist = len(mw.col.findCards(f"cid:{card_id}")) > 0
+            if not card_exist:return False
+            backlink_li =set(map(lambda x:x["card_id"] ,BackLinkReader(card_id = card_id).backlink_get()))
+            # showInfo(backlink_li.__str__())/
+            backlink_exist = self.data["self_data"]["card_id"] in backlink_li
+            if not backlink_exist:return False
+            return type_correct and card_exist and backlink_exist
+        if "backlink" in self.data:
+            self.data["backlink"] = list(filter(lambda x: valid_backlink(x),self.data["backlink"] ))
+        self.data["link_list"]=list(filter(lambda x:len(mw.col.findCards(f"""cid:{x["card_id"]}"""))>0,self.data["link_list"]))
     def remove_leaves(self):
         newdict = {}
         for i in filter(lambda x: type(x[1]) != dict and "card_id" not in x[1], self.data["node"].items()):
