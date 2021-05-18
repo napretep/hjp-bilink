@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>&#x6570;&#x636E;&#x8FC1;&#x79FB;&sol;data migration</title>
+        <style>
+</style>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        
+        
+        
+    </head>
+    <body class="vscode-body vscode-light">
+        <h1 id="数据迁移data-migration">数据迁移/data migration</h1>
+<ol>
+<li>
+<h2 id="为什么需要数据迁移why-need-data-migration">为什么需要数据迁移/why need data migration</h2>
+<p>最初, 本插件设计为将链接信息存储到卡片字段中,</p>
+<p>但是这样的设计引起了与其他插件的不兼容问题, 因为其他插件对卡片字段的修改, 会破坏本插件所存储的链接信息, 甚至导致卡片无法读取.</p>
+<p>所以, 后来为了与其他插件相兼容, 本插件增加了多种存储方式, 分别是</p>
+<ol>
+<li>卡片字段存储</li>
+<li>sqlite 数据库存储</li>
+<li>JSON文件存储</li>
+</ol>
+<p>每种存储方式各有优劣, 并且还提供了彼此迁移的小工具</p>
+<p>本插件默认使用sqlite 数据库存储链接信息</p>
+<p>Originally, this addon was designed to store link information in card fields.</p>
+<p>However, this design causes incompatibilities with other addons, because other addons modify the field of the card, which can break the link information stored by shis addons, or even make the card unreadable.</p>
+<p>Therefore, in order to be compatible with other addons, this addon has added a variety of storage methods, they are</p>
+<ol>
+<li>
+<p>Card field storage</p>
+</li>
+<li>
+<p>SQLite database storage</p>
+</li>
+<li>
+<p>JSON file storage</p>
+</li>
+</ol>
+<p>This addon uses SQLite database to store link information by default</p>
+</li>
+<li>
+<h2 id="不同存储方式的优劣the-advantages-and-disadvantages-of-different-storage-methods">不同存储方式的优劣/The advantages and disadvantages of different storage methods</h2>
+<ol>
+<li>
+<p>Card field storage</p>
+<ul>
+<li>优势/advantages
+<ul>
+<li>链接信息伴随卡片同步,无需手动备份./Link information is synchronized with the card, eliminating the need for manual backups.</li>
+</ul>
+</li>
+<li>劣势/disadvantages
+<ul>
+<li>与其它会修改卡片字段的插件兼容不良,容易导致anki崩溃 /Incompatible with other addons that will modify card fields, causing Anki to crash</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>SQLite database storage</p>
+<ul>
+<li>优势/advantages
+<ul>
+<li>不会受其他插件的干扰./No interference from other addons</li>
+<li>性能比较好/It has good performance</li>
+</ul>
+</li>
+<li>劣势/disadvantages
+<ul>
+<li>需要自己同步和备份数据,以避免遗失/You need to synchronize your backup data to avoid loss</li>
+<li>需要一些数据库知识才能直接修改文件/Some database knowledge is required to modify files directly</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>JSON file storage</p>
+<ul>
+<li>优势/advantages
+<ul>
+<li>不会受其他插件的干扰./No interference from other addons</li>
+<li>储存为文本文件,可直接查看和修改./Store as a text file that can be viewed and modified directly.</li>
+</ul>
+</li>
+<li>劣势/disadvantages
+<ul>
+<li>需要自己同步和备份数据,以避免遗失/You need to synchronize your backup data to avoid loss</li>
+<li>如果链接的数据量巨大,可能会存在性能问题./If the amount of link data is large, there may be performance issues.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>
+<h2 id="如何进行数据迁移how-to-data-migration">如何进行数据迁移/how to data migration</h2>
+<ol>
+<li>将需要迁移的卡片插入到input中/Insert the cards that need to be migrated into the input</li>
+<li>打开迁移对话框并执行/Open the Migration dialog then execute
+<img src="https://z3.ax1x.com/2021/05/16/gg3adO.png" alt="">
+<img src="https://z3.ax1x.com/2021/05/16/ggGmUU.png" alt=""></li>
+</ol>
+</li>
+</ol>
+
+    </body>
+    </html>
