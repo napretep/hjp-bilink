@@ -146,7 +146,9 @@ def HTML_injecttoweb(htmltext, card, kind):
         "reviewQuestion",
         "reviewAnswer"
     ]:
-        return HTMLbutton_make(htmltext, card)
+        html_string = HTMLbutton_make(htmltext, card)
+        console(html_string).log.end()
+        return html_string
     else:
         return htmltext
 
@@ -246,6 +248,8 @@ def backlink_realtime_check(txt,editor:Editor):
     return txt
 
 def field_unfocus_backlink_check(changed: bool, note: anki.notes.Note,current_field_idx: int):
+    if len(note.card_ids())==0:
+        return changed
     HTML_str = "\n".join(note.fields)
     nowbacklink = set([x["card_id"] for x in BackLinkReader(html_str=HTML_str).backlink_get()])
     self_card_id = note.card_ids()[0]
