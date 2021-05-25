@@ -17,7 +17,7 @@ from aqt.webview import AnkiWebView
 from aqt.browser import Browser
 
 ISDEV = False
-ISDEBUG = True  # 别轻易开启,很卡的
+ISDEBUG = False  # 别轻易开启,很卡的
 relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"

@@ -1,19 +1,13 @@
 """初试入口"""
 from anki.notes import Note
-from aqt import gui_hooks, AnkiQt
-from json.decoder import JSONDecodeError
-
+from aqt import gui_hooks
 from aqt.editor import EditorWebView,Editor
-
-from .lib.obj.backlink_reader import BackLinkReader
-from .lib.obj.handle_backlink import backlink_append, backlink_append_remove
-from .lib.obj.linkData_reader import LinkDataReader
-from .lib.obj.linkData_writer import LinkDataWriter
-from .lib.obj.HTMLbutton_render import HTMLbutton_make, InTextButtonMaker
+from .lib.obj.editor_monitor import handle_editor_did_load_note, field_unfocus_backlink_check, \
+    handle_editor_will_munge_html, handle_editor_did_unfocus_field
+from .lib.obj.HTMLbutton_render import HTMLbutton_make
 from .lib.obj.handle_js import on_js_message
-from .lib.obj.HTML_converterObj import HTML_converter
 from .lib.obj.MenuAdder import *
-from .lib.obj.utils import userInfoDir,browser_refresh,webview_refresh
+from .lib.obj.utils import userInfoDir
 from .lib.dialogs.DialogAnchor import AnchorDialog
 from .lib.dialogs.DialogCardPrev import  SingleCardPreviewerMod,EditNoteWindowFromThisLinkAddon
 from aqt.editcurrent import  EditCurrent
@@ -132,10 +126,6 @@ def shortcut_addto_originalcode(*arg, **kwargs):
     EditCurrent.__init__ = wrapper_shortcut(EditCurrent.__init__)
     EditNoteWindowFromThisLinkAddon.__init__ = wrapper_shortcut(EditNoteWindowFromThisLinkAddon.__init__)
     Previewer.__init__ = wrapper_shortcut(Previewer.__init__)
-    # AnkiQt.applyShortcuts =  wrapper_shortcut(AnkiQt.applyShortcuts)
-    # 下面的快捷键不支持
-    # AnkiWebView.__init__ = wrapper_shortcut(AnkiWebView.__init__)
-    # Editor.__init__ = wrapper_shortcut(EditorWebView.__init__)
 
 
 def HTML_injecttoweb(htmltext, card, kind):
@@ -217,48 +207,6 @@ def test_func(note, ):
     showInfo(f"""args={note.__str__()}""")
 
 
-def backlinkdata_extract2(editor:Editor):
-    """从field中提取html字符串，然后再从其中提取出反向链接"""
-    note  = editor.note
-    self_card_id = editor.note.card_ids()[0].__str__() if len(editor.note.card_ids())>0 else None
-    if self_card_id is None:
-        return
-    htmltxt = "\n".join(note.fields)
-    backlink = set([x["card_id"] for x in BackLinkReader(html_str=htmltxt).backlink_get()])
-    needrefresh = backlink_append(self_card_id,backlink)
-    note.hjp_bilink_backlink=backlink
-    if needrefresh:
-        webview_refresh(True)
-
-
-def backlink_realtime_check(txt,editor:Editor):
-    if editor.note is None:
-        tooltip("editor.note is None")
-        return txt
-    self_card_id = editor.note.card_ids()[0]
-    HTML_str = txt + "\n".join(editor.note.fields)
-    nowbacklink = set([x["card_id"] for x in BackLinkReader(html_str=HTML_str).backlink_get()])
-    # tooltip("now:"+nowbacklink.__str__())
-    originbacklink = editor.note.hjp_bilink_backlink
-    if nowbacklink!= originbacklink:
-        editor.note.flush()
-        backlink_append_remove(self_card_id,nowbacklink,originbacklink)
-        editor.note.hjp_bilink_backlink = nowbacklink
-        webview_refresh(True)
-    return txt
-
-def field_unfocus_backlink_check(changed: bool, note: anki.notes.Note,current_field_idx: int):
-    if len(note.card_ids())==0:
-        return changed
-    HTML_str = "\n".join(note.fields)
-    nowbacklink = set([x["card_id"] for x in BackLinkReader(html_str=HTML_str).backlink_get()])
-    self_card_id = note.card_ids()[0]
-    originbacklink = note.hjp_bilink_backlink
-    if nowbacklink!= originbacklink:
-        backlink_append_remove(self_card_id,nowbacklink,originbacklink)
-        note.hjp_bilink_backlink = nowbacklink
-        webview_refresh(True)
-    return changed
 
 
 checkUpdate()
@@ -284,11 +232,11 @@ placeDict = {"all": globalShortcutDict, Browser: browserShortcutDict}
 
 gui_hooks.state_shortcuts_will_change.append(mw_shortcuts)
 gui_hooks.editor_did_init_shortcuts.append(editor_shortcuts)
-gui_hooks.editor_did_load_note.append(backlinkdata_extract2)
-# gui_hooks.editor_will_munge_html.append(backlink_realtime_check) #实时监测
-gui_hooks.editor_did_unfocus_field.append(field_unfocus_backlink_check)
+gui_hooks.editor_did_load_note.append(handle_editor_did_load_note)
+# gui_hooks.editor_will_munge_html.append(handle_editor_will_munge_html) #实时监测
+gui_hooks.editor_did_unfocus_field.append(handle_editor_did_unfocus_field)
 gui_hooks.editor_will_show_context_menu.append(func_add_editorcontextmenu)
-# gui_hooks.editor_did_fire_typing_timer(test_func)
+gui_hooks.editor_did_fire_typing_timer(test_func)
 gui_hooks.profile_did_open.append(shortcut_addto_originalcode)
 gui_hooks.profile_will_close.append(func_onProgramClose)
 gui_hooks.card_will_show.append(HTML_injecttoweb)

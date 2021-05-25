@@ -38,6 +38,7 @@ button[card_id].hjp-bilink.anchor.button {
 }
 
 .container_body_L1 {
+    font-size:inherit;
     position: absolute;
     display: none;
 }
@@ -53,12 +54,13 @@ button[card_id].hjp-bilink.anchor.button {
 .hjp_bilink.details {
     text-align: left;
     color: white;
-    background-color: green;
 }
+.hjp_bilink.details summary{
 
+    background-color:green;
+}
 .hjp_bilink.details div {
     color: white;
-    background-color: green;
     text-align: left;
     margin-left: 6px;
 }

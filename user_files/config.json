@@ -17,7 +17,7 @@
     "addTagEnable": 1,
     "addTagRoot": "",
     "button_appendTo_AnchorId": "",
-    "anchorCSSFileName": "C:/Users/Administrator/AppData/Roaming/Anki2/addons21/hjp-bilink/lib/resource/data/1234.txt",
+    "anchorCSSFileName": "C:/Users/Administrator/AppData/Roaming/Anki2/addons21/hjp-bilink/user_files/123.txt",
     "base_deck_name": "",
     "base_tag_name": "",
     "DEFAULT_regexForDescContent": "((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=\")[\\w\\-\\.]+)",

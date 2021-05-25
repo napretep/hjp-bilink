@@ -31,18 +31,14 @@ from PyQt5 import QtWidgets
 
 # from ...lib.obj import MenuAdder
 from .DialogCardPrev import external_card_dialog
+from .metaUIobj import SpecialTreeItem
 from ..obj import MenuAdder
 from ...lib.obj.inputObj import *
 from ...lib.dialogs.UIdialog_Anchor import Ui_anchor
 from ...lib.obj.linkData_reader import LinkDataReader
 
 
-class AnchorItem(QStandardItem):
-    def __init__(self, itemname, character="card_id", level=0, primData=None):
-        super().__init__(itemname)
-        self.character = character
-        self.level = level
-        self.primData = primData
+
 
 
 class AnchorDialog(QDialog, Ui_anchor):
@@ -255,8 +251,8 @@ class AnchorDialog(QDialog, Ui_anchor):
         newgroupname = "new_group"
         while newgroupname in self.data["node"]:
             newgroupname = "new_" + newgroupname
-        group = AnchorItem(newgroupname,character="group",level=0,primData=[])
-        empty = AnchorItem("",character="empty",level=0,primData=group.primData)
+        group = SpecialTreeItem(newgroupname, character="group", level=0, primData=[])
+        empty = SpecialTreeItem("", character="empty", level=0, primData=group.primData)
         empty.setFlags(empty.flags() & ~Qt.ItemIsEditable)
         self.model_rootNode.appendRow([group, empty])
         self.data_save()
@@ -312,9 +308,9 @@ class AnchorDialog(QDialog, Ui_anchor):
         groupname = item["nodename"]
         groupli = self.data["node"][groupname]
         # item_group = QStandardItem(groupname)
-        item_group = AnchorItem(groupname, character="group", level=level, primData=groupli)
+        item_group = SpecialTreeItem(groupname, character="group", level=level, primData=groupli)
         # item_group.self_attrs = {"character": "group", "level": level, "primData": groupli}
-        item_empty = AnchorItem("", character="empty", level=level, primData=groupli)
+        item_empty = SpecialTreeItem("", character="empty", level=level, primData=groupli)
         item_empty.setFlags(item_empty.flags()
                             & ~Qt.ItemIsEditable
                             # & ~Qt.ItemIsDropEnabled
@@ -336,8 +332,8 @@ class AnchorDialog(QDialog, Ui_anchor):
         # item_desc = QStandardItem(desc)
         # item_desc.self_attrs={"character":"desc","level":level,"primData":cardinfo}
         item_id, item_desc = \
-            AnchorItem(card_id, level=level, primData=cardinfo), \
-            AnchorItem(desc, character="desc", level=level, primData=cardinfo)
+            SpecialTreeItem(card_id, level=level, primData=cardinfo), \
+            SpecialTreeItem(desc, character="desc", level=level, primData=cardinfo)
         item_desc.setFlags(item_desc.flags()
                            # &~Qt.ItemIsDropEnabled
                            & ~Qt.ItemIsDragEnabled)
@@ -447,7 +443,7 @@ class AnchorDialog(QDialog, Ui_anchor):
         cardinfo["desc"] = desc.text()
         tempdict["link_list"].append(cardinfo)
 
-    def data_model_load_group(self, child: AnchorItem, tempdict):
+    def data_model_load_group(self, child: SpecialTreeItem, tempdict):
         tempdict["node"][child.text()] = []
         if child.level == 0:
             # if child.self_attrs["level"] == 0:

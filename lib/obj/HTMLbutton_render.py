@@ -45,25 +45,6 @@ class AnchorButtonMaker(FieldHTMLData):
         self.backlink_create()
         return self.html_page.__str__()
 
-    def backlink_create(self):
-        h = self.html_page
-        if "backlink" in self.data:
-            card_id_li = self.data["backlink"]
-        else:
-            return None
-        details = self.html_page.new_tag("details", attrs={"class": "hjp_bilink details","open":""})
-        summary = self.html_page.new_tag("summary")
-        summary.string = "referenced_in_text"
-        details.append(summary)
-        for card_id in card_id_li:
-            data = LinkDataReader(card_id).read()["self_data"]
-            b = h.new_tag("button", attrs={"card_id": card_id,"class":"hjp-bilink anchor button",
-                                       "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
-            b.string = "→"+data["desc"]
-            details.append(b)
-        body_L1 = self.html_page.select("div.container_body_L1")[0]
-        body_L1.append(details)
-
     def button_make(self, card_id):
         h = self.html_page
         b = h.new_tag("button", attrs={"card_id": card_id,"class":"hjp-bilink anchor button",
@@ -119,10 +100,31 @@ class AnchorButtonMaker(FieldHTMLData):
         style.string = style_str
         self.anchor_el.append(style)
 
+    def backlink_create(self):
+        h = self.html_page
+        if "backlink" in self.data:
+            card_id_li = self.data["backlink"]
+            if len(card_id_li)==0:
+                return None
+        else:
+            return None
+        details = self.html_page.new_tag("details", attrs={"class": "hjp_bilink details","open":""})
+        summary = self.html_page.new_tag("summary")
+        summary.string = "referenced_in_text"
+        details.append(summary)
+        for card_id in card_id_li:
+            data = LinkDataReader(card_id).read()["self_data"]
+            b = h.new_tag("button", attrs={"card_id": card_id,"class":"hjp-bilink anchor button",
+                                       "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
+            b.string = "→"+data["desc"]
+            details.append(b)
+        body_L1 = self.html_page.select("div.container_body_L1")[0]
+        body_L1.append(details)
     pass
 
 
 class InTextButtonMaker(FieldHTMLData):
+    """负责将[[link:card-id_desc_]]替换成按钮"""
 
     def build(self):
         buttonli=BackLinkReader(html_str = self.html_str).backlink_get()
@@ -151,12 +153,12 @@ class InTextButtonMaker(FieldHTMLData):
 def HTMLbutton_make(htmltext, card):
     html_string = htmltext
     data = LinkDataReader(str(card.id)).read()
-    hasInTextButton = len(re.findall(r"\[\[link:\d+_[^\n]+_\]\]", html_string)) > 0
-    if hasInTextButton:
-        html_string = InTextButtonMaker(html_string).build()
     if "backlink" not in data: data["backlink"] =[]
     if len(data["link_list"]) > 0 or len(data["backlink"])>0:
         html_string = AnchorButtonMaker(html_string).build(data)
+    hasInTextButton = len(BackLinkReader(html_str = htmltext).backlink_get()) > 0
+    if hasInTextButton:
+        html_string = InTextButtonMaker(html_string).build()
 
     return html_string
 

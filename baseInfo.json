@@ -13,7 +13,7 @@
   "helpFileName": "README.md",
   "linkInfoDBFileName": "linkInfo.db",
   "linkInfoDBTableName": "CARD_LINK_INFO",
-  "anchorCSSFileName": "lib/resource/data/anchor_CSS_default.txt",
+  "anchorCSSFileName": "lib/resource/data/anchor_CSS_default.css",
   "consolerName": "hjp-bilink_",
   "consoler_Name": "hjp_bilink_",
   "dialogName": "hjp_bilink_dialog",

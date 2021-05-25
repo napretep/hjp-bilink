@@ -10,6 +10,7 @@ class BackLinkReader():
         self.html_str = html_str
 
     def backlink_get(self):
+        """返回buttonli 其中每个元素装的是状态, 位置, 描述, 卡片id"""
         buttonli = []
         baseindex = 0
         html_str = self.html_str

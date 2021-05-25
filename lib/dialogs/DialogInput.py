@@ -6,6 +6,9 @@ from ..obj import MenuAdder
 from ...lib.dialogs.UIdialog_Input import Ui_input
 from ...lib.obj.inputObj import *
 from .DialogCardPrev import external_card_dialog
+from ..obj.utils import Config
+from .metaUIobj import SpecialTreeItem, item_insert_rows
+
 
 class InputDialog(QDialog, Ui_input):
     """INPUT对话窗口类"""
@@ -71,6 +74,9 @@ class InputDialog(QDialog, Ui_input):
         self.model_rootNode.setEditable(False)
         self.model_rootNode.setSelectable(False)
         self.model_rootNode.setDragEnabled(False)
+        self.model_rootNode.character = "root"
+        self.model_rootNode.level = -1
+        self.model_rootNode.primData = None
         self.model.setHorizontalHeaderLabels(["card_id", "desc"])
         self.inputTree.setModel(self.model)
         self.model_dataobj_load()
@@ -114,68 +120,182 @@ class InputDialog(QDialog, Ui_input):
         for i in templi:
             parent.appendRow(i)
 
-    def itemChild_row_remove(self, item):
+    def itemChild_row_remove(self, item, need_remove_parent_when_empty=False):
         """不需要parent,自己能产生parent, item = list[item,item]"""
         parent = item[0].parent() if item[0].parent() is not None else self.model_rootNode
-        return parent.takeRow(item[0].row())
+        item = parent.takeRow(item[0].row())
+        if need_remove_parent_when_empty and parent.rowCount() == 0 and parent.parent() is not None:
+            parent.parent().takeRow(parent.row())
+        return item
 
-    def itemGroup_create(self, parent=None):
-        """创建group"""
-        if parent:
-            root = parent
-        else:
-            root = self.model_rootNode
-        item_group = QStandardItem("group")
-        item_group.self_attrs = {"character": "group", "level": 0, "primData": item_group}
+    def group_create(self):
+        item_group = SpecialTreeItem("group", character="group", level=0)
         item_group.setFlags(item_group.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsSelectable)
-        item_empty = QStandardItem("")
+        item_empty = SpecialTreeItem("", character="empty", level=0)
         item_empty.setFlags(item_empty.flags()
                             & ~Qt.ItemIsEditable
                             & ~Qt.ItemIsDropEnabled
                             & ~Qt.ItemIsDragEnabled
                             & ~Qt.ItemIsSelectable)
-        item_group.self_attrs = {"character": "empty", "level": 0, "primData": item_group}
+        return [item_group, item_empty]
+
+    def group_create_append_to_parent(self, parent=None):
+        """创建group,并插入到parent结点"""
+        if parent:
+            root = parent
+        else:
+            root = self.model_rootNode
+        item_group = SpecialTreeItem("group", character="group", level=0)
+        item_group.setFlags(item_group.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsSelectable)
+        item_empty = SpecialTreeItem("", character="empty", level=0)
+        item_empty.setFlags(item_empty.flags()
+                            & ~Qt.ItemIsEditable
+                            & ~Qt.ItemIsDropEnabled
+                            & ~Qt.ItemIsDragEnabled
+                            & ~Qt.ItemIsSelectable)
+        # item_group.self_attrs = {"character": "empty", "level": 0, "primData": item_group}
         root.appendRow([item_group, item_empty])
         return item_group
 
     # @debugWatcher
     def onDrop(self, *args, **kwargs):
-        """掉落事件响应"""
-        e = args[0]
-        mimeData = e.mimeData()
+        """掉落事件响应
+        item 落到:
+            group 上: 插入
+            item 上: 插入
+            其他位置: 新建group 再插入
+        """
         root = self.model_rootNode
-        drop_row = self.inputTree.indexAt(e.pos())
-        item_target = self.model.itemFromIndex(drop_row)
+        e = args[0]
+        pos = e.pos()
+        drop_index = self.inputTree.indexAt(pos)  # 获取鼠标所在的位置
+        item_target = self.model.itemFromIndex(drop_index)  # 所在位置是什么项
+        insert_posi = self.position_insert_check(pos, drop_index)  # 偏上偏下还是正中?
+        item_target, insert_posi = self.item_target_recorrect(item_target, insert_posi)  # 修正
+        # showInfo(item_target.__str__()+" posi="+insert_posi.__str__())
+        selected_row_li = self.rowli_index_make()
+        self.rowli_selected_insert(insert_posi, selected_row_li, item_target)
 
-        selectedIndexesLi = self.inputTree.selectedIndexes()
-        selectedItemLi_ = list(map(self.model.itemFromIndex, selectedIndexesLi))
-        selectedItemLi = []
-        for i in range(int(len(selectedItemLi_) / 2)):
-            selectedItemLi.append([selectedItemLi_[2 * i], selectedItemLi_[2 * i + 1]])
-        item_finalLi = [self.itemChild_row_remove(i) for i in selectedItemLi]
-        if item_target is None:
-            item_target = self.itemGroup_create()
+        # if item_target is None:
+        #     item_target = self.itemGroup_create()
         target_parent = item_target.parent() if item_target.parent() is not None else root
-        if item_target.column() > 0:
-            item_target = target_parent.child(item_target.row(), 0)
-        if item_target.self_attrs["level"] == 0:
-            list(map(lambda x: item_target.appendRow(x), item_finalLi))
-        if item_target.self_attrs["level"] == 1:
-            self.itemChild_row_insert(item_target.parent(), item_target, item_finalLi)
-        j = 0
-        for i in range(root.rowCount()):
-            if root.child(j, 0).rowCount() == 0:
-                root.takeRow(j)
-            else:
-                j += 1
-            if j == root.rowCount(): break
+
+        # if item_target.column() > 0:
+        # item_target = target_parent.child(item_target.row(), 0)
+        # if item_target.level == 0:
+        #     list(map(lambda x: item_target.appendRow(x), item_finalLi))
+        # if item_target.level == 1:
+        #     self.itemChild_row_insert(item_target.parent(), item_target, item_finalLi)
+        # j = 0
+        # for i in range(root.rowCount()):
+        #     if root.child(j, 0).rowCount() == 0:
+        #         root.takeRow(j)
+        #     else:
+        #         j += 1
+        #     if j == root.rowCount(): break
         self.file_model_save()
+
+    def rowli_selected_insert(self, insert_posi, selected_row_li, item_target):
+        """
+        insert_posi:插入的位置,
+        selected_row_li:一个列表,每个元素是一个行,
+        item_target:是插入的目标位置
+        """
+        parent = item_target.parent() if item_target.level > 0 else self.model_rootNode
+        for row in selected_row_li:
+            self.itemChild_row_remove(row, need_remove_parent_when_empty=True)
+        if insert_posi == 0:  # 中间
+            if item_target.character == "group":  # 若是组
+                if item_target.rowCount()>0:
+                    item_insert_rows(item_target, item_target.child(0, 0), 0, selected_row_li)
+                else:#这说明group里一个都没有
+                    for row in selected_row_li:
+                        item_target.appendRow(row)
+            else:
+                item_insert_rows(parent, item_target, 0, selected_row_li)
+        elif insert_posi != -2:
+            if item_target.character == "root":
+                showInfo("root!")
+                pass
+            elif item_target.character == "group":
+                if insert_posi == 1:  # 上面
+                    if item_target.row() == 0:  # 第一行的上面,就要新建一个group插入到第一行的前面
+                        group = self.group_create()
+                        for row in selected_row_li:
+                            group[0].appendRow(row)
+                        item_insert_rows(parent, item_target, 0, [group])
+                    else:  # 非第一行的上面,则添加到前一个的末尾
+                        last = parent.child(item_target.row() - 1, 0)
+                        for row in selected_row_li:
+                            last.appendRow(row)
+                else:  # 在下面
+                    first_child = item_target.child(0, 0)
+                    if first_child is not None:
+                        item_insert_rows(item_target, first_child, 1, selected_row_li)
+                    else:
+                        for row in selected_row_li:
+                            item_target.appendRow(row)
+            else:  # 不是root也不是group那就是card
+                if insert_posi == 1:  # 上面
+                    item_insert_rows(parent, item_target, 0, selected_row_li)
+                else:
+                    item_insert_rows(parent, item_target, 1, selected_row_li)
+        else:
+            gorupitem = self.group_create_append_to_parent()
+            for row in selected_row_li:
+                row[0].level = self.model_rootNode.level + 1
+                row[1].level = self.model_rootNode.level + 1
+                gorupitem.appendRow(row)
+
+    def rowli_index_make(self):
+        """# 源item每次都会选择一行的所有列,而且所有列编成1维数组,所以需要下面的步骤重新组回来."""
+        selected_indexes_li = self.inputTree.selectedIndexes()
+        selected_items_li = list(map(self.model.itemFromIndex, selected_indexes_li))
+        selected_row_li = []
+        for i in range(int(len(selected_items_li) / 2)):
+            selected_row_li.append([selected_items_li[2 * i], selected_items_li[2 * i + 1]])
+        return selected_row_li
+
+    def item_target_recorrect(self, item_target, insertPosi):
+        """修正插入的对象和插入的位置
+        包括3个内容,1如果对象是None,那么说明拉到了底部,2如果对象是卡片,则要修正,卡片不能作为父组,3如果拖拽的块列数大于1也要修正.
+        其余的不修正, 自己处理.
+        """
+        # 拉到底部
+        if item_target is None:
+            insertPosi = -2
+            item_target = self.model_rootNode
+        # 卡片不允许成为组
+        elif item_target.character == "card_id":
+            if insertPosi == 0: insertPosi = -1
+        # 目标item不能是第二列,如果是要调回第一列
+        if item_target.column() > 0:
+            if item_target.level == 0:
+                item_target = self.model_rootNode.child(item_target.row(), 0)
+            elif item_target.level > 0:
+                item_target = item_target.parent().child(item_target.row(), 0)
+        return item_target, insertPosi
+
+    def position_insert_check(self, pos, drop_index):
+        """测定插入位置"""
+        index_height = self.inputTree.rowHeight(drop_index)  #
+        drop_index_offset_up = self.inputTree.indexAt(pos - QPoint(0, index_height / 4))  # 高处为0
+        drop_index_offset_down = self.inputTree.indexAt(pos + QPoint(0, index_height / 4))
+        insertPosi = 0  # 0中间,1上面,-1下面,-2底部
+        if drop_index_offset_down == drop_index_offset_up:
+            insertPosi = 0
+        else:
+            if drop_index != drop_index_offset_up:
+                insertPosi = 1
+            elif drop_index != drop_index_offset_down:
+                insertPosi = -1
+        return insertPosi
 
     # @debugWatcher
     def onDoubleClick(self, index, *args, **kwargs):
         """双击事件响应"""
         item = self.model.itemFromIndex(index)
-        if item.column() == 0 and item.self_attrs["level"] == 1 and item.self_attrs["character"] == "card_id":
+        if item.column() == 0 and item.level == 1 and item.character == "card_id":
             card = self.input.model.col.getCard(int(item.text()))
             external_card_dialog(card)
 
@@ -238,7 +358,7 @@ class InputDialog(QDialog, Ui_input):
         root = self.model_rootNode
 
         for group in self.model_data:
-            parent = self.itemGroup_create()
+            parent = self.group_create_append_to_parent()
             for info in group:
                 self.carditem_make(info, level=1, parent=parent)
         self.lastrowcount = self.model_rootNode.rowCount()
@@ -249,11 +369,13 @@ class InputDialog(QDialog, Ui_input):
     def carditem_make(self, pair, level=0, parent=None):
         """一个简便的函数"""
         if parent is None: parent = self.model_rootNode
-        item_id, item_desc = QStandardItem(pair.card_id), QStandardItem(pair.desc)
-        item_id.setFlags(item_id.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled)
-        item_desc.setFlags(item_desc.flags() & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
-        item_id.self_attrs = {"character": "card_id", "level": level, "primData": pair}
-        item_desc.self_attrs = {"character": "desc", "level": level, "primData": pair}
+        item_id = SpecialTreeItem(pair.card_id, character="card_id", level=level, primData=pair)
+        item_desc = SpecialTreeItem(pair.desc, character="desc", level=level, primData=pair)
+        # item_id, item_desc = QStandardItem(pair.card_id), QStandardItem(pair.desc)
+        # item_id.setFlags(item_id.flags() & ~Qt.ItemIsEditable & ~Qt.ItemIsDropEnabled)
+        # item_desc.setFlags(item_desc.flags() & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsDragEnabled)
+        # item_id.self_attrs = {"character": "card_id", "level": level, "primData": pair}
+        # item_desc.self_attrs = {"character": "desc", "level": level, "primData": pair}
         parent.appendRow([item_id, item_desc])
 
     # @debugWatcher
