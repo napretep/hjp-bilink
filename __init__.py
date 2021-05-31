@@ -244,3 +244,5 @@ gui_hooks.browser_menus_did_init.append(func_add_browsermenu)
 gui_hooks.browser_will_show_context_menu.append(fun_add_browsercontextmenu)
 gui_hooks.webview_will_show_context_menu.append(func_add_webviewcontextmenu)
 gui_hooks.webview_did_receive_js_message.append(on_js_message)
+
+

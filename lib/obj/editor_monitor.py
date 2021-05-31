@@ -51,6 +51,8 @@ def handle_editor_did_unfocus_field(changed: bool, note: anki.notes.Note,current
 def field_unfocus_backlink_check(changed: bool, note: anki.notes.Note):
     if len(note.card_ids())==0:
         return changed
+    if not hasattr(note,"hjp_bilink_backlink"):
+        return changed
     HTML_str = "\n".join(note.fields)
     nowbacklink = set([x["card_id"] for x in BackLinkReader(html_str=HTML_str).backlink_get()])
     self_card_id = note.card_ids()[0]

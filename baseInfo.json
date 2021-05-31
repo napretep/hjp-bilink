@@ -1,5 +1,5 @@
 {
-  "VERSION": "0.10.0",
+  "VERSION": "0.10.2",
   "data_version": 1,
   "configFileName": "user_files/config.json",
   "configdevFileName": "user_files/configdev.json",
@@ -35,5 +35,6 @@
   "carddata_scriptIdName": "selfdata",
   "iconFile_input": "lib/resource/icon/icon_input.ico",
   "iconFile_anchor": "lib/resource/icon/icon_anchor.ico",
-  "iconFile_config": "lib/resource/icon/icon_config.ico"
+  "iconFile_config": "lib/resource/icon/icon_config.ico",
+  "ISDEBUG": 0
 }

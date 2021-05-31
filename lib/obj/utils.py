@@ -10,29 +10,123 @@ from aqt.reviewer import Reviewer
 from aqt.utils import *
 from anki import version as V  # version 是 字符串 比如 "2.1.43"
 from aqt import mw, dialogs
-from .languageObj import rosetta as say
 import json
 from aqt.previewer import Previewer
 from aqt.webview import AnkiWebView
 from aqt.browser import Browser
 
-ISDEV = False
-ISDEBUG = False  # 别轻易开启,很卡的
-relyLinkDir = "1423933177"
-advancedBrowserDir = "564851917"
-relyLinkConfigFileName = "config.json"
-logFileName = "log.txt"
+
 THIS_FOLDER = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 USER_FOLDER = os.path.join(THIS_FOLDER, "user_files")
 JSONFile_FOLDER = os.path.join(USER_FOLDER,"linkdata")
 PREV_FOLDER = os.path.dirname(THIS_FOLDER)
-RELY_FOLDER = os.path.join(PREV_FOLDER, relyLinkDir)
 ver = [int(i) for i in V.split(".")]
 baseInfoFileName = "baseInfo.json"
 userInfoFileName = "config.json"
-
 baseInfoDir = os.path.join(THIS_FOLDER, baseInfoFileName)
 userInfoDir = os.path.join(THIS_FOLDER, "user_files", userInfoFileName)
+ISDEV = False
+relyLinkDir = "1423933177"
+advancedBrowserDir = "564851917"
+relyLinkConfigFileName = "config.json"
+logFileName = "log.txt"
+
+class Params:
+    """参数对象"""
+
+    def __init__(self, **args):
+        self.__dict__ = args
+        if "features" not in args: self.features = []
+
+        if "actionTypes" not in args: self.actionTypes = []
+
+    def __str__(self):
+        return f"""<{self.__class__.__name__}:{self.__dict__.__str__()}"""
+
+    def __add__(self, other):
+        return other + self.__dict__.__str__()
+
+    def __repr__(self):
+        return self.__dict__.__str__()
+
+    def __getattr__(self, name):
+        if self.__dict__.__contains__(name):
+            return self.__dict__[name]
+        else:
+            raise AttributeError(name + "这个属性不存在")
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
+    def __contains__(self, name):
+        if self.__dict__.__contains__(name) and self.__dict__[name] is not None:
+            return True
+        return False
+
+
+
+class BaseInfo(object):
+    """解决大量赋值消耗内存的情况
+    注意你提取的属性结尾
+    """
+
+    def __init__(self):
+        self.userinfo = Params(**json.load(open(userInfoDir, "r", encoding="utf-8")))
+        self.baseinfo = Params(**json.load(open(baseInfoDir, "r", encoding="utf-8")))
+
+    def str_AnchorCSS_get(self):
+        """返回txt文件中的字符串,用来控制link表的样式"""
+        user_filename = self.userinfo.anchorCSSFileName
+        if user_filename != "" and os.path.exists(os.path.join(USER_FOLDER, user_filename)):
+            return open(os.path.join(USER_FOLDER, user_filename), "r", encoding="utf-8").read()
+        else:
+            return open(self.path_get("anchorCSS"), "r", encoding="utf-8").read()
+
+    def path_get(self, name, dirName=THIS_FOLDER):
+        """返回文件路径"""
+        path = os.path.join(dirName, self.baseinfo[name + "FileName"])
+        return path
+
+    def file_open_r(self, path, as_="JSON"):
+        """返回dict或者list"""
+        if as_ == "JSON":
+            return json.load(open(path, "r", encoding="utf-8"))
+        elif as_ == "_obj":
+            return Params(**self.file_open_r(path))
+        elif as_ == "File":
+            return open(path, "r", encoding="utf-8").read()
+
+    def __getattr__(self, name):
+        """一次赋值终生受益"""
+        if name not in self.__dict__:
+            if name[-3:] == "Dir":
+                self.__dict__[name] = self.path_get(name[:-3])
+            elif name[-4:] in ["JSON", "File", "_obj"]:
+                self.__dict__[name] = self.file_open_r(self.path_get(name[:-4]), as_=name[-4:])
+            elif name[-4:] in ["Site", "Name"]:
+                self.__dict__[name] = self.__dict__["baseinfo"][name]
+        elif name in self.__dict__["baseinfo"]:
+            self.__dict__[name] = self.__dict__["baseinfo"][name]
+            return self.__dict__["baseinfo"][name]
+        else:
+            raise TypeError("找不到数据:" + name)
+        return self.__dict__[name]
+
+    def __getitem__(self, key):
+        """获取信息"""
+        return self.baseinfo[key]
+
+class Config:
+    def __init__(self):
+        self.baseinfo = BaseInfo()
+        self.user_cfg = self.baseinfo.userinfo
+        self.base_cfg = self.baseinfo.baseinfo
+
+ISDEBUG = Config().base_cfg["ISDEBUG"] == 1  # 别轻易开启,很卡的
+
 
 if not os.path.exists(USER_FOLDER):
     os.mkdir(USER_FOLDER)
@@ -230,11 +324,7 @@ class MetaClass_loger(type):
         return type.__new__(mcs, name, bases, attr_dict)
 
 
-class Config:
-    def __init__(self):
-        self.baseinfo = BaseInfo()
-        self.user_cfg = self.baseinfo.userinfo
-        self.base_cfg = self.baseinfo.baseinfo
+
 
 
 class CustomSignals(QObject):
@@ -286,43 +376,6 @@ class Pair:
         if self.__dict__.__contains__(name) and self.__dict__[name] is not None:
             return True
         return False
-
-
-class Params:
-    """参数对象"""
-
-    def __init__(self, **args):
-        self.__dict__ = args
-        if "features" not in args: self.features = []
-
-        if "actionTypes" not in args: self.actionTypes = []
-
-    def __str__(self):
-        return f"""<{self.__class__.__name__}:{self.__dict__.__str__()}"""
-
-    def __add__(self, other):
-        return other + self.__dict__.__str__()
-
-    def __repr__(self):
-        return self.__dict__.__str__()
-
-    def __getattr__(self, name):
-        if self.__dict__.__contains__(name):
-            return self.__dict__[name]
-        else:
-            raise AttributeError(name + "这个属性不存在")
-
-    def __getitem__(self, key):
-        return self.__dict__[key]
-
-    def __setitem__(self, key, value):
-        self.__dict__[key] = value
-
-    def __contains__(self, name):
-        if self.__dict__.__contains__(name) and self.__dict__[name] is not None:
-            return True
-        return False
-
 
 class console:
     """debug用的"""
@@ -395,56 +448,6 @@ class console:
         return self
 
 
-class BaseInfo(object):
-    """解决大量赋值消耗内存的情况
-    注意你提取的属性结尾
-    """
-
-    def __init__(self):
-        self.userinfo = Params(**json.load(open(userInfoDir, "r", encoding="utf-8")))
-        self.baseinfo = Params(**json.load(open(baseInfoDir, "r", encoding="utf-8")))
-
-    def str_AnchorCSS_get(self):
-        """返回txt文件中的字符串,用来控制link表的样式"""
-        user_filename = self.userinfo.anchorCSSFileName
-        if user_filename != "" and os.path.exists(os.path.join(USER_FOLDER, user_filename)):
-            return open(os.path.join(USER_FOLDER, user_filename), "r", encoding="utf-8").read()
-        else:
-            return open(self.path_get("anchorCSS"), "r", encoding="utf-8").read()
-
-    def path_get(self, name, dirName=THIS_FOLDER):
-        """返回文件路径"""
-        path = os.path.join(dirName, self.baseinfo[name + "FileName"])
-        return path
-
-    def file_open_r(self, path, as_="JSON"):
-        """返回dict或者list"""
-        if as_ == "JSON":
-            return json.load(open(path, "r", encoding="utf-8"))
-        elif as_ == "_obj":
-            return Params(**self.file_open_r(path))
-        elif as_ == "File":
-            return open(path, "r", encoding="utf-8").read()
-
-    def __getattr__(self, name):
-        """一次赋值终生受益"""
-        if name not in self.__dict__:
-            if name[-3:] == "Dir":
-                self.__dict__[name] = self.path_get(name[:-3])
-            elif name[-4:] in ["JSON", "File", "_obj"]:
-                self.__dict__[name] = self.file_open_r(self.path_get(name[:-4]), as_=name[-4:])
-            elif name[-4:] in ["Site", "Name"]:
-                self.__dict__[name] = self.__dict__["baseinfo"][name]
-        elif name in self.__dict__["baseinfo"]:
-            self.__dict__[name] = self.__dict__["baseinfo"][name]
-            return self.__dict__["baseinfo"][name]
-        else:
-            raise TypeError("找不到数据:" + name)
-        return self.__dict__[name]
-
-    def __getitem__(self, key):
-        """获取信息"""
-        return self.baseinfo[key]
 
 
 """开始的一段检测"""
@@ -465,3 +468,7 @@ Previewer.__init__ = wrapper_mw_previewer_register(Previewer.__init__)
 Previewer.close = wrapper_mw_previewer_unregister(Previewer.close)
 # SingleCardPreviewerMod.__init__ = wrapper_mw_previewer_register(SingleCardPreviewerMod.__init__)
 # SingleCardPreviewerMod.close = wrapper_mw_previewer_unregister(SingleCardPreviewerMod.close)
+
+
+if __name__ == '__main__':
+    pass
