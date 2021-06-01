@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QLineF, QPointF,Qt
+from PyQt5.QtCore import QLineF, QPointF, Qt, QRectF
 from PyQt5.QtGui import QPen
 from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsLineItem, QGraphicsItem
 
@@ -24,7 +24,7 @@ class FramePen(QPen):
         if FramePenColor is None:
             FramePenColor=Qt.red
         self.setColor(FramePenColor)
-        self.setWidth(3)
+        self.setWidth(30)
 
 
 
@@ -49,4 +49,11 @@ class Frame(QGraphicsItemGroup):
         self.dir_lines[num].setFlag(QGraphicsItem.ItemIsMovable)
         self.addToGroup(self.dir_lines[num])
 
+    def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        if self.contains(event.pos()):
+            print("frame")
+        else:
+            super().mousePressEvent(event)
 
+    def boundingRect(self) -> QRectF:
+        return QRectF(0,0,100,100)

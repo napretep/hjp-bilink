@@ -1,6 +1,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QRectF
-from PyQt5.QtWidgets import QGraphicsItemGroup, QApplication, QGraphicsSceneMouseEvent, QGraphicsSceneWheelEvent
+from PyQt5.QtWidgets import QGraphicsItemGroup, QApplication, QGraphicsSceneMouseEvent, QGraphicsSceneWheelEvent, \
+    QGraphicsItem, QGraphicsPixmapItem
 from PyQt5 import QtGui
 
 from ..PageInfo import PageInfo
@@ -13,6 +14,9 @@ class PageItem(QGraphicsItemGroup):
 
     def __init__(self, pageinfo: 'PageInfo', parent=None, rightsidebar: 'RightSideBar'=None):
         super().__init__(parent=parent)
+        self.setFiltersChildEvents(False)
+        # test = QGraphicsPixmapItem()
+        # test.setHandlesChildEvents(False)
         self.rightsidebar = rightsidebar #指向的是主窗口的rightsidebar
         self.belongto_pagelist_row=None
         self.pageinfo = pageinfo
@@ -31,10 +35,16 @@ class PageItem(QGraphicsItemGroup):
         self.update()
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        """对于事件冒泡, 底层父item 接管了子item, 但是可以反向传播回去, 因此从这里开始分发事件
+        setHandlesChildEvents 这玩意儿在pyqt5上好像消失了
+        """
         modifiers = QApplication.keyboardModifiers()
         if self.pageview.contains(event.pos()) and modifiers == QtCore.Qt.ControlModifier:
             self.setCursor(Qt.CrossCursor)
         else:
+            # if self.clipbox.contains(event.pos()):
+            #     self.clipbox.mousePressEvent(event)
+            # else:
             super().mousePressEvent(event)
         pass
 

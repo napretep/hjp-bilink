@@ -15,8 +15,25 @@ class ClipBox(QGraphicsItemGroup):
     """
     def __init__(self):
         super().__init__()
-        self.addToGroup(ClipBox_.Frame())
+        self.frame = ClipBox_.Frame()
+        self.addToGroup(self.frame)
         self.setFlag(QGraphicsItem.ItemIsMovable)
+
+    def boundingRect(self) -> QtCore.QRectF:
+        return self.frame.boundingRect()
+
+    def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        print("come to here")
+        if self.contains(event.pos()):
+            print("yes")
+        else:
+            super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        super().mouseReleaseEvent(event)
+
+    def mouseMoveEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        super().mouseMoveEvent(event)
 
 class Pixmap(QGraphicsPixmapItem):
     """只需要pixmap就够了"""
