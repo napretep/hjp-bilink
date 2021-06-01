@@ -1,7 +1,7 @@
 """
 配置文件的窗口
 """
-from ..obj.languageObj import rosetta
+from ..obj.languageObj import rosetta as say
 from ...lib.obj.utils import wrapper_webview_refresh, wrapper_browser_refresh
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ...lib.obj.inputObj import *
@@ -54,9 +54,9 @@ class ConfigDialog(QDialog, Ui_config):
         for k, v in self.configJSON.items():
             if k in user_configable:
                 label=QtWidgets.QLabel(self)
-                label.setText(rosetta(k))
-                self.translate_back[rosetta(k)]=k
-                h_layout = QtWidgets.QHBoxLayout(self)
+                label.setText(say(k))
+                self.translate_back[say(k)]=k
+                h_layout = QtWidgets.QHsayBoxLayout(self)
                 h_layout.addWidget(label)
                 if k in string:
                     wiget = QtWidgets.QLineEdit(self)
