@@ -22,10 +22,8 @@ class PageItem(QGraphicsItemGroup):
         self.pageinfo = pageinfo
         self.pageview = PageItem_.Pixmap(pageinfo)
         self.page_tools_bar = PageItem_.ToolsBar(pageinfo, pageitem=self)
-        self.clipbox = PageItem_.ClipBox()
         self.addToGroup(self.pageview)
         self.addToGroup(self.page_tools_bar)
-        self.addToGroup(self.clipbox)
         self.init_position()
 
     def init_position(self):
@@ -41,10 +39,13 @@ class PageItem(QGraphicsItemGroup):
         modifiers = QApplication.keyboardModifiers()
         if self.pageview.contains(event.pos()) and modifiers == QtCore.Qt.ControlModifier:
             self.setCursor(Qt.CrossCursor)
+            clipbox = PageItem_.ClipBox(pos=event.pos(), pageitem=self)
+            self.addToGroup(clipbox)
+        # elif self.clipbox.contains(event.pos()):
+        #     self.clipbox.mousePressEvent(event)
+        elif self.page_tools_bar.contains(event.pos()):
+            self.page_tools_bar.mousePressEvent(event)
         else:
-            # if self.clipbox.contains(event.pos()):
-            #     self.clipbox.mousePressEvent(event)
-            # else:
             super().mousePressEvent(event)
         pass
 
@@ -59,7 +60,7 @@ class PageItem(QGraphicsItemGroup):
     def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         modifiers = QApplication.keyboardModifiers()
         if self.pageview.contains(event.pos()) and modifiers == QtCore.Qt.ControlModifier:
-            print("")
+            self.setCursor(Qt.ArrowCursor)
         else:
             super().mouseReleaseEvent(event)
         pass

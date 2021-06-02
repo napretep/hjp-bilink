@@ -13,19 +13,25 @@ class ClipBox(QGraphicsItemGroup):
     """
     由三个部分构成:Frame,ToolsBar,EditLine
     """
-    def __init__(self):
+    def __init__(self,pos:QPointF=None,pageitem:'PageItem'=None,card_id:str="0",QA:str="Q"):
         super().__init__()
+        self._pos=pos
+        self.pageitem=pageitem
+        self.card_id=card_id
+        self.QA=QA
+
         self.frame = ClipBox_.Frame()
         self.addToGroup(self.frame)
         self.setFlag(QGraphicsItem.ItemIsMovable)
+        self.setPos(self._pos)
 
     def boundingRect(self) -> QtCore.QRectF:
         return self.frame.boundingRect()
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-        print("come to here")
-        if self.contains(event.pos()):
-            print("yes")
+
+        if self.frame.contains(event.pos()):
+            self.frame.mousePressEvent(event)
         else:
             super().mousePressEvent(event)
 
