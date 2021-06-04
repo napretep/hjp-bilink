@@ -1,14 +1,16 @@
 from PyQt5.QtCore import QLineF, QPointF, Qt, QRectF
 from PyQt5.QtGui import QPen, QBrush
-from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsLineItem, QGraphicsItem, QGraphicsEllipseItem
+from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsLineItem, QGraphicsItem, QGraphicsEllipseItem, QGraphicsWidget
 
 
-class ToolsBar(QGraphicsItemGroup):
-    """QAswitchButton,CardSwitchButton,position(x,y,w,h),closeButton"""
+class ToolsBar(QGraphicsWidget):
+    """QAswitchButton,CardSwitchButton,closeButton,EditLine"""
 
-    def __init__(self):
+    def __init__(self, model: 'QStandardItemModel' = None, clipbox: 'ClipBox' = None):
         super().__init__()
+
         pass
+
 
 class EditLine(QGraphicsItemGroup):
     """专门用来设计input,还没想好怎么写"""

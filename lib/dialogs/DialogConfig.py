@@ -55,8 +55,8 @@ class ConfigDialog(QDialog, Ui_config):
             if k in user_configable:
                 label=QtWidgets.QLabel(self)
                 label.setText(say(k))
-                self.translate_back[say(k)]=k
-                h_layout = QtWidgets.QHsayBoxLayout(self)
+                self.translate_back[say(k)] = k
+                h_layout = QtWidgets.QHBoxLayout(self)
                 h_layout.addWidget(label)
                 if k in string:
                     wiget = QtWidgets.QLineEdit(self)

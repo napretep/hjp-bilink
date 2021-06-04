@@ -5,7 +5,7 @@ debug函数
 
 from typing import *
 import datetime, types, functools
-import time
+import time, os, sys, platform, subprocess
 from aqt.reviewer import Reviewer
 from aqt.utils import *
 from anki import version as V  # version 是 字符串 比如 "2.1.43"
@@ -30,6 +30,16 @@ relyLinkDir = "1423933177"
 advancedBrowserDir = "564851917"
 relyLinkConfigFileName = "config.json"
 logFileName = "log.txt"
+
+
+def open_file(path):
+    if platform.system() == "Windows":
+        os.startfile(path)
+    elif platform.system() == "Darwin":
+        subprocess.Popen(["open", path])
+    else:
+        subprocess.Popen(["xdg-open", path])
+
 
 class Params:
     """参数对象"""

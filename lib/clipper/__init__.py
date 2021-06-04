@@ -17,6 +17,7 @@ Clipper
 """
 import sys
 
+from PyQt5.QtCore import QPointF
 from PyQt5.QtWidgets import QApplication
 from lib.PageInfo import PageInfo
 from lib.Clipper import Clipper

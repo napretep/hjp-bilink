@@ -19,7 +19,7 @@ from .languageObj import rosetta as say
 
 from .inputObj import Input
 from .utils import BaseInfo, console, Params, Pair, CustomSignals, wrapper_webview_refresh, wrapper_browser_refresh, \
-    No_hierarchical_tag, compatible_browser_sidebar_refresh, USER_FOLDER
+    No_hierarchical_tag, compatible_browser_sidebar_refresh, USER_FOLDER, open_file
 from ..dialogs import DialogSupport
 from ..dialogs.DialogInput import InputDialog
 from ..dialogs.DialogAnchor import AnchorDialog
@@ -42,7 +42,7 @@ def func_contactMe():
     # # sys.exit(app.exec_())
 
 def func_openStorageDir():
-    os.startfile(USER_FOLDER)
+    open_file(USER_FOLDER)
 
 def func_dataTransfer():
     StorageSwitcherDialog().exec()

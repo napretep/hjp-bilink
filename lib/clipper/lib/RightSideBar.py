@@ -29,19 +29,21 @@ class RightSideBar(QWidget):
         """深层的不搞API,尽量都放到这一层"""
         pdfname = pageinfo.doc.name
         pagenum = pageinfo.pagenum
-        pageitem = PDFView_.PageItem(pageinfo, rightsidebar=self)
-        pageitem.setFlag(QGraphicsItem.ItemIsMovable)
-        pageitem.setFlag(QGraphicsPixmapItem.ItemIsFocusable)
+        pageitem = PDFView_.PageItem5(pageinfo, rightsidebar=self)
         pdfname_tail = os.path.basename(pdfname)
         row = [PageList_.Item(itemName=str_shorten(pdfname_tail), selfData=pdfname, toolTip=pdfname),
                PageList_.Item(itemName=str(pagenum), selfData=pageitem)]
-        pageitem.belongto_pagelist_row=row
+        pageitem.belongto_pagelist_row = row
         self.pagelist.model.appendRow(row)
         self.pagelist.listView.selectionModel().clearSelection()
-        self.pagelist.listView.selectionModel().select(index_from_row(self.pagelist.model, row), QItemSelectionModel.Select)
+        self.pagelist.listView.selectionModel().select(index_from_row(self.pagelist.model, row),
+                                                       QItemSelectionModel.Select)
         self.clipper.scene.addItem(pageitem)
         self.clipper.update()
         pass
+
+    def card_list_model_load(self):
+        return self.cardlist.model_rootNode
 
     def list_card_add(self):
         pass

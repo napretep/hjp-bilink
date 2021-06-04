@@ -26,6 +26,7 @@ class Clipper(QMainWindow):
         self.setWindowTitle("PDF clipper")
         self.container0 = QWidget(self)  # 不能删
         self.scene = QGraphicsScene()
+
         self.pdfview = PDFView(self.scene, parent=self)
         self.rightsidebar = RightSideBar(clipper=self)
         self.h_layout = QHBoxLayout(self)
