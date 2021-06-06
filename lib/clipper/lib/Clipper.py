@@ -7,6 +7,7 @@ from .RightSideBar import RightSideBar
 class Clipper(QMainWindow):
     def __init__(self):
         super().__init__()  # 加载的是文档
+        self.scene: 'QGraphicsScene'
         self.init_UI()
         self.init_events()
         # self.init_view()
@@ -26,7 +27,7 @@ class Clipper(QMainWindow):
         self.setWindowTitle("PDF clipper")
         self.container0 = QWidget(self)  # 不能删
         self.scene = QGraphicsScene()
-
+        # self.scene.removeItem()
         self.pdfview = PDFView(self.scene, parent=self)
         self.rightsidebar = RightSideBar(clipper=self)
         self.h_layout = QHBoxLayout(self)

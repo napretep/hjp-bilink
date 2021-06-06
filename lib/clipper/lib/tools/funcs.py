@@ -26,5 +26,16 @@ def pixmap_page_load(doc, pagenum, ratio=1):
     pixmap.convertFromImage(pageImage)  # 转为pixmap
     return QPixmap(pixmap)
 
+
+def on_clipbox_addedToPageView(clipbox, cardlist, pageview):
+    """涉及cardlist中的clipboxLi的添加"""
+
+    pass
+
+
+def clipbox_delete(clipbox, cardlist, pageview):
+    pass
+
+
 if __name__ == "__main__":
     pass

@@ -44,28 +44,6 @@ class GraphicsRectItem(QGraphicsRectItem):
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
         self.setFlag(QGraphicsItem.ItemIsFocusable, False)
-
-        self.w = QGraphicsWidget(self)
-        button1 = QToolButton()
-        button1.clicked.connect(lambda: print("clicked"))
-        button1.setIcon(QIcon("../../lib/clipper/resource/icon_close_button.png"))
-        button = QGraphicsProxyWidget()
-        button.setWidget(button1)
-        button2 = QToolButton()
-        button2.clicked.connect(lambda: print("clicked"))
-        button2.setIcon(QIcon("../../lib/clipper/resource/icon_close_button.png"))
-        button3 = QGraphicsProxyWidget()
-        button3.setWidget(button2)
-        layout = QGraphicsGridLayout()
-        layout2 = QGraphicsGridLayout()
-        layout2.addItem(button, 0, 0)
-        layout2.addItem(button3, 0, 1)
-        # layout.addItem(textEdit, 0, 0)
-        # layout.addItem(pushButton, 0, 1)
-        # layout.addItem(label, 0, 0)
-        # layout.addItem(layout2, 1, 0)
-        self.w.setLayout(layout2)
-
         self.updateHandlesPos()
 
     def handleAt(self, point):
@@ -279,11 +257,6 @@ class GraphicsRectItem(QGraphicsRectItem):
             for handle, rect in self.handles.items():
                 if self.handleSelected is None or handle == self.handleSelected:
                     painter.drawRect(rect)
-        if self.isSelected():
-            self.w.setPos(self.rect().x(), self.rect().y())
-            self.w.show()
-        else:
-            self.w.hide()
 
 
 if __name__ == '__main__':

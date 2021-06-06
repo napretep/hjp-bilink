@@ -25,7 +25,7 @@ class PageItem(QGraphicsItemGroup):
         self.rightsidebar = rightsidebar  # 指向的是主窗口的rightsidebar
         self.belongto_pagelist_row = None
         self.pageinfo = pageinfo
-        self.pageview = PageItem_.Pixmap(pageinfo)
+        self.pageview = PageItem_.pageview(pageinfo)
         self.page_tools_bar = PageItem_.ToolsBar2(pageinfo, pageitem=self)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
         self.setAcceptHoverEvents(True)
@@ -116,7 +116,7 @@ class PageItem5(QGraphicsItem):
         self.rightsidebar = rightsidebar  # 指向的是主窗口的rightsidebar
         self.belongto_pagelist_row = None
         self.pageinfo = pageinfo
-        self.pageview = PageItem_.Pixmap(pageinfo, pageitem=self)
+        self.pageview = PageItem_.pageview(pageinfo, pageitem=self)
         self.toolsBar = PageItem_.ToolsBar2(pageinfo, pageitem=self)
         self.setAcceptHoverEvents(True)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
@@ -146,11 +146,7 @@ class PageItem5(QGraphicsItem):
         else:
             self.toolsBar.hide()
 
-    def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-        modifiers = QApplication.keyboardModifiers()
-        if self.pageview.contains(event.pos()) and modifiers == QtCore.Qt.ControlModifier:
-            clipbox = PageItem_.ClipBox2(parent_pos=event.pos(), pageitem=self)
-            self.clipBoxList.append(clipbox)
+
 
     # #
     # def mouseMoveEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
@@ -170,7 +166,7 @@ class PageItem4(QGraphicsRectItem):
         self.rightsidebar = rightsidebar  # 指向的是主窗口的rightsidebar
         self.belongto_pagelist_row = None
         self.pageinfo = pageinfo
-        self.Pixmap = PageItem_.Pixmap(pageinfo, pageitem=self)
+        self.Pixmap = PageItem_.pageview(pageinfo, pageitem=self)
         self.ToolsBar = PageItem_.ToolsBar2(pageinfo, pageitem=self)
         self.ToolsBar.setPos(self.Pixmap.pixmap().width() / 2 - self.ToolsBar.boundingRect().width() / 2,
                              self.Pixmap.pixmap().height())
@@ -216,7 +212,7 @@ class PageItem3(QGraphicsRectItem):
         self.rightsidebar = rightsidebar  # 指向的是主窗口的rightsidebar
         self.belongto_pagelist_row = None
         self.pageinfo = pageinfo
-        self.Pixmap = PageItem_.Pixmap(pageinfo, pageitem=self)
+        self.Pixmap = PageItem_.pageview(pageinfo, pageitem=self)
         self.ToolsBar = PageItem_.ToolsBar2(pageinfo, pageitem=self)
         self.ToolsBar.setPos(self.Pixmap.pixmap().width() / 2 - self.ToolsBar.boundingRect().width() / 2,
                              self.Pixmap.pixmap().height())
