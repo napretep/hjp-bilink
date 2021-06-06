@@ -33,7 +33,7 @@ class RightSideBar(QWidget):
     """下面的API最好写的简单,过程隐藏在里面"""
 
     def get_QA(self):
-        return self.QAConfirm.QAbutton.text()
+        return self.QAconfirm.QAbutton.text()
 
     def card_list_model_load(self):
         return self.cardlist.model_rootNode

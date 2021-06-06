@@ -1,8 +1,11 @@
+import sys
+
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QWidget, QGraphicsScene, QHBoxLayout, QApplication
 from .PageInfo import PageInfo
 from .PDFView import PDFView
 from .RightSideBar import RightSideBar
+
 
 class Clipper(QMainWindow):
     def __init__(self):
@@ -46,3 +49,13 @@ class Clipper(QMainWindow):
     def scene_pixmap_add(self, pageinfo: 'PageInfo'):
         self.rightsidebar.page_list_add(pageinfo)
         self.update()
+
+
+if __name__ == '__main__':
+    pass
+    # print("ok")
+    # app = QApplication(sys.argv)
+    # pageinfo = PageInfo("./resource/徐森林_数学分析_第8章.pdf")
+    # clipper = Clipper()
+    # clipper.scene_pixmap_add(pageinfo)
+    # sys.exit(app.exec_())

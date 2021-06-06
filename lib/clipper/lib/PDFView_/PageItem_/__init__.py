@@ -529,19 +529,10 @@ class pageview(QGraphicsPixmapItem):
         for box in self.clipBoxList:
             r = box.rect()
             x, y = box.x(), box.y()
-            r.setTop(box.ratioTop * h
-                     - y
-                     )
-
-            r.setLeft(box.ratioLeft * w
-                      - x
-                      )
-            r.setBottom(box.ratioBottom * h
-                        - y
-                        )
-            r.setRight(box.ratioRight * w
-                       - x
-                       )
+            r.setTop(box.ratioTop * h - y)
+            r.setLeft(box.ratioLeft * w - x)
+            r.setBottom(box.ratioBottom * h - y)
+            r.setRight(box.ratioRight * w - x)  # 之所以减原来的x,y可行,是因为图片的放大并不是膨胀放大,每个点都是原来的点,只是增加了一些新的点而已.
             box.setRect(r)
 
     def boundingRect(self) -> QtCore.QRectF:

@@ -26,7 +26,6 @@ from lib.Clipper import Clipper
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     pageinfo = PageInfo("./resource/徐森林_数学分析_第8章.pdf")
-    
     clipper = Clipper()
     clipper.scene_pixmap_add(pageinfo)
     sys.exit(app.exec_())

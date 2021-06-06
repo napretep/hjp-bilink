@@ -1,3 +1,6 @@
+"""
+clipbox->toolsbar
+"""
 import typing
 
 from PyQt5 import QtCore, QtGui
@@ -12,15 +15,20 @@ from ....tools.objs import CustomSignals
 
 class ToolsBar(QGraphicsWidget):
     """QAswitchButton,CardSwitchButton,closeButton,EditLine"""
-    QAdict = {
-        "Q": QIcon("./resource/icon_question.png"),
-        "A": QIcon("./resource/icon_answer.png")
-    }
+    # QAdict = {
+    #     "Q": QIcon("./resource/icon_question.png"),
+    #     "A": QIcon("./resource/icon_answer.png")
+    # }
 
     on_cardlist_dataChanged = CustomSignals.start().on_cardlist_dataChanged
 
     def __init__(self, model: 'QStandardItemModel' = None, clipbox: 'ClipBox2' = None, QA="Q"):
         super().__init__()
+        self.QAdict = {
+            "Q": QIcon("./resource/icon_question.png"),
+            "A": QIcon("./resource/icon_answer.png")
+        }
+        self.QA = QA
         self.G_Layout = QGraphicsGridLayout()
         # self.G_Layout = QGraphicsLinearLayout()
         self.G_Layout.setSpacing(0)
@@ -61,8 +69,8 @@ class ToolsBar(QGraphicsWidget):
     def init_editQAbutton(self):
 
         self.editQAButton = QToolButton()
-        self.editQAButton.setText(self.QA)
-        self.editQAButton.setIcon(self.QAdict[self.QA])
+        self.editQAButton.setText("Q")
+        self.editQAButton.setIcon(self.QAdict["Q"])
         self.editQAButton.clicked.connect(self.onEditQAButtonClicked)
         self.editQAButton.setStyleSheet(
             f"margin-right:-1px;margin-left:-1px;margin-top: -1px;height:{self.lineEdit.size().height() - 3}px;")
@@ -84,8 +92,8 @@ class ToolsBar(QGraphicsWidget):
 
     def init_QAButton(self):
         self.QAButton = QToolButton()
-        self.QAButton.setText("Q")
-        self.QAButton.setIcon(QIcon("./resource/icon_question.png"))
+        self.QAButton.setText(self.QA)
+        self.QAButton.setIcon(self.QAdict[self.QA])
         self.QAButton.clicked.connect(self.onQAButtonClicked)
         self.QAButton.setStyleSheet(
             f"margin-right:-1px;margin-left:-1px;margin-top: -1px;height:{self.lineEdit.size().height() - 3}px;")
