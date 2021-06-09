@@ -8,23 +8,39 @@ from ...PageInfo import PageInfo
 from ...tools.funcs import str_shorten
 # from ...RightSideBar_ import PageList
 
-class Item(QStandardItem):
-    def __init__(self,itemName=None,selfData=None,toolTip=None):
-        super().__init__(itemName)
+class PDFItem(QStandardItem):
+    def __init__(self, PDFName=None, selfData=None, PDFpath=None):
+        super().__init__(PDFName)
         self.setFlags(self.flags()
-            &~ Qt.ItemIsEditable
-            &~ Qt.ItemIsDragEnabled)
+                      & ~ Qt.ItemIsEditable
+                      & ~ Qt.ItemIsDragEnabled)
         if selfData is not None:
-            self.setData(selfData,Qt.UserRole)
-        if toolTip is not None:
-            self.setToolTip(toolTip)
+            self.setData(selfData, Qt.UserRole)
+        if PDFpath is not None:
+            self.setToolTip(PDFpath)
+
+    def update_data(self, PDFName=None, PDFpath=None):
+        if PDFName is not None:
+            self.setText(PDFName)
+        if PDFpath is not None:
+            self.setToolTip(PDFpath)
+
+
+class PageNumItem(QStandardItem):
+    def __init__(self, pagenum=None, selfData=None):
+        super().__init__(pagenum)
+        self.setFlags(self.flags()
+                      & ~ Qt.ItemIsEditable
+                      & ~ Qt.ItemIsDragEnabled)
+        if selfData is not None:
+            self.setData(selfData, Qt.UserRole)
 
 
 class PDFOpen(QDialog):
-    def __init__(self, path, pagenum: int, parent = None, pagelist: 'PageList' =None):
+    def __init__(self, path, pagenum: int, parent=None, pagelist: 'PageList' = None):
         super().__init__(parent=parent)
-        self.pagelist=pagelist
-        self.pagenum=pagenum
+        self.pagelist = pagelist
+        self.pagenum = pagenum
         self.init_UI()
         self.init_label(path)
         self.init_event()

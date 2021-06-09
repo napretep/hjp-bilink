@@ -2350,7 +2350,7 @@ class linkDest(object):
         self.lt = Point(0, 0)
         self.named = ""
         self.newWindow = ""
-        self.page = obj.page
+        self.page = obj.page_spinbox
         self.rb = Point(0, 0)
         self.uri = obj.uri
         if rlink and not self.uri.startswith("#"):

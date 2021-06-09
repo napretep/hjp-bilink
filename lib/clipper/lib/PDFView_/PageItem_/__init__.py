@@ -8,42 +8,18 @@ from PyQt5.QtGui import QPixmap, QBrush, QColor, QPen, QPainter, QIcon, QPainter
 from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsPixmapItem, QApplication, QGraphicsTextItem, QGraphicsItem, \
     QGraphicsRectItem, QWidget, QGraphicsWidget, QGraphicsLinearLayout, QLabel, QLineEdit, QGraphicsProxyWidget, \
     QGraphicsGridLayout, QToolButton, QGraphicsAnchorLayout, QComboBox
+
 from ...tools.funcs import pixmap_page_load, str_shorten
+from ...tools.objs import CustomSignals, PagePicker
+from ...tools.events import PageItemDeleteEvent, PagePickerEvent, PageItemChangeEvent, PageItemResizeEvent
 from ...PageInfo import PageInfo
 from . import ClipBox_
 
 
-class ClipBox(QGraphicsItemGroup):
-    """
-    由三个部分构成:Frame,ToolsBar,EditLine
-    """
-
-    def __init__(self, pos: QPointF = None, pageitem: 'PageItem' = None, card_id: str = "0", QA: str = "Q"):
-        super().__init__()
-        self._pos=pos
-        self.pageitem=pageitem
-        self.card_id=card_id
-        self.QA=QA
-
-        self.frame = ClipBox_.Frame()
-        self.addToGroup(self.frame)
-        self.setFlag(QGraphicsItem.ItemIsMovable)
-        # self.setPos(self._pos)
-
-    def boundingRect(self) -> QtCore.QRectF:
-        return self.frame.boundingRect()
-
-    def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-        modifiers = QApplication.keyboardModifiers()
-        if self.pageitem.pageWidget.contains(event.pos()) and modifiers == QtCore.Qt.ControlModifier:
-            self.setPos(event.pos() - QPointF(self.frame.begindelta / 2, self.frame.begindelta / 2))
-        super().mousePressEvent(event)
-
-    def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-        super().mouseReleaseEvent(event)
-
-    def mouseMoveEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-        super().mouseMoveEvent(event)
+class PageItem_ClipBox_Event:
+    def __init__(self, clipbox=None, cardhash=None):
+        self.clipbox = clipbox
+        self.cardhash = cardhash
 
 
 class ClipBox2(QGraphicsRectItem):
@@ -72,7 +48,7 @@ class ClipBox2(QGraphicsRectItem):
     }
     handlerSize = 15
 
-    def __init__(self, *args, parent_pos: QPointF = None, pageview: 'pageview' = None, card_id: str = "0",
+    def __init__(self, *args, parent_pos: QPointF = None, pageview: 'PageView' = None, card_id: str = "0",
                  QA: str = "Q"):
         super().__init__(*args)
         # 规定自身
@@ -84,7 +60,7 @@ class ClipBox2(QGraphicsRectItem):
         self.setRect(
             # 0,0,
             parent_pos.x() - self.default_height / 2, parent_pos.y() - self.default_height / 2,
-            self.default_height * 6, self.default_height)
+            self.default_height * 6, self.default_height * 2)
         self.birthPos = QPointF(self.rect().x(), self.rect().y())
         self.birthRect = QRectF(self.rect())
         self.setParentItem(pageview)
@@ -107,7 +83,7 @@ class ClipBox2(QGraphicsRectItem):
     # "./resource/icon_close_button.png"
     def init_toolsbar(self):
         """卡片选择,QA切换,输入栏,关闭"""
-        self.toolsbar = ClipBox_.ToolsBar(model=self.pageview.pageitem.rightsidebar.cardlist.model, clipbox=self,
+        self.toolsbar = ClipBox_.ToolsBar(cardlist=self.pageview.pageitem.rightsidebar.cardlist, clipbox=self,
                                           QA=self.QA)
 
     def init_handlers(self):
@@ -141,8 +117,8 @@ class ClipBox2(QGraphicsRectItem):
     def init_toolsbar_size(self):
         if self.isSelected():
             self.toolsbar.setPos(self.rect().x() + 1, self.rect().y() + 1)
-            self.toolsbar.lineEdit.resize(self.rect().width() - self.toolsbar.editQAButtonProxy.rect().width() - 1,
-                                          self.toolsbar.lineEdit.height())
+            self.toolsbar.lineEditProxy.resize(self.rect().width() - self.toolsbar.editQAButtonProxy.rect().width() - 1,
+                                               self.toolsbar.lineEditProxy.rect().height())
 
             l = self.toolsbar.lineEditProxy
             eQ = self.toolsbar.editQAButtonProxy
@@ -155,7 +131,7 @@ class ClipBox2(QGraphicsRectItem):
             c.setPos(r.width() - c.rect().width() - 1, 0)
             Q.setPos(r.width() - c.rect().width() - Q.rect().width() - 1, 0)
             C.setPos(0, 0)
-            self.toolsbar.cardCombox.resize(
+            self.toolsbar.cardComboxProxy.resize(
                 self.rect().width() - c.rect().width() - Q.rect().width() - 1,
                 Q.rect().height() - 1
             )
@@ -412,34 +388,12 @@ class ClipBox2(QGraphicsRectItem):
         """
         Executed when the mouse is being moved over the item while being pressed.
         """
-        # boundingrect 在静止不动的时候可用，当移动 的时候无法表现他的位置。
-        # print(f"clipbox.boundingRect={self.boundingRect()},pageview.boundingRect={self.pageitem.pageview.boundingRect()}")
-        # 经过实验表明，pos和boundingRect的left,top不相等
-        pos = QPointF(self.pageview.boundingRect().left(), self.pageview.boundingRect().top())
-        # print(f"pos={self.birthPos.x()-self.pos().x()} boundingRect={self.boundingRect()}, rect={self.rect()}")
-        # print(f"pos={self.birthPos + self.pos()} ") # 这是在pageview中,如果不拉伸框架下的坐标,需要升级到左上顶点坐标
-        # print(f"{self.rect()},{self.pos()}")
-        self.borderUpdate()
-        # print(self.pos())
-        # leftBorder = self.pageview.boundingRect().x()
-        # rightBorder = leftBorder+ self.pageview.boundingRect().width()
-        # topBorder = self.pageview.boundingRect().y()
-        # bottomBorder =topBorder+ self.pageview.boundingRect().height()
-        # print(f"onResize2,mouspos={mouseEvent.pos()},pos={self.pos()},rect={self.rect()}")
 
-        # if leftBorder < self.left < rightBorder and topBorder<self.top<bottomBorder and \
-        #     leftBorder < self.right < rightBorder and topBorder < self.bottom < bottomBorder:
-        #     # self.setFlag(QGraphicsItem.ItemIsMovable, True)
-        #     print("movable")
-        # else:
-        #
-        #     # self.setFlag(QGraphicsItem.ItemIsMovable, False)
-        #     print("not movable")
+        self.borderUpdate()
 
         if self.handleSelected is not None:
             self.onResize(mouseEvent.pos())
         else:
-            # self.move_bordercheck()
             super().mouseMoveEvent(mouseEvent)
 
     def mouseReleaseEvent(self, mouseEvent):
@@ -453,20 +407,58 @@ class ClipBox2(QGraphicsRectItem):
         self.update()
 
 
-class pageview(QGraphicsPixmapItem):
+class PageView(QGraphicsPixmapItem):
     """只需要pixmap就够了"""
 
-    def __init__(self, pageinfo: 'PageInfo', pageitem: 'PageItem' = None):
+    def __init__(self, pageinfo: 'PageInfo', pageitem: 'PageItem5' = None):
         super().__init__(pageinfo.pagepixmap)
         self.clipBoxList: 'list[ClipBox2]' = []
         self.pageinfo = pageinfo
         self.pageitem = pageitem
         self.setParentItem(pageitem)
+        self.init_signals()
+        self.init_events()
         self._delta = 0.1
         self.ratio = 1
         self.width = self.pixmap().width()
 
         # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+
+    def init_signals(self):
+        self.on_clipbox_closed = CustomSignals.start().on_clipbox_closed
+        self.on_pageItem_clipbox_added = CustomSignals.start().on_pageItem_clipbox_added
+        self.on_pageItem_changePage = CustomSignals.start().on_pageItem_changePage
+        self.on_pageItem_resize_event = CustomSignals.start().on_pageItem_resize_event
+
+    def init_events(self):
+        self.on_clipbox_closed.connect(self.pageview_clipbox_remove)
+        self.on_pageItem_changePage.connect(self.on_pageItem_changePage_handle)
+        self.on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
+
+    def on_pageItem_resize_event_handle(self, event: "PageItemResizeEvent"):
+        print("here")
+        if event.pageItem.hash == self.pageitem.hash:
+            if event.eventType == PageItemResizeEvent.fullscreenType:
+                self.zoom(self.view_divde_page_ratio())
+            if event.eventType == PageItemResizeEvent.resetType:
+                self.zoom(1)
+            # self.setX(self.pageitem.rightsidebar.clipper.pdfview.viewport())
+
+    def view_divde_page_ratio(self):
+        view_Width = self.pageitem.rightsidebar.clipper.pdfview.geometry().width()
+        pixwidth = self.pageinfo.pagepixmap.width()
+        ratio = view_Width / pixwidth
+        return ratio
+
+    def on_pageItem_changePage_handle(self, event: 'PageItemChangeEvent'):
+        if event.eventType == event.updateType and event.pageItem.hash == self.pageitem.hash:
+            self.pageinfo_read(event.pageInfo)
+            self.update()
+            self.pageitem.update()
+
+    def pageinfo_read(self, pageinfo):
+        self.pageinfo = pageinfo
+        self.setPixmap(pageinfo.pagepixmap)
 
     def add_round(self):
         round = QGraphicsRectItem(QRectF(self.pixmap().rect()), parent=self)
@@ -476,22 +468,25 @@ class pageview(QGraphicsPixmapItem):
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         modifiers = QApplication.keyboardModifiers()
         if self.contains(event.pos()) and modifiers == QtCore.Qt.ControlModifier:
-            self.add_clipbox(event.pos())
-        print(f"pixmap_pos={event.pos()}")
+            self.pageview_clipbox_add(event.pos())
+
+        # print(f"pixmap_pos={event.pos()}")
+        print(self.pageitem.zValue())
         super().mousePressEvent(event)
 
-    def add_clipbox(self, pos):
-        """"""
+    def pageview_clipbox_add(self, pos):
+        """顺带解决"""
         QA = self.pageitem.rightsidebar.get_QA()
         clipbox = ClipBox2(parent_pos=pos, pageview=self, QA=QA)
-        self.clipBoxList.append(clipbox)
+        _hash = clipbox.toolsbar.cardComboxProxy.currentData
+        self.clipBoxList.append(clipbox)  # 创建后必须添加到clipboxlist
+        self.on_pageItem_clipbox_added.emit(PageItem_ClipBox_Event(clipbox=clipbox, cardhash=_hash))
 
-    def remove_clipbox(self, clipbox: 'ClipBox2'):
-        if clipbox in self.clipBoxList:
+    def pageview_clipbox_remove(self, event: 'ClipBox_.ToolsBar_.ClipboxEvent'):
+        """这里要做的事情就是从clipBoxList中移除"""
+        clipbox = event.clipBox
+        if clipbox in self.clipBoxList:  # 有可能来自其他page的信号
             self.clipBoxList.remove(clipbox)
-        self.pageitem.rightsidebar.clipper.scene.removeItem(clipbox)
-        del clipbox
-        print(self.childItems())
 
     def wheelEvent(self, event):
         modifiers = QApplication.keyboardModifiers()  # 判断ctrl键是否按下
@@ -512,7 +507,7 @@ class pageview(QGraphicsPixmapItem):
 
     def zoomOut(self):
         """缩小"""
-        self.ratio = self.ratio * (1 - self._delta)
+        self.ratio = self.ratio / (1 + self._delta)
         self.zoom(self.ratio)
 
     def zoom(self, factor):
@@ -522,9 +517,8 @@ class pageview(QGraphicsPixmapItem):
         if factor < 0.07 or factor > 100:
             # 防止过大过小
             return
-        p = pixmap_page_load(self.pageinfo.doc, self.pageinfo.pagenum, factor)
+        p = pixmap_page_load(self.pageinfo.doc, self.pageinfo.pagenum, ratio=factor * self.pageinfo.ratio)
         self.setPixmap(p)
-        self.update()
         w, h = self.boundingRect().width(), self.boundingRect().height()
         for box in self.clipBoxList:
             r = box.rect()
@@ -534,6 +528,7 @@ class pageview(QGraphicsPixmapItem):
             r.setBottom(box.ratioBottom * h - y)
             r.setRight(box.ratioRight * w - x)  # 之所以减原来的x,y可行,是因为图片的放大并不是膨胀放大,每个点都是原来的点,只是增加了一些新的点而已.
             box.setRect(r)
+        self.update()
 
     def boundingRect(self) -> QtCore.QRectF:
         return QtCore.QRectF(self.x(), self.y(), self.pixmap().width(), self.pixmap().height())
@@ -546,9 +541,11 @@ class ToolsBar2(QGraphicsWidget):
         super().__init__(parent=pageitem)
         self.pageinfo = pageinfo
         self.pageitem = pageitem
+        self.Control_pressed = False
         self.setParentItem(pageitem)
         self.init_UI()
-        # self.add_round()
+        self.init_signals()
+        self.init_events()
 
     def add_round(self):
         round = QGraphicsRectItem(QRectF(self.pixmap().rect()), parent=self)
@@ -560,30 +557,110 @@ class ToolsBar2(QGraphicsWidget):
         L_layout.setSpacing(0.0)
         L_layout.setContentsMargins(0.0, 0.0, 0.0, 0.0)
         # L_layout = QGraphicsAnchorLayout()
-        nameli = ["button_close", "button_prevpage", "button_nextpage", "button_zoomin", "button_zoomout", "label_desc"]
+        nameli = ["button_close", "button_prevpage", "button_nextpage", "button_reset", "button_fullscreen",
+                  "button_pageinfo"]
         self.widgetLi = nameli
         pngli = ["./resource/icon_close_button.png", "./resource/icon_prev_button.png",
-                 "./resource/icon_next_button.png", "./resource/icon_zoom_in.png", "./resource/icon_zoom_out.png", ""]
+                 "./resource/icon_next_button.png", "./resource/icon_reset.png", "./resource/icon_fullscreen.png", ""]
         tipli = ["关闭/close", "上一页/previous page \n ctrl+click=新建上一页/create previous page to the view",
-                 "下一页/next page \n ctrl+click=新建下一页/create next page to the view", "缩小/zoom out", "放大/zoom in",
+                 "下一页/next page \n ctrl+click=新建下一页/create next page to the view", "重设大小/reset size", "全屏/fullscreen",
                  f"""{self.pageinfo.doc.name}"""]
-        label_dict = {}
+        handleli = [self.on_button_close_clicked_handle, self.on_button_prevpage_clicked_handle,
+                    self.on_button_nextpage_clicked_handle, self.on_button_reset_clicked_handle,
+                    self.on_button_fullscreen_clicked_handle, self.on_button_pageinfo_clicked_handle]
+
+        buttons_dict = {}
         orderli = [5, 1, 2, 3, 4, 0]
         for i in range(6):
-            label_dict[nameli[i]] = QToolButton()
+            buttons_dict[nameli[i]] = QToolButton()
             if pngli[i] != "":
-                label_dict[nameli[i]].setIcon(QIcon(pngli[i]))
+                buttons_dict[nameli[i]].setIcon(QIcon(pngli[i]))
             else:
-                label_dict[nameli[i]].setText(
+                buttons_dict[nameli[i]].setText(
                     str_shorten(os.path.basename(self.pageinfo.doc.name)) + ", page=" + str(self.pageinfo.pagenum))
-            label_dict[nameli[i]].setToolTip(tipli[i])
+            buttons_dict[nameli[i]].clicked.connect(handleli[i])
+            buttons_dict[nameli[i]].setToolTip(tipli[i])
             self.__dict__[nameli[i]] = QGraphicsProxyWidget()
             self.__dict__[nameli[i]].setContentsMargins(0.0, 0.0, 0.0, 0.0)
-            self.__dict__[nameli[i]].setWidget(label_dict[nameli[i]])
+            self.__dict__[nameli[i]].setWidget(buttons_dict[nameli[i]])
         for i in range(6):
             L_layout.addItem(self.__dict__[nameli[i]], 0, orderli[i])
-        self.label_desc.widget().setStyleSheet(f"height:{self.button_close.widget().height() - 6}px")
+        self.button_pageinfo.widget().setStyleSheet(f"height:{self.button_close.widget().height() - 6}px")
         self.setLayout(L_layout)
+
+    def update_from_pageinfo(self, pageinfo):
+        self.pageinfo = pageinfo
+        p: 'QGraphicsProxyWidget' = self.__dict__["button_pageinfo"]
+        q: 'QToolButton' = p.widget()
+        q.setToolTip(self.pageinfo.doc.name)
+        q.setText(str_shorten(os.path.basename(self.pageinfo.doc.name)) + ", page=" + str(self.pageinfo.pagenum))
+        p.update()
+
+    def init_signals(self):
+        self.on_pageItem_removeFromScene = CustomSignals.start().on_pageItem_removeFromScene
+        self.on_pageItem_addToScene = CustomSignals.start().on_pageItem_addToScene
+        self.on_pageItem_changePage = CustomSignals.start().on_pageItem_changePage
+        self.on_pageItem_resize_event = CustomSignals.start().on_pageItem_resize_event
+
+    def init_events(self):
+        self.on_pageItem_changePage.connect(self.on_pageItem_changePage_handle)
+        self.on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
+
+    def on_button_fullscreen_clicked_handle(self):
+        self.on_pageItem_resize_event.emit(
+            PageItemResizeEvent(pageItem=self.pageitem, eventType=PageItemResizeEvent.fullscreenType)
+        )
+
+    def on_pageItem_resize_event_handle(self, event):
+        self.update()
+
+    def on_pageItem_changePage_handle(self, event: 'PageItemChangeEvent'):
+        if event.pageItem.hash == self.pageitem.hash:
+            self.update_from_pageinfo(event.pageInfo)
+
+    def on_button_reset_clicked_handle(self):
+        self.on_pageItem_resize_event.emit(
+            PageItemResizeEvent(pageItem=self.pageitem, eventType=PageItemResizeEvent.resetType)
+        )
+        pass
+
+    def on_button_nextpage_clicked_handle(self):
+        print("next clicked")
+
+        if self.pageinfo.pagenum + 1 == len(self.pageinfo.doc):
+            return
+        modifiers = QApplication.keyboardModifiers()
+        self._on_button_prev_next_page_handle(modifiers, self.pageinfo.doc.name, self.pageinfo.pagenum + 1)
+
+    def on_button_prevpage_clicked_handle(self):
+        print("prev clicked")
+        if self.pageinfo.pagenum - 1 == -1:
+            return
+        modifiers = QApplication.keyboardModifiers()
+        self._on_button_prev_next_page_handle(modifiers, self.pageinfo.doc.name, self.pageinfo.pagenum - 1)
+        pass
+
+    def _on_button_prev_next_page_handle(self, modifiers, docname, pagenum):
+        if modifiers == QtCore.Qt.ControlModifier:
+            from .. import PageItem5
+            pageitem = PageItem5(PageInfo(docname, pagenum=pagenum),
+                                 rightsidebar=self.pageitem.rightsidebar)
+            self.on_pageItem_addToScene.emit(PagePickerEvent(pageItem=pageitem, eventType=PagePickerEvent.addPageType))
+        else:
+            pageinfo = PageInfo(docname, pagenum=pagenum)
+            self.on_pageItem_changePage.emit(
+                PageItemChangeEvent(pageInfo=pageinfo, pageItem=self.pageitem,
+                                    eventType=PageItemChangeEvent.updateType))
+
+    def on_button_close_clicked_handle(self):
+        self.on_pageItem_removeFromScene.emit(
+            PageItemDeleteEvent(pageItem=self.pageitem, eventType=PageItemDeleteEvent.deleteType))
+
+    def on_button_pageinfo_clicked_handle(self):
+        p = PagePicker(pdfDirectory=self.pageinfo.doc.name, frompageitem=self.pageitem,
+                       pageNum=self.pageinfo.pagenum, clipper=self.pageitem.rightsidebar.clipper)
+        p.exec()
+        pass
 
     def boundingRect(self) -> QtCore.QRectF:
         x, y = self.x(), self.y()
@@ -592,97 +669,3 @@ class ToolsBar2(QGraphicsWidget):
             w += self.__dict__[i].rect().width()
         h = self.__dict__[self.widgetLi[-1]].rect().height()
         return QRectF(x, y, w, h)
-
-
-from . import ToolsBar_
-
-
-class ToolsBar(QGraphicsItemGroup):
-    """一个pageitem要含有的item:
-        item_of_tools:{
-            closebutton,
-            QAswitchbutton,
-            cardswitchbutton,
-            rect_point,
-            nextpage_button,
-            prevpage_button,
-            input_field,
-            zoomin,
-            zoomout
-        }"""
-
-    def __init__(self, pageinfo: 'PageInfo', pageitem: 'PageItem' = None):
-        super().__init__()
-        self.setAcceptHoverEvents(True)
-        self.pageitem = pageitem
-        self.pageinfo = pageinfo
-        self.init_UI()
-
-    def init_item(self):
-        self.button_close = ToolsBar_.PixmapItem(QPixmap("./resource/icon_close_button.png").scaled(25, 25))
-        self.button_nextpage = ToolsBar_.PixmapItem(QPixmap("./resource/icon_next_button.png").scaled(25, 25))
-        self.button_prevpage = ToolsBar_.PixmapItem(QPixmap("./resource/icon_prev_button.png").scaled(25, 25))
-        self.button_zoomin = ToolsBar_.PixmapItem(QPixmap("./resource/icon_zoom_in.png").scaled(25, 25))
-        self.button_zoomout = ToolsBar_.PixmapItem(QPixmap("./resource/icon_zoom_out.png").scaled(25, 25))
-        self.label_desc = QGraphicsTextItem()
-
-    def config_item(self):
-        self.button_close.setToolTip("关闭/close")
-        self.button_zoomin.setToolTip("放大/zoom in")
-        self.button_zoomout.setToolTip("缩小/zoom out")
-        self.button_prevpage.setToolTip("下一页/previous page \n ctrl+click=新建下一页/create previous page to the view")
-        self.button_nextpage.setToolTip("下一页/next page \n ctrl+click=新建下一页/create next page to the view")
-        self.label_desc.setToolTip(self.pageinfo.doc.name)
-
-    def group_add_item(self):
-        self.addToGroup(self.button_zoomin)
-        self.addToGroup(self.button_zoomout)
-        self.addToGroup(self.button_prevpage)
-        self.addToGroup(self.button_nextpage)
-        self.addToGroup(self.button_close)
-        self.addToGroup(self.label_desc)
-
-    def init_UI(self):
-        self.init_item()
-        self.config_item()
-        self.group_add_item()
-
-        p = self.pos()
-        self.button_zoomin.setPos(p)
-        p = p + QPointF(self.button_zoomin.boundingRect().width() + 10, 0)
-        self.button_zoomout.setPos(p)
-        p = p + QPointF(self.button_zoomout.boundingRect().width() + 10, 0)
-        self.button_prevpage.setPos(p)
-        p = p + QPointF(self.button_prevpage.boundingRect().width() + 10, 0)
-        self.button_nextpage.setPos(p)
-        p = p + QPointF(self.button_nextpage.boundingRect().width() + 10, 0)
-        self.button_close.setPos(p)
-        self.width = p.x() + self.button_close.boundingRect().width()
-        self.height = self.button_zoomin.boundingRect().height()
-        self.label_desc.setPos(QPointF(0, self.height))
-        self.height += self.label_desc.boundingRect().height()
-        PDFname = str_shorten(os.path.basename(self.pageinfo.doc.name), length=int(self.width))
-        self.label_desc.setPlainText("""PDF:{PDF},Page:{pagenum}""".format(PDF=PDFname, pagenum=self.pageinfo.pagenum))
-        self.frameBox = QGraphicsRectItem(self.boundingRect())
-        self.addToGroup(self.frameBox)
-        self.update()
-
-    def boundingRect(self) -> QtCore.QRectF:
-        # 不能用定值来代替坐标位置否则会出错.
-        return QRectF(self.x(), self.y(), self.width, self.height)
-
-    def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-        print(self.button_close.boundingRect().__str__() + ", pos=" + event.pos().__str__())
-        list(map(lambda x: x.mousePressEvent(event), self.childItems()))
-        # clickedLi = list(map(lambda x:x.contains(event.pos()),self.childItems()))
-        # clickedindex = clickedLi.index(True) if True in clickedLi else -1
-        # print(clickedindex.__str__())
-        # if clickedindex>0:
-        #    print(self.childItems()[clickedindex].__str__())
-
-    def hoverMoveEvent(self, event: 'QGraphicsSceneHoverEvent') -> None:
-        needSetCusor = reduce(lambda x, y: x or y, map(lambda x: x.contains(event.pos()), self.childItems()))
-        # print(needSetCusor.__str__())
-        if needSetCusor:
-            self.setCursor(Qt.CrossCursor)
-        super().hoverMoveEvent(event)

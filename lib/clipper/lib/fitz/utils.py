@@ -737,7 +737,7 @@ def getLinkDict(ln) -> dict:
         nl["uri"] = ln.dest.uri
 
     elif ln.dest.kind == LINK_GOTO:
-        nl["page"] = ln.dest.page
+        nl["page"] = ln.dest.page_spinbox
         nl["to"] = pnt
         if ln.dest.flags & LINK_FLAG_R_IS_ZOOM:
             nl["zoom"] = ln.dest.rb.x
@@ -746,8 +746,8 @@ def getLinkDict(ln) -> dict:
 
     elif ln.dest.kind == LINK_GOTOR:
         nl["file"] = ln.dest.fileSpec.replace("\\", "/")
-        nl["page"] = ln.dest.page
-        if ln.dest.page < 0:
+        nl["page"] = ln.dest.page_spinbox
+        if ln.dest.page_spinbox < 0:
             nl["to"] = ln.dest.dest
         else:
             nl["to"] = pnt
@@ -763,7 +763,7 @@ def getLinkDict(ln) -> dict:
         nl["name"] = ln.dest.named
 
     else:
-        nl["page"] = ln.dest.page
+        nl["page"] = ln.dest.page_spinbox
 
     return nl
 

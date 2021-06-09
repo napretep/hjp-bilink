@@ -1,11 +1,12 @@
 from PyQt5.QtGui import QStandardItem
 from PyQt5.QtCore import Qt
-
+import time
 
 class DescItem(QStandardItem):
     def __init__(self, itemName=None, selfData=None, toolTip=None):
         super().__init__(itemName)
         self.clipBoxList = []
+        self.hash = hash(time.time())
         self.role = "desc"
         self.setFlags(self.flags()
                       & ~ Qt.ItemIsDragEnabled)
