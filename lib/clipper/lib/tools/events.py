@@ -3,14 +3,14 @@ class PageItemDeleteEvent:
 
     def __init__(self, pageItem=None, eventType=None):
         self.pageItem = pageItem
-        self.eventType = eventType
+        self.Type = eventType
 
 
 class PageItemChangeEvent:
     updateType = 0
 
     def __init__(self, pageInfo=None, pageItem=None, eventType=None):
-        self.eventType = eventType
+        self.Type = eventType
         self.pageItem = pageItem
         self.pageInfo = pageInfo
 
@@ -21,19 +21,19 @@ class PageItemResizeEvent:
 
     def __init__(self, pageItem=None, eventType=None):
         self.pageItem = pageItem
-        self.eventType = eventType
+        self.Type = eventType if eventType is not None else self.fullscreenType
 
         pass
 
 
-class PagePickerEvent:
+class PageItemAddToSceneEvent:
     changePageType = 0
     addPageType = 1
 
     def __init__(self, pageItem=None, pageItemList=None, eventType=None, parent=None):
         self.pageItem = pageItem
         self.pageItemList = pageItemList
-        self.eventType = eventType
+        self.Type = eventType
         self.parent = parent
 
 
@@ -48,9 +48,11 @@ class CardListDataChangedEvent:
 
 class PageItemClickEvent:
     clickType = 0
+    rightClickType = 1
+    leftClickType = 2
 
     def __init__(self, pageitem: 'PageItem5' = None, eventType=None):
-        self.eventType = eventType if eventType else self.clickType
+        self.Type = eventType if eventType else self.clickType
         self.pageitem = pageitem
 
 
@@ -60,4 +62,25 @@ class CardListDeleteItemEvent:
     def __init__(self, cardlist=None, eventType=None):
         self.Type = eventType if eventType else self.DeleteType
         self.cardlist = cardlist
+        pass
+
+
+class RightSideBarButtonGroupEvent:
+    resetViewRatioType = 0
+    reLayoutType = 1
+    QAswitchType = 2
+    configType = 3
+    correctType = 4
+
+    def __init__(self, eventType=None):
+        self.Type = eventType
+        pass
+
+
+class PageItemNeedCenterOnEvent:
+    centerOnType = 0
+
+    def __init__(self, eventType=None, pageitem=None):
+        self.pageitem = pageitem
+        self.Type = eventType
         pass

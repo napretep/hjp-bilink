@@ -16,9 +16,10 @@ class QAButton(QGraphicsProxyWidget):
     def __init__(self, toolsbar: 'ToolsBar' = None, QA="Q"):
         super().__init__(parent=toolsbar)
         self.toolsbar = toolsbar
+        self.imgDir = self.toolsbar.cardlist.rightsidebar.clipper.objs.SrcAdmin.imgDir
         self.IconDict = {
-            "Q": QIcon("./resource/icon_question.png"),
-            "A": QIcon("./resource/icon_answer.png")
+            "Q": QIcon(self.imgDir.question),
+            "A": QIcon(self.imgDir.answer)
         }
         self.toolTipDict = {
             "Q": "将选框保存到卡片问题字段\nrestore the clipbox to the question field of the card",
@@ -63,6 +64,7 @@ class CloseButton(QGraphicsProxyWidget):
     def __init__(self, toolsbar: 'ToolsBar'):
         super().__init__(parent=toolsbar)
         self.toolsbar = toolsbar
+        self.imgDir = self.toolsbar.cardlist.rightsidebar.clipper.objs.SrcAdmin.imgDir
         self.closeButton = QToolButton()
         self.init_UI()
         self.init_data()
@@ -80,7 +82,7 @@ class CloseButton(QGraphicsProxyWidget):
             self.toolsbar.cardlist.rightsidebar.clipper.objs.CustomSignals.start().on_clipbox_closed
 
     def init_data(self):
-        self.closeButton.setIcon(QIcon("./resource/icon_close_button.png"))
+        self.closeButton.setIcon(QIcon(self.imgDir.close))
         self.closeButton.setToolTip("关闭/close")
 
     def init_events(self):
@@ -98,16 +100,16 @@ class CloseButton(QGraphicsProxyWidget):
 class EditQAbutton(QGraphicsProxyWidget):
     def __init__(self, toolsbar: 'ToolsBar'):
         super().__init__(parent=toolsbar)
+        self.toolsbar = toolsbar
+        self.imgDir = self.toolsbar.cardlist.rightsidebar.clipper.objs.SrcAdmin.imgDir
         self.IconDict = {
-            "Q": QIcon("./resource/icon_question.png"),
-            "A": QIcon("./resource/icon_answer.png")
+            "Q": QIcon(self.imgDir.question),
+            "A": QIcon(self.imgDir.answer)
         }
         self.toolTipDict = {
             "Q": "将文字保存到卡片问题字段\nrestore the text to the question field of the card",
             "A": "将文字保存到卡片答案字段\nrestore the text to the answer field of the card"
         }
-
-        self.toolsbar = toolsbar
         self.editQAButton = QToolButton()
         self.init_UI()
         self.init_data()

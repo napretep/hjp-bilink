@@ -3,15 +3,16 @@ import typing
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, QRectF, QPointF, QLineF, QSizeF
-from PyQt5.QtGui import QPixmap, QIcon, QPainterPath, QColor, QPen, QBrush
+from PyQt5.QtGui import QPixmap, QIcon, QPainterPath, QColor, QPen, QBrush, QKeySequence
 from PyQt5.QtWidgets import QGraphicsItemGroup, QApplication, QGraphicsSceneMouseEvent, QGraphicsSceneWheelEvent, \
     QGraphicsItem, QGraphicsPixmapItem, QGraphicsWidget, QGraphicsLayout, QGraphicsGridLayout, QGraphicsLinearLayout, \
     QGraphicsLayoutItem, QWidget, QTextEdit, QGraphicsScene, QPushButton, QGraphicsProxyWidget, QLabel, QToolButton, \
-    QGraphicsRectItem, QSizePolicy, QGraphicsDropShadowEffect
+    QGraphicsRectItem, QSizePolicy, QGraphicsDropShadowEffect, QShortcut
 from PyQt5 import QtGui
 from ..tools.funcs import pixmap_page_load
 from ..tools.objs import CustomSignals
-from ..tools.events import PagePickerEvent, PageItemClickEvent
+from ..tools.events import PageItemAddToSceneEvent, PageItemClickEvent
+from ..tools import events, objs, funcs
 from ..PageInfo import PageInfo
 from . import PageItem_
 
@@ -22,6 +23,7 @@ class PageItem5(QGraphicsItem):
 
     def __init__(self, pageinfo: 'PageInfo', parent=None, rightsidebar: 'RightSideBar' = None):
         super().__init__(parent=parent)
+        self.isFullscreen = False
         self.hash = hash(time.time())
         self.clipBoxList = []
         self._delta = None
@@ -33,12 +35,12 @@ class PageItem5(QGraphicsItem):
         self.setAcceptHoverEvents(True)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QGraphicsItem.ItemIsFocusable, True)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
         self.init_toolsbar_position()
         self.init_signals()
+        # self.init_shortcuts()
 
-    def init_UI(self):
-        S = QGraphicsDropShadowEffect()
 
     def init_toolsbar_position(self):
         x = self.pageview.pixmap().width() - self.toolsBar.boundingRect().width()
@@ -60,40 +62,46 @@ class PageItem5(QGraphicsItem):
     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
               widget: typing.Optional[QWidget] = ...) -> None:
         self.prepareGeometryChange()  # 这个 非常重要. https://www.cnblogs.com/ybqjymy/p/13862382.html
-        self.init_toolsbar_position()
         painter.setPen(QPen(QColor(127, 127, 127), 2.0, Qt.DashLine))
         painter.drawRect(self.boundingRect())
-        if self.isSelected():
-            self.toolsBar.show()
-        else:
-            self.toolsBar.hide()
+
+    def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
+
+        modifiers = QApplication.keyboardModifiers()
+        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_E:
+            e = events.PageItemResizeEvent
+            if not self.isFullscreen:
+                CustomSignals.start().on_pageItem_resize_event.emit(e(pageItem=self, eventType=e.fullscreenType))
+                self.isFullscreen = True
+            else:
+                CustomSignals.start().on_pageItem_resize_event.emit(e(pageItem=self, eventType=e.resetType))
+                self.isFullscreen = False
 
     def mouseMoveEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-        # if self.begin_drag:
-        #     delta =   event.screenPos() -self.begin_drag_pos
-        #     # self.moveBy(delta.x()/20,delta.y()/20)
-        # else:
+
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         self.setCursor(Qt.ArrowCursor)
-        # if self.contains(event.pos()):
-        #     self.begin_drag=False
-        #     self.begin_drag_pos=None
-        # else:
         super().mouseReleaseEvent(event)
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         modifiers = QApplication.keyboardModifiers()
         if (modifiers & Qt.ControlModifier) and (modifiers & Qt.ShiftModifier):
             print("here")
-            self.rightsidebar.clipper.pdfview.mousePressEvent(event)
+
+            # self.rightsidebar.clipper.pdfview.mousePressEvent(event)
         else:
-            # if self.contains(event.pos()):
-            #     self.begin_drag = True
-            #     self.begin_drag_pos = event.screenPos()
-            self.on_pageItem_clicked.emit(PageItemClickEvent(pageitem=self))
+            if event.button() == Qt.LeftButton:
+                self.on_pageItem_clicked.emit(
+                    PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.leftClickType))
+                self.toolsBar.hide()
+            if event.button() == Qt.RightButton:
+                self.on_pageItem_clicked.emit(
+                    PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.rightClickType))
+                self.toolsBar.setPos(event.pos())
+                self.toolsBar.show()
             super().mousePressEvent(event)
 
     def toEvent(self):
-        return PagePickerEvent(pageItem=self, eventType=PagePickerEvent.addPageType)
+        return PageItemAddToSceneEvent(pageItem=self, eventType=PageItemAddToSceneEvent.addPageType)

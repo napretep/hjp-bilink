@@ -3,7 +3,7 @@ import os
 from PyQt5.QtCore import QItemSelectionModel
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGraphicsItem, QGraphicsPixmapItem
 from .tools.funcs import str_shorten, index_from_row
-from .RightSideBar_ import PageList, CardList, ButtonGroup, PageList_, CardList_
+from .RightSideBar_ import PageList, CardList, ButtonPanel, PageList_, CardList_
 from . import PDFView_
 from .PageInfo import PageInfo
 from .tools.objs import CustomSignals
@@ -23,7 +23,7 @@ class RightSideBar(QWidget):
         self.V_layout = QVBoxLayout()
         self.pagelist = PageList(rightsidebar=self)
         self.cardlist = CardList(rightsidebar=self)
-        self.QAconfirm = ButtonGroup(rightsidebar=self)
+        self.QAconfirm = ButtonPanel(rightsidebar=self)
         self.V_layout.addWidget(self.pagelist)
         self.V_layout.addWidget(self.cardlist)
         self.V_layout.addWidget(self.QAconfirm)

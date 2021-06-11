@@ -1,0 +1,80 @@
+{
+  "page_ratio": {
+    "value": 1,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 1,
+      "data_range": {
+        "left": 0.07,
+        "right": 200
+      }
+    }
+  },
+  "page_num": {
+    "value": 0,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 0,
+      "data_range": {
+        "left": 0,
+        "right": false
+      }
+    }
+  },
+  "viewlayout_mode": {
+    "value": 0,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 2,
+      "data_range": [
+        0,
+        1,
+        2
+      ]
+    }
+  },
+  "viewlayout_column_count": {
+    "value": 2,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 0,
+      "data_range": {
+        "left": 1,
+        "right": false
+      }
+    }
+  },
+  "viewlayout_row_count": {
+    "value": 1,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 0,
+      "data_range": {
+        "left": 1,
+        "right": false
+      }
+    }
+  },
+  "output_needRatioFix": {
+    "value": 1,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 2,
+      "data_range": [
+        0,
+        1
+      ]
+    }
+  },
+  "output_RatioFix": {
+    "value": 1,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 1,
+      "data_range": {
+        "left": 0.07,
+        "right": 100
+      }
+    }
+  }
+}

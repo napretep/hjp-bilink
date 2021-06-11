@@ -10,8 +10,8 @@ from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsPixmapItem, QApplicatio
     QGraphicsGridLayout, QToolButton, QGraphicsAnchorLayout, QComboBox
 
 from ...tools.funcs import pixmap_page_load, str_shorten
-from ...tools.objs import CustomSignals, PagePicker
-from ...tools.events import PageItemDeleteEvent, PagePickerEvent, PageItemChangeEvent, PageItemResizeEvent
+from ...tools.objs import CustomSignals, PagePicker, SrcAdmin
+from ...tools.events import PageItemDeleteEvent, PageItemAddToSceneEvent, PageItemChangeEvent, PageItemResizeEvent
 from ...PageInfo import PageInfo
 from . import ClipBox_
 
@@ -436,11 +436,10 @@ class PageView(QGraphicsPixmapItem):
         self.on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
 
     def on_pageItem_resize_event_handle(self, event: "PageItemResizeEvent"):
-        print("here")
         if event.pageItem.hash == self.pageitem.hash:
-            if event.eventType == PageItemResizeEvent.fullscreenType:
+            if event.Type == PageItemResizeEvent.fullscreenType:
                 self.zoom(self.view_divde_page_ratio())
-            if event.eventType == PageItemResizeEvent.resetType:
+            if event.Type == PageItemResizeEvent.resetType:
                 self.zoom(1)
             # self.setX(self.pageitem.rightsidebar.clipper.pdfview.viewport())
 
@@ -451,7 +450,7 @@ class PageView(QGraphicsPixmapItem):
         return ratio
 
     def on_pageItem_changePage_handle(self, event: 'PageItemChangeEvent'):
-        if event.eventType == event.updateType and event.pageItem.hash == self.pageitem.hash:
+        if event.Type == event.updateType and event.pageItem.hash == self.pageitem.hash:
             self.pageinfo_read(event.pageInfo)
             self.update()
             self.pageitem.update()
@@ -560,8 +559,8 @@ class ToolsBar2(QGraphicsWidget):
         nameli = ["button_close", "button_prevpage", "button_nextpage", "button_reset", "button_fullscreen",
                   "button_pageinfo"]
         self.widgetLi = nameli
-        pngli = ["./resource/icon_close_button.png", "./resource/icon_prev_button.png",
-                 "./resource/icon_next_button.png", "./resource/icon_reset.png", "./resource/icon_fullscreen.png", ""]
+        imgDir = SrcAdmin.call().imgDir
+        iconli = [imgDir.close, imgDir.prev, imgDir.next, imgDir.reset, imgDir.expand, ""]
         tipli = ["关闭/close", "上一页/previous page \n ctrl+click=新建上一页/create previous page to the view",
                  "下一页/next page \n ctrl+click=新建下一页/create next page to the view", "重设大小/reset size", "全屏/fullscreen",
                  f"""{self.pageinfo.doc.name}"""]
@@ -573,8 +572,8 @@ class ToolsBar2(QGraphicsWidget):
         orderli = [5, 1, 2, 3, 4, 0]
         for i in range(6):
             buttons_dict[nameli[i]] = QToolButton()
-            if pngli[i] != "":
-                buttons_dict[nameli[i]].setIcon(QIcon(pngli[i]))
+            if iconli[i] != "":
+                buttons_dict[nameli[i]].setIcon(QIcon(iconli[i]))
             else:
                 buttons_dict[nameli[i]].setText(
                     str_shorten(os.path.basename(self.pageinfo.doc.name)) + ", page=" + str(self.pageinfo.pagenum))
@@ -633,7 +632,6 @@ class ToolsBar2(QGraphicsWidget):
         self._on_button_prev_next_page_handle(modifiers, self.pageinfo.doc.name, self.pageinfo.pagenum + 1)
 
     def on_button_prevpage_clicked_handle(self):
-        print("prev clicked")
         if self.pageinfo.pagenum - 1 == -1:
             return
         modifiers = QApplication.keyboardModifiers()
@@ -642,15 +640,17 @@ class ToolsBar2(QGraphicsWidget):
 
     def _on_button_prev_next_page_handle(self, modifiers, docname, pagenum):
         if modifiers == QtCore.Qt.ControlModifier:
-            from .. import PageItem5
-            pageitem = PageItem5(PageInfo(docname, pagenum=pagenum),
-                                 rightsidebar=self.pageitem.rightsidebar)
-            self.on_pageItem_addToScene.emit(PagePickerEvent(pageItem=pageitem, eventType=PagePickerEvent.addPageType))
-        else:
             pageinfo = PageInfo(docname, pagenum=pagenum)
             self.on_pageItem_changePage.emit(
                 PageItemChangeEvent(pageInfo=pageinfo, pageItem=self.pageitem,
                                     eventType=PageItemChangeEvent.updateType))
+
+        else:
+            from .. import PageItem5
+            pageitem = PageItem5(PageInfo(docname, pagenum=pagenum),
+                                 rightsidebar=self.pageitem.rightsidebar)
+            self.on_pageItem_addToScene.emit(
+                PageItemAddToSceneEvent(pageItem=pageitem, eventType=PageItemAddToSceneEvent.addPageType))
 
     def on_button_close_clicked_handle(self):
         self.on_pageItem_removeFromScene.emit(

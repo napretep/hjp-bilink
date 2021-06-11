@@ -9,8 +9,8 @@ from ..PDFView_ import PageItem_
 from . import PageList_, CardList_
 from ..tools.funcs import str_shorten, index_from_row
 from ..tools.objs import CustomSignals, PagePicker
-from ..tools.events import PagePickerEvent, PageItemChangeEvent
 from ..tools import events
+from ..tools import objs
 
 
 class PageList(QWidget):
@@ -125,19 +125,19 @@ class PageList(QWidget):
         p1.update_data(PDFName=str_shorten(os.path.basename(pageinfo.doc.name)), PDFpath=pageinfo.doc.name)
         p2.setText(str(pageinfo.pagenum))
 
-    def on_pageItem_changePage_handle(self, event: 'PageItemChangeEvent'):
-        if event.eventType == event.updateType:
+    def on_pageItem_changePage_handle(self, event: 'events.PageItemChangeEvent'):
+        if event.Type == event.updateType:
             self.update_from_pageinfo(event.pageInfo, event.pageItem)
 
-    def on_pageItem_addToScene_handle(self, event: 'PagePickerEvent'):
-        if event.eventType == event.addPageType:
+    def on_pageItem_addToScene_handle(self, event: 'events.PageItemAddToSceneEvent'):
+        if event.Type == event.addPageType:
             self.model_pageItem_add(event.pageItem)
-        elif event.eventType == event.changePageType:
+        elif event.Type == event.changePageType:
             pass
         pass
 
     def on_pageItem_removeFromScene_handle(self, event: 'events.PageItemDeleteEvent'):
-        if event.eventType == event.deleteType:
+        if event.Type == event.deleteType:
             self.model_pageItem_remove(event.pageItem)
 
     def model_selected_rows(self):
@@ -296,48 +296,94 @@ class CardList(QWidget):
         self.V_layout.setStretch(1, 1)
 
 
-class ButtonGroup(QWidget):
+class ButtonPanel(QWidget):
+    imgDir = objs.SrcAdmin.call().imgDir
+
     def __init__(self, parent=None, rightsidebar: "RightSideBar" = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
+        self.init_signals()
+
+        self.h_layout = QHBoxLayout(self)
+        self.QAbutton = QToolButton(self)
+        self.confirmButton = QToolButton(self)
+        self.reLayoutButton = QToolButton(self)
+        self.configButton = QToolButton(self)
+        self.resetViewRatioButton = QToolButton(self)
+
+        self.icon_li = [
+            QIcon(self.imgDir.config),
+            QIcon(self.imgDir.refresh),
+            QIcon(self.imgDir.question),
+            QIcon(self.imgDir.correct),
+            QIcon(self.imgDir.reset)
+        ]
+        self.buttonLi = [
+            self.configButton, self.reLayoutButton, self.QAbutton, self.confirmButton, self.resetViewRatioButton]
+        self.action_li = [
+            lambda: self.on_rightSideBar_buttonGroup_clicked.emit(
+                events.RightSideBarButtonGroupEvent(eventType=events.RightSideBarButtonGroupEvent.configType)),
+            lambda: self.on_rightSideBar_buttonGroup_clicked.emit(
+                events.RightSideBarButtonGroupEvent(eventType=events.RightSideBarButtonGroupEvent.reLayoutType)),
+            lambda: self.on_rightSideBar_buttonGroup_clicked.emit(
+                events.RightSideBarButtonGroupEvent(eventType=events.RightSideBarButtonGroupEvent.QAswitchType)),
+            lambda: self.on_rightSideBar_buttonGroup_clicked.emit(
+                events.RightSideBarButtonGroupEvent(eventType=events.RightSideBarButtonGroupEvent.correctType)),
+            lambda: self.on_rightSideBar_buttonGroup_clicked.emit(
+                events.RightSideBarButtonGroupEvent(eventType=events.RightSideBarButtonGroupEvent.resetViewRatioType))
+        ]
+
+        self.layout_button_li = [4, 1, 2, 0, 3]
+
         self.rightsidebar = rightsidebar
         self.init_UI()
         self.init_events()
 
+    def init_UI_lambda(self, i: int):
+        j = self.layout_button_li[i]
+        self.buttonLi[j].setIcon(self.icon_li[j])
+        self.buttonLi[j].clicked.connect(self.action_li[j])
+        self.h_layout.addWidget(self.buttonLi[j])
+        self.h_layout.setStretch(i, 1)
+
+    def init_signals(self):
+        self.on_rightSideBar_buttonGroup_clicked = objs.CustomSignals.start().on_rightSideBar_buttonGroup_clicked
+
     def init_UI(self):
-        self.h_layout = QHBoxLayout(self)
-        self.QAbutton = QToolButton(self)
+
+        # list(map(lambda w: self.h_layout.addWidget(self.buttonLi[w]),self.layout_button_li))
+        #
+        list(map(lambda i: self.init_UI_lambda(i), range(5)))
         self.QAbutton.setText("Q")
-        self.QAbutton.setIcon(QIcon("./resource/icon_question.png"))
-        self.Confirm = QToolButton(self)
-        self.Confirm.setIcon(QIcon("./resource/icon_correct.png"))
-        self.refreshButton = QToolButton(self)
-        self.refreshButton.setIcon(QIcon("./resource/icon_refresh.png"))
-        self.configButton = QToolButton(self)
-        self.configButton.setIcon(QIcon("./resource/icon_configuration.png"))
-        list(map(lambda w: self.h_layout.addWidget(w),
-                 [self.configButton, self.refreshButton, self.QAbutton, self.Confirm]))
-        list(map(lambda i: self.h_layout.setStretch(i, 1), range(4)))
         self.setLayout(self.h_layout)
 
     def init_events(self):
-        self.QAbutton.clicked.connect(self.on_QAbutton_clicked)
         CustomSignals.start().on_clipper_hotkey_setQ.connect(self.on_clipper_hotkey_setQ_handle)
         CustomSignals.start().on_clipper_hotkey_setA.connect(self.on_clipper_hotkey_setA_handle)
+        CustomSignals.start().on_rightSideBar_buttonGroup_clicked.connect(
+            self.on_rightSideBar_buttonGroup_clicked_handle)
+
+    def on_rightSideBar_buttonGroup_clicked_handle(self, event: "events.RightSideBarButtonGroupEvent"):
+        if event.Type == event.QAswitchType:
+            self.QAbutton_switch()
+        elif event.Type == event.configType:
+            C = objs.ConfigTable()
+            C.exec()
 
     def on_clipper_hotkey_setQ_handle(self):
         if self.QAbutton.text() == "A":
             self.QAbutton.setText("Q")
-            self.QAbutton.setIcon(QIcon("./resource/icon_question.png"))
+            self.QAbutton.setIcon(QIcon(self.imgDir.question))
 
     def on_clipper_hotkey_setA_handle(self):
         if self.QAbutton.text() == "Q":
             self.QAbutton.setText("A")
-            self.QAbutton.setIcon(QIcon("./resource/icon_answer.png"))
+            self.QAbutton.setIcon(QIcon(self.imgDir.answer))
 
-    def on_QAbutton_clicked(self):
+    def QAbutton_switch(self):
+
         if self.QAbutton.text() == "Q":
             self.QAbutton.setText("A")
-            self.QAbutton.setIcon(QIcon("./resource/icon_answer.png"))
+            self.QAbutton.setIcon(QIcon(self.imgDir.answer))
         else:
             self.QAbutton.setText("Q")
-            self.QAbutton.setIcon(QIcon("./resource/icon_question.png"))
+            self.QAbutton.setIcon(QIcon(self.imgDir.question))

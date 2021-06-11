@@ -20,16 +20,17 @@ class ToolsBar(QGraphicsWidget):
 
     def __init__(self, cardlist: 'CardList' = None, clipbox: 'ClipBox2' = None, QA="Q"):
         super().__init__(parent=clipbox)
-        self.QAdict = {
-            "Q": QIcon("./resource/icon_question.png"),
-            "A": QIcon("./resource/icon_answer.png")
-        }
         self.G_Layout = QGraphicsGridLayout()
         # self.G_Layout = QGraphicsLinearLayout()
         self.G_Layout.setSpacing(0)
         self.layout()
         self.cardlist = cardlist
         self.clipbox = clipbox
+        self.imgDir = self.cardlist.rightsidebar.clipper.objs.SrcAdmin.imgDir
+        self.QAdict = {
+            "Q": QIcon(self.imgDir.question),
+            "A": QIcon(self.imgDir.answer)
+        }
         self.QAButtonProxy: 'QAButton' = QAButton(toolsbar=self, QA=QA)
         self.lineEditProxy: 'LineEdit' = LineEdit(toolsbar=self)
         self.editQAButtonProxy: 'EditQAbutton' = EditQAbutton(toolsbar=self)
