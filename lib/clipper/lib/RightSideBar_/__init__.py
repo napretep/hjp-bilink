@@ -8,9 +8,10 @@ from ..PDFView_.PageItem_ import ClipBox_
 from ..PDFView_ import PageItem_
 from . import PageList_, CardList_
 from ..tools.funcs import str_shorten, index_from_row
-from ..tools.objs import CustomSignals, PagePicker
+from ..tools.objs import CustomSignals
 from ..tools import events
 from ..tools import objs
+from ..PagePicker import PagePicker
 
 
 class PageList(QWidget):
@@ -366,7 +367,8 @@ class ButtonPanel(QWidget):
         if event.Type == event.QAswitchType:
             self.QAbutton_switch()
         elif event.Type == event.configType:
-            C = objs.ConfigTable()
+            from ..ConfigTable import ConfigTable
+            C = ConfigTable()
             C.exec()
 
     def on_clipper_hotkey_setQ_handle(self):

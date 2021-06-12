@@ -39,8 +39,6 @@ class PageItem5(QGraphicsItem):
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
         self.init_toolsbar_position()
         self.init_signals()
-        # self.init_shortcuts()
-
 
     def init_toolsbar_position(self):
         x = self.pageview.pixmap().width() - self.toolsBar.boundingRect().width()
@@ -54,8 +52,8 @@ class PageItem5(QGraphicsItem):
         self.on_pageItem_resize_event = CustomSignals.start().on_pageItem_resize_event
 
     def boundingRect(self) -> QtCore.QRectF:
-        w = self.pageview.pixmap().width()
-        h = self.pageview.pixmap().height() + self.toolsBar.boundingRect().height()
+        w = self.pageview.boundingRect().width()
+        h = self.pageview.boundingRect().height()
         rect = QRectF(0, 0, w, h)
         return rect
 
@@ -89,8 +87,6 @@ class PageItem5(QGraphicsItem):
         modifiers = QApplication.keyboardModifiers()
         if (modifiers & Qt.ControlModifier) and (modifiers & Qt.ShiftModifier):
             print("here")
-
-            # self.rightsidebar.clipper.pdfview.mousePressEvent(event)
         else:
             if event.button() == Qt.LeftButton:
                 self.on_pageItem_clicked.emit(

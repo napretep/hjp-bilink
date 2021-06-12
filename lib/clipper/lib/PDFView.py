@@ -40,7 +40,6 @@ class PDFView(QGraphicsView):
         objs.CustomSignals.start().on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
         objs.CustomSignals.start().on_rightSideBar_buttonGroup_clicked.connect(
             self.on_rightSideBar_buttonGroup_clicked_handle)
-        # objs.CustomSignals.start().on_pageItem_addToScene.connect(self.on_pageItem_addToScene_handle)
         objs.CustomSignals.start().on_pageItem_needCenterOn.connect(self.on_pageItem_addToScene_handle)
 
     def on_rightSideBar_buttonGroup_clicked_handle(self, event: 'events.RightSideBarButtonGroupEvent'):
@@ -112,22 +111,27 @@ class PDFView(QGraphicsView):
     def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
         modifiers = QApplication.keyboardModifiers()
         if (modifiers & Qt.ControlModifier) and (modifiers & Qt.ShiftModifier):
-
+            e = events.PDFViewResizeViewEvent
             if event.angleDelta().y() > 0:
                 self.scale(1.1, 1.1)
                 self.reset_ratio_value *= 1.1
+                objs.CustomSignals.start().on_PDFView_ResizeView.emit(
+                    e(eventType=e.zoomInType, pdfview=self, ratio=self.reset_ratio_value))
             else:
                 self.scale(1 / 1.1, 1 / 1.1)
                 self.reset_ratio_value /= 1.1
-            pass
+                objs.CustomSignals.start().on_PDFView_ResizeView.emit(
+                    e(eventType=e.zoomOutType, pdfview=self, ratio=self.reset_ratio_value))
         else:
             super().wheelEvent(event)
         pass
 
     def viewRatioReset(self):
         self.scale(1 / self.reset_ratio_value, 1 / self.reset_ratio_value)
+        e = events.PDFViewResizeViewEvent
+        objs.CustomSignals.start().on_PDFView_ResizeView.emit(
+            e(eventType=e.RatioResetType, pdfview=self, ratio=1 / self.reset_ratio_value))
         self.reset_ratio_value = 1
-
 
 if __name__ == "__main__":
     pass

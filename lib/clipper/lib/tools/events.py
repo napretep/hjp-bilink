@@ -1,9 +1,16 @@
+class PagePickerCloseEvent:
+    closeType = 0
+
+    def __init__(self, eventType=None):
+        self.Type = eventType
+
+
 class PageItemDeleteEvent:
     deleteType = 0
 
     def __init__(self, pageItem=None, eventType=None):
-        self.pageItem = pageItem
         self.Type = eventType
+        self.pageItem = pageItem
 
 
 class PageItemChangeEvent:
@@ -81,6 +88,17 @@ class PageItemNeedCenterOnEvent:
     centerOnType = 0
 
     def __init__(self, eventType=None, pageitem=None):
-        self.pageitem = pageitem
         self.Type = eventType
+        self.pageitem = pageitem
         pass
+
+
+class PDFViewResizeViewEvent:
+    zoomInType = 0
+    zoomOutType = 1
+    RatioResetType = 2
+
+    def __init__(self, eventType=None, pdfview=None, ratio=None):
+        self.Type = eventType
+        self.pdfview = pdfview
+        self.ratio = ratio

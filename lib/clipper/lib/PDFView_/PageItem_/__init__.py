@@ -7,13 +7,15 @@ from PyQt5.QtCore import QPointF, QRectF, Qt, QSizeF, QLineF
 from PyQt5.QtGui import QPixmap, QBrush, QColor, QPen, QPainter, QIcon, QPainterPath
 from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsPixmapItem, QApplication, QGraphicsTextItem, QGraphicsItem, \
     QGraphicsRectItem, QWidget, QGraphicsWidget, QGraphicsLinearLayout, QLabel, QLineEdit, QGraphicsProxyWidget, \
-    QGraphicsGridLayout, QToolButton, QGraphicsAnchorLayout, QComboBox
+    QGraphicsGridLayout, QToolButton, QGraphicsAnchorLayout, QComboBox, QGraphicsSceneMouseEvent
 
 from ...tools.funcs import pixmap_page_load, str_shorten
-from ...tools.objs import CustomSignals, PagePicker, SrcAdmin
+from ...tools.objs import CustomSignals, SrcAdmin
 from ...tools.events import PageItemDeleteEvent, PageItemAddToSceneEvent, PageItemChangeEvent, PageItemResizeEvent
+from ...tools import events, objs, funcs
 from ...PageInfo import PageInfo
 from . import ClipBox_
+from ...PagePicker import PagePicker
 
 
 class PageItem_ClipBox_Event:
@@ -420,7 +422,11 @@ class PageView(QGraphicsPixmapItem):
         self.init_events()
         self._delta = 0.1
         self.ratio = 1
+        self.viewratio = 1
         self.width = self.pixmap().width()
+        self.height = self.pixmap().height()
+        self.start_width = self.width
+        self.start_height = self.height
 
         # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
 
@@ -434,6 +440,18 @@ class PageView(QGraphicsPixmapItem):
         self.on_clipbox_closed.connect(self.pageview_clipbox_remove)
         self.on_pageItem_changePage.connect(self.on_pageItem_changePage_handle)
         self.on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
+        # objs.CustomSignals.start().on_PDFView_ResizeView.connect(self.on_PDFView_ResizeView_handle)
+
+    # def on_PDFView_ResizeView_handle(self,event:"events.PDFViewResizeViewEvent"):
+    #     self.keep_resolution_from_resize(event.ratio)
+    #
+    # def keep_resolution_from_resize(self, ratio):
+    #     p = pixmap_page_load(self.pageinfo.doc, self.pageinfo.pagenum,
+    #                          ratio=self.ratio * ratio * self.pageinfo.ratio)
+    #     self.setPixmap(p)
+    #     self.setScale(1 / ratio)#大小保持不变
+    #     self.viewratio = ratio #记录本次,因为view那边就是累计值,所以这里只要赋过去就好了.
+    #     self.keep_clipbox_in_postion()
 
     def on_pageItem_resize_event_handle(self, event: "PageItemResizeEvent"):
         if event.pageItem.hash == self.pageitem.hash:
@@ -513,24 +531,30 @@ class PageView(QGraphicsPixmapItem):
         """缩放
         :param factor: 缩放的比例因子
         """
+        self.prepareGeometryChange()
         if factor < 0.07 or factor > 100:
             # 防止过大过小
             return
         p = pixmap_page_load(self.pageinfo.doc, self.pageinfo.pagenum, ratio=factor * self.pageinfo.ratio)
         self.setPixmap(p)
+        self.width = self.pixmap().width()
+        self.height = self.pixmap().height()
+        self.keep_clipbox_in_postion()
+        self.update()
+
+    def keep_clipbox_in_postion(self):
         w, h = self.boundingRect().width(), self.boundingRect().height()
         for box in self.clipBoxList:
             r = box.rect()
             x, y = box.x(), box.y()
-            r.setTop(box.ratioTop * h - y)
-            r.setLeft(box.ratioLeft * w - x)
-            r.setBottom(box.ratioBottom * h - y)
-            r.setRight(box.ratioRight * w - x)  # 之所以减原来的x,y可行,是因为图片的放大并不是膨胀放大,每个点都是原来的点,只是增加了一些新的点而已.
+            r.setTop(box.ratioTop * self.viewratio * h - y)
+            r.setLeft(box.ratioLeft * self.viewratio * w - x)
+            r.setBottom(box.ratioBottom * self.viewratio * h - y)
+            r.setRight(box.ratioRight * self.viewratio * w - x)  # 之所以减原来的x,y可行,是因为图片的放大并不是膨胀放大,每个点都是原来的点,只是增加了一些新的点而已.
             box.setRect(r)
-        self.update()
 
     def boundingRect(self) -> QtCore.QRectF:
-        return QtCore.QRectF(self.x(), self.y(), self.pixmap().width(), self.pixmap().height())
+        return QtCore.QRectF(0, 0, self.pixmap().width(), self.pixmap().height())
 
     pass
 
@@ -569,7 +593,7 @@ class ToolsBar2(QGraphicsWidget):
                     self.on_button_fullscreen_clicked_handle, self.on_button_pageinfo_clicked_handle]
 
         buttons_dict = {}
-        orderli = [5, 1, 2, 3, 4, 0]
+        gridpos = [(1, 2), (0, 0), (0, 1), (1, 0), (1, 1), (2, 0)]
         for i in range(6):
             buttons_dict[nameli[i]] = QToolButton()
             if iconli[i] != "":
@@ -579,12 +603,15 @@ class ToolsBar2(QGraphicsWidget):
                     str_shorten(os.path.basename(self.pageinfo.doc.name)) + ", page=" + str(self.pageinfo.pagenum))
             buttons_dict[nameli[i]].clicked.connect(handleli[i])
             buttons_dict[nameli[i]].setToolTip(tipli[i])
-            self.__dict__[nameli[i]] = QGraphicsProxyWidget()
+            self.__dict__[nameli[i]] = QGraphicsProxyWidget(self)
             self.__dict__[nameli[i]].setContentsMargins(0.0, 0.0, 0.0, 0.0)
             self.__dict__[nameli[i]].setWidget(buttons_dict[nameli[i]])
-        for i in range(6):
-            L_layout.addItem(self.__dict__[nameli[i]], 0, orderli[i])
+        for i in range(5):
+            L_layout.addItem(self.__dict__[nameli[i]], gridpos[i][0], gridpos[i][1])
         self.button_pageinfo.widget().setStyleSheet(f"height:{self.button_close.widget().height() - 6}px")
+        # self.button_pageinfo.setPos(0,self.button_fullscreen.pos().y()+self.button_prevpage.boundingRect().height())
+        L_layout.addItem(self.__dict__[nameli[-1]], gridpos[-1][0], gridpos[-1][1], 1, 4)
+
         self.setLayout(L_layout)
 
     def update_from_pageinfo(self, pageinfo):
