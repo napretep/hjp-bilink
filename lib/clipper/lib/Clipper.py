@@ -175,6 +175,8 @@ class Clipper(QMainWindow):
     def on_rightSideBar_buttonGroup_clicked_handle(self, event: 'events.RightSideBarButtonGroupEvent'):
         if event.Type == event.reLayoutType:
             self.view_relayout_arrange()
+
+
 # clipper = Clipper()
 if __name__ == '__main__':
     pass

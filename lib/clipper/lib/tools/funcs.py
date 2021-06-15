@@ -1,5 +1,5 @@
 from ..fitz import fitz
-from PyQt5.QtCore import QItemSelection
+from PyQt5.QtCore import QItemSelection, QThread, pyqtSignal, QSize
 from PyQt5.QtGui import QStandardItemModel, QImage, QPixmap
 
 
@@ -15,13 +15,19 @@ def str_shorten(string,length=30):
     else:
         return string[0:int(length/2)-3]+"..."+string[-int(length/2):]
 
-def pixmap_page_load(doc, pagenum, ratio=1):
+
+def pixmap_page_load(doc: "fitz.Document", pagenum, ratio=1, preview=False):
     """从self.doc读取page,再转换为pixmap"""
-    page = doc.load_page(pagenum)  # 加载的是页面
-    print(ratio.__str__())
-    pix = page.getPixmap(matrix=fitz.Matrix(ratio, ratio))  # 将页面渲染为图片
+    page: "fitz.Page" = doc.load_page(pagenum)  # 加载的是页面
+
+    pix: "fitz.Pixmap" = page.getPixmap(matrix=fitz.Matrix(ratio, ratio))  # 将页面渲染为图片
+
+    # print(ratio.__str__())
+
     fmt = QImage.Format_RGBA8888 if pix.alpha else QImage.Format_RGB888  # 渲染的格式
     pageImage = QImage(pix.samples, pix.width, pix.height, pix.stride, fmt)
+    # if preview!=False:
+    # print(f"pagewidth:{}")
     pixmap = QPixmap()
     pixmap.convertFromImage(pageImage)  # 转为pixmap
     return QPixmap(pixmap)

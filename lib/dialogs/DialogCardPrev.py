@@ -27,7 +27,7 @@ class SingleCardPreviewer(Previewer):
         self._other_side.setShortcut(QKeySequence("Right"))
         self._other_side.setShortcut(QKeySequence("Left"))
         self._other_side.setToolTip(_("Shortcut key: Left or Right arrow"))
-        qconnect(self._other_side.clicked, self._on_other_side)
+        qconnect(self._other_side.is_selected, self._on_other_side)
 
     def _on_other_side(self):
         if self._state == "question":
@@ -57,7 +57,7 @@ class SingleCardPreviewerMod(SingleCardPreviewer):
         self.bottombar.addWidget(self.browser_button)
 
         self.edit_button = self.bbox.addButton("edit", QDialogButtonBox.HelpRole)
-        self.edit_button.clicked.connect(self._on_edit_button)
+        self.edit_button.is_selected.connect(self._on_edit_button)
         self.bottombar.addWidget(self.edit_button)
 
         self.showRate = QPushButton("G")  # grade - "R" is already used for replay audio

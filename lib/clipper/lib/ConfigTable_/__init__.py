@@ -1,7 +1,8 @@
 import sys
 
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, QSpinBox, QHBoxLayout, QFrame, QDoubleSpinBox, QToolButton
+from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, QSpinBox, QHBoxLayout, QFrame, QDoubleSpinBox, QToolButton, \
+    QLineEdit
 from PyQt5.QtCore import Qt, QRect, QSize
 from ..tools import funcs, objs, events
 
@@ -146,25 +147,41 @@ class PagePresetWidget(BaseWidget):
         self.layoutName = self.schema.viewlayout_mode
         self.init_UI()
 
-    def init_UI(self):
-        self.label_head.setText("页面预设/page preset")
-        self.label_head.setToolTip("用来定义如何从PDF中提取页面/define how to extract page from PDF")
+    def init_pagenum(self):
         pagenum = QSpinBox(self.configtable)
-        right = self.config_dict["page_num"]["constrain"]["data_range"]["right"]
-        left = self.config_dict["page_num"]["constrain"]["data_range"]["left"]
+        left, right = config_get_left_right(self.config_dict, "page_num")
+        # right = self.config_dict["page_num"]["constrain"]["data_range"]["right"]
+        # left = self.config_dict["page_num"]["constrain"]["data_range"]["left"]
         pagenum.setRange(left, right if right != False else MAX_INT)
         pagenum.setValue(self.config_dict["page_num"]["value"])
-
         self.pagenum = objs.GridHDescUnit(parent=self.configtable, labelname="页码/page num:", widget=pagenum)
+
+    def init_imgratio(self):
         imgratio = QDoubleSpinBox(self.configtable)
-        right = self.config_dict["page_ratio"]["constrain"]["data_range"]["right"]
-        left = self.config_dict["page_ratio"]["constrain"]["data_range"]["left"]
+        left, right = config_get_left_right(self.config_dict, "page_ratio")
+        # right = self.config_dict["page_ratio"]["constrain"]["data_range"]["right"]
+        # left = self.config_dict["page_ratio"]["constrain"]["data_range"]["left"]
         imgratio.setRange(left, right if right != False else MAX_INT)
         imgratio.setSingleStep(0.1)
         imgratio.setValue(self.config_dict["page_ratio"]["value"])
         self.imgratio = objs.GridHDescUnit(parent=self.configtable, labelname="画面比例/image ratio:", widget=imgratio)
+
+    def init_defaultpath(self):
+        defaultpath = QLineEdit(self.configtable)
+        defaultpath.setText(self.config_dict["default_path"]["value"])
+        self.defaultpath = objs.GridHDescUnit(
+            parent=self.configtable, labelname="默认读取位置/default load path", widget=defaultpath)
+
+    def init_UI(self):
+        self.label_head.setText("页面预设/page preset")
+        self.label_head.setToolTip("用来定义如何从PDF中提取页面/define how to extract page from PDF")
+
+        self.init_defaultpath()
+        self.init_imgratio()
+        self.init_pagenum()
+
         self.widgetLi = [
-            self.label_head, self.pagenum, self.imgratio
+            self.label_head, self.pagenum, self.imgratio, self.defaultpath
         ]
         for i in range(len(self.widgetLi)):
             self.configtable.G_Layout.addWidget(self.widgetLi[i], self.gridposLi[i][0], self.gridposLi[i][1])

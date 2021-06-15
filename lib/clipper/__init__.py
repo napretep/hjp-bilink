@@ -27,7 +27,8 @@ from lib.tools.events import PageItemAddToSceneEvent
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     clipper = Clipper()
-    pageitem = PageItem5(PageInfo("./resource/徐森林_数学分析_第8章.pdf", 0), rightsidebar=clipper.rightsidebar)
+    pageitem = PageItem5(PageInfo("./resource/latex的学习体会.pdf", 0), rightsidebar=clipper.rightsidebar)
     event = PageItemAddToSceneEvent(pageItem=pageitem, eventType=PageItemAddToSceneEvent.addPageType)
     CustomSignals.start().on_pageItem_addToScene.emit(event)
     sys.exit(app.exec_())
+

@@ -12,6 +12,7 @@ from .lib.dialogs.DialogAnchor import AnchorDialog
 from .lib.dialogs.DialogCardPrev import  SingleCardPreviewerMod,EditNoteWindowFromThisLinkAddon
 from aqt.editcurrent import  EditCurrent
 
+
 def checkUpdate():
     """检查更新,检查配置表是否对应"""
     needUpdate = False
@@ -245,4 +246,12 @@ gui_hooks.browser_will_show_context_menu.append(fun_add_browsercontextmenu)
 gui_hooks.webview_will_show_context_menu.append(func_add_webviewcontextmenu)
 gui_hooks.webview_did_receive_js_message.append(on_js_message)
 
+from .lib.clipper.lib.Clipper import Clipper
+from .lib.clipper.lib.PDFView_ import PageItem5
+from .lib.clipper.lib.PageInfo import PageInfo
+from .lib.clipper.lib.tools import events, objs, funcs
 
+clipper = Clipper()
+# pageitem = PageItem5(PageInfo("./resource/徐森林_数学分析_第8章.pdf", 0), rightsidebar=clipper.rightsidebar)
+# event = events.PageItemAddToSceneEvent(pageItem=pageitem, eventType=events.PageItemAddToSceneEvent.addPageType)
+# objs.CustomSignals.start().on_pageItem_addToScene.emit(event)

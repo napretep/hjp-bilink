@@ -90,7 +90,7 @@ class PageList(QWidget):
         pagenum = int(item[1].text())
         pageitem = item[0].data(Qt.UserRole)
         P = PagePicker(pdfDirectory=PDFpath, pageNum=pagenum, frompageitem=pageitem,
-                       clipper=self.rightsidebar.clipper).exec()
+                       clipper=self.rightsidebar.clipper).exec_()
 
     def openDialogPDFOpen(self):
         """打开的时候，确定默认的路径和页码"""
@@ -110,7 +110,10 @@ class PageList(QWidget):
                 PDFpath = ""
                 pagenum = 0
         P = PagePicker(pdfDirectory=PDFpath, pageNum=pagenum, frompageitem=pageitem,
-                       clipper=self.rightsidebar.clipper).exec()
+                       clipper=self.rightsidebar.clipper)
+        P.start()
+        P.show()
+        print("PagePicker opened")
 
     def delete_selected_item(self):
         rowli = self.model_selected_rows()

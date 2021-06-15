@@ -16,10 +16,7 @@ if __package__ or "." in __name__:
 else:
     import _fitz
 
-try:
-    import builtins as __builtin__
-except ImportError:
-    import __builtin__  #不会遇到这个问题
+import builtins as __builtin__
 
 
 def _swig_repr(self):
@@ -101,11 +98,10 @@ try:
 except ImportError:
     fitz_fontdescriptors = {}
 
-
 VersionFitz = "1.18.0"
-VersionBind = "1.18.13"
-VersionDate = "2021-05-05 06:32:22"
-version = (VersionBind, VersionFitz, "20210505063222")
+VersionBind = "1.18.14"
+VersionDate = "2021-06-01 08:11:38"
+version = (VersionBind, VersionFitz, "20210601081138")
 
 EPSILON = _fitz.EPSILON
 PDF_ANNOT_TEXT = _fitz.PDF_ANNOT_TEXT
@@ -463,7 +459,7 @@ class Matrix(object):
         self.a, self.b, self.c, self.d, self.e, self.f = dst[1]
         return 0
 
-    def preTranslate(self, tx, ty):
+    def pretranslate(self, tx, ty):
         """Calculate pre translation and replace current matrix."""
         tx = float(tx)
         ty = float(ty)
@@ -471,7 +467,7 @@ class Matrix(object):
         self.f += tx * self.b + ty * self.d
         return self
 
-    def preScale(self, sx, sy):
+    def prescale(self, sx, sy):
         """Calculate pre scaling and replace current matrix."""
         sx = float(sx)
         sy = float(sy)
@@ -481,7 +477,7 @@ class Matrix(object):
         self.d *= sy
         return self
 
-    def preShear(self, h, v):
+    def preshear(self, h, v):
         """Calculate pre shearing and replace current matrix."""
         h = float(h)
         v = float(v)
@@ -492,7 +488,7 @@ class Matrix(object):
         self.d += h * b
         return self
 
-    def preRotate(self, theta):
+    def prerotate(self, theta):
         """Calculate pre rotation and replace current matrix."""
         theta = float(theta)
         while theta < 0:
@@ -660,10 +656,10 @@ class Matrix(object):
     norm = __abs__
 
     @property
-    def isRectilinear(self):
+    def is_rectilinear(self):
         """True if rectangles are mapped to rectangles."""
         return (abs(self.b) < EPSILON and abs(self.c) < EPSILON) or (
-            abs(self.a) < EPSILON and abs(self.d) < EPSILON
+                abs(self.a) < EPSILON and abs(self.d) < EPSILON
         )
 
 
@@ -684,10 +680,10 @@ class IdentityMatrix(Matrix):
     def checkargs(*args):
         raise NotImplementedError("Identity is readonly")
 
-    preRotate = checkargs
-    preShear = checkargs
-    preScale = checkargs
-    preTranslate = checkargs
+    prerotate = checkargs
+    preshear = checkargs
+    prescale = checkargs
+    pretranslate = checkargs
     concat = checkargs
     invert = checkargs
 
@@ -935,12 +931,12 @@ class Rect(object):
         return self
 
     @property
-    def isEmpty(self):
+    def is_empty(self):
         """True if rectangle area is empty."""
         return self.x0 == self.x1 or self.y0 == self.y1
 
     @property
-    def isInfinite(self):
+    def is_infinite(self):
         """True if rectangle is infinite."""
         return self.x0 > self.x1 or self.y0 > self.y1
 
@@ -994,14 +990,14 @@ class Rect(object):
     width = property(lambda self: abs(self.x1 - self.x0))
     height = property(lambda self: abs(self.y1 - self.y0))
 
-    def includePoint(self, p):
+    def include_point(self, p):
         """Extend to include point-like p."""
         if len(p) != 2:
             raise ValueError("bad Point: sequ. length")
         self.x0, self.y0, self.x1, self.y1 = TOOLS._include_point_in_rect(self, p)
         return self
 
-    def includeRect(self, r):
+    def include_rect(self, r):
         """Extend to include rect-like r."""
         if len(r) != 4:
             raise ValueError("bad Rect: sequ. length")
@@ -1067,7 +1063,7 @@ class Rect(object):
         return len(rect) == 4 and bool(self - rect) is False
 
     def __abs__(self):
-        if self.isEmpty or self.isInfinite:
+        if self.is_empty or self.is_infinite:
             return 0.0
         return (self.x1 - self.x0) * (self.y1 - self.y0)
 
@@ -1120,10 +1116,10 @@ class Rect(object):
         l = len(x)
         r = Rect(self).normalize()
         if l == 4:
-            if r.isEmpty:
+            if r.is_empty:
                 return False
             xr = Rect(x).normalize()
-            if xr.isEmpty:
+            if xr.is_empty:
                 return True
             if r.x0 <= xr.x0 and r.y0 <= xr.y0 and r.x1 >= xr.x1 and r.y1 >= xr.y1:
                 return True
@@ -1132,7 +1128,8 @@ class Rect(object):
             if r.x0 <= x[0] <= r.x1 and r.y0 <= x[1] <= r.y1:
                 return True
             return False
-        return False
+        msg = "bad type or sequence: '%s'" % repr(x)
+        raise ValueError(msg)
 
     def __or__(self, x):
         if not hasattr(x, "__len__"):
@@ -1140,9 +1137,9 @@ class Rect(object):
 
         r = Rect(self)
         if len(x) == 2:
-            return r.includePoint(x)
+            return r.include_point(x)
         if len(x) == 4:
-            return r.includeRect(x)
+            return r.include_rect(x)
         raise ValueError("bad type op 2")
 
     def __and__(self, x):
@@ -1156,10 +1153,10 @@ class Rect(object):
     def intersects(self, x):
         """Check if intersection with rectangle x is not empty."""
         r1 = Rect(x)
-        if self.isEmpty or self.isInfinite or r1.isEmpty or r1.isInfinite:
+        if self.is_empty or self.is_infinite or r1.is_empty or r1.is_infinite:
             return False
         r = Rect(self)
-        if r.intersect(r1).isEmpty:
+        if r.intersect(r1).is_empty:
             return False
         return True
 
@@ -1191,17 +1188,20 @@ class IRect(Rect):
     def __repr__(self):
         return "IRect" + str(tuple(self))
 
-    def includePoint(self, p):
+    def include_point(self, p):
         """Extend rectangle to include point p."""
-        return Rect.includePoint(self, p).round()
+        rect = self.rect.include_point(p)
+        return rect.irect
 
-    def includeRect(self, r):
+    def include_rect(self, r):
         """Extend rectangle to include rectangle r."""
-        return Rect.includeRect(self, r).round()
+        rect = self.rect.include_rect(r)
+        return rect.irect
 
     def intersect(self, r):
         """Restrict rectangle to intersection with rectangle r."""
-        return Rect.intersect(self, r).round()
+        rect = self.rect.intersect(r)
+        return rect.irect
 
     def __setitem__(self, i, v):
         v = int(v)
@@ -1269,7 +1269,7 @@ class Quad(object):
         raise ValueError("bad Quad constructor")
 
     @property
-    def isRectangular(self) -> bool:
+    def is_rectangular(self) -> bool:
         """Check if quad is rectangular.
 
         Notes:
@@ -1294,53 +1294,32 @@ class Quad(object):
         return True
 
     @property
-    def isConvex(self) -> bool:
+    def is_convex(self) -> bool:
         """Check if quad is convex and not degenerate.
 
         Notes:
-            For convexity, every line connecting two points of the quad must be
-            inside the quad. This is equivalent to that every corner encloses
-            an angle with 0 < angle < 180 degrees.
-            Excluding the "degenerate" case (all corners on same line),
-            it suffices to check that the sines of three angles are > 0.
+            Check that for the two diagonals, the other two corners are not
+            on the same side of the diagonal.
         Returns:
             True or False.
         """
-        count = 0
-        sine = TOOLS._sine_between(self.ul, self.ur, self.lr)
-        if sine > 0:
-            count += 1
-        elif sine < 0:
+        m = planish_line(self.ul, self.lr)  # puts this diagonal on x-axis
+        p1 = self.ll * m  # transform the
+        p2 = self.ur * m  # other two points
+        if p1.y * p2.y > 0:
             return False
-
-        sine = TOOLS._sine_between(self.ur, self.lr, self.ll)
-        if sine > 0:
-            count += 1
-        elif sine < 0:
+        m = planish_line(self.ll, self.ur)  # puts other diagonal on x-axis
+        p1 = self.lr * m  # tranform the
+        p2 = self.ul * m  # remaining points
+        if p1.y * p2.y > 0:
             return False
-
-        sine = TOOLS._sine_between(self.lr, self.ll, self.ul)
-        if sine > 0:
-            count += 1
-        elif sine < 0:
-            return False
-
-        sine = TOOLS._sine_between(self.ll, self.ul, self.ur)
-        if sine > 0:
-            count += 1
-        elif sine < 0:
-            return False
-
-        if count >= 2:
-            return True
-
-        return False
+        return True
 
     width = property(lambda self: max(abs(self.ul - self.ur), abs(self.ll - self.lr)))
     height = property(lambda self: max(abs(self.ul - self.ll), abs(self.ur - self.lr)))
 
     @property
-    def isEmpty(self):
+    def is_empty(self):
         """Check whether all quad corners are on the same line.
 
         This is the case if width or height is zero.
@@ -1367,9 +1346,9 @@ class Quad(object):
             return False
         if CheckRect(x):
             r = Rect(x)
-            if r.isInfinite:
+            if r.is_infinite:
                 return False
-            if r.isEmpty:
+            if r.is_empty:
                 return True
             return TOOLS._point_in_quad(x[:2], self) and TOOLS._point_in_quad(
                 x[2:], self
@@ -1410,10 +1389,10 @@ class Quad(object):
         return Quad(-self.ul, -self.ur, -self.ll, -self.lr)
 
     def __bool__(self):
-        return not self.isEmpty
+        return not self.is_empty
 
     def __nonzero__(self):
-        return not self.isEmpty
+        return not self.is_empty
 
     def __eq__(self, quad):
         if not hasattr(quad, "__len__"):
@@ -1426,7 +1405,7 @@ class Quad(object):
         )
 
     def __abs__(self):
-        if self.isEmpty:
+        if self.is_empty:
             return 0.0
         return abs(self.ul - self.ur) * abs(self.ul - self.ll)
 
@@ -1435,7 +1414,7 @@ class Quad(object):
 
         Return a new quad."""
 
-        delta = Matrix(1, 1).preTranslate(p.x, p.y)
+        delta = Matrix(1, 1).pretranslate(p.x, p.y)
         q = self * ~delta * m * delta
         return q
 
@@ -1511,7 +1490,7 @@ class Widget(object):
 
     def _validate(self):
         """Validate the class entries."""
-        if self.rect.isInfinite or self.rect.isEmpty:
+        if self.rect.is_infinite or self.rect.is_empty:
             raise ValueError("bad rect")
 
         if not self.field_name:
@@ -1766,15 +1745,15 @@ annot_skel = {
 }
 
 
-def getTextlength(
-    text: str, fontname: str = "helv", fontsize: float = 11, encoding: int = 0
+def get_text_length(
+        text: str, fontname: str = "helv", fontsize: float = 11, encoding: int = 0
 ) -> float:
-    """Calculate length of a string for a given built-in font.
+    """Calculate length of a string for a built-in font.
 
     Args:
         fontname: name of the font.
-        fontsize: size of font in points.
-        encoding: encoding to use (0=Latin, 1=Greek, 2=Cyrillic).
+        fontsize: font size points.
+        encoding: encoding to use, 0=Latin (default), 1=Greek, 2=Cyrillic.
     Returns:
         (float) length of text.
     """
@@ -2350,7 +2329,7 @@ class linkDest(object):
         self.lt = Point(0, 0)
         self.named = ""
         self.newWindow = ""
-        self.page = obj.page_spinbox
+        self.page = obj.page
         self.rb = Point(0, 0)
         self.uri = obj.uri
         if rlink and not self.uri.startswith("#"):
@@ -2402,7 +2381,7 @@ class linkDest(object):
 # -------------------------------------------------------------------------------
 # "Now" timestamp in PDF Format
 # -------------------------------------------------------------------------------
-def getPDFnow() -> str:
+def get_pdf_now() -> str:
     import time
 
     tz = "%s'%s'" % (
@@ -2419,7 +2398,7 @@ def getPDFnow() -> str:
     return tstamp
 
 
-def getPDFstr(s: str) -> str:
+def get_pdf_str(s: str) -> str:
     """Return a PDF string depending on its coding.
 
     Notes:
@@ -2511,61 +2490,64 @@ def getTJstr(
     return "[<" + otxt + ">]"
 
 
-"""
-Information taken from the following web sites:
-www.din-formate.de
-www.din-formate.info/amerikanische-formate.html
-www.directtools.de/wissen/normen/iso.htm
-"""
-paperSizes = {  # known paper formats @ 72 dpi
-    "a0": (2384, 3370),
-    "a1": (1684, 2384),
-    "a10": (74, 105),
-    "a2": (1191, 1684),
-    "a3": (842, 1191),
-    "a4": (595, 842),
-    "a5": (420, 595),
-    "a6": (298, 420),
-    "a7": (210, 298),
-    "a8": (147, 210),
-    "a9": (105, 147),
-    "b0": (2835, 4008),
-    "b1": (2004, 2835),
-    "b10": (88, 125),
-    "b2": (1417, 2004),
-    "b3": (1001, 1417),
-    "b4": (709, 1001),
-    "b5": (499, 709),
-    "b6": (354, 499),
-    "b7": (249, 354),
-    "b8": (176, 249),
-    "b9": (125, 176),
-    "c0": (2599, 3677),
-    "c1": (1837, 2599),
-    "c10": (79, 113),
-    "c2": (1298, 1837),
-    "c3": (918, 1298),
-    "c4": (649, 918),
-    "c5": (459, 649),
-    "c6": (323, 459),
-    "c7": (230, 323),
-    "c8": (162, 230),
-    "c9": (113, 162),
-    "card-4x6": (288, 432),
-    "card-5x7": (360, 504),
-    "commercial": (297, 684),
-    "executive": (522, 756),
-    "invoice": (396, 612),
-    "ledger": (792, 1224),
-    "legal": (612, 1008),
-    "legal-13": (612, 936),
-    "letter": (612, 792),
-    "monarch": (279, 540),
-    "tabloid-extra": (864, 1296),
-}
+def paper_sizes():
+    """Known paper formats @ 72 dpi as a dictionary. Key is the format string
+    like "a4" for ISO-A4. Value is the tuple (width, height).
+
+    Information taken from the following web sites:
+    www.din-formate.de
+    www.din-formate.info/amerikanische-formate.html
+    www.directtools.de/wissen/normen/iso.htm
+    """
+    return {
+        "a0": (2384, 3370),
+        "a1": (1684, 2384),
+        "a10": (74, 105),
+        "a2": (1191, 1684),
+        "a3": (842, 1191),
+        "a4": (595, 842),
+        "a5": (420, 595),
+        "a6": (298, 420),
+        "a7": (210, 298),
+        "a8": (147, 210),
+        "a9": (105, 147),
+        "b0": (2835, 4008),
+        "b1": (2004, 2835),
+        "b10": (88, 125),
+        "b2": (1417, 2004),
+        "b3": (1001, 1417),
+        "b4": (709, 1001),
+        "b5": (499, 709),
+        "b6": (354, 499),
+        "b7": (249, 354),
+        "b8": (176, 249),
+        "b9": (125, 176),
+        "c0": (2599, 3677),
+        "c1": (1837, 2599),
+        "c10": (79, 113),
+        "c2": (1298, 1837),
+        "c3": (918, 1298),
+        "c4": (649, 918),
+        "c5": (459, 649),
+        "c6": (323, 459),
+        "c7": (230, 323),
+        "c8": (162, 230),
+        "c9": (113, 162),
+        "card-4x6": (288, 432),
+        "card-5x7": (360, 504),
+        "commercial": (297, 684),
+        "executive": (522, 756),
+        "invoice": (396, 612),
+        "ledger": (792, 1224),
+        "legal": (612, 1008),
+        "legal-13": (612, 936),
+        "letter": (612, 792),
+        "monarch": (279, 540),
+        "tabloid-extra": (864, 1296),
+    }
 
 
-def PaperSize(s: str) -> tuple:
+def paper_size(s: str) -> tuple:
     """Return a tuple (width, height) for a given paper format string.
 
     Notes:
@@ -2579,15 +2561,15 @@ def PaperSize(s: str) -> tuple:
         size = size[:-2]
     if size.endswith("-p"):
         size = size[:-2]
-    rc = paperSizes.get(size, (-1, -1))
+    rc = paper_sizes().get(size, (-1, -1))
     if f == "p":
         return rc
     return (rc[1], rc[0])
 
 
-def PaperRect(s: str) -> Rect:
+def paper_rect(s: str) -> Rect:
     """Return a Rect for the paper size indicated in string 's'. Must conform to the argument of method 'PaperSize', which will be invoked."""
-    width, height = PaperSize(s)
+    width, height = paper_size(s)
     return Rect(0.0, 0.0, width, height)
 
 
@@ -2638,11 +2620,11 @@ def CheckRect(r: typing.Any) -> bool:
         r = Rect(r)
     except:
         return False
-    return not (r.isEmpty or r.isInfinite)
+    return not (r.is_empty or r.is_infinite)
 
 
 def CheckQuad(q: typing.Any) -> bool:
-    """Check whether an object is convex, not empty  quad-like.
+    """Check whether an object is convex, not empty quad-like.
 
     It must be a sequence of 4 number pairs.
     """
@@ -2650,7 +2632,7 @@ def CheckQuad(q: typing.Any) -> bool:
         q0 = Quad(q)
     except:
         return False
-    return q0.isConvex
+    return q0.is_convex
 
 
 def CheckMarkerArg(quads: typing.Any) -> tuple:
@@ -2710,13 +2692,14 @@ def DUMMY(*args, **kw):
     return
 
 
-def planishLine(p1: point_like, p2: point_like) -> Matrix:
-    """Return matrix which flattens out the line from p1 to p2.
+def planish_line(p1: point_like, p2: point_like) -> Matrix:
+    """Compute matrix which maps line from p1 to p2 to the x-axis, such that it
+    maintains its length and p1 * matrix = Point(0, 0).
 
     Args:
         p1, p2: point_like
     Returns:
-        Matrix which maps p1 to Point(0,0) and p2 to a point on the x axis at
+        Matrix which maps p1 to Point(0, 0) and p2 to a point on the x axis at
         the same distance to Point(0,0). Will always combine a rotation and a
         transformation.
     """
@@ -2725,7 +2708,7 @@ def planishLine(p1: point_like, p2: point_like) -> Matrix:
     return Matrix(TOOLS._hor_matrix(p1, p2))
 
 
-def ImageProperties(img: typing.ByteString) -> dict:
+def image_properties(img: typing.ByteString) -> dict:
     """Return basic properties of an image.
 
     Args:
@@ -2816,40 +2799,6 @@ def ConversionTrailer(i: str):
     return r
 
 
-def DerotateRect(cropbox: rect_like, rect: rect_like, deg: float) -> Rect:
-    """Calculate the non-rotated rect version.
-
-    Args:
-        cropbox: the page's /CropBox
-        rect: rectangle
-        deg: the page's /Rotate value
-    Returns:
-        Rectangle in original (/CropBox) coordinates
-    """
-    while deg < 0:
-        deg += 360
-    while deg >= 360:
-        deg -= 360
-    if deg % 90 > 0:
-        deg = 0
-    if deg == 0:  # no rotation: no-op
-        return rect
-    points = []  # store the new rect points here
-    for p in rect.quad:  # run through the rect's quad points
-        if deg == 90:
-            q = (p.y, cropbox.height - p.x)
-        elif deg == 270:
-            q = (cropbox.width - p.y, p.x)
-        else:
-            q = (cropbox.width - p.x, cropbox.height - p.y)
-        points.append(q)
-
-    r = Rect(points[0], points[0])
-    for p in points[1:]:
-        r |= p
-    return r
-
-
 def get_highlight_selection(
     page, start: point_like = None, stop: point_like = None, clip: rect_like = None
 ) -> list:
@@ -2877,7 +2826,7 @@ def get_highlight_selection(
         stop = clip.br
     clip.y0 = start.y
     clip.y1 = stop.y
-    if clip.isEmpty or clip.isInfinite:
+    if clip.is_empty or clip.is_infinite:
         return []
 
     # extract text of page, clip only, no images, expand ligatures
@@ -2901,7 +2850,7 @@ def get_highlight_selection(
     bboxf = lines.pop(0)
     if bboxf.y0 - start.y <= 0.1 * bboxf.height:  # close enough?
         r = Rect(start.x, bboxf.y0, bboxf.br)  # intersection rectangle
-        if not (r.isEmpty or r.isInfinite):
+        if not (r.is_empty or r.is_infinite):
             lines.insert(0, r)  # insert again if not empty
     else:
         lines.insert(0, bboxf)  # insert again
@@ -2913,7 +2862,7 @@ def get_highlight_selection(
     bboxl = lines.pop()
     if stop.y - bboxl.y1 <= 0.1 * bboxl.height:  # close enough?
         r = Rect(bboxl.tl, stop.x, bboxl.y1)  # intersection rectangle
-        if not (r.isEmpty or r.isInfinite):
+        if not (r.is_empty or r.is_infinite):
             lines.append(r)  # append if not empty
     else:
         lines.append(bboxl)  # append again
@@ -2990,7 +2939,7 @@ def make_table(rect: rect_like = (0, 0, 1, 1), cols: int = 1, rows: int = 1) -> 
         PyMuPDF Rect objects of equal sizes.
     """
     rect = Rect(rect)  # ensure this is a Rect
-    if rect.isEmpty or rect.isInfinite:
+    if rect.is_empty or rect.is_infinite:
         raise ValueError("rect must be finite and not empty")
     tl = rect.tl
 
@@ -3907,8 +3856,8 @@ class Document(object):
         xref = self._embfile_upd(
             idx, buffer=buffer, filename=filename, ufilename=ufilename, desc=desc
         )
-        date = getPDFnow()
-        self.xref_set_key(xref, "Params/ModDate", getPDFstr(date))
+        date = get_pdf_now()
+        self.xref_set_key(xref, "Params/ModDate", get_pdf_str(date))
         return xref
 
     def embfile_add(
@@ -3942,10 +3891,10 @@ class Document(object):
         xref = self._embfile_add(
             name, buffer=buffer, filename=filename, ufilename=ufilename, desc=desc
         )
-        date = getPDFnow()
+        date = get_pdf_now()
         self.xref_set_key(xref, "Type", "/EmbeddedFile")
-        self.xref_set_key(xref, "Params/CreationDate", getPDFstr(date))
-        self.xref_set_key(xref, "Params/ModDate", getPDFstr(date))
+        self.xref_set_key(xref, "Params/CreationDate", get_pdf_str(date))
+        self.xref_set_key(xref, "Params/ModDate", get_pdf_str(date))
         return xref
 
     def convert_to_pdf(
@@ -4833,6 +4782,11 @@ class Document(object):
             raise ValueError("document closed or encrypted")
         if not self.is_pdf:
             return ()
+        if type(pno) is not int:
+            try:
+                pno = pno.number
+            except:
+                raise ValueError("need a Page or page number")
         val = self._getPageInfo(pno, 1)
         if full is False:
             return [v[:-1] for v in val]
@@ -4844,6 +4798,11 @@ class Document(object):
             raise ValueError("document closed or encrypted")
         if not self.is_pdf:
             return ()
+        if type(pno) is not int:
+            try:
+                pno = pno.number
+            except:
+                raise ValueError("need a Page or page number")
         val = self._getPageInfo(pno, 2)
         if full is False:
             return [v[:-1] for v in val]
@@ -4855,6 +4814,11 @@ class Document(object):
             raise ValueError("document closed or encrypted")
         if not self.is_pdf:
             return ()
+        if type(pno) is not int:
+            try:
+                pno = pno.number
+            except:
+                raise ValueError("need a Page or page number")
         val = self._getPageInfo(pno, 3)
         rc = [(v[0], v[1], v[2], Rect(v[3])) for v in val]
         return rc
@@ -4913,16 +4877,17 @@ class Document(object):
         while pno < 0:
             pno += page_count
 
-        if not pno in range(page_count):
+        if pno >= page_count:
             raise ValueError("bad page number(s)")
 
         # remove TOC bookmarks pointing to deleted page
-        old_toc = self.get_toc()
-        for i, item in enumerate(old_toc):
+        toc = self.get_toc()
+        ol_xrefs = self.get_outline_xrefs()
+        for i, item in enumerate(toc):
             if item[2] == pno + 1:
-                self.del_toc_item(i)
+                self._remove_toc_item(ol_xrefs[i])
 
-        self._remove_links_to((pno,))
+        self._remove_links_to(frozenset((pno,)))
         self._delete_page(pno)
         self._reset_page_refs()
 
@@ -4963,6 +4928,8 @@ class Document(object):
                     raise ValueError("both arguments must be int")
                 if f > t:
                     f, t = t, f
+                if not f <= t < page_count:
+                    raise ValueError("bad page number(s)")
                 numbers = tuple(range(f, t + 1))
             else:
                 r = args[0]
@@ -4971,15 +4938,19 @@ class Document(object):
                 numbers = tuple(r)
 
         numbers = list(map(int, set(numbers)))  # ensure unique integers
+        if numbers == []:
+            print("nothing to delete")
+            return
         numbers.sort()
         if numbers[0] < 0 or numbers[-1] >= page_count:
             raise ValueError("bad page number(s)")
-        old_toc = self.get_toc()
-        for i, item in enumerate(old_toc):
-            if item[2] - 1 in numbers:  # a deleted page number
-                self.del_toc_item(i)
+        frozen_numbers = frozenset(numbers)
+        toc = self.get_toc()
+        for i, xref in enumerate(self.get_outline_xrefs()):
+            if toc[i][2] - 1 in frozen_numbers:
+                self._remove_toc_item(xref)  # remove target in PDF object
 
-        self._remove_links_to(numbers)
+        self._remove_links_to(frozen_numbers)
 
         for i in reversed(numbers):  # delete pages, last to first
             self._delete_page(i)
@@ -5074,8 +5045,31 @@ class Document(object):
             raise IndexError("page not in document")
         return self.load_page(i)
 
+    def __delitem__(self, i: AnyType) -> None:
+        if not self.is_pdf:
+            raise ValueError("not a PDF")
+        if type(i) is int:
+            return self.delete_page(i)
+        if type(i) in (list, tuple, range):
+            return self.delete_pages(i)
+        if type(i) is not slice:
+            raise ValueError("bad argument type")
+        pc = self.page_count
+        start = i.start if i.start else 0
+        stop = i.stop if i.stop else pc
+        step = i.step if i.step else 1
+        while start < 0:
+            start += pc
+        if start >= pc:
+            raise ValueError("bad page number(s)")
+        while stop < 0:
+            stop += pc
+        if stop > pc:
+            raise ValueError("bad page number(s)")
+        return self.delete_pages(range(start, stop, step))
+
     def pages(
-        self, start: OptInt = None, stop: OptInt = None, step: OptInt = None
+            self, start: OptInt = None, stop: OptInt = None, step: OptInt = None
     ) -> "Page":
         """Return a generator iterator over a page range.
 
@@ -5807,7 +5801,7 @@ class Page(object):
 
             For this, it must be exactly three connected lines, of which
             the first and the last one must be horizontal and line two
-            must be vertical.
+            must be vertical. Also, 'closePath' must be true.
             """
             if not path["closePath"]:
                 return False
@@ -5820,6 +5814,12 @@ class Page(object):
                 return False
             if p1.y != p2.y or p3.x != p4.x or p5.y != p6.y:
                 return False
+            r = Rect(p1, p2).normalize()
+            r |= p3
+            r |= p4
+            r |= p5
+            r |= p6
+            path["rect"] = r
             return True
 
         def check_and_merge(this, prev):
@@ -5887,27 +5887,34 @@ class Page(object):
                 if item[0] == "m":
                     p = Point(item[1]) * ctm
                     current = p
-                    path["rect"] = Rect(p, p)
                 elif item[0] == "l":
                     p2 = Point(item[1]) * ctm
                     path["items"].append(("l", current, p2))
                     current = p2
-                    path["rect"] |= p2
                 elif item[0] == "c":
                     p2 = Point(item[1]) * ctm
                     p3 = Point(item[2]) * ctm
                     p4 = Point(item[3]) * ctm
                     path["items"].append(("c", current, p2, p3, p4))
                     current = p4
-                    path["rect"] |= p2
-                    path["rect"] |= p3
-                    path["rect"] |= p4
             elif item == "closePath":
                 path["closePath"] = True
             elif item in ("estroke", "efill", "eclip", "eclip-stroke"):
                 if is_rectangle(path):
                     path["items"] = [("re", path["rect"])]
                     path["closePath"] = False
+                # make path rectangle for items
+                else:
+                    for i, item in enumerate(path["items"]):
+                        for j, p in enumerate(item[1:]):
+                            if i == 0 and j == 0:
+                                x0 = x1 = p.x
+                                y0 = y1 = p.y
+                            x0 = min(x0, p.x)
+                            x1 = max(x1, p.x)
+                            y0 = min(y0, p.y)
+                            y1 = max(y1, p.y)
+                    path["rect"] = Rect(x0, y0, x1, y1)
 
                 try:  # check if path is "stroke" duplicate of previous
                     prev = paths.pop()  # get previous path in list
@@ -6495,7 +6502,13 @@ class Pixmap(object):
         opaque: AnyType = None,
     ) -> AnyType:
         """Set alpha channel to values contained in a byte array.
-        If omitted, set alphas to 255."""
+        If omitted, set alphas to 255.
+
+        Args:
+            alphavalues: (bytes) with length (width * height) values in range(255).
+            premultiply: (bool, True) premultiply colors with alpha values.
+            opaque: (tuple) length colorspace.n, color value to set to opacity 0.
+        """
 
         return _fitz.Pixmap_set_alpha(self, alphavalues, premultiply, opaque)
 
@@ -6577,7 +6590,7 @@ class Pixmap(object):
     def pil_save(self, *args, **kwargs):
         """Write to image file using Pillow.
 
-        Arguments are passed to Pillow's Image.save() method.
+        Args are passed to Pillow's Image.save method, see their documentation.
         Use instead of save when other output formats are desired.
         """
         try:
@@ -6606,8 +6619,8 @@ class Pixmap(object):
     def pil_tobytes(self, *args, **kwargs):
         """Convert to binary image stream using pillow.
 
-        Arguments are passed to Pillow's Image.save() method.
-        Use it instead of save when other output formats are needed.
+        Args are passed to Pillow's Image.save method, see their documentation.
+        Use instead of 'tobytes' when other output formats are needed.
         """
         from io import BytesIO
 
@@ -7170,9 +7183,9 @@ class Annot(object):
         dt = self.border["dashes"]  # get the dashes spec
         bwidth = self.border["width"]  # get border line width
         stroke = self.colors["stroke"]  # get the stroke color
-        if fill_color != None:
+        if fill_color != None:  # change of fill color requested
             fill = fill_color
-        else:
+        else:  # put in current annot value
             fill = self.colors["fill"]
 
         rect = None  # self.rect  # prevent MuPDF fiddling with it
@@ -7207,9 +7220,8 @@ class Annot(object):
             fill_color=fill,
             rotate=rotate,
         )
-        if not val:  # something went wrong, skip the rest
-            return val
-
+        if val == False:
+            raise ValueError("Error updating annotation.")
         bfill = color_string(fill, "f")
         bstroke = color_string(stroke, "s")
 
@@ -7859,7 +7871,7 @@ class TextPage(object):
         while i < items - 1:
             v1 = val[i]
             v2 = val[i + 1]
-            if v1.y1 != v2.y1 or (v1 & v2).isEmpty:
+            if v1.y1 != v2.y1 or (v1 & v2).is_empty:
                 i += 1
                 continue  # no overlap on same line
             val[i] = v1 | v2  # join rectangles
@@ -8198,7 +8210,7 @@ class TextWriter(object):
 
         if morph:
             p = morph[0] * self.ictm
-            delta = Matrix(1, 1).preTranslate(p.x, p.y)
+            delta = Matrix(1, 1).pretranslate(p.x, p.y)
             matrix = ~delta * morph[1] * delta
         if morph or matrix:
             new_cont_lines.append("%g %g %g %g %g %g cm" % JM_TUPLE(matrix))
@@ -8319,14 +8331,38 @@ class Font(object):
         )
 
     def glyph_advance(
-        self, chr: int, language: OptStr = None, script: int = 0, wmode: int = 0
-    ) -> float:
+            self, chr: int, language: OptStr = None, script: int = 0, wmode: int = 0
+    ) -> AnyType:
         """Return the glyph width of a unicode (font size 1)."""
 
         return _fitz.Font_glyph_advance(self, chr, language, script, wmode)
 
+    def text_length(
+            self,
+            text: AnyType,
+            fontsize: "double" = 11,
+            language: OptStr = None,
+            script: int = 0,
+            wmode: int = 0,
+    ) -> AnyType:
+        """Return length of unicode 'text' under a fontsize."""
+
+        return _fitz.Font_text_length(self, text, fontsize, language, script, wmode)
+
+    def char_lengths(
+            self,
+            text: AnyType,
+            fontsize: "double" = 11,
+            language: OptStr = None,
+            script: int = 0,
+            wmode: int = 0,
+    ) -> AnyType:
+        """Return tuple of char lengths of unicode 'text' under a fontsize."""
+
+        return _fitz.Font_char_lengths(self, text, fontsize, language, script, wmode)
+
     def glyph_bbox(
-        self, chr: int, language: OptStr = None, script: int = 0
+            self, chr: int, language: OptStr = None, script: int = 0
     ) -> AnyType:
         """Return the glyph bbox of a unicode (font size 1)."""
 
@@ -8404,10 +8440,6 @@ class Font(object):
     def unicode_to_glyph_name(self, ch):
         """Return the glyph name for a unicode."""
         return unicode_to_glyph_name(ch)
-
-    def text_length(self, text, fontsize=11, wmode=0):
-        """Calculate the length of a string for this font."""
-        return fontsize * sum([self.glyph_advance(ord(c), wmode=wmode) for c in text])
 
     def __repr__(self):
         return "Font('%s')" % self.name
@@ -8653,12 +8685,12 @@ class Tools(object):
         return _fitz.Tools__invert_matrix(self, matrix)
 
     def _measure_string(
-        self,
-        text: str,
-        fontname: str,
-        fontsize: float,
-        encoding: int = 0,
-    ) -> float:
+            self,
+            text: str,
+            fontname: str,
+            fontsize: "double",
+            encoding: int = 0,
+    ) -> AnyType:
         return _fitz.Tools__measure_string(self, text, fontname, fontsize, encoding)
 
     def _sine_between(

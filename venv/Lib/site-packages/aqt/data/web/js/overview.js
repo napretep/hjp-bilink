@@ -1,0 +1,7 @@
+"use strict";
+/* Copyright: Ankitects Pty Ltd and contributors
+ * License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html */
+$(function () {
+    $("#study").focus();
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoib3ZlcnZpZXcuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi8uLi8uLi8uLi8uLi8uLi9xdC9hcXQvZGF0YS93ZWIvanMvb3ZlcnZpZXcudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBO2tGQUNrRjtBQUVsRixDQUFDLENBQUM7SUFDRSxDQUFDLENBQUMsUUFBUSxDQUFDLENBQUMsS0FBSyxFQUFFLENBQUM7QUFDeEIsQ0FBQyxDQUFDLENBQUMiLCJzb3VyY2VzQ29udGVudCI6WyIvKiBDb3B5cmlnaHQ6IEFua2l0ZWN0cyBQdHkgTHRkIGFuZCBjb250cmlidXRvcnNcbiAqIExpY2Vuc2U6IEdOVSBBR1BMLCB2ZXJzaW9uIDMgb3IgbGF0ZXI7IGh0dHA6Ly93d3cuZ251Lm9yZy9saWNlbnNlcy9hZ3BsLmh0bWwgKi9cblxuJChmdW5jdGlvbiAoKSB7XG4gICAgJChcIiNzdHVkeVwiKS5mb2N1cygpO1xufSk7XG4iXX0=

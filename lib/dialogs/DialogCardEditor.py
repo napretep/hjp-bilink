@@ -79,7 +79,7 @@ class EditNoteWindowFromThisLinkAddon(QDialog):
         restoreGeom(self, "note_edit")
         self.show()
         self.activateWindow()
-        self.mw.progress.timer(100, lambda: self.editor.web.setFocus(), False)
+        self.mw.progressBar.timer(100, lambda: self.editor.web.setFocus(), False)
 
     def reject(self):
         self.saveAndClose()

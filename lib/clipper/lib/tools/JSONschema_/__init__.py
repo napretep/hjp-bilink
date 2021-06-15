@@ -13,7 +13,7 @@ class DataType:
     float = 1
     iterobj = 2  # 特殊意义的数字
     iternum = 3  # 寻常的数字
-
+    string = 4
 
 class Empty:
     notAllow = 0

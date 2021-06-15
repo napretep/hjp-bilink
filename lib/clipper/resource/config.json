@@ -1,4 +1,22 @@
 {
+  "pagepicker_leftpart_layout_col_per_row": {
+    "value": 4,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 0,
+      "data_range": {
+        "left": 1,
+        "right": false
+      }
+    }
+  },
+  "default_path": {
+    "value": "I:\\备份\\数学书大全",
+    "constrain": {
+      "allow_empty": 1,
+      "data_type": 4
+    }
+  },
   "page_ratio": {
     "value": 1,
     "constrain": {

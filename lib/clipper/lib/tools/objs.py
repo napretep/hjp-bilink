@@ -1,7 +1,7 @@
 import json
 import os
 
-from PyQt5.QtCore import QObject, pyqtSignal, Qt
+from PyQt5.QtCore import QObject, pyqtSignal, Qt, QThread
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QPushButton, QSpinBox, QFileDialog, QToolButton, \
     QDoubleSpinBox, QComboBox, QVBoxLayout, QFrame, QGridLayout, QWidget
@@ -14,7 +14,23 @@ class CustomSignals(QObject):
     """用法: 在需要发射/接受信号的类中调用CustomSignals的类方法start(),并取出需要的信号绑定到本地变量,进行发射或接受"""
     instance = None
     linkedEvent = pyqtSignal()
+
     on_pagepicker_close = pyqtSignal(object)  # PagePickerCloseEvent
+    on_pagepicker_bookmark_open = pyqtSignal(object)  # OpenBookmarkEvent
+    on_pagepicker_bookmark_clicked = pyqtSignal(object)  # BookmarkClickedEvent
+
+    # PDFopen只用于打开PDF, 不参与分析的操作
+    on_pagepicker_PDFopen = pyqtSignal(object)  # PDFOpenEvent
+    on_pagepicker_PDFparse = pyqtSignal(object)  # PDFParseEvent
+    on_pagepicker_PDFlayout = pyqtSignal(object)  # PDFlayoutEvent
+
+    on_pagepicker_rightpart_pageread = pyqtSignal(object)  # PagePickerRightPartPageReadEvent
+    # click还管别的
+    on_pagepicker_leftpart_pageclicked = pyqtSignal(object)  # PagePickerLeftPartPageClickedEvent
+    # select只管select
+    on_pagepicker_leftpart_select = pyqtSignal(object)  # PagePickerLeftPartSelectEvent
+
+    on_pagepicker_leftpart_sceneClear = pyqtSignal(object)  # PagePickerLeftPartSceneClear
 
     on_pageItem_clicked = pyqtSignal(object)  # PageItemClickEvent
     on_pageItem_clipbox_added = pyqtSignal(object)
@@ -49,6 +65,8 @@ class CustomSignals(QObject):
 
     on_PDFView_ResizeView = pyqtSignal(object)  # PDFViewResizeViewEvent
 
+
+
     @classmethod
     def start(cls):
         """cls就相当于是self,这里的意思是如果instance不存在则创建一个,返回instance,这是单例模式"""
@@ -61,7 +79,7 @@ class SrcAdmin:
     """单例"""
     instance = None
     imgDir = SrcAdmin_.IMGDir()
-    get_json = SrcAdmin_.get_json
+    get_json = SrcAdmin_.Get._().json_dict
 
     @classmethod
     def call(cls):
@@ -89,6 +107,7 @@ class GridHDescUnit(QWidget):
         self.H_layout = QHBoxLayout(self)
         self.H_layout.addWidget(self.label)
         self.H_layout.addWidget(self.widget)
+        self.H_layout.setSpacing(0)
         self.setLayout(self.H_layout)
         self.widget.setParent(self)
 

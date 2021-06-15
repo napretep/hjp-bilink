@@ -16,9 +16,10 @@ class ConfigTable(QDialog):
         self.schema = objs.JSONschema
         self.G_layout_pos = [
             [(0, 0), (0, 1), (0, 2)],
-            [(1, 0), (1, 1), (1, 2)],
-            [(2, 0), (2, 1), (2, 2)],
-            [(3, 2)]
+            [(1, 0), (1, 1), (1, 2),
+             (2, 1)],
+            [(3, 0), (3, 1), (3, 2)],
+            [(4, 2)]
         ]
         # self.V_layout= QVBoxLayout(self)
         self.G_Layout = QGridLayout(self)

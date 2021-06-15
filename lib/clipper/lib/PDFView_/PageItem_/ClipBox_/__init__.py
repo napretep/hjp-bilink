@@ -10,6 +10,8 @@ from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsLineItem, QGraphicsItem
     QGraphicsGridLayout, QComboBox, QGraphicsProxyWidget, QToolButton, QLineEdit, QGraphicsLinearLayout, QWidget, \
     QGraphicsRectItem
 # from .. import ClipBox2
+from aqt.utils import showInfo
+
 from ....tools.objs import CustomSignals
 from ....RightSideBar_ import CardList
 from .ToolsBar_ import QAButton, CloseButton, EditQAbutton, LineEdit, CardCombox
@@ -48,27 +50,35 @@ class ToolsBar(QGraphicsWidget):
         print(f"you choosed {self.cardCombox.itemText(index)}")
 
     def boundingRect(self) -> QtCore.QRectF:
-        height = self.lineEditProxy.rect().height()
-        width = self.lineEditProxy.rect().width() + self.cardComboxProxy.rect().width() + \
-                self.QAButtonProxy.rect().width() + self.closeButtonProxy.rect().width()
-        return QtCore.QRectF(self.x(), self.y(), width, height)
+        # if "lineEditProxy" in self.__dict__ \
+        #         and "QAButtonProxy" in self.__dict__ \
+        #         and "cardComboxProxy" in self.__dict__ \
+        #         and "closeButtonProxy" in self.__dict__:
+        try:  # anki所使用的pyqt版本在这块会出问题,需要加一个try 来避免问题.
+            height = self.lineEditProxy.rect().height()
+            width = self.lineEditProxy.rect().width() + self.cardComboxProxy.rect().width() + \
+                    self.QAButtonProxy.rect().width() + self.closeButtonProxy.rect().width()
+            return QtCore.QRectF(self.x(), self.y(), width, height)
+        except:
+            return QtCore.QRectF(0, 0, 200, 200)
+
         pass
 
 
 class FramePen(QPen):
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-        FramePenColor = kwargs.pop("FramePenColor",None)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        FramePenColor = kwargs.pop("FramePenColor", None)
         if FramePenColor is None:
-            FramePenColor=Qt.red
+            FramePenColor = Qt.red
         self.setColor(FramePenColor)
         self.setWidth(4)
 
 
 class FrameLineItem(QGraphicsLineItem):
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-        pencolor = kwargs.pop("pencolor",None)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        pencolor = kwargs.pop("pencolor", None)
         if pencolor is None:
             self.setPen(FramePen())
         else:
@@ -76,9 +86,10 @@ class FrameLineItem(QGraphicsLineItem):
 
         self.update()
 
+
 class FrameCornerItem(QGraphicsEllipseItem):
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.setBrush(QBrush(Qt.yellow))
         self.update()
 
@@ -88,32 +99,32 @@ class Frame(QGraphicsItemGroup):
     Top,Bottom,Left,Right,TopLeft,TopRight,BottomLeft,BottomRight,
     """
 
-    def __init__(self,pos:'QPointF'=None,):
+    def __init__(self, pos: 'QPointF' = None, ):
         super().__init__()
-        self.pos=pos
-        self.begindelta=50.0 #开始时的矩形大小
-        self.delta=0.1
-        self.dotRadius=10.0
+        self.pos = pos
+        self.begindelta = 50.0  # 开始时的矩形大小
+        self.delta = 0.1
+        self.dotRadius = 10.0
         self.direction = ["Top", "Bottom", "Left", "Right", "TopLeft", "TopRight", "BottomLeft", "BottomRight"]
         self.posTop, self.posBottom, self.posLeft, self.posRight, self.posTopLeft, self.posTopRight, self.posBottomLeft, self.posBottomRight = \
             "Top", "Bottom", "Left", "Right", "TopLeft", "TopRight", "BottomLeft", "BottomRight"
         self.border_lines = {
-            self.posTop:FrameLineItem(QLineF(QPointF(0,0),QPointF(self.begindelta,0))),
-            self.posBottom:FrameLineItem(QLineF(QPointF(0,self.begindelta),
-                                                QPointF(self.begindelta,self.begindelta))),
-            self.posLeft:FrameLineItem(QLineF(QPointF(0,0),QPointF(0,self.begindelta))),
-            self.posRight:FrameLineItem(QLineF(QPointF(self.begindelta, 0),
-                                               QPointF(self.begindelta, self.begindelta)))}
+            self.posTop: FrameLineItem(QLineF(QPointF(0, 0), QPointF(self.begindelta, 0))),
+            self.posBottom: FrameLineItem(QLineF(QPointF(0, self.begindelta),
+                                                 QPointF(self.begindelta, self.begindelta))),
+            self.posLeft: FrameLineItem(QLineF(QPointF(0, 0), QPointF(0, self.begindelta))),
+            self.posRight: FrameLineItem(QLineF(QPointF(self.begindelta, 0),
+                                                QPointF(self.begindelta, self.begindelta)))}
         self.corner_dots = {
-            self.posTopLeft:FrameCornerItem(QRectF(
-                - self.dotRadius / 2,  - self.dotRadius / 2,self.dotRadius, self.dotRadius)),
-            self.posTopRight:FrameCornerItem(QRectF(
-                self.begindelta - self.dotRadius / 2,-self.dotRadius / 2,self.dotRadius, self.dotRadius
+            self.posTopLeft: FrameCornerItem(QRectF(
+                - self.dotRadius / 2, - self.dotRadius / 2, self.dotRadius, self.dotRadius)),
+            self.posTopRight: FrameCornerItem(QRectF(
+                self.begindelta - self.dotRadius / 2, -self.dotRadius / 2, self.dotRadius, self.dotRadius
             )),
-            self.posBottomLeft:FrameCornerItem(QRectF(
-                - self.dotRadius / 2,self.begindelta - self.dotRadius / 2,self.dotRadius, self.dotRadius
+            self.posBottomLeft: FrameCornerItem(QRectF(
+                - self.dotRadius / 2, self.begindelta - self.dotRadius / 2, self.dotRadius, self.dotRadius
             )),
-            self.posBottomRight:FrameCornerItem(QRectF(
+            self.posBottomRight: FrameCornerItem(QRectF(
                 self.begindelta - self.dotRadius / 2, self.begindelta - self.dotRadius / 2,
                 self.dotRadius, self.dotRadius
             ))
@@ -126,11 +137,11 @@ class Frame(QGraphicsItemGroup):
         for i in range(4):
             if self.dir_lines[i].contains(event.pos()):
                 count = i
-                print(self.direction[i]+" has been clicked")
-        if count>-1:
+                print(self.direction[i] + " has been clicked")
+        if count > -1:
             pass
         else:
             super().mousePressEvent(event)
 
     def boundingRect(self) -> QRectF:
-        return QRectF(0,0,100,100)
+        return QRectF(0, 0, 100, 100)

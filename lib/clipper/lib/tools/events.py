@@ -1,3 +1,89 @@
+class PDFlayoutEvent:
+    newLayoutType = 0  # 全新的布局,说明原来不存在
+
+    def __init__(self, sender=None, eventType=None, pagenum=None, doc=None):
+        self.sender = sender
+        self.pagenum = pagenum
+        self.Type = eventType if eventType is not None else self.newLayoutType
+
+
+class PDFParseEvent:
+    PDFReadType = 0
+    PDFInitParseType = 1  # 初始化的加载.
+    FrameLoadType = 2  # 用于初始化之后加载
+
+    def __init__(self, sender=None, eventType=None, path=None, doc=None, frame_idx=None):
+        self.sender = sender
+        self.Type = eventType if eventType is not None else self.PDFInitParseType
+        self.path = path
+        self.doc = doc
+        self.frame_idx = frame_idx
+
+
+class PagePickerLeftPartSceneClear:
+    clearType = 0
+
+    def __init__(self, sender=None, eventType=None):
+        self.sender = sender
+        self.Type = eventType if eventType is not None else self.clearType
+
+
+class PagePickerRightPartPageReadEvent:
+    fromBookmarkType = 0
+    fromLeftPartType = 1
+
+    def __init__(self, sender=None, eventType=None):
+        self.sender = sender
+        self.Type = eventType if eventType is not None else self.fromLeftPartType
+
+
+class PagePickerLeftPartSelectEvent:
+    multiCancelType = 0
+    multiSelectType = 1
+    singleSelectType = 2
+    singleCancelType = 3
+    rubberbandType = 4
+
+    def __init__(self, sender=None, eventType=None, rect=None):
+        self.sender = sender
+        self.rubberBandRect = rect
+        self.Type = eventType if eventType is not None else self.multiCancelType
+
+
+class PagePickerLeftPartPageClickedEvent:
+    ClickedType = 0
+
+    def __init__(self, sender=None, eventType=None, path=None):
+        self.sender = sender
+        self.Type = eventType if eventType is not None else self.ClickedType
+
+
+class PDFOpenEvent:
+    PDFReadType = 0
+    PDFParseType = 1
+
+    def __init__(self, sender=None, eventType=None, path=None, doc=None, beginpage=0):
+        self.sender = sender
+        self.beginpage = beginpage
+        self.Type = eventType if eventType is not None else self.PDFReadType
+        self.path = path
+        self.doc = doc
+
+
+class BookmarkClickedEvent:
+    clickType = 0
+
+    def __init__(self, eventType=None):
+        self.Type = eventType if eventType is not None else self.clickType
+
+
+class OpenBookmarkEvent:
+    PagePickerOpenType = 0
+
+    def __init__(self, eventType=None):
+        self.Type = eventType if eventType is not None else self.PagePickerOpenType
+
+
 class PagePickerCloseEvent:
     closeType = 0
 

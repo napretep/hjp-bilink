@@ -1,0 +1,2 @@
+[console_scripts]
+anki = aqt:run

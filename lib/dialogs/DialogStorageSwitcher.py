@@ -49,7 +49,7 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
         pass
     def init_events(self):
         self.comboBox_from.currentIndexChanged.connect(self.onFromChanged)
-        self.button_correct.clicked.connect(self.onButtonCorrectClicked)
+        self.button_correct.is_selected.connect(self.onButtonCorrectClicked)
         pass
 
     def onFromChanged(self,index):

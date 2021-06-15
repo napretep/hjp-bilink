@@ -111,7 +111,7 @@ class ConfigDialog(QDialog, Ui_config):
         pass
 
     def init_events(self):
-        self.wiget_dict["anchorCSSFileName"]["button"].clicked.connect(self.slot_btn_openfiledialog)
+        self.wiget_dict["anchorCSSFileName"]["button"].is_selected.connect(self.slot_btn_openfiledialog)
         self.closeEvent=self.onClose
 
     @wrapper_webview_refresh

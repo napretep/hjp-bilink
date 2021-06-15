@@ -5,7 +5,6 @@ import sys
 
 from . import fitz
 
-
 mycenter = lambda x: (" %s " % x).center(75, "-")
 
 
@@ -51,7 +50,7 @@ def open_file(filename, password, show=False, pdf=True):
     if not doc.is_pdf and pdf is True:
         sys.exit("this command supports PDF files only")
     rc = -1
-    if not doc.needsPass:
+    if not doc.needs_pass:
         return doc
     if password:
         rc = doc.authenticate(password)
@@ -157,7 +156,7 @@ def show(args):
         % (
             args.input,
             doc.page_count,
-            doc._getXrefLength() - 1,
+            doc.xref_length() - 1,
             size,
             flag,
             meta["format"],
@@ -177,7 +176,7 @@ def show(args):
     print()
     if args.catalog:
         print(mycenter("PDF catalog"))
-        xref = doc.PDFCatalog()
+        xref = doc.pdf_catalog()
         print_xref(doc, xref)
         print()
     if args.metadata:
@@ -186,7 +185,7 @@ def show(args):
         print()
     if args.xrefs:
         print(mycenter("object information"))
-        xrefl = get_list(args.xrefs, doc._getXrefLength(), what="xref")
+        xrefl = get_list(args.xrefs, doc.xref_length(), what="xref")
         for xref in xrefl:
             print_xref(doc, xref)
             print()
@@ -297,7 +296,7 @@ def embedded_copy(args):
 
     for item in names:
         info = src.embfile_info(item)
-        buff = src.embeddedFileGet(item)
+        buff = src.embfile_get(item)
         doc.embfile_add(
             item,
             buff,
@@ -327,7 +326,7 @@ def embedded_del(args):
     except ValueError:
         sys.exit("no such embedded file '%s'" % args.name)
     if not args.output or args.output == args.input:
-        doc.saveIncr()
+        doc.save_incr()
     else:
         doc.save(args.output, garbage=1)
     doc.close()
@@ -337,7 +336,7 @@ def embedded_get(args):
     """Retrieve contents of an embedded file."""
     doc = open_file(args.input, args.password, pdf=True)
     try:
-        stream = doc.embeddedFileGet(args.name)
+        stream = doc.embfile_get(args.name)
         d = doc.embfile_info(args.name)
     except ValueError:
         sys.exit("no such embedded file '%s'" % args.name)
@@ -567,7 +566,7 @@ def main():
     # 'clean' command
     # -------------------------------------------------------------------------
     ps_clean = subps.add_parser(
-        "clean", description=mycenter("optimize PDF or create sub-PDF if pages given")
+        "clean", description=mycenter("optimize PDF, or create sub-PDF if pages given")
     )
     ps_clean.add_argument("input", type=str, help="PDF filename")
     ps_clean.add_argument("output", type=str, help="output PDF filename")
