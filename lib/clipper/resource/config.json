@@ -1,5 +1,5 @@
 {
-  "pagepicker_leftpart_layout_col_per_row": {
+  "pagepicker_browser_layout_col_per_row": {
     "value": 4,
     "constrain": {
       "allow_empty": 0,

@@ -22,12 +22,13 @@ class PagePicker(QDialog):
         self.frompageitem = frompageitem
         self.pageNum = pageNum
         self.bookmark_opened = False
-        self.leftpart = PagePicker_.LeftPart2(parent=self)
-        self.rightpart = PagePicker_.RightPart(parent=self)
+        self.browser = PagePicker_.Browser(parent=self)
+        self.rightpart = PagePicker_.Previewer(parent=self)
         self.bookmark = PagePicker_.BookMark(parent=self)
         self.toolsbar = PagePicker_.ToolsBar(parent=self, clipper=clipper,
                                              pdfDirectory=pdfDirectory, pageNum=pageNum, ratio=ratio,
                                              frompageitem=frompageitem)
+        self.current_preview_pagenum = None
         self.setWindowFlags(Qt.WindowCloseButtonHint)
         self.init_UI()
         self.init_events()
@@ -45,7 +46,7 @@ class PagePicker(QDialog):
         H_layout_LR = QHBoxLayout()
 
         H_layout = QHBoxLayout(self)
-        H_layout_LR.addWidget(self.leftpart)
+        H_layout_LR.addWidget(self.browser)
         H_layout_LR.addWidget(self.rightpart)
         H_layout_LR.setStretch(0, 1)
         H_layout_LR.setStretch(1, 1)
@@ -67,9 +68,9 @@ class PagePicker(QDialog):
         self.setMaximumWidth(QApplication.desktop().width())
         pass
 
-    def start(self):
+    def start(self, beginpage):
         e = events.PDFOpenEvent
-        objs.CustomSignals.start().on_pagepicker_PDFopen.emit(e(sender=self, beginpage=100,
+        objs.CustomSignals.start().on_pagepicker_PDFopen.emit(e(sender=self, beginpage=beginpage,
                                                                 path=self.pdfDir, eventType=e.PDFReadType))
 
     def init_events(self):
@@ -102,4 +103,7 @@ class PagePicker(QDialog):
             self.doc = fitz.open(event.path)
             e = events.PDFParseEvent
             objs.CustomSignals.start().on_pagepicker_PDFparse.emit(
-                e(sender=self, eventType=e.PDFInitParseType, path=event.path, doc=self.doc))
+                e(sender=self, eventType=e.PDFInitParseType, path=event.path, doc=self.doc, pagenum=event.beginpage))
+
+    def ratio_value_get(self):
+        return self.toolsbar.ratio_value

@@ -1,4 +1,5 @@
 import os
+import re
 import time
 from functools import reduce
 
@@ -6,20 +7,25 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import QRegExp, Qt, QObject, QPointF, QThread, pyqtSignal, QMutex, QRect, QRectF
 from PyQt5.QtGui import QIcon, QRegExpValidator, QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QToolButton, QSpinBox, QLineEdit, QDoubleSpinBox, QWidget, QGridLayout, QFileDialog, \
-    QGraphicsView, QDialog, QTreeView, QVBoxLayout, QComboBox, QGraphicsPixmapItem, QApplication, QProgressBar
+    QGraphicsView, QDialog, QTreeView, QVBoxLayout, QComboBox, QGraphicsPixmapItem, QApplication, QProgressBar, \
+    QGraphicsItem
 
 from ..fitz import fitz
 from ..tools import funcs, objs, events
 
+mutex = QMutex()
 
 class ToolsBar(QWidget):
     def __init__(self, parent=None, pdfDirectory=None, pageNum=None, ratio=None, frompageitem=None, clipper=None):
         super().__init__(parent=parent)
         self.clipper = clipper
+        self.pagepicker = parent
         self.pdfDir = pdfDirectory
+        self.config_dict = objs.SrcAdmin.get_json()
         self.frompageitem = frompageitem
+        self.pagenum_valueSet = set()
         self.pagenum_value = pageNum
-        self.ratio_value = ratio
+        self.ratio_value = ratio if ratio is not None else self.config_dict["page_ratio"]["value"]
         self.g_layout = QGridLayout(self)
         self.open_button = QToolButton()
         self.open = objs.GridHDescUnit(parent=parent, widget=self.open_button)
@@ -30,7 +36,6 @@ class ToolsBar(QWidget):
         self.newPage_button = QToolButton()
         self.update_button = QToolButton()
         self.bookmark_button = QToolButton()
-        self.config_dict = objs.SrcAdmin.get_json()
         self.w_l = [self.bookmark_button, self.open, self.pagenum, self.ratio, self.update_button, self.newPage_button]
         self.g_pos = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5)]
         self.init_UI()
@@ -54,12 +59,13 @@ class ToolsBar(QWidget):
     def init_ratio(self):
         self.ratio_DBspinbox.setRange(0.07, 100)
         self.ratio_DBspinbox.setSingleStep(0.1)
-        value = self.ratio_value if self.ratio_value is not None else self.config_dict["page_ratio"]["value"]
+        value = self.ratio_value
         self.ratio_DBspinbox.setValue(value)
         self.ratio.setDescText("image ratio:")
 
     def init_pagenum(self):
         value = self.pagenum_value if self.pagenum_value is not None else self.config_dict["page_num"]["value"]
+        self.pagenum_valueSet.add(int(value))
         self.pagenum_lineEdit.setText(str(value))
         self.pagenum_lineEdit.setValidator(QRegExpValidator(QRegExp("[\d,\-]+")))
         self.pagenum.setDescText("page at:")
@@ -72,11 +78,109 @@ class ToolsBar(QWidget):
         self.newPage_button.setToolTip("作为新页面插入/insert to the View as new page")
 
     def init_events(self):
+        self.ratio_DBspinbox.valueChanged.connect(self.on_ratio_DBspinbox_valueChanged_handle)
         self.open_button.clicked.connect(self.file_open)
         self.newPage_button.clicked.connect(self.newpage_add)
         self.update_button.clicked.connect(self.update_current)
         self.bookmark_button.clicked.connect(self.bookmark_open)
+        self.pagenum_lineEdit.textChanged.connect(self.on_pagenum_lineEdit_textChanged_handle)
         objs.CustomSignals.start().on_pagepicker_PDFparse.connect(self.on_pagepicker_PDFparse_handle)
+        objs.CustomSignals.start().on_pagepicker_browser_select_send.connect(
+            self.on_pagepicker_browser_select_send_handle
+        )
+        objs.CustomSignals.start().on_pagepicker_previewer_ratio_adjust.connect(
+            self.on_pagepicker_previewer_ratio_adjust_handle
+        )
+
+    def on_pagepicker_previewer_ratio_adjust_handle(self, event: "events.PagePickerPreviewerRatioAdjustEvent"):
+        if event.Type == event.ZoomInType:
+            self.ratio_DBspinbox.setValue(self.ratio_DBspinbox.value() + 0.1)
+        elif event.Type == event.ZoomOutType:
+            self.ratio_DBspinbox.setValue(self.ratio_DBspinbox.value() - 0.1)
+        self.ratio_value = self.ratio_DBspinbox.value()
+
+    def on_ratio_DBspinbox_valueChanged_handle(self, value):
+        print(value)
+        self.ratio_value = value
+        e = events.PagePickerPreviewerReadPageEvent
+        objs.CustomSignals.start().on_pagepicker_preivewer_read_page.emit(
+            e(sender=self, eventType=e.reloadType)
+        )
+
+    def on_pagenum_lineEdit_textChanged_handle(self, string):
+        if not self.pagenumText_validity(string):
+            self.pagenum_lineEdit.setStyleSheet("background-color:#DC143C")
+            self.update_button.setDisabled(True)
+            self.newPage_button.setDisabled(True)
+            return
+        else:
+            self.pagenum_lineEdit.setStyleSheet("background-color:white")
+            self.newPage_button.setDisabled(False)
+
+        self.pagenumSet_pagenumText_convert(string)
+        if len(self.pagenum_valueSet) == 1 and self.pagepicker.frompageitem is not None:
+            self.update_button.setDisabled(False)
+        else:
+            self.update_button.setDisabled(True)
+
+    def pagenumText_validity(self, string):
+
+        return re.search(r"^(:?\d+,|\d+-\d+,)*(:?\d+-\d+|\d+)$", string)
+        pass
+
+    def pagenumSet_pagenumText_convert(self, string):
+        self.pagenum_valueSet = set()
+        li = string.split(",")
+        for num in li:
+            if "-" in num:
+                LR = num.split("-")
+                for i in range(int(LR[0]), int(LR[1]) + 1):
+                    self.pagenum_valueSet.add(i)
+            else:
+                self.pagenum_valueSet.add(int(num))
+        print(self.pagenum_valueSet)
+
+    def on_pagepicker_browser_select_send_handle(self, event: "events.PagePickerBrowserSelectSendEvent"):
+        if event.Type == event.appendType:
+            self.pagenum_append(event.pagenumlist)
+            if len(self.pagenum_valueSet) != 1:
+                self.update_button.setDisabled(True)
+            else:
+                self.update_button.setDisabled(False)
+        elif event.Type == event.overWriteType:
+            self.pagenum_append(event.pagenumlist, overwrite=True)
+            # print("do nothing on event.overWriteType")
+
+    def pagenum_append(self, pagenumlist, overwrite=False):
+        """统一整理, 唯一,3连号以上用横杠代替"""
+        if overwrite:
+            self.pagenum_valueSet = set(pagenumlist)
+        else:
+            self.pagenum_valueSet |= set(pagenumlist)
+        li = list(self.pagenum_valueSet)
+        li.sort()
+        appendli = []
+        if len(li) > 2:
+            i, j = 0, 1
+            while i < len(li):
+                k = i
+                while j < len(li) and li[j] - li[k] == 1:
+                    k = j
+                    j += 1
+
+                if j - 1 == i:
+                    appendli += [li[i]]
+                elif j - 2 == i:
+                    appendli += [li[i], li[i + 1]]
+                else:
+                    appendli += [li[i], "-", li[j - 1]]
+                i = j
+                j += 1
+        else:
+            appendli = li
+        print(appendli)
+        finalli = [str(item) for item in appendli]
+        self.pagenum_lineEdit.setText(re.sub(",-,", "-", ",".join(finalli)))
 
     def bookmark_open(self):
         objs.CustomSignals.start().on_pagepicker_bookmark_open.emit(events.OpenBookmarkEvent())
@@ -94,29 +198,33 @@ class ToolsBar(QWidget):
             self.ratio_DBspinbox.setValue(self.config_dict["page_ratio"]["value"])
 
     def update_current(self):
-        pageinfo = self.packup_pageinfo()
+        pageinfoli = self.packup_pageinfo()
         self.on_pageItem_changePage.emit(
-            events.PageItemChangeEvent(pageInfo=pageinfo, pageItem=self.frompageitem,
+            events.PageItemChangeEvent(pageInfo=pageinfoli[0], pageItem=self.frompageitem,
                                        eventType=events.PageItemChangeEvent.updateType)
         )
 
     def newpage_add(self):
-        pageinfo = self.packup_pageinfo()
         from ..PDFView_ import PageItem5
-        pageitem = PageItem5(pageinfo, rightsidebar=self.clipper.rightsidebar)
-        self.on_pageItem_addToScene.emit(
-            events.PageItemAddToSceneEvent(pageItem=pageitem, eventType=events.PageItemAddToSceneEvent.addPageType))
+        pageinfoli = self.packup_pageinfo()
+        pageitemli = [PageItem5(item, rightsidebar=self.clipper.rightsidebar) for item in pageinfoli]
+        e = events.PageItemAddToSceneEvent
+        self.on_pageItem_addToScene.emit(e(sender=self, pageItemList=pageitemli, eventType=e.addMultiPageType))
+
         objs.CustomSignals.start().on_pagepicker_close.emit(
             events.PagePickerCloseEvent()
         )
 
     def packup_pageinfo(self):
         path = self.open.label.toolTip()
-        pagenum = int(self.pagenum_lineEdit.text())
+        pagenumli = list(self.pagenum_valueSet)
+        pagenumli.sort()
+        pageinfoli = []
         ratio = self.ratio_DBspinbox.value()
         from ..PageInfo import PageInfo
-        pageinfo = PageInfo(path, pagenum=pagenum, ratio=ratio)
-        return pageinfo
+        for pagenum in pagenumli:
+            pageinfoli.append(PageInfo(path, pagenum=pagenum, ratio=ratio))
+        return pageinfoli
 
     def pagenum_lineEdit_extractpagenum(self):
         pass
@@ -126,8 +234,10 @@ class ToolsBar(QWidget):
                                                                         "value"] != "" else "../../user_files"
         path = os.path.dirname(self.open.label.toolTip()) if self.open.label.toolTip() != "" else default_path
         fileName_choose, filetype = QFileDialog.getOpenFileName(self, "选取文件", path, "(*.pdf)")
+
         e = events.PDFOpenEvent
-        objs.CustomSignals.start().on_pagepicker_PDFopen.emit(e(path=fileName_choose, sender=self))
+        objs.CustomSignals.start().on_pagepicker_PDFopen.emit(
+            e(path=fileName_choose, sender=self, ))
         pass
 
     def on_pagepicker_PDFparse_handle(self, event: "events.PDFParseEvent"):
@@ -148,7 +258,7 @@ class ToolsBar(QWidget):
     pass
 
 
-class LeftPart2(QWidget):
+class Browser(QWidget):
     """
     选择:多选，ctrl+多选，框选，checkbox
     书签:点击新增栏 button
@@ -160,22 +270,28 @@ class LeftPart2(QWidget):
         super().__init__(parent=parent)
         self.pagepicker = parent
         self.PageLoadJob_isBussy = False
+        self.frame_list = None
         self.col_per_row = 4  # TODO 改成配置表中读取
+        self.row_per_frame = None
+        self.unit_size = None
         self.pageItemList = []
         self.selectedItemList = []
         self.setAutoFillBackground(True)
-        from . import LeftPart__
-        self.scene = LeftPart__.Scene(parent=self)
-        self.view = LeftPart__.View(parent=self, scene=self.scene, leftpart=self)
-        self.progressBar = objs.GridHDescUnit(labelname="加载进度/loading progress", widget=QProgressBar())
+        self.scene_shift_width = 40
+        from . import Browser__
+        self.scene = Browser__.Scene(parent=self)
+        self.view = Browser__.View(parent=self, scene=self.scene, browser=self)
+        self.bottomBar = Browser__.BottomBar(parent=self)
+        # self.progressBar = objs.GridHDescUnit(labelname="加载进度/loading", widget=QProgressBar())
         self.init_UI()
         self.init_events()
 
     def init_UI(self):
         self.setFixedSize(600, 800)
+
         V_layout = QVBoxLayout(self)
         V_layout.addWidget(self.view)
-        V_layout.addWidget(self.progressBar)
+        V_layout.addWidget(self.bottomBar)
         V_layout.setStretch(0, 1)
         V_layout.setStretch(1, 0)
         V_layout.setSpacing(0)
@@ -185,8 +301,8 @@ class LeftPart2(QWidget):
 
     def init_events(self):
         objs.CustomSignals.start().on_pagepicker_PDFparse.connect(self.on_pagepicker_PDFparse_handle)
-        objs.CustomSignals.start().on_pagepicker_leftpart_select.connect(
-            self.on_pagepicker_leftpart_select_handle
+        objs.CustomSignals.start().on_pagepicker_browser_select.connect(
+            self.on_pagepicker_browser_select_handle
         )
         objs.CustomSignals.start().on_pagepicker_PDFlayout.connect(self.on_pagepicker_PDFlayout_handle)
 
@@ -209,8 +325,6 @@ class LeftPart2(QWidget):
             firstItem: "Item2" = self.frame_list[main_frame_num][0]
             self.view.centerOn(firstItem)  # 只能用第一个item,不能用中间item
             #
-            # from . import LeftPart__
-            # job = LeftPart__.ReLayoutJob(frame_list=self.frame_list,)
 
     def on_selfcombox_currentIndexChanged_handle(self, index):
         w: "QComboBox" = self.setcombox.widget
@@ -220,7 +334,7 @@ class LeftPart2(QWidget):
             e(sender=self, eventType=e.PDFInitParseType, doc=self.pagepicker.doc)
         )
 
-    def on_pagepicker_leftpart_select_handle(self, event: "events.PagePickerLeftPartSelectEvent"):
+    def on_pagepicker_browser_select_handle(self, event: "events.PagePickerBrowserSelectEvent"):
         if event.Type == event.singleSelectType:
             self.selectedItemList = [event.sender]
         elif event.Type == event.multiSelectType:
@@ -232,13 +346,34 @@ class LeftPart2(QWidget):
         """在解析阶段,应该初始化场景里的东西"""
         if event.Type == event.PDFInitParseType:
             self.pageItemList = []
+            self.frame_list = None
             self.scene.clear()
-            self.page_init_load(event.doc)
-        elif event.Type == event.FrameLoadType:
-            if self.frame_list[event.frame_idx][0] is None:
-                self.job_1_frame_load(event.frame_idx)
+            self.page_load_handle(event.doc, pagenum=event.pagenum, focus=True)
+        elif event.Type == event.JumpType:
+            self.page_load_handle(event.doc, pagenum=event.pagenum, focus=True, select=True)
+            pass
+        elif event.Type == event.ScrollType:
+            self.page_load_handle(event.doc, frame_idx=event.frame_idx)
 
-    def job_1_frame_load(self, frame_idx):
+            pass
+        # elif event.Type == event.FrameLoadType:
+        #     if self.frame_list[event.frame_idx][0] is None:
+        #         self.job_1_frame_load(event.frame_idx)
+        # if event.focus:
+        #     frame_idx = None
+        #     if event.frame_idx is not None:
+        #         frame_idx = event.frame_idx
+        #     if event.pagenum is not None:
+        #         frame_idx = int(event.pagenum/(self.col_per_row*self.row_per_frame))
+        #     if frame_idx is not None:
+        #         self.focus_on(frame_idx)
+
+    def focus_on(self, frame_idx):
+        midlle = int(len(self.frame_list[frame_idx]) / 2)
+        middle_1st = midlle - (midlle) % self.col_per_row
+        self.view.centerOn(self.frame_list[frame_idx][middle_1st])
+
+    def job_1_frame_load(self, frame_idx, show=True, focus=False):
         for frame_item_idx in range(len(self.frame_list[frame_idx])):
             pagenum = frame_idx * self.row_per_frame * self.col_per_row + frame_item_idx
             d = {"frame_idx": frame_idx, "frame_item_idx": frame_item_idx,
@@ -247,26 +382,31 @@ class LeftPart2(QWidget):
             Y = (frame_idx * self.row_per_frame + int(frame_item_idx / self.col_per_row)) * self.unit_size
             d["posx"] = X
             d["posy"] = Y
-            d["show"] = True
+            d["show"] = show
             self.on_1_page_loaded_handle(d)
-            w: "QProgressBar" = self.progressBar.widget
+            time.sleep(0.005)
+            w: "QProgressBar" = self.bottomBar.progressBar.widget
             w.setValue(int(frame_item_idx / len(self.frame_list[frame_idx]) * 100))
-        self.progressBar.widget.setValue(int(100))
+        self.bottomBar.progressBar.widget.setValue(int(100))
 
-    def page_init_load(self, doc):
-        from . import LeftPart__
+    def page_load_handle(self, doc, pagenum=None, frame_idx=None, focus=False, select=False):
+        from . import Browser__
+
         if not self.PageLoadJob_isBussy:
-            w: "QProgressBar" = self.progressBar.widget
+            self.PageLoadJob_isBussy = True
+            print("pageloadjob start")
+            w: "QProgressBar" = self.bottomBar.progressBar.widget
             w.setValue(0)
-            self.page_init_load_job = LeftPart__.PageInitLoadJob(
-                parent=self, doc=doc, view_size=self.size(), col_per_row=self.col_per_row, begin_page=100)
-            self.page_init_load_job.on_job_begin.connect(lambda: self.__setattr__("PageLoadJob_isBussy", True))
+            self.page_init_load_job = Browser__.PageInitLoadJob(
+                browser=self, frame_idx=frame_idx, focus=focus, select=select, parent=self, doc=doc, begin_page=pagenum)
+
             self.page_init_load_job.on_job_progress.connect(w.setValue)
-            self.page_init_load_job.on_job_end.connect(lambda: self.__setattr__("PageLoadJob_isBussy", False))
-            self.page_init_load_job.on_all_page_loaded.connect(self.on_all_page_loaded_handle)
             self.page_init_load_job.on_frame_partition_done.connect(self.on_frame_partition_done_handle)
             self.page_init_load_job.on_1_page_loaded.connect(self.on_1_page_loaded_handle)
+            self.page_init_load_job.on_all_page_loaded.connect(self.on_all_page_loaded_handle)
+
             self.page_init_load_job.start()
+
         else:
             print("PageLoadJob_isBussy")
 
@@ -279,22 +419,43 @@ class LeftPart2(QWidget):
         Returns:
 
         """
-        pixmap = funcs.pixmap_page_load(self.pagepicker.doc, item_dict["pagenum"], preview=True)
-        from . import LeftPart__
-        item = LeftPart__.Item2(pixmap=pixmap, pagenum=item_dict["pagenum"], unit_size=self.unit_size)
+        pixmap = funcs.pixmap_page_load(self.pagepicker.doc, item_dict["pagenum"], browser=True)
+        from . import Browser__
+        item = Browser__.Item2(pixmap=pixmap, pagenum=item_dict["pagenum"], unit_size=self.unit_size)
         item.setPos(item_dict["posx"], item_dict["posy"])
+        while True:
+            if self.frame_list is not None and self.frame_list[item_dict["frame_idx"]] is not None:
+                break
         self.frame_list[item_dict["frame_idx"]][item_dict["frame_item_idx"]] = item
-        midlle = int(len(self.frame_list[item_dict["frame_idx"]]) / 2)
-        middle_1st = midlle - (midlle) % self.col_per_row
+
         if item_dict["show"]:
             # print(f"""frame_idx = {item_dict["frame_idx"]}""")
             self.scene.addItem(item)
-        if item_dict["frame_item_idx"] == middle_1st:
-            print(middle_1st)
-            self.view.centerOn(self.frame_list[item_dict["frame_idx"]][middle_1st])
 
-    def on_all_page_loaded_handle(self, li):
-        print(len(self.frame_list))
+    def on_all_page_loaded_handle(self, s_dict):
+        """
+
+        Args:
+            s_dict: frame  focus  select pagenum
+
+        Returns:
+
+        """
+        if s_dict["focus"]:
+            middle_1st = int(len(s_dict["frame"]) / 2) - int(len(s_dict["frame"]) / 2) % self.col_per_row
+            self.view.centerOn(s_dict["frame"][middle_1st])
+        if s_dict["select"]:
+            from . import Browser__
+
+            frame_item_idx = s_dict["pagenum"] % (self.col_per_row * self.row_per_frame)
+            item: "Browser__.Item2" = s_dict["frame"][frame_item_idx]
+            print(s_dict["frame"])
+            e = events.PagePickerBrowserSelectEvent
+            objs.CustomSignals.start().on_pagepicker_browser_select.emit(
+                e(sender=self, item=item, eventType=e.singleSelectType)
+            )
+        self.PageLoadJob_isBussy = False
+        print("pageloadjob over")
         # self.frame_list = li
         # self.pageItemList=reduce(lambda x, y: x+y,li)
 
@@ -303,7 +464,10 @@ class LeftPart2(QWidget):
         self.row_per_frame = li[1]
         self.frame_list = li[2]
         total_row = self.row_per_frame * len(self.frame_list)
-        self.scene.setSceneRect(QRectF(0, 0, self.col_per_row * self.unit_size, total_row * self.unit_size))
+        self.scene.setSceneRect(QRectF(0, 0, self.size().width() - self.scene_shift_width,
+                                       total_row * self.unit_size))
+        # self.view.setSceneRect(self.scene.sceneRect())
+        # print("self.frame_list is None")
 
     def page_relayout(self, pagelist):
         for item in pagelist:
@@ -330,7 +494,7 @@ class LeftPart2(QWidget):
             self.pageitem_moveto_oldpage_bottom(olditem, pageitem)
 
 
-class RightPart(QWidget):
+class Previewer(QWidget):
     """
     上下页:
     放大缩小:
@@ -338,14 +502,54 @@ class RightPart(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
+        self.pagepicker = parent
+        self.doc = self.pagepicker.doc
         self.setFixedSize(600, 800)
+        from . import Previewer__
+        self.scene: "Previewer__.Scene" = Previewer__.Scene(parent=self)
+        self.view: 'Previewer__.View' = Previewer__.View(parent=self)
+        # self.toolsbar:"Previewer__.ToolsBar" = Previewer__.ToolsBar(parent=self)
+        self.ratio = self.pagepicker
+        # self.hasItem = False
+        self.pagenum = None
         self.init_UI()
-        from . import RightPart__
-        self.view: 'RightPart__.View'
-        self.scene: "RightPart__.Scene"
+        self.init_event()
 
     def init_UI(self):
+        V_layout = QVBoxLayout(self)
+        V_layout.addWidget(self.view)
+        # V_layout.addWidget(self.toolsbar)
+        V_layout.setStretch(0, 1)
+        # V_layout.setStretch(1,0)
+        self.setLayout(V_layout)
+
         pass
+
+    def init_event(self):
+        objs.CustomSignals.start().on_pagepicker_preivewer_read_page.connect(
+            self.on_pagepicker_preivewer_read_page_handle)
+
+    def on_pagepicker_preivewer_read_page_handle(self, event: "events.PagePickerPreviewerReadPageEvent"):
+        if event.Type == event.reloadType and self.pagenum is not None:
+            self.scene_page_add(0, reload=True)
+        elif event.Type == event.loadType:
+            self.scene_page_add(event.pagenum)
+        pass
+
+    def scene_page_add(self, pagenum, reload=False):
+        from ..PageInfo import PageInfo
+        ratio = self.pagepicker.ratio_value_get()
+        doc = self.pagepicker.doc
+        if reload:
+            pageinfo = PageInfo(doc.name, self.pagenum, ratio)
+        else:
+            pageinfo = PageInfo(doc.name, pagenum, ratio)
+            self.pagenum = pagenum
+        item = QGraphicsPixmapItem(pageinfo.pagepixmap)
+        # item.setFlag(QGraphicsItem.ItemIsMovable)
+        self.scene.clear()
+        self.scene.addItem(item)
+        self.scene.setSceneRect(0, 0, item.boundingRect().width(), item.boundingRect().height())
 
     pass
 
@@ -392,13 +596,16 @@ class BookMark(QTreeView):
     def on_self_clicked_handle(self, index):
         item = self.model.itemFromIndex(index)
         # print(f"{item.text()},{item.pagenum}")
-        row_per_frame = self.pagepicker.leftpart.row_per_frame
-        col_per_row = self.pagepicker.leftpart.col_per_row
+        row_per_frame = self.pagepicker.browser.row_per_frame
+        col_per_row = self.pagepicker.browser.col_per_row
         frame_idx = int(item.pagenum / (row_per_frame * col_per_row))
         e = events.PDFParseEvent
         objs.CustomSignals.start().on_pagepicker_PDFparse.emit(
-            e(sender=self, eventType=e.FrameLoadType, frame_idx=frame_idx)
+            e(sender=self, eventType=e.JumpType, pagenum=item.pagenum, frame_idx=frame_idx, focus=True)
         )
+        e = events.PagePickerPreviewerReadPageEvent
+        objs.CustomSignals.start().on_pagepicker_preivewer_read_page.emit(
+            e(sender=self, eventType=e.loadType, pagenum=item.pagenum))
 
     def on_pagepicker_PDFparse_handle(self, event: "events.PDFParseEvent"):
         if event.Type == event.PDFInitParseType:

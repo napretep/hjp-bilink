@@ -103,10 +103,9 @@ class Clipper(QMainWindow):
         if event.Type == event.addPageType:
             if event.pageItem is not None:
                 self.scene_pageitem_add(event.pageItem)
-            elif event.pageItemList is not None:
-                for pageitem in event.pageItemList:
-                    self.scene_pageitem_add(pageitem)
-            self.update()
+        elif event.Type == event.addMultiPageType:
+            for pageitem in event.pageItemList:
+                self.scene_pageitem_add(pageitem)
 
     def pageitem_moveto_oldpage_bottom(self, old_item: 'PageItem5', new_item: 'PageItem5'):
         new_pos = QPointF(old_item.x(), old_item.y() + old_item.boundingRect().height())

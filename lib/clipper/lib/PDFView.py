@@ -40,13 +40,13 @@ class PDFView(QGraphicsView):
         objs.CustomSignals.start().on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
         objs.CustomSignals.start().on_rightSideBar_buttonGroup_clicked.connect(
             self.on_rightSideBar_buttonGroup_clicked_handle)
-        objs.CustomSignals.start().on_pageItem_needCenterOn.connect(self.on_pageItem_addToScene_handle)
+        objs.CustomSignals.start().on_pageItem_needCenterOn.connect(self.on_pageItem_needCenterOn_handle)
 
     def on_rightSideBar_buttonGroup_clicked_handle(self, event: 'events.RightSideBarButtonGroupEvent'):
         if event.Type == event.resetViewRatioType:
             self.viewRatioReset()
 
-    def on_pageItem_addToScene_handle(self, event: "events.PageItemNeedCenterOnEvent"):
+    def on_pageItem_needCenterOn_handle(self, event: "events.PageItemNeedCenterOnEvent"):
 
         if event.Type == event.centerOnType:
             item_center_pos = QPointF(

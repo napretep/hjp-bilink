@@ -3,15 +3,15 @@ from math import ceil
 from typing import Union
 
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtGui import QPixmap, QPainter, QColor, QBrush
+from PyQt5.QtGui import QPixmap, QPainter, QColor, QBrush, QIcon
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsProxyWidget, QWidget, QVBoxLayout, QLabel, \
     QCheckBox, QHBoxLayout, QGraphicsSceneMouseEvent, QGraphicsItem, QRubberBand, QStyleOptionGraphicsItem, \
-    QGraphicsPixmapItem, QGraphicsTextItem, QGraphicsRectItem, QApplication
+    QGraphicsPixmapItem, QGraphicsTextItem, QGraphicsRectItem, QApplication, QProgressBar, QToolButton
 from PyQt5.QtCore import Qt, QRect, QSize, QRectF, QThread, pyqtSignal, QPointF, QPoint, QSizeF
 from ..tools import objs, events, funcs
 
 
-def frame_partition(cols_per_row, view_size: "QSize", total_unit_num=1, _total_list=None) -> object:
+def frame_partition(cols_per_row, view_size: "QSize", shift_width, total_unit_num=1, _total_list=None) -> object:
     """
 
     Args:
@@ -24,7 +24,7 @@ def frame_partition(cols_per_row, view_size: "QSize", total_unit_num=1, _total_l
 
     """
     total_list = _total_list if _total_list is not None else [None] * total_unit_num
-    unit_size = int(view_size.width() / cols_per_row)
+    unit_size = int((view_size.width() - shift_width) / cols_per_row)
     rows_per_frame = int(view_size.height() / unit_size)
     units_per_frame = cols_per_row * rows_per_frame
     total_frame_count = ceil(len(total_list) / units_per_frame)
@@ -49,6 +49,19 @@ def setup_item(item_idx, row_per_frame=None, col_per_row=None, unit_size=None, f
     item.setPos(X, Y)
     frame_list[frame_num][item_idx] = item
     return frame_list
+
+
+def browser_pageinfo_make(frame_idx, frame_item_idx, row_per_frame, col_per_row, unit_size, show, focus):
+    pagenum = frame_idx * row_per_frame * col_per_row + frame_item_idx
+    d = {"frame_idx": frame_idx, "frame_item_idx": frame_item_idx,
+         "pagenum": pagenum}
+    X = (frame_item_idx % col_per_row) * unit_size
+    Y = (frame_idx * row_per_frame + int(frame_item_idx / col_per_row)) * unit_size
+    d["posx"] = X
+    d["posy"] = Y
+    d["show"] = show
+    d["focus"] = focus
+    return d
 
 
 class ReLayoutJob(QThread):
@@ -141,36 +154,58 @@ class PageInitLoadJob(QThread):
     on_all_page_loaded = pyqtSignal(object)
     on_frame_partition_done = pyqtSignal(object)
 
-    def __init__(self, parent=None, doc: "fitz.Document" = None, view_size=None, col_per_row=1, begin_page=0):
+    def __init__(self, doc=None,
+                 browser: 'QWidget' = None, frame_idx=None, parent=None, select=True,
+                 begin_page=0, focus=True):
+
         super().__init__(parent=parent)
+        self.browser = browser
         self.doc = doc
         self.total_list: "list" = []
-        self.frame_list: "list[list]" = []
-        self.unit_size: "int" = 0
-        self.view_size: "QSize" = view_size
-        self.col_per_row: "int" = col_per_row
-        self.begin_page: "int" = begin_page
+        self.unit_size: "int" = self.browser.unit_size
+        self.view_size: "QSize" = self.browser.size()
+        self.col_per_row: "int" = self.browser.col_per_row
+        self.row_per_frame = self.browser.row_per_frame
+        self.begin_page: "int" = begin_page if begin_page is not None else 0
         self.pageItemList = []
+        self.shift_width = self.browser.scene_shift_width
         self.progress_count = 0
         self.subjob_queue = []
+        self.frame_list = self.browser.frame_list
+        self.focus = focus
+        self.frame_idx = frame_idx
+        self.select = select
         self.exc_time = 0.005
         pass
 
     def run(self) -> None:
         self.on_job_begin.emit()
-        self.unit_size, self.row_per_frame, self.frame_list = frame_partition(
-            self.col_per_row, self.view_size, total_unit_num=len(self.doc))
-        main_frame_num = int(self.begin_page / (self.row_per_frame * self.col_per_row))
-        self.on_frame_partition_done.emit([self.unit_size, self.row_per_frame, self.frame_list, main_frame_num])
-        for frame_item_idx in range(len(self.frame_list[main_frame_num])):
-            self.pageinfo_make(main_frame_num, frame_item_idx, True)
-        self.on_job_progress.emit(100)
-        self.on_all_page_loaded.emit(self.frame_list)
-        print("finish")
+
+        if self.frame_list is None:  # 如果为空则重建
+            self.unit_size, self.row_per_frame, self.frame_list = frame_partition(
+                self.col_per_row, self.view_size, self.shift_width, total_unit_num=len(self.doc))
+            self.on_frame_partition_done.emit(
+                [self.unit_size, self.row_per_frame, self.frame_list])
+
+        main_frame_num = self.frame_idx if self.frame_idx is not None \
+            else int(self.begin_page / (self.row_per_frame * self.col_per_row))
+        # print(main_frame_num)
+        if self.frame_list[main_frame_num][0] is None:  # 如果一帧的开头为空,说明还未初始化,需要初始化
+            for frame_item_idx in range(len(self.frame_list[main_frame_num])):
+                d = browser_pageinfo_make(main_frame_num, frame_item_idx, self.row_per_frame, self.col_per_row,
+                                          self.unit_size, True, True)
+                self.on_1_page_loaded.emit(d)
+                self.on_job_progress.emit(int(frame_item_idx / len(self.frame_list[main_frame_num]) * 100))
+                time.sleep(self.exc_time)
+            self.on_job_progress.emit(100)
+        # 无论做了什么, 都需要最终都要返回这个, 是否有选择啊,是否要聚焦啊,这里解决
+        self.on_all_page_loaded.emit({"frame": self.frame_list[main_frame_num],
+                                      "focus": self.focus, "select": self.select, "pagenum": self.begin_page})
+
         self.on_job_end.emit()
         pass
 
-    def pageinfo_make(self, frame_idx, frame_item_idx, show):
+    def pageinfo_make(self, frame_idx, frame_item_idx, show, focus):
         pagenum = frame_idx * self.row_per_frame * self.col_per_row + frame_item_idx
         d = {"frame_idx": frame_idx, "frame_item_idx": frame_item_idx,
              "pagenum": pagenum}
@@ -179,6 +214,7 @@ class PageInitLoadJob(QThread):
         d["posx"] = X
         d["posy"] = Y
         d["show"] = show
+        d["focus"] = focus
         self.on_1_page_loaded.emit(d)
         self.progress_move_1()
         time.sleep(self.exc_time)
@@ -191,7 +227,7 @@ class PageInitLoadJob(QThread):
 
 
 class SelectedRect(QGraphicsRectItem):
-    def __init__(self, target: 'QGraphicsItem' = None):
+    def __init__(self, target: 'QGraphicsItem' = None, rect=None):
         super().__init__(parent=target)
         self.setBrush(QBrush(QColor(81, 168, 220, 100)))
         self.setRect(target.boundingRect())
@@ -200,6 +236,7 @@ class SelectedRect(QGraphicsRectItem):
 class Item2(QGraphicsPixmapItem):
     def __init__(self, parent=None, pixmap: "QPixmap" = None, pagenum=None, unit_size=None):
         super().__init__(parent=parent)
+        self.hash = hash(time.time())
         self._pixmap = pixmap
         self.is_selected = False
         self.multi_select = False
@@ -216,10 +253,16 @@ class Item2(QGraphicsPixmapItem):
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
         self.init_events()
 
+    def __lt__(self, other: "Item2"):
+        return self.pagenum < other.pagenum
+
+    def __eq__(self, other):
+        return self.pagenum == other.pagenum
+
     def init_events(self):
-        # objs.CustomSignals.start().on_pagepicker_leftpart_select.connect(
-        #     self.on_pagepicker_leftpart_select_handle
-        # )
+        objs.CustomSignals.start().on_pagepicker_browser_select.connect(
+            self.on_pagepicker_browser_select_handle
+        )
         pass
 
     def set_pixmap_scale(self, size=None):
@@ -230,24 +273,37 @@ class Item2(QGraphicsPixmapItem):
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         # self.show_selected_rect(self.isSelected())
-        print(self.boundingRect())
-        e = events.PagePickerLeftPartSelectEvent
+        e = events.PagePickerBrowserSelectEvent
         if event.modifiers() == Qt.ControlModifier:
             self.multi_select = True
-            objs.CustomSignals.start().on_pagepicker_leftpart_select.emit(e(sender=self, eventType=e.multiSelectType))
+            objs.CustomSignals.start().on_pagepicker_browser_select.emit(
+                e(sender=self, item=self, eventType=e.multiSelectType))
         else:
             self.multi_select = False
-            objs.CustomSignals.start().on_pagepicker_leftpart_select.emit(e(sender=self))
-            objs.CustomSignals.start().on_pagepicker_leftpart_select.emit(
-                e(sender=self, eventType=e.singleSelectType))
+            # 因为非多选,所以取消掉多选
+            objs.CustomSignals.start().on_pagepicker_browser_select.emit(e(sender=self, item=self))
+            objs.CustomSignals.start().on_pagepicker_browser_select.emit(
+                e(sender=self, eventType=e.singleSelectType, item=self))
+        e = events.PagePickerPreviewerReadPageEvent
+        objs.CustomSignals.start().on_pagepicker_preivewer_read_page.emit(
+            e(sender=self, eventType=e.loadType, pagenum=self.pagenum))
         super().mousePressEvent(event)
 
+    def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        e = events.PagePickerBrowserSelectSendEvent
+        objs.CustomSignals.start().on_pagepicker_browser_select_send.emit(
+            e(sender=self, eventType=e.overWriteType, pagenumlist=[self.pagenum])
+        )
+
     #
-    def on_pagepicker_leftpart_select_handle(self, event: "events.PagePickerLeftPartSelectEvent"):
+    def on_pagepicker_browser_select_handle(self, event: "events.PagePickerBrowserSelectEvent"):
         if event.Type == event.singleSelectType:
-            self.is_selected = True if self == event.sender else False
+            if self == event.item:
+                self.setSelected(True)
+            else:
+                self.setSelected(False)
         elif event.Type == event.multiSelectType:
-            if self == event.sender:
+            if self == event.item:
                 self.multi_select = True
         elif event.Type == event.multiCancelType:
             self.multi_select = False
@@ -267,13 +323,21 @@ class Item2(QGraphicsPixmapItem):
     #
     def show_selected_rect(self, need: "bool"):
         if "selected_rect" not in self.__dict__:
-            self.selected_rect = SelectedRect(self)
+            rect = None
+            if self.unit_size is not None:
+                unit_size = self.unit_size
+                rect = QtCore.QRectF(0, 0, unit_size, unit_size)
+            else:
+                rect = QtCore.QRectF(0, 0, self.pixmap().width(),
+                                     self.pixmap().height() + self.pagenumtext.boundingRect().height())
+            self.selected_rect = SelectedRect(self, rect)
         if need:
             self.selected_rect.show()
         else:
             self.selected_rect.hide()
 
     def boundingRect(self) -> QtCore.QRectF:
+
         if self.unit_size is not None:
             unit_size = self.unit_size
             return QtCore.QRectF(0, 0, unit_size, unit_size)
@@ -281,22 +345,44 @@ class Item2(QGraphicsPixmapItem):
             return QtCore.QRectF(0, 0, self.pixmap().width(),
                                  self.pixmap().height() + self.pagenumtext.boundingRect().height())
 
+    def previewer_select_show(self):
+        if self.scene() is not None and len(self.scene().selectedItems()) > 0 \
+                and self.scene().selectedItems()[-1].pagenum == self.pagenum \
+                and self.scene().browser.pagepicker.current_preview_pagenum != self.pagenum:
+            objs.CustomSignals.start().on_pagepicker_preivewer_read_page.emit(self.pagenum)
+
     #
+
     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem', widget: QWidget) -> None:
+        # self.prepareGeometryChange()
         super().paint(painter, option, widget)
         self.show_selected_rect(self.isSelected())
+
+        #
 
 
 class Scene(QGraphicsScene):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
+        self.browser = parent
         self.init_events()
 
     def init_events(self):
-        objs.CustomSignals.start().on_pagepicker_leftpart_sceneClear.connect(
-            self.on_pagepicker_leftpart_sceneClear_handle)
+        objs.CustomSignals.start().on_pagepicker_browser_sceneClear.connect(
+            self.on_pagepicker_browser_sceneClear_handle)
+        objs.CustomSignals.start().on_pagepicker_browser_select.connect(self.on_pagepicker_browser_select_handle)
 
-    def on_pagepicker_leftpart_sceneClear_handle(self, event: "events.PagePickerLeftPartSceneClear"):
+    def on_pagepicker_browser_select_handle(self, event: "events.PagePickerBrowserSelectEvent"):
+        if event.collectType == event.Type:
+            pagenumlist = [page.pagenum for page in self.selectedItems()]
+            pagenumlist.sort()
+            print(pagenumlist)
+            e = events.PagePickerBrowserSelectSendEvent
+            objs.CustomSignals.start().on_pagepicker_browser_select_send.emit(
+                e(sender=self, eventType=e.appendType, pagenumlist=pagenumlist)
+            )
+
+    def on_pagepicker_browser_sceneClear_handle(self, event: "events.PagePickerBrowserSceneClear"):
         if event.Type == event.clearType:
             self.clear()
 
@@ -307,15 +393,16 @@ class Scene(QGraphicsScene):
 
 
 class View(QGraphicsView):
-    def __init__(self, parent=None, scene=None, leftpart=None):
+    def __init__(self, parent=None, scene=None, browser=None):
         super().__init__(parent=parent)
         # self.setFixedWidth(580)
-        self.leftpart = leftpart
+        self.browser = browser
         self.begin_dragband = False
         self.origin_pos = None
+        self.wheel_event_last_item = 0
         self.paint_event_last_time = 0
         self.setDragMode(QGraphicsView.RubberBandDrag)
-
+        self.mousePressed = False
         if scene is not None:
             self.setScene(scene)
         self.init_UI()
@@ -323,6 +410,7 @@ class View(QGraphicsView):
 
     def init_events(self):
         objs.CustomSignals.start().on_pagepicker_PDFparse.connect(self.on_pagepicker_PDFparse_handle)
+        # self.rubberBandChanged.connect(self.on_rubberBandChanged_handle)
 
     def on_pagepicker_PDFparse_handle(self, event: "events.PDFParseEvent"):
         # self.centerOn(0,0)
@@ -334,53 +422,100 @@ class View(QGraphicsView):
         self.verticalScrollBar().setStyleSheet("width:5px;")
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         # self.rubberBand = QRubberBand(QRubberBand.Rectangle, self)
+        # self.translate(-11,0)
+        # print(f"view rect={self.rect()}")
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
         now_time = time.time()
         if self.paint_event_last_time == 0:
             self.paint_event_last_time = now_time
-        if now_time - self.paint_event_last_time >= 0.3:
+        if now_time - self.paint_event_last_time >= 0.5 and not self.browser.PageLoadJob_isBussy:
+
             if event.rect().y() == 0:  # 向上
-                self.frame_idx_update()
+                self.frame_idx_update(0)
             else:  # 向下
-                self.frame_idx_update(addheight=True)
+                # print("向下")
+                self.frame_idx_update(1)
             self.paint_event_last_time = now_time
         super().paintEvent(event)
 
-    # def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
-    #
-    #     now_time = time.time()
-    #     if self.paint_event_last_time == 0:
-    #         self.paint_event_last_time = now_time
-    #     if now_time - self.paint_event_last_time >= 0.5:
-    #         self.frame_idx_update()
-    #         self.paint_event_last_time = now_time
-    #     super().mouseMoveEvent(event)
 
     def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
         """下拉上拉触发子线程加载"""
         if event.modifiers() == Qt.ControlModifier:
-            if event.angleDelta().y() > 0 and not self.leftpart.PageLoadJob_isBussy:
-                self.leftpart.col_per_row += 1
-            if event.angleDelta().y() < 0 and self.leftpart.col_per_row > 1 and not self.leftpart.PageLoadJob_isBussy:
-                self.leftpart.col_per_row -= 1
-            e = events.PDFParseEvent
-            objs.CustomSignals.start().on_pagepicker_PDFparse.emit(
-                e(sender=self, eventType=e.PDFInitParseType, doc=self.leftpart.pagepicker.doc)
-            )
+            if not self.browser.PageLoadJob_isBussy:
+                if event.angleDelta().y() > 0 and self.browser.col_per_row > 1:
+                    self.browser.col_per_row -= 1
+                if event.angleDelta().y() < 0:
+                    self.browser.col_per_row += 1
+                e = events.PDFParseEvent
+                # if frame_item_first is not None:
+                height_per_frame = self.browser.row_per_frame * self.browser.unit_size
+                count_per_frame = self.browser.row_per_frame * self.browser.col_per_row
+                frame_item_first = int(self.mapToScene(self.pos()).y() / height_per_frame) * count_per_frame
+                objs.CustomSignals.start().on_pagepicker_PDFparse.emit(
+                    e(sender=self, eventType=e.PDFInitParseType,
+                      doc=self.browser.pagepicker.doc, pagenum=frame_item_first)
+                )
         else:
-
+            # print(f"view pos = {self.mapToScene(self.pos())}")
+            if not self.browser.PageLoadJob_isBussy:
+                if event.angleDelta().y() > 0:
+                    self.frame_idx_update(0)
+                if event.angleDelta().y() < 0:
+                    self.frame_idx_update(1)
             super().wheelEvent(event)
 
-    def frame_idx_update(self, addheight=False):
-        height = 0
-        if addheight:
-            height = self.leftpart.size().height()
-        height_per_frame = self.leftpart.unit_size * self.leftpart.row_per_frame
-        at_frame_idx = int((self.mapToScene(self.pos()).y() + height) / height_per_frame)
-        # print(f"at_frame_idx={at_frame_idx}")
-        if at_frame_idx < len(self.leftpart.frame_list):
+    def frame_idx_update(self, goType=0):
+        if self.browser.frame_list is None or self.browser.row_per_frame is None:
+            return
+        height_per_frame = self.browser.row_per_frame * self.browser.unit_size
+        goUp = 0
+        goDown = 1
+        at_frame_idx = -1
+        if goType == goUp:
+            at_frame_idx = int(self.mapToScene(self.pos()).y() / height_per_frame)
+        if goType == goDown:
+            at_frame_idx = int(self.mapToScene(self.pos()).y() / height_per_frame)
+            curr_frame_height_y = (at_frame_idx + 0.3) * height_per_frame
+            # print(f"curr_frame_height_y={curr_frame_height_y},self.mapToScene(self.pos()).y()="
+            #       f"{self.mapToScene(self.pos()).y()}")
+            if curr_frame_height_y < self.mapToScene(self.pos()).y():
+                at_frame_idx += 1
+        if -1 < at_frame_idx < len(self.browser.pagepicker.doc) and self.browser.frame_list[at_frame_idx][0] is None:
             e = events.PDFParseEvent
             objs.CustomSignals.start().on_pagepicker_PDFparse.emit(
-                e(sender=self, eventType=e.FrameLoadType, frame_idx=at_frame_idx)
+                e(eventType=e.ScrollType, doc=self.browser.pagepicker.doc, frame_idx=at_frame_idx)
             )
+
+
+class BottomBar(QWidget):
+    """一个进度条，一个页面收集按钮"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.browser = parent
+        self.progressBar = objs.GridHDescUnit(labelname="加载进度/loading", widget=QProgressBar())
+        self.pick_page_button = QToolButton(self)
+        self.init_UI()
+        self.init_events()
+
+    def init_UI(self):
+        self.pick_page_button.setIcon(QIcon(objs.SrcAdmin.imgDir.download))
+        self.pick_page_button.setToolTip("将选中的页码插入页码收集器\npick the selected pagenum and add to the page collector")
+        H_layout = QHBoxLayout(self)
+        H_layout.addWidget(self.progressBar)
+        H_layout.addWidget(self.pick_page_button)
+        H_layout.setStretch(0, 1)
+        H_layout.setStretch(1, 0)
+        self.setLayout(H_layout)
+
+    def init_events(self):
+        self.pick_page_button.clicked.connect(self.pick_page_button_clicked_handle)
+
+    def pick_page_button_clicked_handle(self):
+        e = events.PagePickerBrowserSelectEvent
+        objs.CustomSignals.start().on_pagepicker_browser_select.emit(
+            e(sender=self, eventType=e.collectType)
+        )
+        pass

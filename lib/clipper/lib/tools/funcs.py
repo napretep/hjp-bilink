@@ -16,18 +16,22 @@ def str_shorten(string,length=30):
         return string[0:int(length/2)-3]+"..."+string[-int(length/2):]
 
 
-def pixmap_page_load(doc: "fitz.Document", pagenum, ratio=1, preview=False):
+def pixmap_page_load(doc: "fitz.Document", pagenum, ratio=1, browser=False, browse_size: "QSize" = None):
     """从self.doc读取page,再转换为pixmap"""
     page: "fitz.Page" = doc.load_page(pagenum)  # 加载的是页面
 
     pix: "fitz.Pixmap" = page.getPixmap(matrix=fitz.Matrix(ratio, ratio))  # 将页面渲染为图片
-
+    # print(f"page.mediabox_size{}")
+    # if preview and len(pix.tobytes())>120000:
+    #     pix.shrink(3)
+    #     # print(f"after compress{len(pix.tobytes())}")
+    # else:
+    #     print(pix.size  )
     # print(ratio.__str__())
 
     fmt = QImage.Format_RGBA8888 if pix.alpha else QImage.Format_RGB888  # 渲染的格式
     pageImage = QImage(pix.samples, pix.width, pix.height, pix.stride, fmt)
-    # if preview!=False:
-    # print(f"pagewidth:{}")
+
     pixmap = QPixmap()
     pixmap.convertFromImage(pageImage)  # 转为pixmap
     return QPixmap(pixmap)

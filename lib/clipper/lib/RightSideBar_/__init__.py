@@ -1,7 +1,7 @@
 import os
 
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QToolButton, QTreeView
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QToolButton, QTreeView, QApplication
 from PyQt5.QtCore import Qt, QRect, QItemSelectionModel, pyqtSignal
 
 from ..PDFView_.PageItem_ import ClipBox_
@@ -90,7 +90,9 @@ class PageList(QWidget):
         pagenum = int(item[1].text())
         pageitem = item[0].data(Qt.UserRole)
         P = PagePicker(pdfDirectory=PDFpath, pageNum=pagenum, frompageitem=pageitem,
-                       clipper=self.rightsidebar.clipper).exec_()
+                       clipper=self.rightsidebar.clipper)
+        P.start(pagenum)
+        P.exec_()
 
     def openDialogPDFOpen(self):
         """打开的时候，确定默认的路径和页码"""
@@ -111,8 +113,10 @@ class PageList(QWidget):
                 pagenum = 0
         P = PagePicker(pdfDirectory=PDFpath, pageNum=pagenum, frompageitem=pageitem,
                        clipper=self.rightsidebar.clipper)
-        P.start()
-        P.show()
+        P.start(pagenum)
+        QApplication.processEvents()
+        P.exec_()
+        QApplication.processEvents()
         print("PagePicker opened")
 
     def delete_selected_item(self):
@@ -136,8 +140,10 @@ class PageList(QWidget):
     def on_pageItem_addToScene_handle(self, event: 'events.PageItemAddToSceneEvent'):
         if event.Type == event.addPageType:
             self.model_pageItem_add(event.pageItem)
-        elif event.Type == event.changePageType:
-            pass
+        elif event.Type == event.addMultiPageType:
+            for pageitem in event.pageItemList:
+                self.model_pageItem_add(pageitem)
+
         pass
 
     def on_pageItem_removeFromScene_handle(self, event: 'events.PageItemDeleteEvent'):

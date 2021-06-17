@@ -24,13 +24,22 @@ class CustomSignals(QObject):
     on_pagepicker_PDFparse = pyqtSignal(object)  # PDFParseEvent
     on_pagepicker_PDFlayout = pyqtSignal(object)  # PDFlayoutEvent
 
+    # 用于收集数据
+    # on_pagepicker_Browser_pageselected = pyqtSignal(object)#PagePickerBrowserPageSelectedEvent
+
     on_pagepicker_rightpart_pageread = pyqtSignal(object)  # PagePickerRightPartPageReadEvent
     # click还管别的
-    on_pagepicker_leftpart_pageclicked = pyqtSignal(object)  # PagePickerLeftPartPageClickedEvent
+    on_pagepicker_browser_pageclicked = pyqtSignal(object)  # PagePickerBrowserPageClickedEvent
     # select只管select
-    on_pagepicker_leftpart_select = pyqtSignal(object)  # PagePickerLeftPartSelectEvent
+    on_pagepicker_browser_select = pyqtSignal(object)  # PagePickerBrowserSelectEvent
 
-    on_pagepicker_leftpart_sceneClear = pyqtSignal(object)  # PagePickerLeftPartSceneClear
+    on_pagepicker_browser_sceneClear = pyqtSignal(object)  # PagePickerBrowserSceneClear
+
+    on_pagepicker_browser_select_send = pyqtSignal(object)  # PagePickerBrowserSelectSendEvent
+
+    on_pagepicker_preivewer_read_page = pyqtSignal(object)  # PagePickerPreviewerReadPageEvent
+
+    on_pagepicker_previewer_ratio_adjust = pyqtSignal(object)  # PagePickerPreviewerRatioAdjustEvent
 
     on_pageItem_clicked = pyqtSignal(object)  # PageItemClickEvent
     on_pageItem_clipbox_added = pyqtSignal(object)

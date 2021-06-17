@@ -49,6 +49,7 @@ class IMGDir:
         self.bookmark = Get._().img_dir("icon_book_mark.png")
         self.zoomin = Get._().img_dir("icon_zoom_in.png")
         self.zoomout = Get._().img_dir("icon_zoom_out.png")
+        self.download = Get._().img_dir("icon_download.png")
 
 
 if __name__ == "__main__":
