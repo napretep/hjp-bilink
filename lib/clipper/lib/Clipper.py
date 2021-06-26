@@ -1,5 +1,8 @@
 import sys
+import time
+from math import ceil
 
+from PyQt5 import QtGui
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtWidgets import QMainWindow, QWidget, QGraphicsScene, QHBoxLayout, QApplication, QShortcut
@@ -8,7 +11,7 @@ from .PDFView import PDFView
 from .PDFView_ import PageItem5
 from .PDFView_.PageItem_ import ClipBox_
 from .RightSideBar import RightSideBar
-from .tools import funcs, objs, events
+from .tools import funcs, objs, events, ALL
 
 
 class Clipper(QMainWindow):
@@ -17,13 +20,18 @@ class Clipper(QMainWindow):
         self.scene: 'QGraphicsScene'
         self.funcs: 'funcs' = funcs
         self.objs: 'objs' = objs
+        self.ALL = ALL
         self.events: 'events' = events
         self.viewlayout_mode = objs.JSONschema.viewlayout_mode
-        self.config = objs.SrcAdmin.get_json()
-        self.viewlayout_value = self.config["viewlayout_mode"]["value"]
-        self.viewlayoutcol_count = self.config["viewlayout_column_count"]["value"]
-        self.viewlayoutrow_count = self.config["viewlayout_row_count"]["value"]
+        self.config = objs.SrcAdmin.get_config("clipper")
+        self.clipboxstateshowed = False
+        # print(self.config)
+        self.viewlayout_value = self.config["viewlayout.mode"]["value"]
+        self.viewlayout_col_per_row = self.config["viewlayout.col_per_row"]["value"]
+        self.viewlayout_row_per_col = self.config["viewlayout.row_per_col"]["value"]
         self.pageItemList: 'list[PageItem5]' = []
+        # from ...obj.backlink_reader import BackLinkReader
+
         self.init_UI()
         self.init_signals()
         self.init_events()
@@ -37,10 +45,10 @@ class Clipper(QMainWindow):
         self.scene_pageitem_add(page)
 
     def init_signals(self):
-        self.on_clipbox_closed = objs.CustomSignals.start().on_clipbox_closed
-        self.on_pageItem_clicked = objs.CustomSignals.start().on_pageItem_clicked
-        self.on_pageItem_addToScene = objs.CustomSignals.start().on_pageItem_addToScene
-        self.on_pageItem_removeFromScene = objs.CustomSignals.start().on_pageItem_removeFromScene
+        self.on_clipbox_closed = ALL.signals.on_clipbox_closed
+        self.on_pageItem_clicked = ALL.signals.on_pageItem_clicked
+        self.on_pageItem_addToScene = ALL.signals.on_pageItem_addToScene
+        self.on_pageItem_removeFromScene = ALL.signals.on_pageItem_removeFromScene
 
     def init_events(self):
         self.resizeEvent = self.OnResize
@@ -48,19 +56,31 @@ class Clipper(QMainWindow):
         self.on_pageItem_clicked.connect(self.on_pageItem_clicked_handle)
         self.on_pageItem_addToScene.connect(self.on_pageItem_addToScene_handle)
         self.on_pageItem_removeFromScene.connect(self.on_pageItem_removeFromScene_handle)
-        objs.CustomSignals.start().on_rightSideBar_buttonGroup_clicked.connect(
+        ALL.signals.on_rightSideBar_buttonGroup_clicked.connect(
             self.on_rightSideBar_buttonGroup_clicked_handle
         )
+        ALL.signals.on_clipboxstate_switch.connect(self.on_clipboxstate_switch_handle)
 
     def init_shortcuts(self):
-        QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Tab), self,
-                  activated=lambda: objs.CustomSignals.start().on_clipper_hotkey_next_card.emit())
-        QShortcut(QKeySequence(Qt.CTRL + Qt.SHIFT + Qt.Key_Tab), self,
-                  activated=lambda: objs.CustomSignals.start().on_clipper_hotkey_prev_card.emit())
-        QShortcut(QKeySequence(Qt.CTRL + Qt.Key_A), self,
-                  activated=lambda: objs.CustomSignals.start().on_clipper_hotkey_setA.emit())
-        QShortcut(QKeySequence(Qt.CTRL + Qt.Key_Q), self,
-                  activated=lambda: objs.CustomSignals.start().on_clipper_hotkey_setQ.emit())
+        objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_Tab), self,
+                              activated=lambda: ALL.signals.on_clipper_hotkey_next_card.emit())
+        objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.SHIFT + Qt.Key_Tab), self,
+                              activated=lambda: ALL.signals.on_clipper_hotkey_prev_card.emit())
+        objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_A), self,
+                              activated=lambda: ALL.signals.on_clipper_hotkey_setA.emit())
+        objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_Q), self,
+                              activated=lambda: ALL.signals.on_clipper_hotkey_setQ.emit())
+
+    def keyReleaseEvent(self, event: QtGui.QKeyEvent) -> None:
+        if not event.modifiers() & Qt.ControlModifier:
+            if self.clipboxstateshowed:
+                e = events.ClipboxStateSwitchEvent
+                ALL.signals.on_clipboxstate_switch.emit(
+                    e(sender=self, eventType=e.hideType)
+                )
+            print("on_clipboxstate_hide emit")
+        else:
+            super().keyReleaseEvent(event)
 
     def init_UI(self):
         # 经验：QGraphicsView 必须放置在 QWidget 中， 才能和其他QWidget 保持正常的大小关系
@@ -90,6 +110,11 @@ class Clipper(QMainWindow):
         except_item.setZValue(len(self.pageItemList))
         pass
 
+    def on_clipboxstate_switch_handle(self, event: "events.ClipboxStateSwitchEvent"):
+        if event.Type == event.showedType:
+            self.clipboxstateshowed = True
+        self.activateWindow()
+
     def on_pageItem_clicked_handle(self, event: 'events.PageItemClickEvent'):
         self.scene_item_downgrade_z(event.pageitem)
         self.pageitem_unique_toolsbar(event.pageitem)
@@ -104,8 +129,12 @@ class Clipper(QMainWindow):
             if event.pageItem is not None:
                 self.scene_pageitem_add(event.pageItem)
         elif event.Type == event.addMultiPageType:
-            for pageitem in event.pageItemList:
-                self.scene_pageitem_add(pageitem)
+            l = len(event.pageItemList)
+            for i in range(l):
+                self.scene_pageitem_add(event.pageItemList[i])
+                ALL.signals.on_pagepicker_browser_progress.emit(ceil((i / l) * 100))
+                time.sleep(0.01)
+            ALL.signals.on_pagepicker_browser_progress.emit(100)
 
     def pageitem_moveto_oldpage_bottom(self, old_item: 'PageItem5', new_item: 'PageItem5'):
         new_pos = QPointF(old_item.x(), old_item.y() + old_item.boundingRect().height())
@@ -122,7 +151,7 @@ class Clipper(QMainWindow):
             self.pageitem_layout_arrange(pageitem)
         self.pageItemList.append(pageitem)
         self.scene.addItem(pageitem)
-        objs.CustomSignals.start().on_pageItem_needCenterOn.emit(events.PageItemNeedCenterOnEvent(
+        ALL.signals.on_pageItem_needCenterOn.emit(events.PageItemNeedCenterOnEvent(
             eventType=events.PageItemNeedCenterOnEvent.centerOnType,
             pageitem=pageitem))
 
@@ -152,7 +181,7 @@ class Clipper(QMainWindow):
     def pageitem_layout_arrange(self, pageitem):
         old_count = len(self.pageItemList)
         if self.viewlayout_value == self.viewlayout_mode.Horizontal:
-            row = self.viewlayoutcol_count
+            row = self.viewlayout_row_per_col
             rem = old_count % row
             if rem != 0:
                 olditem = self.pageItemList[-1]
@@ -162,7 +191,7 @@ class Clipper(QMainWindow):
                 self.pageitem_moveto_oldpage_left(olditem, pageitem)
             pass
         elif self.viewlayout_value == self.viewlayout_mode.Vertical:
-            col = self.viewlayoutrow_count
+            col = self.viewlayout_col_per_row
             rem = old_count % col
             if rem != 0:
                 olditem = self.pageItemList[-1]

@@ -36,7 +36,7 @@ from ..obj import MenuAdder
 from ...lib.obj.inputObj import *
 from ...lib.dialogs.UIdialog_Anchor import Ui_anchor
 from ...lib.obj.linkData_reader import LinkDataReader
-
+from ...lib.obj.languageObj import rosetta as say
 
 
 

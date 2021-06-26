@@ -6,7 +6,7 @@ from PyQt5.QtGui import QPainter, QIcon, QKeySequence
 from PyQt5.QtWidgets import QGraphicsView, QToolButton, QGraphicsProxyWidget, QGraphicsGridLayout, QGraphicsItem, \
     QShortcut, QApplication
 
-from .tools import events, objs
+from .tools import events, objs, ALL
 
 
 class PDFView(QGraphicsView):
@@ -37,33 +37,75 @@ class PDFView(QGraphicsView):
         self.init_shortcuts()
 
     def init_events(self):
-        objs.CustomSignals.start().on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
-        objs.CustomSignals.start().on_rightSideBar_buttonGroup_clicked.connect(
+        ALL.signals.on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
+        ALL.signals.on_rightSideBar_buttonGroup_clicked.connect(
             self.on_rightSideBar_buttonGroup_clicked_handle)
-        objs.CustomSignals.start().on_pageItem_needCenterOn.connect(self.on_pageItem_needCenterOn_handle)
+        ALL.signals.on_pageItem_needCenterOn.connect(self.on_pageItem_needCenterOn_handle)
+        ALL.signals.on_pageItem_centerOn_process.connect(self.on_pageItem_centerOn_process_handle)
+
+    def on_pageItem_centerOn_process_handle(self, event: "events.PageItemCenterOnProcessEvent"):
+        self.centerOn(event.centerpos)
 
     def on_rightSideBar_buttonGroup_clicked_handle(self, event: 'events.RightSideBarButtonGroupEvent'):
         if event.Type == event.resetViewRatioType:
             self.viewRatioReset()
 
+    def on_pageItem_needCenterOn_handle_(self, event: "events.PageItemNeedCenterOnEvent"):
+        if event.Type == event.centerOnType:
+            origin_pos = self.mapToScene(self.pos())
+            dest_pos = event.pageitem.mapToScene(event.pageitem.pos())
+            delta_pos = dest_pos - origin_pos
+
+            # hbar = self.horizontalScrollBar()
+            # vbar = self.verticalScrollBar()
+            # hbar.setValue(0)
+            # vbar.setValue(0)
+            # hbar.setValue(dest_pos.x())
+            # vbar.setValue(dest_pos.y())
+            self.update()
+
     def on_pageItem_needCenterOn_handle(self, event: "events.PageItemNeedCenterOnEvent"):
 
         if event.Type == event.centerOnType:
+            print(self.frameRect())
+            origin_center = QPointF(
+                self.pos().x() + self.frameRect().width() / 2,
+                self.pos().y() + self.frameRect().height() / 2
+            )
             item_center_pos = QPointF(
                 event.pageitem.pos().x() + self.width() / 2,
                 event.pageitem.pos().y() + self.height() / 2
             )
-            self.centerOn(item_center_pos)
+            count = 15
+            deltapoint = item_center_pos - origin_center
+
+            for i in range(count):
+                QApplication.processEvents()
+                centerpos = QPointF(
+                    origin_center.x() + deltapoint.x() / count * i,
+                    origin_center.y() + deltapoint.y() / count * i
+                )
+                e = events.PageItemCenterOnProcessEvent
+                ALL.signals.on_pageItem_centerOn_process.emit(
+                    e(centerpos=centerpos)
+                )
+                time.sleep(0.001)
+            # QApplication.processEvents()
+            # self.centerOn(item_center_pos)
 
     def on_pageItem_resize_event_handle(self, event: "events.PageItemResizeEvent"):
         """无论是全屏,还是恢复,都需要centerOn"""
-        item_center_pos = event.pageItem.pos()
-        item_center_pos = QPointF(
-            (event.pageItem.pos().x() + self.width() / 2),
-            event.pageItem.pos().y() + self.height() / 2
+        e = events.PageItemNeedCenterOnEvent
+        ALL.signals.on_pageItem_needCenterOn.emit(
+            e(eventType=e.centerOnType, pageitem=event.pageItem)
         )
-        self.centerOn(item_center_pos)
-        # self.view_moveto_pos(item_center_pos)
+        # item_center_pos = event.pageItem.pos()
+        # item_center_pos = QPointF(
+        #     (event.pageItem.pos().x() + self.width() / 2),
+        #     event.pageItem.pos().y() + self.height() / 2
+        # )
+        # self.centerOn(item_center_pos)
+        # # self.view_moveto_pos(item_center_pos)
 
         pass
 
@@ -77,6 +119,12 @@ class PDFView(QGraphicsView):
         QShortcut(QKeySequence("ctrl+="), self, activated=lambda: self.scale(1.1, 1.1))
 
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        if (event.modifiers() & Qt.ControlModifier) and (event.modifiers() & Qt.ShiftModifier):
+            self.setInteractive(False)
+            super().mousePressEvent(event)
+        else:
+            self.setInteractive(True)
+            super().mousePressEvent(event)
         # self.scroll(10,10)
         # modifiers = QApplication.keyboardModifiers()
         # if (modifiers & Qt.ControlModifier) and (modifiers & Qt.ShiftModifier):
@@ -86,7 +134,7 @@ class PDFView(QGraphicsView):
         #     # print(f"鼠标点击----------------------\n位置{self.begin_drag_pos}")
         # else:
         #     # self.centerOn(event.pos())
-        super().mousePressEvent(event)
+        #     super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
         # modifiers = QApplication.keyboardModifiers()
@@ -115,12 +163,12 @@ class PDFView(QGraphicsView):
             if event.angleDelta().y() > 0:
                 self.scale(1.1, 1.1)
                 self.reset_ratio_value *= 1.1
-                objs.CustomSignals.start().on_PDFView_ResizeView.emit(
+                ALL.signals.on_PDFView_ResizeView.emit(
                     e(eventType=e.zoomInType, pdfview=self, ratio=self.reset_ratio_value))
             else:
                 self.scale(1 / 1.1, 1 / 1.1)
                 self.reset_ratio_value /= 1.1
-                objs.CustomSignals.start().on_PDFView_ResizeView.emit(
+                ALL.signals.on_PDFView_ResizeView.emit(
                     e(eventType=e.zoomOutType, pdfview=self, ratio=self.reset_ratio_value))
         else:
             super().wheelEvent(event)
@@ -129,7 +177,7 @@ class PDFView(QGraphicsView):
     def viewRatioReset(self):
         self.scale(1 / self.reset_ratio_value, 1 / self.reset_ratio_value)
         e = events.PDFViewResizeViewEvent
-        objs.CustomSignals.start().on_PDFView_ResizeView.emit(
+        ALL.signals.on_PDFView_ResizeView.emit(
             e(eventType=e.RatioResetType, pdfview=self, ratio=1 / self.reset_ratio_value))
         self.reset_ratio_value = 1
 

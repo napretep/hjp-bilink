@@ -1,8 +1,10 @@
+import os
+
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QIcon, QResizeEvent
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QGridLayout, QHBoxLayout, QSizePolicy, QApplication, QMainWindow
-from .tools import objs, funcs, events
+from .tools import objs, funcs, events, ALL
 from . import PagePicker_
 from .fitz import fitz
 
@@ -22,6 +24,9 @@ class PagePicker(QDialog):
         self.frompageitem = frompageitem
         self.pageNum = pageNum
         self.bookmark_opened = False
+        # self.setFixedSize(1300, 600)
+        self.setFixedWidth(1300)
+        self.setFixedHeight(700)
         self.browser = PagePicker_.Browser(parent=self)
         self.rightpart = PagePicker_.Previewer(parent=self)
         self.bookmark = PagePicker_.BookMark(parent=self)
@@ -32,7 +37,6 @@ class PagePicker(QDialog):
         self.setWindowFlags(Qt.WindowCloseButtonHint)
         self.init_UI()
         self.init_events()
-        self.setFixedSize(1300, 900)
         self.show()
         # self.bookmark.resize(100,500)
         # self.bookmark.move(self.pos().x()-self.bookmark.maximumWidth(),self.pos().y())
@@ -66,32 +70,37 @@ class PagePicker(QDialog):
         print(self.size())
         self.origin_size = self.size()
         self.setMaximumWidth(QApplication.desktop().width())
+        self.setMaximumHeight(QApplication.desktop().height())
         pass
 
     def start(self, beginpage):
         e = events.PDFOpenEvent
-        objs.CustomSignals.start().on_pagepicker_PDFopen.emit(e(sender=self, beginpage=beginpage,
-                                                                path=self.pdfDir, eventType=e.PDFReadType))
+        ALL.signals.on_pagepicker_PDFopen.emit(e(sender=self, beginpage=beginpage,
+                                                 path=self.pdfDir, eventType=e.PDFReadType))
 
     def init_events(self):
-        objs.CustomSignals.start().on_pagepicker_close.connect(self.on_pagepicker_close_handle)
-        objs.CustomSignals.start().on_pagepicker_PDFopen.connect(self.on_pagepicker_PDFopen_handle)
-        objs.CustomSignals.start().on_pagepicker_bookmark_open.connect(self.on_pagepicker_openBookmark_handle)
+        ALL.signals.on_pagepicker_close.connect(self.on_pagepicker_close_handle)
+        ALL.signals.on_pagepicker_PDFopen.connect(self.on_pagepicker_PDFopen_handle)
+        ALL.signals.on_pagepicker_bookmark_open.connect(self.on_pagepicker_openBookmark_handle)
 
     def on_pagepicker_openBookmark_handle(self, event: 'events.OpenBookmarkEvent'):
         # self.setMaximumWidth(QApplication.desktop().width())
         self.bookmark_switch()
         self.setMaximumWidth(QApplication.desktop().width())
+        self.setMaximumHeight(QApplication.desktop().height())
 
     def bookmark_switch(self):
         if self.bookmark_opened != True:
             self.bookmark.show()
-            self.setFixedSize(self.size().width() + self.bookmark.width(), self.size().height())
+            # self.setFixedSize(self.size().width() + self.bookmark.width(), self.size().height())
+            self.setFixedWidth(self.size().width() + self.bookmark.width())
             self.move(self.x() - self.bookmark.width() - 8, self.y())
+
             self.bookmark_opened = True
         else:
             self.bookmark.hide()
-            self.setFixedSize(self.size().width() - self.bookmark.width(), self.size().height())
+            # self.setFixedSize(self.size().width() - self.bookmark.width(), self.size().height())
+            self.setFixedWidth(self.size().width() - self.bookmark.width())
             self.move(self.x() + self.bookmark.width() + 8, self.y())
             self.bookmark_opened = False
 
@@ -99,10 +108,13 @@ class PagePicker(QDialog):
         self.close()
 
     def on_pagepicker_PDFopen_handle(self, event: "events.PDFOpenEvent"):
-        if event.Type == event.PDFReadType and event.path != "" and event.path is not None:
-            self.doc = fitz.open(event.path)
+        if event.Type == event.PDFReadType and event.path is not None and os.path.exists(
+                event.path) and event.beginpage is not None:
+            self.doc: "fitz.Document" = fitz.open(event.path)
+            # print(f"xref={self.doc.xref_xml_metadata()}")
+            # if self.doc.xref_xml_metadata()!=0:
             e = events.PDFParseEvent
-            objs.CustomSignals.start().on_pagepicker_PDFparse.emit(
+            ALL.signals.on_pagepicker_PDFparse.emit(
                 e(sender=self, eventType=e.PDFInitParseType, path=event.path, doc=self.doc, pagenum=event.beginpage))
 
     def ratio_value_get(self):

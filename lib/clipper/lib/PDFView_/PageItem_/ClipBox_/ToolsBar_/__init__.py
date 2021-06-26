@@ -79,7 +79,7 @@ class CloseButton(QGraphicsProxyWidget):
 
     def init_signals(self):
         self.on_clipbox_closed = \
-            self.toolsbar.cardlist.rightsidebar.clipper.objs.CustomSignals.start().on_clipbox_closed
+            self.toolsbar.cardlist.rightsidebar.clipper.ALL.signals.on_clipbox_closed
 
     def init_data(self):
         self.closeButton.setIcon(QIcon(self.imgDir.close))
@@ -190,11 +190,11 @@ class CardCombox(QGraphicsProxyWidget):
 
     def init_signal(self):
         self.on_cardlist_dataChanged = \
-            self.toolsbar.cardlist.rightsidebar.clipper.objs.CustomSignals.start().on_cardlist_dataChanged
+            self.toolsbar.cardlist.rightsidebar.clipper.ALL.signals.on_cardlist_dataChanged
         self.on_clipbox_closed = \
-            self.toolsbar.cardlist.rightsidebar.clipper.objs.CustomSignals.start().on_clipbox_closed
+            self.toolsbar.cardlist.rightsidebar.clipper.ALL.signals.on_clipbox_closed
         self.on_clipboxCombox_updated = \
-            self.toolsbar.cardlist.rightsidebar.clipper.objs.CustomSignals.start().on_clipboxCombox_updated
+            self.toolsbar.cardlist.rightsidebar.clipper.ALL.signals.on_clipboxCombox_updated
 
     def init_events(self):
         self.cardCombox.currentIndexChanged.connect(self.on_CardComboxIndexChanged_handle)
@@ -230,7 +230,7 @@ class CardCombox(QGraphicsProxyWidget):
             t = item.text()
             self.cardCombox.addItem(t, userData=item.hash)
         if self.cardCombox.count() == 0 and not self.cardlistchanging:
-            self.toolsbar.cardlist.on_addButton_clicked()  # 这里是不得不使用的功能,无法改写成订阅模式,因为需要顺序执行
+            self.toolsbar.cardlist.on_addButton_clicked_handle()  # 这里是不得不使用的功能,无法改写成订阅模式,因为需要顺序执行
             self.data_update()
         self.update()
         pass

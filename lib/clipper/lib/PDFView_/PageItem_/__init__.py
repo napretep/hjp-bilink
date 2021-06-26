@@ -10,9 +10,9 @@ from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsPixmapItem, QApplicatio
     QGraphicsGridLayout, QToolButton, QGraphicsAnchorLayout, QComboBox, QGraphicsSceneMouseEvent
 
 from ...tools.funcs import pixmap_page_load, str_shorten
-from ...tools.objs import CustomSignals, SrcAdmin
+from ...tools.objs import SrcAdmin
 from ...tools.events import PageItemDeleteEvent, PageItemAddToSceneEvent, PageItemChangeEvent, PageItemResizeEvent
-from ...tools import events, objs, funcs
+from ...tools import events, objs, funcs, ALL
 from ...PageInfo import PageInfo
 from . import ClipBox_
 from ...PagePicker import PagePicker
@@ -412,7 +412,7 @@ class ClipBox2(QGraphicsRectItem):
 class PageView(QGraphicsPixmapItem):
     """只需要pixmap就够了"""
 
-    def __init__(self, pageinfo: 'PageInfo', pageitem: 'PageItem5' = None):
+    def __init__(self, pageinfo: 'PageInfo', pageitem: 'PageItem5' = None, ratio=None):
         super().__init__(pageinfo.pagepixmap)
         self.clipBoxList: 'list[ClipBox2]' = []
         self.pageinfo = pageinfo
@@ -421,26 +421,27 @@ class PageView(QGraphicsPixmapItem):
         self.init_signals()
         self.init_events()
         self._delta = 0.1
-        self.ratio = 1
+        self.ratio = 1 if ratio is None else ratio
         self.viewratio = 1
         self.width = self.pixmap().width()
         self.height = self.pixmap().height()
         self.start_width = self.width
         self.start_height = self.height
-
+        if self.ratio != 1:
+            self.zoom(self.ratio)
         # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
 
     def init_signals(self):
-        self.on_clipbox_closed = CustomSignals.start().on_clipbox_closed
-        self.on_pageItem_clipbox_added = CustomSignals.start().on_pageItem_clipbox_added
-        self.on_pageItem_changePage = CustomSignals.start().on_pageItem_changePage
-        self.on_pageItem_resize_event = CustomSignals.start().on_pageItem_resize_event
+        self.on_clipbox_closed = ALL.signals.on_clipbox_closed
+        self.on_pageItem_clipbox_added = ALL.signals.on_pageItem_clipbox_added
+        self.on_pageItem_changePage = ALL.signals.on_pageItem_changePage
+        self.on_pageItem_resize_event = ALL.signals.on_pageItem_resize_event
 
     def init_events(self):
         self.on_clipbox_closed.connect(self.pageview_clipbox_remove)
         self.on_pageItem_changePage.connect(self.on_pageItem_changePage_handle)
         self.on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
-        # objs.CustomSignals.start().on_PDFView_ResizeView.connect(self.on_PDFView_ResizeView_handle)
+        # objs.ALL.signals.on_PDFView_ResizeView.connect(self.on_PDFView_ResizeView_handle)
 
     # def on_PDFView_ResizeView_handle(self,event:"events.PDFViewResizeViewEvent"):
     #     self.keep_resolution_from_resize(event.ratio)
@@ -475,7 +476,7 @@ class PageView(QGraphicsPixmapItem):
 
     def pageinfo_read(self, pageinfo):
         self.pageinfo = pageinfo
-        self.setPixmap(pageinfo.pagepixmap)
+        self.zoom(self.ratio)
 
     def add_round(self):
         round = QGraphicsRectItem(QRectF(self.pixmap().rect()), parent=self)
@@ -486,10 +487,10 @@ class PageView(QGraphicsPixmapItem):
         modifiers = QApplication.keyboardModifiers()
         if self.contains(event.pos()) and modifiers == QtCore.Qt.ControlModifier:
             self.pageview_clipbox_add(event.pos())
-
-        # print(f"pixmap_pos={event.pos()}")
-        print(self.pageitem.zValue())
-        super().mousePressEvent(event)
+        elif event.modifiers() == (Qt.ShiftModifier & Qt.ControlModifier):
+            print("天地在我心")
+        else:
+            super().mousePressEvent(event)
 
     def pageview_clipbox_add(self, pos):
         """顺带解决"""
@@ -623,10 +624,10 @@ class ToolsBar2(QGraphicsWidget):
         p.update()
 
     def init_signals(self):
-        self.on_pageItem_removeFromScene = CustomSignals.start().on_pageItem_removeFromScene
-        self.on_pageItem_addToScene = CustomSignals.start().on_pageItem_addToScene
-        self.on_pageItem_changePage = CustomSignals.start().on_pageItem_changePage
-        self.on_pageItem_resize_event = CustomSignals.start().on_pageItem_resize_event
+        self.on_pageItem_removeFromScene = ALL.signals.on_pageItem_removeFromScene
+        self.on_pageItem_addToScene = ALL.signals.on_pageItem_addToScene
+        self.on_pageItem_changePage = ALL.signals.on_pageItem_changePage
+        self.on_pageItem_resize_event = ALL.signals.on_pageItem_resize_event
 
     def init_events(self):
         self.on_pageItem_changePage.connect(self.on_pageItem_changePage_handle)
@@ -656,26 +657,26 @@ class ToolsBar2(QGraphicsWidget):
         if self.pageinfo.pagenum + 1 == len(self.pageinfo.doc):
             return
         modifiers = QApplication.keyboardModifiers()
-        self._on_button_prev_next_page_handle(modifiers, self.pageinfo.doc.name, self.pageinfo.pagenum + 1)
+        self._on_button_prev_next_page_handle(modifiers, self.pageinfo, 1)
 
     def on_button_prevpage_clicked_handle(self):
         if self.pageinfo.pagenum - 1 == -1:
             return
         modifiers = QApplication.keyboardModifiers()
-        self._on_button_prev_next_page_handle(modifiers, self.pageinfo.doc.name, self.pageinfo.pagenum - 1)
+        self._on_button_prev_next_page_handle(modifiers, self.pageinfo, - 1)
         pass
 
-    def _on_button_prev_next_page_handle(self, modifiers, docname, pagenum):
+    def _on_button_prev_next_page_handle(self, modifiers, pageinfo: "PageInfo", pagenum_delta):
+        pageinfo = PageInfo(pageinfo.doc.name, pageinfo.pagenum + pagenum_delta, pageinfo.ratio)
+        pageview_ratio = self.pageitem.pageview.ratio
         if modifiers == QtCore.Qt.ControlModifier:
-            pageinfo = PageInfo(docname, pagenum=pagenum)
             self.on_pageItem_changePage.emit(
                 PageItemChangeEvent(pageInfo=pageinfo, pageItem=self.pageitem,
                                     eventType=PageItemChangeEvent.updateType))
-
         else:
             from .. import PageItem5
-            pageitem = PageItem5(PageInfo(docname, pagenum=pagenum),
-                                 rightsidebar=self.pageitem.rightsidebar)
+            pageitem = PageItem5(pageinfo, rightsidebar=self.pageitem.rightsidebar, pageview_ratio=pageview_ratio)
+
             self.on_pageItem_addToScene.emit(
                 PageItemAddToSceneEvent(pageItem=pageitem, eventType=PageItemAddToSceneEvent.addPageType))
 
@@ -686,6 +687,7 @@ class ToolsBar2(QGraphicsWidget):
     def on_button_pageinfo_clicked_handle(self):
         p = PagePicker(pdfDirectory=self.pageinfo.doc.name, frompageitem=self.pageitem,
                        pageNum=self.pageinfo.pagenum, clipper=self.pageitem.rightsidebar.clipper)
+        p.start(self.pageinfo.pagenum)
         p.exec()
         pass
 

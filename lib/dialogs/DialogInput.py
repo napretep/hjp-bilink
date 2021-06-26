@@ -8,7 +8,7 @@ from ...lib.obj.inputObj import *
 from .DialogCardPrev import external_card_dialog
 from ..obj.utils import Config
 from .metaUIobj import SpecialTreeItem, item_insert_rows
-
+from ..obj.languageObj import rosetta as say
 
 class InputDialog(QDialog, Ui_input):
     """INPUT对话窗口类"""

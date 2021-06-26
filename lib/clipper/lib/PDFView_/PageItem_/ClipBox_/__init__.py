@@ -12,7 +12,6 @@ from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsLineItem, QGraphicsItem
 # from .. import ClipBox2
 from aqt.utils import showInfo
 
-from ....tools.objs import CustomSignals
 from ....RightSideBar_ import CardList
 from .ToolsBar_ import QAButton, CloseButton, EditQAbutton, LineEdit, CardCombox
 

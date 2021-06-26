@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsProxyWidget,
     QCheckBox, QHBoxLayout, QGraphicsSceneMouseEvent, QGraphicsItem, QRubberBand, QStyleOptionGraphicsItem, \
     QGraphicsPixmapItem, QGraphicsTextItem, QGraphicsRectItem, QApplication, QProgressBar, QToolButton
 from PyQt5.QtCore import Qt, QRect, QSize, QRectF, QThread, pyqtSignal, QPointF, QPoint, QSizeF
-from ..tools import objs, events, funcs
+from ..tools import objs, events, funcs, ALL
 
 
 def frame_partition(cols_per_row, view_size: "QSize", shift_width, total_unit_num=1, _total_list=None) -> object:
@@ -180,7 +180,6 @@ class PageInitLoadJob(QThread):
 
     def run(self) -> None:
         self.on_job_begin.emit()
-
         if self.frame_list is None:  # 如果为空则重建
             self.unit_size, self.row_per_frame, self.frame_list = frame_partition(
                 self.col_per_row, self.view_size, self.shift_width, total_unit_num=len(self.doc))
@@ -189,7 +188,6 @@ class PageInitLoadJob(QThread):
 
         main_frame_num = self.frame_idx if self.frame_idx is not None \
             else int(self.begin_page / (self.row_per_frame * self.col_per_row))
-        # print(main_frame_num)
         if self.frame_list[main_frame_num][0] is None:  # 如果一帧的开头为空,说明还未初始化,需要初始化
             for frame_item_idx in range(len(self.frame_list[main_frame_num])):
                 d = browser_pageinfo_make(main_frame_num, frame_item_idx, self.row_per_frame, self.col_per_row,
@@ -236,7 +234,7 @@ class SelectedRect(QGraphicsRectItem):
 class Item2(QGraphicsPixmapItem):
     def __init__(self, parent=None, pixmap: "QPixmap" = None, pagenum=None, unit_size=None):
         super().__init__(parent=parent)
-        self.hash = hash(time.time())
+        self.hash = funcs.base64(int(time.time() * 100000000))
         self._pixmap = pixmap
         self.is_selected = False
         self.multi_select = False
@@ -260,7 +258,7 @@ class Item2(QGraphicsPixmapItem):
         return self.pagenum == other.pagenum
 
     def init_events(self):
-        objs.CustomSignals.start().on_pagepicker_browser_select.connect(
+        ALL.signals.on_pagepicker_browser_select.connect(
             self.on_pagepicker_browser_select_handle
         )
         pass
@@ -276,22 +274,22 @@ class Item2(QGraphicsPixmapItem):
         e = events.PagePickerBrowserSelectEvent
         if event.modifiers() == Qt.ControlModifier:
             self.multi_select = True
-            objs.CustomSignals.start().on_pagepicker_browser_select.emit(
+            ALL.signals.on_pagepicker_browser_select.emit(
                 e(sender=self, item=self, eventType=e.multiSelectType))
         else:
             self.multi_select = False
             # 因为非多选,所以取消掉多选
-            objs.CustomSignals.start().on_pagepicker_browser_select.emit(e(sender=self, item=self))
-            objs.CustomSignals.start().on_pagepicker_browser_select.emit(
+            ALL.signals.on_pagepicker_browser_select.emit(e(sender=self, item=self))
+            ALL.signals.on_pagepicker_browser_select.emit(
                 e(sender=self, eventType=e.singleSelectType, item=self))
         e = events.PagePickerPreviewerReadPageEvent
-        objs.CustomSignals.start().on_pagepicker_preivewer_read_page.emit(
+        ALL.signals.on_pagepicker_preivewer_read_page.emit(
             e(sender=self, eventType=e.loadType, pagenum=self.pagenum))
         super().mousePressEvent(event)
 
     def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         e = events.PagePickerBrowserSelectSendEvent
-        objs.CustomSignals.start().on_pagepicker_browser_select_send.emit(
+        ALL.signals.on_pagepicker_browser_select_send.emit(
             e(sender=self, eventType=e.overWriteType, pagenumlist=[self.pagenum])
         )
 
@@ -349,7 +347,7 @@ class Item2(QGraphicsPixmapItem):
         if self.scene() is not None and len(self.scene().selectedItems()) > 0 \
                 and self.scene().selectedItems()[-1].pagenum == self.pagenum \
                 and self.scene().browser.pagepicker.current_preview_pagenum != self.pagenum:
-            objs.CustomSignals.start().on_pagepicker_preivewer_read_page.emit(self.pagenum)
+            ALL.signals.on_pagepicker_preivewer_read_page.emit(self.pagenum)
 
     #
 
@@ -368,9 +366,9 @@ class Scene(QGraphicsScene):
         self.init_events()
 
     def init_events(self):
-        objs.CustomSignals.start().on_pagepicker_browser_sceneClear.connect(
+        ALL.signals.on_pagepicker_browser_sceneClear.connect(
             self.on_pagepicker_browser_sceneClear_handle)
-        objs.CustomSignals.start().on_pagepicker_browser_select.connect(self.on_pagepicker_browser_select_handle)
+        ALL.signals.on_pagepicker_browser_select.connect(self.on_pagepicker_browser_select_handle)
 
     def on_pagepicker_browser_select_handle(self, event: "events.PagePickerBrowserSelectEvent"):
         if event.collectType == event.Type:
@@ -378,7 +376,7 @@ class Scene(QGraphicsScene):
             pagenumlist.sort()
             print(pagenumlist)
             e = events.PagePickerBrowserSelectSendEvent
-            objs.CustomSignals.start().on_pagepicker_browser_select_send.emit(
+            ALL.signals.on_pagepicker_browser_select_send.emit(
                 e(sender=self, eventType=e.appendType, pagenumlist=pagenumlist)
             )
 
@@ -409,7 +407,7 @@ class View(QGraphicsView):
         self.init_events()
 
     def init_events(self):
-        objs.CustomSignals.start().on_pagepicker_PDFparse.connect(self.on_pagepicker_PDFparse_handle)
+        ALL.signals.on_pagepicker_PDFparse.connect(self.on_pagepicker_PDFparse_handle)
         # self.rubberBandChanged.connect(self.on_rubberBandChanged_handle)
 
     def on_pagepicker_PDFparse_handle(self, event: "events.PDFParseEvent"):
@@ -453,7 +451,7 @@ class View(QGraphicsView):
                 height_per_frame = self.browser.row_per_frame * self.browser.unit_size
                 count_per_frame = self.browser.row_per_frame * self.browser.col_per_row
                 frame_item_first = int(self.mapToScene(self.pos()).y() / height_per_frame) * count_per_frame
-                objs.CustomSignals.start().on_pagepicker_PDFparse.emit(
+                ALL.signals.on_pagepicker_PDFparse.emit(
                     e(sender=self, eventType=e.PDFInitParseType,
                       doc=self.browser.pagepicker.doc, pagenum=frame_item_first)
                 )
@@ -484,7 +482,7 @@ class View(QGraphicsView):
                 at_frame_idx += 1
         if -1 < at_frame_idx < len(self.browser.pagepicker.doc) and self.browser.frame_list[at_frame_idx][0] is None:
             e = events.PDFParseEvent
-            objs.CustomSignals.start().on_pagepicker_PDFparse.emit(
+            ALL.signals.on_pagepicker_PDFparse.emit(
                 e(eventType=e.ScrollType, doc=self.browser.pagepicker.doc, frame_idx=at_frame_idx)
             )
 
@@ -512,10 +510,14 @@ class BottomBar(QWidget):
 
     def init_events(self):
         self.pick_page_button.clicked.connect(self.pick_page_button_clicked_handle)
+        ALL.signals.on_pagepicker_browser_progress.connect(self.on_pagepicker_browser_progress_handle)
+
+    def on_pagepicker_browser_progress_handle(self, value):
+        self.progressBar.widget.setValue(value)
 
     def pick_page_button_clicked_handle(self):
         e = events.PagePickerBrowserSelectEvent
-        objs.CustomSignals.start().on_pagepicker_browser_select.emit(
+        ALL.signals.on_pagepicker_browser_select.emit(
             e(sender=self, eventType=e.collectType)
         )
         pass

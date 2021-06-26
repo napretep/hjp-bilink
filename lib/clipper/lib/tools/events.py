@@ -1,3 +1,36 @@
+class AllEvent:
+    def __init__(self, sender=None, eventType=None):
+        self.sender = sender
+        self.Type = eventType
+
+
+class CardListAddCardEvent:
+    parseStrType = 0
+    returnPairLiType = 1
+    newCardType = 2
+
+    def __init__(self, sender=None, eventType=None, html=None, pairli=None):
+        self.sender = sender
+        self.eventType = eventType if eventType is not None else self.parseStrType
+        self.html = html
+        self.pairli = pairli
+
+
+class ClipboxStateSwitchEvent(AllEvent):
+    showType = 0
+    hideType = 1
+    showedType = 3
+    hiddenType = 4
+
+    def __init__(self, sender=None, eventType=None):
+        super().__init__(sender, eventType)
+
+
+class PageItemCenterOnProcessEvent:
+    def __init__(self, centerpos=None):
+        self.centerpos = centerpos
+
+
 class PagePickerPreviewerRatioAdjustEvent:
     ZoomInType = 0
     ZoomOutType = 1

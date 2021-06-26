@@ -247,9 +247,10 @@ gui_hooks.webview_will_show_context_menu.append(func_add_webviewcontextmenu)
 gui_hooks.webview_did_receive_js_message.append(on_js_message)
 
 from .lib.clipper.lib.Clipper import Clipper
-from .lib.clipper.lib.PDFView_ import PageItem5
-from .lib.clipper.lib.PageInfo import PageInfo
-from .lib.clipper.lib.tools import events, objs, funcs
+from .lib.obj.tools import events, objs, funcs, ALL
+from .lib.obj import ModuleProxy
+
+ALL.signals.on_cardlist_addCard.connect(ModuleProxy.on_cardlist_addCard_handle)
 
 clipper = Clipper()
 # pageitem = PageItem5(PageInfo("./resource/徐森林_数学分析_第8章.pdf", 0), rightsidebar=clipper.rightsidebar)

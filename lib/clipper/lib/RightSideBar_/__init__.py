@@ -2,16 +2,28 @@ import os
 
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QToolButton, QTreeView, QApplication
-from PyQt5.QtCore import Qt, QRect, QItemSelectionModel, pyqtSignal
+from PyQt5.QtCore import Qt, QRect, QItemSelectionModel, pyqtSignal, QTimer
 
 from ..PDFView_.PageItem_ import ClipBox_
 from ..PDFView_ import PageItem_
 from . import PageList_, CardList_
 from ..tools.funcs import str_shorten, index_from_row
 from ..tools.objs import CustomSignals
-from ..tools import events
+from ..tools import events, funcs, ALL
 from ..tools import objs
 from ..PagePicker import PagePicker
+
+
+def show_clipbox_state():
+    e = events.ClipboxStateSwitchEvent
+    ALL.signals.on_clipboxstate_switch.emit(e(eventType=e.showType))
+
+
+def clipboxstate_switch_done(show=True):
+    e = events.ClipboxStateSwitchEvent
+    ALL.signals.on_clipboxstate_switch.emit(
+        e(eventType=e.showedType if show else e.hiddenType)
+    )
 
 
 class PageList(QWidget):
@@ -63,9 +75,9 @@ class PageList(QWidget):
         self.listView.setColumnWidth(1, 10)
 
     def init_signals(self):
-        self.on_pageItem_addToScene = CustomSignals.start().on_pageItem_addToScene
-        self.on_pageItem_removeFromScene = CustomSignals.start().on_pageItem_removeFromScene
-        self.on_pageItem_changePage = CustomSignals.start().on_pageItem_changePage
+        self.on_pageItem_addToScene = ALL.signals.on_pageItem_addToScene
+        self.on_pageItem_removeFromScene = ALL.signals.on_pageItem_removeFromScene
+        self.on_pageItem_changePage = ALL.signals.on_pageItem_changePage
 
     def init_event(self):
         self.addButton.clicked.connect(self.openDialogPDFOpen)
@@ -104,13 +116,8 @@ class PageList(QWidget):
             pagenum = int(item[1].text())
             pageitem = item[0].data(Qt.UserRole)
         else:
-            count = self.model.rowCount()
-            if count > 0:
-                PDFpath = self.model.item(count - 1, 0).toolTip()
-                pagenum = int(self.model.item(count - 1, 1).text())
-            else:
-                PDFpath = ""
-                pagenum = 0
+            PDFpath = None
+            pagenum = None
         P = PagePicker(pdfDirectory=PDFpath, pageNum=pagenum, frompageitem=pageitem,
                        clipper=self.rightsidebar.clipper)
         P.start(pagenum)
@@ -178,6 +185,7 @@ class CardList(QWidget):
         self.cardHashDict: 'dict[int,list[CardList_.DescItem,CardList_.CardItem]]' = {}
         self.rightsidebar = rightsidebar
         self.newcardcount = 0
+        self.ClipboxState = None
         self.init_UI()
         self.init_model()
         self.init_signals()
@@ -195,13 +203,14 @@ class CardList(QWidget):
             if clipbox in self.cardHashDict[hash_][0].clipBoxList:
                 self.cardHashDict[hash_][0].clipBoxList.remove(clipbox)
 
-    def on_addButton_clicked(self):
-        self.rightsidebar.card_list_add()
+    def on_addButton_clicked_handle(self):
+        d = CardList_.CardPicker(cardlist=self)
+        d.exec_()
 
-    def on_delButton_clicked(self):
+    def on_delButton_clicked_handle(self):
         self.rightsidebar.card_list_select_del()
 
-    def on_listView_clicked(self, index):
+    def on_listView_clicked_handle(self, index):
         item = self.model.itemFromIndex(index)
         if item.column() == 0:
             print(item.clipBoxList)
@@ -219,25 +228,33 @@ class CardList(QWidget):
         """added信号"""
         self.card_clipboxlist_add(event.clipbox, event.cardhash)
 
+    def newcard_signal_emit(self):
+        e = events.CardListAddCardEvent
+        ALL.signals.on_cardlist_addCard.emit(
+            e(sender=self, eventType=e.newCardType)
+        )
+
     def on_clipper_hotkey_next_card_handle(self):
         """1看有没有卡, 2看有没有选中"""
         rowcount = self.model.rowCount()
         idxLi = self.listView.selectedIndexes()
         if rowcount == 0:  # 没有卡片
-            self.rightsidebar.card_list_add()
+            self.newcard_signal_emit()
             desc, card_id = self.model.item(0, 0), self.model.item(0, 1)
         else:
             if len(idxLi) > 0:  # 如有选中,走下一行
                 row = [self.model.itemFromIndex(idx) for idx in idxLi[-2:]]
                 if row[0].row() + 1 >= self.model.rowCount():
-                    self.rightsidebar.card_list_add()
+                    self.newcard_signal_emit()
                 desc, card_id = self.model.item(row[0].row() + 1, 0), self.model.item(row[0].row() + 1, 1)
                 pass
             else:  # 如无选中,新建一行
-                self.rightsidebar.card_list_add()
+                self.newcard_signal_emit()
                 desc, card_id = self.model.item(self.model.rowCount(), 0), self.model.item(self.model.rowCount(), 1)
         self.listView.selectionModel().clearSelection()
         self.listView.selectionModel().select(index_from_row(self.model, [desc, card_id]), QItemSelectionModel.Select)
+        e = events.ClipboxStateSwitchEvent
+        show_clipbox_state()
 
     def on_clipper_hotkey_prev_card_handle(self):
         rowcount = self.model.rowCount()
@@ -255,14 +272,31 @@ class CardList(QWidget):
         self.listView.selectionModel().clearSelection()
         self.listView.selectionModel().select(index_from_row(self.model, [desc, card_id]), QItemSelectionModel.Select)
 
+        show_clipbox_state()
+
+    def on_clipboxstate_switch_handle(self, event: "events.ClipboxStateSwitchEvent"):
+        """clipboxstate"""
+        print("activated")
+        if event.Type == event.showType:
+            if self.ClipboxState is not None:
+                self.ClipboxState.data_update()
+            else:
+                self.ClipboxState = CardList_.ClipboxState(parent=self)
+            self.ClipboxState.show()
+            clipboxstate_switch_done()
+        elif event.Type == event.hideType:
+            self.ClipboxState.hide()
+            clipboxstate_switch_done(False)
+        pass
+
     def init_model(self):
         self.model = QStandardItemModel()
         self.model_rootNode = self.model.invisibleRootItem()
         self.model_rootNode.character = "root"
         self.model_rootNode.level = -1
         self.model_rootNode.primData = None
-        label_id = CardList_.CardItem("card_id")
-        label_desc = CardList_.DescItem("desc")
+        label_id = CardList_.CardItem("card_id", cardlist=self)
+        label_desc = CardList_.DescItem("desc", cardlist=self)
         self.model.setHorizontalHeaderItem(1, label_id)
         self.model.setHorizontalHeaderItem(0, label_desc)
         self.listView.setModel(self.model)
@@ -271,19 +305,25 @@ class CardList(QWidget):
         self.listView.setColumnWidth(1, 10)
 
     def init_signals(self):
-        self.on_clipbox_closed = CustomSignals.start().on_clipbox_closed
-        self.on_clipboxCombox_updated = CustomSignals.start().on_clipboxCombox_updated
-        self.on_pageItem_clipbox_added = CustomSignals.start().on_pageItem_clipbox_added
+        self.on_clipbox_closed = ALL.signals.on_clipbox_closed
+        self.on_clipboxCombox_updated = ALL.signals.on_clipboxCombox_updated
+        self.on_pageItem_clipbox_added = ALL.signals.on_pageItem_clipbox_added
 
     def init_events(self):
-        self.addButton.clicked.connect(self.on_addButton_clicked)
-        self.delButton.clicked.connect(self.on_delButton_clicked)
-        self.listView.clicked.connect(self.on_listView_clicked)
+        self.addButton.clicked.connect(self.on_addButton_clicked_handle)
+        self.delButton.clicked.connect(self.on_delButton_clicked_handle)
+        self.listView.clicked.connect(self.on_listView_clicked_handle)
         self.on_clipbox_closed.connect(self.on_clipbox_closed_handle)
         self.on_clipboxCombox_updated.connect(self.on_clipboxCombox_updated_handle)
         self.on_pageItem_clipbox_added.connect(self.on_pageItem_clipbox_added_handle)
-        CustomSignals.start().on_clipper_hotkey_next_card.connect(self.on_clipper_hotkey_next_card_handle)
-        CustomSignals.start().on_clipper_hotkey_prev_card.connect(self.on_clipper_hotkey_prev_card_handle)
+        ALL.signals.on_clipper_hotkey_next_card.connect(self.on_clipper_hotkey_next_card_handle)
+        ALL.signals.on_clipper_hotkey_prev_card.connect(self.on_clipper_hotkey_prev_card_handle)
+        ALL.signals.on_clipboxstate_switch.connect(self.on_clipboxstate_switch_handle)
+        # objs.CustomSignals.start().on_clipboxstate_hide.connect(self.on_clipboxstate_hide_handle)
+        # objs.CustomSignals.start().on_cardlist_addCard.connect(self.on_cardlist_addCard_handle)
+
+    def on_clipboxstate_hide_handle(self):
+        self.hide()
 
     def init_UI(self):
         H_layout = QHBoxLayout()
@@ -356,7 +396,7 @@ class ButtonPanel(QWidget):
         self.h_layout.setStretch(i, 1)
 
     def init_signals(self):
-        self.on_rightSideBar_buttonGroup_clicked = objs.CustomSignals.start().on_rightSideBar_buttonGroup_clicked
+        self.on_rightSideBar_buttonGroup_clicked = ALL.signals.on_rightSideBar_buttonGroup_clicked
 
     def init_UI(self):
 
@@ -367,9 +407,9 @@ class ButtonPanel(QWidget):
         self.setLayout(self.h_layout)
 
     def init_events(self):
-        CustomSignals.start().on_clipper_hotkey_setQ.connect(self.on_clipper_hotkey_setQ_handle)
-        CustomSignals.start().on_clipper_hotkey_setA.connect(self.on_clipper_hotkey_setA_handle)
-        CustomSignals.start().on_rightSideBar_buttonGroup_clicked.connect(
+        ALL.signals.on_clipper_hotkey_setQ.connect(self.on_clipper_hotkey_setQ_handle)
+        ALL.signals.on_clipper_hotkey_setA.connect(self.on_clipper_hotkey_setA_handle)
+        ALL.signals.on_rightSideBar_buttonGroup_clicked.connect(
             self.on_rightSideBar_buttonGroup_clicked_handle)
 
     def on_rightSideBar_buttonGroup_clicked_handle(self, event: "events.RightSideBarButtonGroupEvent"):
@@ -379,16 +419,22 @@ class ButtonPanel(QWidget):
             from ..ConfigTable import ConfigTable
             C = ConfigTable()
             C.exec()
+        elif event.Type == event.correctType:
+            from .ButtonPanel__ import CardinfosPreviewConfirm
+            c = CardinfosPreviewConfirm(self)
+            c.exec()
 
     def on_clipper_hotkey_setQ_handle(self):
         if self.QAbutton.text() == "A":
             self.QAbutton.setText("Q")
             self.QAbutton.setIcon(QIcon(self.imgDir.question))
+        show_clipbox_state()
 
     def on_clipper_hotkey_setA_handle(self):
         if self.QAbutton.text() == "Q":
             self.QAbutton.setText("A")
             self.QAbutton.setIcon(QIcon(self.imgDir.answer))
+        show_clipbox_state()
 
     def QAbutton_switch(self):
 
@@ -398,3 +444,4 @@ class ButtonPanel(QWidget):
         else:
             self.QAbutton.setText("Q")
             self.QAbutton.setIcon(QIcon(self.imgDir.question))
+        show_clipbox_state()

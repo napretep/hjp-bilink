@@ -39,8 +39,8 @@
       }
     }
   },
-  "viewlayout_mode": {
-    "value": 0,
+  "viewlayout.mode": {
+    "value": 1,
     "constrain": {
       "allow_empty": 0,
       "data_type": 2,
@@ -51,7 +51,7 @@
       ]
     }
   },
-  "viewlayout_column_count": {
+  "viewlayout.row_per_col": {
     "value": 2,
     "constrain": {
       "allow_empty": 0,
@@ -62,8 +62,8 @@
       }
     }
   },
-  "viewlayout_row_count": {
-    "value": 1,
+  "viewlayout.row_per_col": {
+    "value": 2,
     "constrain": {
       "allow_empty": 0,
       "data_type": 0,
@@ -73,7 +73,7 @@
       }
     }
   },
-  "output_needRatioFix": {
+  "output.needRatioFix": {
     "value": 1,
     "constrain": {
       "allow_empty": 0,
@@ -84,7 +84,7 @@
       ]
     }
   },
-  "output_RatioFix": {
+  "output.RatioFix": {
     "value": 1,
     "constrain": {
       "allow_empty": 0,

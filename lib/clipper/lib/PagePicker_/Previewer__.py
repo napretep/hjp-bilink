@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsItem, QGraphicsScene, QWidget, QGraphicsPixmapItem, QToolButton, \
     QComboBox, QHBoxLayout, QLabel
-from ..tools import events, funcs, objs
+from ..tools import events, funcs, objs, ALL
 
 
 class Item(QGraphicsItem):
@@ -37,7 +37,7 @@ class View(QGraphicsView):
             type = e.ZoomInType
         else:
             type = e.ZoomOutType
-        objs.CustomSignals.start().on_pagepicker_previewer_ratio_adjust.emit(
+        ALL.signals.on_pagepicker_previewer_ratio_adjust.emit(
             e(sender=self, eventType=type)
         )
 

@@ -2,7 +2,7 @@ import time
 import typing
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import Qt, QRectF, QPointF, QLineF, QSizeF
+from PyQt5.QtCore import Qt, QRectF, QPointF, QLineF, QSizeF, QThread
 from PyQt5.QtGui import QPixmap, QIcon, QPainterPath, QColor, QPen, QBrush, QKeySequence
 from PyQt5.QtWidgets import QGraphicsItemGroup, QApplication, QGraphicsSceneMouseEvent, QGraphicsSceneWheelEvent, \
     QGraphicsItem, QGraphicsPixmapItem, QGraphicsWidget, QGraphicsLayout, QGraphicsGridLayout, QGraphicsLinearLayout, \
@@ -12,25 +12,44 @@ from PyQt5 import QtGui
 from ..tools.funcs import pixmap_page_load
 from ..tools.objs import CustomSignals
 from ..tools.events import PageItemAddToSceneEvent, PageItemClickEvent
-from ..tools import events, objs, funcs
+from ..tools import events, objs, funcs, ALL
 from ..PageInfo import PageInfo
 from . import PageItem_
 
+
+class centerOn_job(QThread):
+    def __init__(self, pageitem):
+        super().__init__()
+        self.pageitem = pageitem
+
+    def run(self) -> None:
+        time.sleep(0.01)
+        e = events.PageItemResizeEvent
+        type = e.fullscreenType
+        if self.pageitem.isFullscreen:
+            self.pageitem.isFullscreen = False
+            type = e.resetType
+        else:
+            self.pageitem.isFullscreen = True
+        ALL.signals.on_pageItem_resize_event.emit(
+            e(pageItem=self.pageitem, eventType=type)
+        )
+        time.sleep(0.01)
 
 class PageItem5(QGraphicsItem):
     """
     """
 
-    def __init__(self, pageinfo: 'PageInfo', parent=None, rightsidebar: 'RightSideBar' = None):
+    def __init__(self, pageinfo: 'PageInfo', parent=None, rightsidebar: 'RightSideBar' = None, pageview_ratio=None):
         super().__init__(parent=parent)
         self.isFullscreen = False
-        self.hash = hash(time.time())
+        self.hash = funcs.base64(int(time.time() * 100000000))
         self.clipBoxList = []
         self._delta = None
         self.rightsidebar = rightsidebar  # 指向的是主窗口的rightsidebar
         self.belongto_pagelist_row = None
         self.pageinfo = pageinfo
-        self.pageview = PageItem_.PageView(pageinfo, pageitem=self)
+        self.pageview = PageItem_.PageView(pageinfo, pageitem=self, ratio=pageview_ratio)
         self.toolsBar = PageItem_.ToolsBar2(pageinfo, pageitem=self)
         self.setAcceptHoverEvents(True)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
@@ -48,13 +67,14 @@ class PageItem5(QGraphicsItem):
         self.update()
 
     def init_signals(self):
-        self.on_pageItem_clicked = CustomSignals.start().on_pageItem_clicked
-        self.on_pageItem_resize_event = CustomSignals.start().on_pageItem_resize_event
+        self.on_pageItem_clicked = ALL.signals.on_pageItem_clicked
+        self.on_pageItem_resize_event = ALL.signals.on_pageItem_resize_event
 
     def boundingRect(self) -> QtCore.QRectF:
         w = self.pageview.boundingRect().width()
         h = self.pageview.boundingRect().height()
         rect = QRectF(0, 0, w, h)
+
         return rect
 
     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
@@ -63,16 +83,25 @@ class PageItem5(QGraphicsItem):
         painter.setPen(QPen(QColor(127, 127, 127), 2.0, Qt.DashLine))
         painter.drawRect(self.boundingRect())
 
+    def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        print("double clicked")
+        super().mouseDoubleClickEvent(event)
+
+        # e = events.PageItemResizeEvent
+        # objs.CustomSignals.start().on_pageItem_resize_event.emit(
+        #     e(pageItem=self, eventType=e.fullscreenType)
+        # )
+
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
 
         modifiers = QApplication.keyboardModifiers()
         if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_E:
             e = events.PageItemResizeEvent
             if not self.isFullscreen:
-                CustomSignals.start().on_pageItem_resize_event.emit(e(pageItem=self, eventType=e.fullscreenType))
+                ALL.signals.on_pageItem_resize_event.emit(e(pageItem=self, eventType=e.fullscreenType))
                 self.isFullscreen = True
             else:
-                CustomSignals.start().on_pageItem_resize_event.emit(e(pageItem=self, eventType=e.resetType))
+                ALL.signals.on_pageItem_resize_event.emit(e(pageItem=self, eventType=e.resetType))
                 self.isFullscreen = False
 
     def mouseMoveEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
@@ -86,7 +115,11 @@ class PageItem5(QGraphicsItem):
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         modifiers = QApplication.keyboardModifiers()
         if (modifiers & Qt.ControlModifier) and (modifiers & Qt.ShiftModifier):
-            print("here")
+            super().mousePressEvent(event)
+        elif event.buttons() == Qt.MidButton:
+            e = events.PageItemResizeEvent
+            self.centerOn_job = centerOn_job(pageitem=self)
+            self.centerOn_job.start()
         else:
             if event.button() == Qt.LeftButton:
                 self.on_pageItem_clicked.emit(

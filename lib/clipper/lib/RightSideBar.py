@@ -6,27 +6,30 @@ from .tools.funcs import str_shorten, index_from_row
 from .RightSideBar_ import PageList, CardList, ButtonPanel, PageList_, CardList_
 from . import PDFView_
 from .PageInfo import PageInfo
-from .tools.objs import CustomSignals
-from .tools import events
+from .tools import events, objs, ALL
 
 
 class RightSideBar(QWidget):
-    on_cardlist_dataChanged = CustomSignals.start().on_cardlist_dataChanged
-    on_cardlist_deleteItem = CustomSignals.start().on_cardlist_deleteItem
+    on_cardlist_dataChanged = ALL.signals.on_cardlist_dataChanged
+    on_cardlist_deleteItem = ALL.signals.on_cardlist_deleteItem
 
     def __init__(self, parent=None, clipper: 'Clipper' = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.clipper = clipper
         self.init_UI()
+        self.init_events()
+
+    def init_events(self):
+        ALL.signals.on_cardlist_addCard.connect(self.on_cardlist_addCard_handle)
 
     def init_UI(self):
         self.V_layout = QVBoxLayout()
         self.pagelist = PageList(rightsidebar=self)
         self.cardlist = CardList(rightsidebar=self)
-        self.QAconfirm = ButtonPanel(rightsidebar=self)
+        self.buttonPanel = ButtonPanel(rightsidebar=self)
         self.V_layout.addWidget(self.pagelist)
         self.V_layout.addWidget(self.cardlist)
-        self.V_layout.addWidget(self.QAconfirm)
+        self.V_layout.addWidget(self.buttonPanel)
         self.V_layout.setStretch(0, 1)
         self.V_layout.setStretch(1, 1)
         self.setLayout(self.V_layout)
@@ -34,10 +37,18 @@ class RightSideBar(QWidget):
     """下面的API最好写的简单,过程隐藏在里面"""
 
     def get_QA(self):
-        return self.QAconfirm.QAbutton.text()
+        return self.buttonPanel.QAbutton.text()
 
     def card_list_model_load(self):
         return self.cardlist.model_rootNode
+
+    def on_cardlist_addCard_handle(self, event: "events.CardListAddCardEvent"):
+        if event.eventType == event.returnPairLiType:
+            for desc, card_id in event.pairli:
+                self.card_list_add(desc, card_id, newcard=False)
+                pass
+        if event.eventType == event.newCardType:
+            self.card_list_add()
 
     def page_list_add(self, pageinfo: 'PageInfo'):
         """深层的不搞API,尽量都放到这一层"""
@@ -71,17 +82,22 @@ class RightSideBar(QWidget):
         # cardlist.listView.selectionModel().select(index_from_row(cardlist.model,row),QItemSelectionModel.Select)
         self.on_cardlist_dataChanged.emit(events.CardListDataChangedEvent(cardlist=self.cardlist))
         self.on_cardlist_deleteItem.emit(events.CardListDeleteItemEvent(cardlist=self.cardlist))
+
         pass
 
-    def card_list_add(self):
+    def card_list_add(self, desc="", card_id="", newcard=True):
         cardlist = self.cardlist
         rownum = cardlist.newcardcount
-        desc, card_id = CardList_.DescItem(f"new card {rownum}"), CardList_.CardItem("/")
-        cardlist.cardHashDict[desc.hash] = [desc, card_id]
+        if newcard:
+            desc = f"new card {rownum}"
+            card_id = "/"
+        desc_item, card_id_item = CardList_.DescItem(desc, cardlist=self.cardlist), CardList_.CardItem(card_id,
+                                                                                                       cardlist=self.cardlist)
+        cardlist.cardHashDict[desc_item.hash] = [desc_item, card_id_item]
         cardlist.newcardcount += 1
-        cardlist.model.appendRow([desc, card_id])
+        cardlist.model.appendRow([desc_item, card_id_item])
         cardlist.listView.selectionModel().clearSelection()
-        cardlist.listView.selectionModel().select(index_from_row(cardlist.model, [desc, card_id]),
+        cardlist.listView.selectionModel().select(index_from_row(cardlist.model, [desc_item, card_id_item]),
                                                   QItemSelectionModel.Select)
         self.on_cardlist_dataChanged.emit(events.CardListDataChangedEvent(cardlist=self.cardlist))
         pass
