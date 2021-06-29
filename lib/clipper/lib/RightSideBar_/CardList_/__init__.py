@@ -1,7 +1,8 @@
+from PyQt5 import QtGui
 from PyQt5.QtGui import QStandardItem, QPixmap, QIcon
 from PyQt5.QtCore import Qt
 import time
-# from .. import events,objs,funcs
+
 
 from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QTextEdit, QToolButton, QVBoxLayout, QSpacerItem, QGridLayout
 from aqt.utils import showInfo
@@ -13,7 +14,7 @@ class DescItem(QStandardItem):
         self.cardlist = cardlist
         self.clipBoxList = []
         from .. import funcs
-        self.hash = funcs.base64(int(time.time() * 100000000))
+        self.uuid = funcs.uuidmake()  # 仅需要内存级别的唯一性
         self.role = "desc"
         self.setFlags(self.flags()
                       & ~ Qt.ItemIsDragEnabled)
@@ -23,9 +24,23 @@ class DescItem(QStandardItem):
             self.setToolTip(toolTip)
 
 
+# def wrapper_settext_update_emit(func):
+#     def setText(*args,**kwargs):
+#
+#         result = func(*args, **kwargs)
+#         e = events.CardListDataChangedEvent
+#         ALL.signals.on_cardlist_dataChanged.emit(
+#             e(eventType=e.TextChangeType,sender=args[0],data=args[1])
+#         )
+#         return result
+
+
 class CardItem(QStandardItem):
     def __init__(self, itemName=None, selfData=None, toolTip=None, cardlist=None):
         super().__init__(itemName)
+        from .. import events, ALL
+        self.events = events
+        self.ALL = ALL
         self.cardlist = cardlist
         self.clipBoxList = []
         self.role = "card_id"
@@ -37,6 +52,13 @@ class CardItem(QStandardItem):
         if toolTip is not None:
             self.setToolTip(toolTip)
 
+    def setText(self, text):
+        super().setText(text)
+        print(f"carditem.setText modified = {text}")
+        e = self.events.CardListDataChangedEvent
+        self.ALL.signals.on_cardlist_dataChanged.emit(
+            e(eventType=e.TextChangeType, sender=self, data=text)
+        )
 
 class ClipboxState(QDialog):
     """漂浮状态窗,ctrl+tab就会显示出来"""

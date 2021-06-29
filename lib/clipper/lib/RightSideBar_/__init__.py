@@ -1,8 +1,11 @@
 import os
+import time
+from math import ceil
 
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QToolButton, QTreeView, QApplication
-from PyQt5.QtCore import Qt, QRect, QItemSelectionModel, pyqtSignal, QTimer
+from PyQt5.QtCore import Qt, QRect, QItemSelectionModel, pyqtSignal, QTimer, QThread
+from aqt.utils import showInfo
 
 from ..PDFView_.PageItem_ import ClipBox_
 from ..PDFView_ import PageItem_
@@ -24,6 +27,125 @@ def clipboxstate_switch_done(show=True):
     ALL.signals.on_clipboxstate_switch.emit(
         e(eventType=e.showedType if show else e.hiddenType)
     )
+
+
+class FinalExecution_masterJob(QThread):
+    """这里是执行最终任务的地方,信息要采集保存到本地去"""
+    on_job_done = pyqtSignal(object)
+    on_job_progress = pyqtSignal(object)
+
+    def __init__(self, cardlist=None):
+        super().__init__()
+        self.cardlist = cardlist
+        self.speed = 1 if ALL.ISDEBUG else 0.01
+        self.cardcreated = True
+        self.fieldinserted = True
+        self.pngcreated = True
+        self.job_part = 4
+        self.init_events()
+        self.state_extract_clipbox_info = 0
+        self.state_create_newcard = 1
+        self.state_insert_cardfield = 2
+        self.state_insert_DB = 3
+        self.state_create_png = 4
+
+    def init_events(self):
+        ALL.signals.on_anki_card_created.connect(self.on_anki_card_created_handle)
+        ALL.signals.on_anki_field_insert.connect(self.on_anki_field_insert_handle)
+        ALL.signals.on_anki_file_create.connect(self.on_anki_file_create_handle)
+
+    def on_anki_file_create_handle(self, event: "events.AnkiFileCreateEvent"):
+        if event.Type == event.ClipperCreatePNGDoneType:
+            self.pngcreated = True
+
+    def on_anki_field_insert_handle(self, event: "events.AnkiFieldInsertEvent"):
+        if event.Type == event.ClipBoxEndType:
+            self.fieldinserted = True
+            self.fieldinserted_timestamp = event.data
+
+    def job_progress(self, state, part, percent):
+        totalpart = self.job_part
+        self.on_job_progress.emit([state, ceil(100 * (part - 1) / totalpart + percent * 100 / totalpart)])
+
+    def on_anki_card_created_handle(self, event: "events.AnkiCardCreatedEvent"):
+        if event.Type == event.ClipBoxType:
+            self.item_need_update.setText(event.data)
+            self.cardcreated = True
+
+    def run(self):
+        li = self.job_clipboxlist_make()
+        if len(li) == 0:
+            return
+        self.job_clipbox_DB_insert(li)
+        self.job_clipbox_field_insert(li)
+
+        self.on_job_done.emit(self.fieldinserted_timestamp)
+        pass
+
+    def job_clipboxlist_make(self):
+        """cardHashDict:  hash:[DescItem,CardItem]
+           DescItem:clipBoxList[clipbox]
+
+            """
+        clipboxlist = []
+        uuidcount = len(self.cardlist.cardUuidDict)
+        current = 0
+        for uuid, row in self.cardlist.cardUuidDict.items():
+
+            if row[1].text() == "/":
+                self.cardcreated = False  # Debug时要关闭
+                self.job_progress(self.state_create_newcard, 1, current / uuidcount)
+                self.item_need_update = row[1]
+                e = events.AnkiCardCreateEvent
+                ALL.signals.on_anki_card_create.emit(e(sender=self, eventType=e.ClipBoxType))
+
+                while not self.cardcreated and not ALL.ISDEBUG:
+                    time.sleep(self.speed)
+            self.job_progress(self.state_extract_clipbox_info, 1, current / uuidcount)
+            for clipbox in row[0].clipBoxList:
+                clipboxinfo: "dict" = clipbox.self_info_get()
+                clipboxlist.append(clipboxinfo)
+            current += 1
+            time.sleep(self.speed)
+
+        return clipboxlist
+        pass
+
+    def job_clipbox_field_insert(self, clipboxlist):
+        self.fieldinserted = False
+        e = events.AnkiFieldInsertEvent
+        ALL.signals.on_anki_field_insert.emit(
+            e(eventType=e.ClipBoxBeginType, sender=self, data=clipboxlist)
+        )
+        while not self.fieldinserted and not ALL.ISDEBUG:
+            time.sleep(self.speed)
+
+    def job_clipbox_png_create(self, clipboxlist):
+        self.pngcreated = False
+        e = events.AnkiFileCreateEvent
+        ALL.signals.on_anki_file_create.emit(
+            e(eventType=e.ClipperCreatePNGType, sender=self, data=clipboxlist)
+        )
+        while not self.pngcreated and not ALL.ISDEBUG:
+            time.sleep(self.speed)
+
+        pass
+
+    def job_clipbox_DB_insert(self, clipboxlist):
+        uuidcount = len(clipboxlist)
+        current = 0
+        DB = objs.SrcAdmin.DB
+        DB.go()
+        for clipbox in clipboxlist:
+            if DB.exists(clipbox["uuid"]):
+                DB.update(values=DB.value_maker(**clipbox), where=f"""uuid="{clipbox["uuid"]}" """).commit()
+            else:
+                DB.insert(**clipbox).commit()
+            current += 1
+            self.job_progress(self.state_insert_DB, 2, current / uuidcount)
+            time.sleep(self.speed)
+        DB.end()
+        pass
 
 
 class PageList(QWidget):
@@ -124,7 +246,7 @@ class PageList(QWidget):
         QApplication.processEvents()
         P.exec_()
         QApplication.processEvents()
-        print("PagePicker opened")
+        # print("PagePicker opened")
 
     def delete_selected_item(self):
         rowli = self.model_selected_rows()
@@ -182,7 +304,7 @@ class CardList(QWidget):
 
     def __init__(self, parent=None, rightsidebar: "RightSideBar" = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.cardHashDict: 'dict[int,list[CardList_.DescItem,CardList_.CardItem]]' = {}
+        self.cardUuidDict: 'dict[int,list[CardList_.DescItem,CardList_.CardItem]]' = {}
         self.rightsidebar = rightsidebar
         self.newcardcount = 0
         self.ClipboxState = None
@@ -192,16 +314,16 @@ class CardList(QWidget):
         self.init_events()
         # self.test()
 
-    def card_clipboxlist_add(self, clipbox, hash_new):
+    def card_clipboxlist_add(self, clipbox, uuid_new):
         """加入新的,删除旧的"""
-        if hash_new in self.cardHashDict:
-            self.cardHashDict[hash_new][0].clipBoxList.append(clipbox)
+        if uuid_new in self.cardUuidDict:
+            self.cardUuidDict[uuid_new][0].clipBoxList.append(clipbox)
 
-    def card_clipboxlist_del(self, clipbox, hash_):
+    def card_clipboxlist_del(self, clipbox, cardUuid):
         """从中删除"""
-        if hash_ in self.cardHashDict:
-            if clipbox in self.cardHashDict[hash_][0].clipBoxList:
-                self.cardHashDict[hash_][0].clipBoxList.remove(clipbox)
+        if cardUuid in self.cardUuidDict:
+            if clipbox in self.cardUuidDict[cardUuid][0].clipBoxList:
+                self.cardUuidDict[cardUuid][0].clipBoxList.remove(clipbox)
 
     def on_addButton_clicked_handle(self):
         d = CardList_.CardPicker(cardlist=self)
@@ -216,17 +338,17 @@ class CardList(QWidget):
             print(item.clipBoxList)
 
     def on_clipbox_closed_handle(self, event: 'ClipBox_.ToolsBar_.ClipboxEvent'):
-        clipbox, hash_ = event.clipBox, event.cardHash
-        if hash_ is not None:
-            self.card_clipboxlist_del(clipbox, hash_)
+        clipbox, uuid = event.clipBox, event.cardUuid
+        if uuid is not None:
+            self.card_clipboxlist_del(clipbox, uuid)
 
     def on_clipboxCombox_updated_handle(self, event: 'ClipBox_.ToolsBar_.ClipboxEvent'):
-        self.card_clipboxlist_add(event.clipBox, event.cardHash)
-        self.card_clipboxlist_del(event.clipBox, event.cardHash_old)
+        self.card_clipboxlist_add(event.clipBox, event.cardUuid)
+        self.card_clipboxlist_del(event.clipBox, event.cardUuid_old)
 
     def on_pageItem_clipbox_added_handle(self, event: 'PageItem_.PageItem_ClipBox_Event'):
         """added信号"""
-        self.card_clipboxlist_add(event.clipbox, event.cardhash)
+        self.card_clipboxlist_add(event.clipbox, event.cardUuid)
 
     def newcard_signal_emit(self):
         e = events.CardListAddCardEvent
@@ -276,7 +398,6 @@ class CardList(QWidget):
 
     def on_clipboxstate_switch_handle(self, event: "events.ClipboxStateSwitchEvent"):
         """clipboxstate"""
-        print("activated")
         if event.Type == event.showType:
             if self.ClipboxState is not None:
                 self.ClipboxState.data_update()
@@ -300,7 +421,7 @@ class CardList(QWidget):
         self.model.setHorizontalHeaderItem(1, label_id)
         self.model.setHorizontalHeaderItem(0, label_desc)
         self.listView.setModel(self.model)
-        self.listView.header().setDefaultSectionSize(180)
+        self.listView.header().setDefaultSectionSize(150)
         self.listView.header().setSectionsMovable(False)
         self.listView.setColumnWidth(1, 10)
 
@@ -412,6 +533,7 @@ class ButtonPanel(QWidget):
         ALL.signals.on_rightSideBar_buttonGroup_clicked.connect(
             self.on_rightSideBar_buttonGroup_clicked_handle)
 
+
     def on_rightSideBar_buttonGroup_clicked_handle(self, event: "events.RightSideBarButtonGroupEvent"):
         if event.Type == event.QAswitchType:
             self.QAbutton_switch()
@@ -420,8 +542,9 @@ class ButtonPanel(QWidget):
             C = ConfigTable()
             C.exec()
         elif event.Type == event.correctType:
-            from .ButtonPanel__ import CardinfosPreviewConfirm
-            c = CardinfosPreviewConfirm(self)
+            from .ButtonPanel__ import ClipperExecuteProgresser
+            c = ClipperExecuteProgresser(cardlist=self.rightsidebar.cardlist)
+            ALL.signals.on_ClipperExecuteProgresser_show.emit()
             c.exec()
 
     def on_clipper_hotkey_setQ_handle(self):

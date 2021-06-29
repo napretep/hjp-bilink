@@ -234,7 +234,7 @@ class PagePresetWidget(BaseWidget):
         self.imgRatio_changed = True
 
     def on_pagenumWidget_valueChanged_handle(self, value):
-        print("on_pagenumWidget_valueChanged_handle")
+        # print("on_pagenumWidget_valueChanged_handle")
         self.pagenum_changed = True
 
     def on_defaultPathWidget_textChanged_handle(self, txt):
@@ -384,13 +384,13 @@ class ButtonGroup(BaseWidget):
             d["pagepicker.bottombar.page_num"]["value"] = self.configtable.pagepreset.pagenumWidget.value()
             print(d["pagepicker.bottombar.page_num"]["value"])
         if self.configtable.viewlayout.layoutMode_changed:
-            d["viewlayout.mode"]["value"] = self.configtable.viewlayout.layoutModeWidget.currentData(Qt.UserRole)
+            d["viewlayout.mode"]["value"] = self.configtable.viewlayout.layoutModeWidget.desc_item_uuid(Qt.UserRole)
         if self.configtable.viewlayout.layoutVerticalColCount_changed:
             d["viewlayout.col_per_row"]["value"] = self.configtable.viewlayout.layoutVerticalColCountWidget.value()
         if self.configtable.viewlayout.layoutHorizontalRowCount_changed:
             d["viewlayout.row_per_col"]["value"] = self.configtable.viewlayout.layoutHorizontalRowCountWidget.value()
         if self.configtable.outputpreset.needRatioFix_changed:
-            d["output.needRatioFix"]["value"] = self.configtable.outputpreset.needRatioFixWidget.currentData(
+            d["output.needRatioFix"]["value"] = self.configtable.outputpreset.needRatioFixWidget.desc_item_uuid(
                 Qt.UserRole)
         if self.configtable.outputpreset.RatioFix_changed:
             d["output.RatioFix"]["value"] = self.configtable.outputpreset.RatioFixWidget.value()

@@ -67,7 +67,7 @@ class PDFView(QGraphicsView):
     def on_pageItem_needCenterOn_handle(self, event: "events.PageItemNeedCenterOnEvent"):
 
         if event.Type == event.centerOnType:
-            print(self.frameRect())
+            # print(self.frameRect())
             origin_center = QPointF(
                 self.pos().x() + self.frameRect().width() / 2,
                 self.pos().y() + self.frameRect().height() / 2

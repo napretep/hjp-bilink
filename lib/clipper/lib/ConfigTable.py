@@ -46,7 +46,7 @@ class ConfigTable(QDialog):
     def on_pagepicker_config_reload_handle(self):
         self.config_dict = objs.SrcAdmin.get_config("clipper")
         ALL.signals.on_pagepicker_config_reload_end.emit()
-        print("发射on_pagepicker_config_reload_end")
+        # print("发射on_pagepicker_config_reload_end")
 
     def init_data(self):
         pass

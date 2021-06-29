@@ -4,6 +4,71 @@ class AllEvent:
         self.Type = eventType
 
 
+class AnkiFileCreateEvent(AllEvent):
+    ClipperCreatePNGType = 0
+    ClipperCreatePNGDoneType = 1
+
+    def __init__(self, sender=None, eventType=None, data=None, clipboxlist=None):
+        super(AnkiFileCreateEvent, self).__init__(sender, eventType)
+        self.data = data
+
+
+class AnkiBrowserActivateEvent(AllEvent):
+    ClipperTaskFinishedType = 0
+
+    def __init__(self, sender=None, eventType=None, data=None):
+        super(AnkiBrowserActivateEvent, self).__init__(sender, eventType)
+        self.data = data
+
+
+class AnkiFieldInsertEvent(AllEvent):
+    ClipBoxBeginType = 0
+    ClipBoxEndType = 1
+
+    def __init__(self, sender=None, eventType=None, data=None):
+        super().__init__(sender, eventType)
+        self.data = data
+
+
+class AnkiCardCreateEvent(AllEvent):
+    ClipBoxType = 0
+
+    def __init__(self, sender=None, eventType=None, data=None, model_id=None, deck_id=None):
+        super().__init__(sender, eventType)
+        self.data = data
+        self.model_id = model_id
+        self.deck_id = deck_id
+
+
+class AnkiCardCreatedEvent(AllEvent):
+    ClipBoxType = 0
+
+    def __init__(self, sender=None, eventType=None, data=None):
+        super().__init__(sender, eventType)
+        self.data = data
+
+
+class PageItemUpdateEvent(AllEvent):
+    pageNumType = "pagenum"
+    docNameType = "docname"
+    ratioType = "ratio"
+
+    def __init__(self, sender=None, eventType=None, data=None):
+        super(PageItemUpdateEvent, self).__init__(sender=sender, eventType=eventType)
+        self.data = data
+
+
+class ClipBoxToolsbarUpdateEvent(AllEvent):
+    QAButtonType = "QA"
+    TextQAButtonType = "textQA"
+    TextType = "text"
+    Card_id_Type = "card_id"
+
+    def __init__(self, sender=None, eventType=None, data=None):
+        super().__init__(sender, eventType)
+        self.data = data
+
+
 class CardListAddCardEvent:
     parseStrType = 0
     returnPairLiType = 1
@@ -46,9 +111,10 @@ class PagePickerPreviewerReadPageEvent:
     reloadType = 2
     loadType = 3
 
-    def __init__(self, sender=None, eventType=None, pagenum=None):
+    def __init__(self, sender=None, eventType=None, pagenum=None, doc=None):
         self.sender = sender
         self.pagenum = pagenum
+        self.doc = doc
         self.Type = eventType if eventType is not None else self.fromBrowserType
 
 
@@ -203,12 +269,14 @@ class PageItemAddToSceneEvent:
         self.parent = parent
 
 
-class CardListDataChangedEvent:
+class CardListDataChangedEvent(AllEvent):
     DataChangeType = 0
+    TextChangeType = 1
 
-    def __init__(self, cardlist=None, eventType=None):
-        self.Type = eventType if eventType else self.DataChangeType
+    def __init__(self, sender=None, cardlist=None, eventType=None, data=None):
+        super().__init__(sender, eventType)
         self.cardlist = cardlist
+        self.data = data
         pass
 
 

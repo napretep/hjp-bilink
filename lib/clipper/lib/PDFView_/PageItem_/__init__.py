@@ -1,13 +1,17 @@
+import json
 import os
+import time
 import typing
+
 from functools import reduce
 
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import QPointF, QRectF, Qt, QSizeF, QLineF
-from PyQt5.QtGui import QPixmap, QBrush, QColor, QPen, QPainter, QIcon, QPainterPath
+from PyQt5.QtGui import QPixmap, QBrush, QColor, QPen, QPainter, QIcon, QPainterPath, QPainterPathStroker
 from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsPixmapItem, QApplication, QGraphicsTextItem, QGraphicsItem, \
     QGraphicsRectItem, QWidget, QGraphicsWidget, QGraphicsLinearLayout, QLabel, QLineEdit, QGraphicsProxyWidget, \
-    QGraphicsGridLayout, QToolButton, QGraphicsAnchorLayout, QComboBox, QGraphicsSceneMouseEvent
+    QGraphicsGridLayout, QToolButton, QGraphicsAnchorLayout, QComboBox, QGraphicsSceneMouseEvent, \
+    QGraphicsSceneHoverEvent
 
 from ...tools.funcs import pixmap_page_load, str_shorten
 from ...tools.objs import SrcAdmin
@@ -19,9 +23,9 @@ from ...PagePicker import PagePicker
 
 
 class PageItem_ClipBox_Event:
-    def __init__(self, clipbox=None, cardhash=None):
+    def __init__(self, clipbox=None, cardUuid=None):
         self.clipbox = clipbox
-        self.cardhash = cardhash
+        self.cardUuid = cardUuid
 
 
 class ClipBox2(QGraphicsRectItem):
@@ -48,17 +52,27 @@ class ClipBox2(QGraphicsRectItem):
         BottomMiddle: Qt.SizeVerCursor,
         BottomRight: Qt.SizeFDiagCursor,
     }
-    handlerSize = 15
+    handlerSize = 14
 
-    def __init__(self, *args, parent_pos: QPointF = None, pageview: 'PageView' = None, card_id: str = "0",
+    def __init__(self, *args, parent_pos: QPointF = None,
+                 pageview: 'PageView' = None, card_id: str = "0",
                  QA: str = "Q"):
         super().__init__(*args)
         # 规定自身
+        self.uuid = self.init_UUID()  # TODO 需要进行数据库碰撞检查
         self.QA = QA
+        self.text = ""
+        self.textQA = "Q"
+        self.ratio = pageview.ratio * pageview.pageinfo.ratio
+
+        self.docname = pageview.pageinfo.doc.name
+        self.pagenum = pageview.pageinfo.pagenum
         self.last_delta = None
         self.now_delta = None
         # self.setPos(0,0) #默认赋值为0,因此不必设置
         self.pageview = pageview
+        self.pageitem = pageview.pageitem
+        self.isHovered = False
         self.setRect(
             # 0,0,
             parent_pos.x() - self.default_height / 2, parent_pos.y() - self.default_height / 2,
@@ -74,19 +88,45 @@ class ClipBox2(QGraphicsRectItem):
         self.ratioLeft = None
         self.ratioBottom = None
         self.ratioRight = None
+        self.card_id = None
+        self.version = 0
+        self.toolsbar = ClipBox_.ToolsBar(cardlist=self.pageview.pageitem.rightsidebar.cardlist, clipbox=self,
+                                          QA=self.QA)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
-        # self.setFlag(QGraphicsItem.ItemSendsScenePositionChanges,True)
-        self.setFlag(QGraphicsItem.ItemIsFocusable, False)
-        self.init_toolsbar()
-        self.init_handlers()
+        self.setAcceptHoverEvents(True)
 
-    # "./resource/icon_close_button.png"
-    def init_toolsbar(self):
-        """卡片选择,QA切换,输入栏,关闭"""
-        self.toolsbar = ClipBox_.ToolsBar(cardlist=self.pageview.pageitem.rightsidebar.cardlist, clipbox=self,
-                                          QA=self.QA)
+        self.setFlag(QGraphicsItem.ItemIsFocusable, False)
+        self.init_handlers()
+        self.init_events()
+
+    def init_events(self):
+        ALL.signals.on_pageItem_update.connect(self.on_pageItem_update_handle)
+        ALL.signals.on_clipbox_toolsbar_update.connect(self.on_clipbox_toolsbar_update_handle)
+        ALL.signals.on_cardlist_dataChanged.connect(self.on_cardlist_dataChanged_handle)
+
+    def on_cardlist_dataChanged_handle(self, event: "events.CardListDataChangedEvent"):
+        if event.Type == event.TextChangeType:
+            self.card_id = event.data
+
+    def on_clipbox_toolsbar_update_handle(self, event: "events.ClipBoxToolsbarUpdateEvent"):
+        # print(f"event.Type:{event.Type}")
+        # print(f"self.uuid:{self.uuid},event.sender:{event.sender}")
+        if self.uuid == event.sender:
+            self.__dict__[event.Type] = event.data
+
+    def on_pageItem_update_handle(self, event: "events.PageItemUpdateEvent"):
+        if self.pageitem.uuid == event.sender:
+            self.__dict__[event.Type] = event.data
+        pass
+
+    def init_UUID(self):
+        import uuid
+        myid = str(uuid.uuid4())[0:8]
+        while objs.SrcAdmin.DB.go().exists_check(myid).return_all()[0][0] > 0:
+            myid = str(uuid.uuid4())[0:8]
+        return myid
 
     def init_handlers(self):
         """八个方向都要有一个方块"""
@@ -117,19 +157,18 @@ class ClipBox2(QGraphicsRectItem):
         return self.rect().adjusted(-s, -s, s, s)
 
     def init_toolsbar_size(self):
+        """工具条的位置和大小的设定"""
         if self.isSelected():
             self.toolsbar.setPos(self.rect().x() + 1, self.rect().y() + 1)
             self.toolsbar.lineEditProxy.resize(self.rect().width() - self.toolsbar.editQAButtonProxy.rect().width() - 1,
                                                self.toolsbar.lineEditProxy.rect().height())
 
-            l = self.toolsbar.lineEditProxy
-            eQ = self.toolsbar.editQAButtonProxy
             c = self.toolsbar.closeButtonProxy
             Q = self.toolsbar.QAButtonProxy
             C = self.toolsbar.cardComboxProxy
+            l = self.toolsbar.lineEditProxy
+            eQ = self.toolsbar.editQAButtonProxy
             r = self.rect()
-            l.setPos(0, r.height() - l.rect().height())
-            eQ.setPos(l.rect().right() - 1, r.height() - l.rect().height())
             c.setPos(r.width() - c.rect().width() - 1, 0)
             Q.setPos(r.width() - c.rect().width() - Q.rect().width() - 1, 0)
             C.setPos(0, 0)
@@ -137,6 +176,8 @@ class ClipBox2(QGraphicsRectItem):
                 self.rect().width() - c.rect().width() - Q.rect().width() - 1,
                 Q.rect().height() - 1
             )
+            l.setPos(0, C.rect().height())
+            eQ.setPos(l.rect().right() - 1, C.rect().height() + 1)
             C.update()
 
             self.toolsbar.show()
@@ -147,21 +188,46 @@ class ClipBox2(QGraphicsRectItem):
         """
         shape在boundingRect里面
         """
+        strokepath = QPainterPathStroker()
+        # print(self.rect())
         path = QPainterPath()
+
         path.addRect(self.rect())
         if self.isSelected():
             for shape in self.handlers.values():
                 path.addRect(shape)
-        return path
+            return path
+        else:
+            strokepath.setWidth(2 * self.handlerSize)
+            newpath = strokepath.createStroke(path)
+            return newpath
+            # x=self.x()
+            # y=self.y()
+            # leftrect = QRectF(x,y,self.handlerSize,self.rect().height())
+            # rightrect =QRectF(x+self.rect().width()-self.handlerSize,
+            #                   y,self.handlerSize,self.rect().height())
+            # uprect = QRectF(x,y,self.rect().width(),self.handlerSize)
+            # downrect = QRectF(x,y+self.rect().height()-self.handlerSize,
+            #                   self.rect().width(),self.handlerSize)
+            # for rect in [leftrect,rightrect,uprect,downrect]:
+            #     path.addRect(rect)
+            # return path
 
     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
               widget: typing.Optional[QWidget] = ...) -> None:
         # self.prepareGeometryChange()  # 这个 非常重要. https://www.cnblogs.com/ybqjymy/p/13862382.html
         self.calc_ratio()
-        painter.setBrush(QBrush(QColor(255, 0, 0, 0)))
-        painter.setPen(QPen(QColor(127, 127, 127), 2.0, Qt.DashLine))
+
+        pen = QPen(QColor(127, 127, 127), 2.0, Qt.DashLine)
+        if self.isHovered or self.isSelected():
+            pen.setWidth(5)
+        if self.isSelected():
+            painter.setBrush(QBrush(QColor(0, 255, 0, 30)))
+        painter.setPen(pen)
         painter.drawRect(self.rect())
-        self.init_toolsbar_size()
+
+        if "toolsbar" in self.__dict__:
+            self.init_toolsbar_size()
 
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setBrush(QBrush(QColor(81, 168, 220, 200)))
@@ -202,16 +268,16 @@ class ClipBox2(QGraphicsRectItem):
         left = rect.left() + x
         right = rect.right() + x
         if top < view_top:
-            print("over top")
+            # print("over top")
             rect.translate(0, view_top - top)
         if left < view_left:
-            print("over left")
+            # print("over left")
             rect.translate(view_left - left, 0)
         if view_bottom < bottom:
-            print("over bottom")
+            # print("over bottom")
             rect.translate(0, view_bottom - bottom)
         if view_right < right:
-            print("over right")
+            # print("over right")
             rect.translate(view_right - right, 0)
         self.setRect(rect)
 
@@ -377,22 +443,37 @@ class ClipBox2(QGraphicsRectItem):
         self.bottomBorder = self.topBorder + self.pageview.pixmap().height()
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+
         self.handleSelected = self.handlerAt(event.pos())
         self.mousePressRect = self.rect()
         self.mousePressSelfPos = self.pos()
         if self.handleSelected:
             self.mousePressPos = event.pos()
             event.accept()
-        # super().mousePressEvent(event)
-        # print(f"clipboxpos={event.pos()}")
+
+    def hoverMoveEvent(self, event: 'QGraphicsSceneHoverEvent') -> None:
+        # print('hoverMoveEvent')
+        self.isHovered = True
+        super().hoverMoveEvent(event)
+
+    def hoverEnterEvent(self, event: 'QGraphicsSceneHoverEvent') -> None:
+        # print('hoverEnterEvent')
+        self.isHovered = True
+        super().hoverEnterEvent(event)
+
+    def hoverLeaveEvent(self, event: 'QGraphicsSceneHoverEvent') -> None:
+        # print('hoverLeaveEvent')
+        self.isHovered = False
+        super().hoverLeaveEvent(event)
 
     def mouseMoveEvent(self, mouseEvent):
         """
         Executed when the mouse is being moved over the item while being pressed.
         """
-
+        # if self.shape().contains(self.pos()):
+        #     print ("shape")
         self.borderUpdate()
-
+        # print('hoverMoveEvent')
         if self.handleSelected is not None:
             self.onResize(mouseEvent.pos())
         else:
@@ -407,6 +488,35 @@ class ClipBox2(QGraphicsRectItem):
         self.mousePressPos = None
         self.mousePressRect = None
         self.update()
+
+    def self_info_get(self) -> dict:
+        """
+
+        Returns:
+            {
+            x,y,w,h
+            QA,text,textQA,ratio
+            card_id,docname,pagenum
+            }
+        """
+        temp_dict = {"Q": 0, "A": 1}
+        x, y = self.pos().x() + self.rect().left(), self.pos().y() + self.rect().top()
+
+        info = {"x": x / self.pageview.boundingRect().width(),
+                "y": y / self.pageview.boundingRect().height(),
+                "w": self.rect().width() / self.pageview.boundingRect().width(),
+                "h": self.rect().height() / self.pageview.boundingRect().height(),
+                "QA": temp_dict[self.QA],
+                "text_": self.text,
+                "textQA": temp_dict[self.textQA],
+                "card_id": self.card_id,  # card_id 只能有一个.
+                "ratio": self.ratio,
+                "pagenum": self.pagenum,
+                "pdfname": os.path.abspath(self.docname),
+                "uuid": self.uuid
+                }
+
+        return info
 
 
 class PageView(QGraphicsPixmapItem):
@@ -455,11 +565,12 @@ class PageView(QGraphicsPixmapItem):
     #     self.keep_clipbox_in_postion()
 
     def on_pageItem_resize_event_handle(self, event: "PageItemResizeEvent"):
-        if event.pageItem.hash == self.pageitem.hash:
+        if event.pageItem.uuid == self.pageitem.uuid:
             if event.Type == PageItemResizeEvent.fullscreenType:
                 self.zoom(self.view_divde_page_ratio())
             if event.Type == PageItemResizeEvent.resetType:
                 self.zoom(1)
+
             # self.setX(self.pageitem.rightsidebar.clipper.pdfview.viewport())
 
     def view_divde_page_ratio(self):
@@ -469,8 +580,11 @@ class PageView(QGraphicsPixmapItem):
         return ratio
 
     def on_pageItem_changePage_handle(self, event: 'PageItemChangeEvent'):
-        if event.Type == event.updateType and event.pageItem.hash == self.pageitem.hash:
+        if event.Type == event.updateType and event.pageItem.uuid == self.pageitem.uuid:
             self.pageinfo_read(event.pageInfo)
+            e = events.PageItemUpdateEvent
+            self.update_sginal_emit(where=e.pageNumType)
+            self.update_sginal_emit(where=e.docNameType)
             self.update()
             self.pageitem.update()
 
@@ -496,9 +610,9 @@ class PageView(QGraphicsPixmapItem):
         """顺带解决"""
         QA = self.pageitem.rightsidebar.get_QA()
         clipbox = ClipBox2(parent_pos=pos, pageview=self, QA=QA)
-        _hash = clipbox.toolsbar.cardComboxProxy.currentData
+        uuid = clipbox.toolsbar.cardComboxProxy.desc_item_uuid
         self.clipBoxList.append(clipbox)  # 创建后必须添加到clipboxlist
-        self.on_pageItem_clipbox_added.emit(PageItem_ClipBox_Event(clipbox=clipbox, cardhash=_hash))
+        self.on_pageItem_clipbox_added.emit(PageItem_ClipBox_Event(clipbox=clipbox, cardUuid=uuid))
 
     def pageview_clipbox_remove(self, event: 'ClipBox_.ToolsBar_.ClipboxEvent'):
         """这里要做的事情就是从clipBoxList中移除"""
@@ -520,13 +634,11 @@ class PageView(QGraphicsPixmapItem):
 
     def zoomIn(self):
         """放大"""
-        self.ratio = self.ratio * (1 + self._delta)
-        self.zoom(self.ratio)
+        self.zoom(self.ratio * (1 + self._delta))
 
     def zoomOut(self):
         """缩小"""
-        self.ratio = self.ratio / (1 + self._delta)
-        self.zoom(self.ratio)
+        self.zoom(self.ratio / (1 + self._delta))
 
     def zoom(self, factor):
         """缩放
@@ -541,7 +653,23 @@ class PageView(QGraphicsPixmapItem):
         self.width = self.pixmap().width()
         self.height = self.pixmap().height()
         self.keep_clipbox_in_postion()
+        self.ratio = factor
+        e = events.PageItemUpdateEvent
+        self.update_sginal_emit(where=e.ratioType)
         self.update()
+
+    def update_sginal_emit(self, where="ratio"):
+        e = events.PageItemUpdateEvent
+        data = None
+        if where == e.ratioType:
+            data = self.ratio * self.pageinfo.ratio
+        elif where == e.pageNumType:
+            data = self.pageinfo.pagenum
+        elif where == e.docNameType:
+            data = self.pageinfo.doc.name
+        ALL.signals.on_pageItem_update.emit(
+            e(sender=self.pageitem.uuid, eventType=where, data=data)
+        )
 
     def keep_clipbox_in_postion(self):
         w, h = self.boundingRect().width(), self.boundingRect().height()
@@ -642,7 +770,7 @@ class ToolsBar2(QGraphicsWidget):
         self.update()
 
     def on_pageItem_changePage_handle(self, event: 'PageItemChangeEvent'):
-        if event.pageItem.hash == self.pageitem.hash:
+        if event.pageItem.uuid == self.pageitem.uuid:
             self.update_from_pageinfo(event.pageInfo)
 
     def on_button_reset_clicked_handle(self):

@@ -234,7 +234,7 @@ class SelectedRect(QGraphicsRectItem):
 class Item2(QGraphicsPixmapItem):
     def __init__(self, parent=None, pixmap: "QPixmap" = None, pagenum=None, unit_size=None):
         super().__init__(parent=parent)
-        self.hash = funcs.base64(int(time.time() * 100000000))
+        self.uuid = funcs.uuidmake()  # 仅需要内存级别的唯一性
         self._pixmap = pixmap
         self.is_selected = False
         self.multi_select = False

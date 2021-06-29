@@ -43,11 +43,12 @@ class RightSideBar(QWidget):
         return self.cardlist.model_rootNode
 
     def on_cardlist_addCard_handle(self, event: "events.CardListAddCardEvent"):
-        if event.eventType == event.returnPairLiType:
+
+        if event.eventType == event.returnPairLiType:  # 根据已有anki卡片的信息添加卡片
             for desc, card_id in event.pairli:
                 self.card_list_add(desc, card_id, newcard=False)
                 pass
-        if event.eventType == event.newCardType:
+        if event.eventType == event.newCardType:  # 新建卡片
             self.card_list_add()
 
     def page_list_add(self, pageinfo: 'PageInfo'):
@@ -93,11 +94,13 @@ class RightSideBar(QWidget):
             card_id = "/"
         desc_item, card_id_item = CardList_.DescItem(desc, cardlist=self.cardlist), CardList_.CardItem(card_id,
                                                                                                        cardlist=self.cardlist)
-        cardlist.cardHashDict[desc_item.hash] = [desc_item, card_id_item]
+        cardlist.cardUuidDict[desc_item.uuid] = [desc_item, card_id_item]
         cardlist.newcardcount += 1
         cardlist.model.appendRow([desc_item, card_id_item])
         cardlist.listView.selectionModel().clearSelection()
         cardlist.listView.selectionModel().select(index_from_row(cardlist.model, [desc_item, card_id_item]),
                                                   QItemSelectionModel.Select)
-        self.on_cardlist_dataChanged.emit(events.CardListDataChangedEvent(cardlist=self.cardlist))
+        e = events.CardListDataChangedEvent
+        self.on_cardlist_dataChanged.emit(e(cardlist=self.cardlist, eventType=e.DataChangeType))  # 到这里来的一定是datachanged
+
         pass

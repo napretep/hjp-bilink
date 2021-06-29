@@ -1,4 +1,5 @@
 """初试入口"""
+from anki import notes
 from anki.notes import Note
 from aqt import gui_hooks
 from aqt.editor import EditorWebView,Editor
@@ -251,8 +252,14 @@ from .lib.obj.tools import events, objs, funcs, ALL
 from .lib.obj import ModuleProxy
 
 ALL.signals.on_cardlist_addCard.connect(ModuleProxy.on_cardlist_addCard_handle)
-
+ALL.signals.on_anki_card_create.connect(ModuleProxy.on_anki_create_card_handle)
+ALL.signals.on_anki_field_insert.connect(ModuleProxy.on_anki_field_insert_handle)
+ALL.signals.on_anki_browser_activate.connect(ModuleProxy.on_anki_browser_activate_handle)
+ALL.signals.on_anki_file_create.connect(ModuleProxy.on_anki_file_create_handle)
 clipper = Clipper()
 # pageitem = PageItem5(PageInfo("./resource/徐森林_数学分析_第8章.pdf", 0), rightsidebar=clipper.rightsidebar)
 # event = events.PageItemAddToSceneEvent(pageItem=pageitem, eventType=events.PageItemAddToSceneEvent.addPageType)
 # objs.CustomSignals.start().on_pageItem_addToScene.emit(event)
+
+
+# mw.col.add_note(note=notes.Note(mw.col,model=mw.col.models))

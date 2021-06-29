@@ -78,7 +78,7 @@ class Clipper(QMainWindow):
                 ALL.signals.on_clipboxstate_switch.emit(
                     e(sender=self, eventType=e.hideType)
                 )
-            print("on_clipboxstate_hide emit")
+            # print("on_clipboxstate_hide emit")
         else:
             super().keyReleaseEvent(event)
 
@@ -113,6 +113,8 @@ class Clipper(QMainWindow):
     def on_clipboxstate_switch_handle(self, event: "events.ClipboxStateSwitchEvent"):
         if event.Type == event.showedType:
             self.clipboxstateshowed = True
+        elif event.Type == event.hideType:
+            self.clipboxstateshowed = False
         self.activateWindow()
 
     def on_pageItem_clicked_handle(self, event: 'events.PageItemClickEvent'):
@@ -175,7 +177,7 @@ class Clipper(QMainWindow):
 
     def pageitem_unique_toolsbar(self, pageitem: 'PageItem5'):
         for item in self.pageItemList:
-            if item.hash != pageitem.hash:
+            if item.uuid != pageitem.uuid:
                 item.toolsBar.hide()
 
     def pageitem_layout_arrange(self, pageitem):

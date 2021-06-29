@@ -4,7 +4,7 @@ import os
 from PyQt5.QtCore import QObject, pyqtSignal, Qt, QThread
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QPushButton, QSpinBox, QFileDialog, QToolButton, \
-    QDoubleSpinBox, QComboBox, QVBoxLayout, QFrame, QGridLayout, QWidget, QShortcut
+    QDoubleSpinBox, QComboBox, QVBoxLayout, QFrame, QGridLayout, QWidget, QShortcut, QProgressBar
 
 from .funcs import str_shorten
 from . import events, JSONschema_, SrcAdmin_
@@ -16,6 +16,13 @@ class CustomSignals(QObject):
     """用法: 在需要发射/接受信号的类中调用CustomSignals的类方法start(),并取出需要的信号绑定到本地变量,进行发射或接受"""
     instance = None
     linkedEvent = pyqtSignal()
+
+    on_anki_card_create = pyqtSignal(object)  # AnkiCardCreateEvent
+    on_anki_card_created = pyqtSignal(object)  # AnkiCardCreatedEvent
+    on_anki_field_insert = pyqtSignal(object)  # AnkiFieldInsertEvent
+    # on_anki_field_inserted = pyqtSignal(object) #AnkiFieldInsertedEvent
+    on_anki_browser_activate = pyqtSignal(object)  # AnkiBrowserActivateEvent
+    on_anki_file_create = pyqtSignal(object)  # AnkiFileCreateEvent
 
     on_pagepicker_close = pyqtSignal(object)  # PagePickerCloseEvent
     on_pagepicker_bookmark_open = pyqtSignal(object)  # OpenBookmarkEvent
@@ -48,12 +55,15 @@ class CustomSignals(QObject):
 
     on_pagepicker_previewer_ratio_adjust = pyqtSignal(object)  # PagePickerPreviewerRatioAdjustEvent
 
+    # 涉及 pagenum,docname,ratio的更新变化
+    on_pageItem_update = pyqtSignal(object)  # PageItemUpdateEvent
+
     on_pageItem_clicked = pyqtSignal(object)  # PageItemClickEvent
     on_pageItem_clipbox_added = pyqtSignal(object)
     on_pageItem_resize_event = pyqtSignal(object)  # PageItemResizeEvent
-    on_pageItem_resetSize_event = pyqtSignal(object)
-    on_pageItem_nextPage_event = pyqtSignal(object)
-    on_pageItem_prevPage_event = pyqtSignal(object)
+    # on_pageItem_resetSize_event = pyqtSignal(object)
+    # on_pageItem_nextPage_event = pyqtSignal(object)
+    # on_pageItem_prevPage_event = pyqtSignal(object)
     on_pageItem_changePage = pyqtSignal(object)  # PageItemChangeEvent
     on_pageItem_addToScene = pyqtSignal(object)  # PagePickerEvent
     on_pageItem_removeFromScene = pyqtSignal(object)
@@ -64,9 +74,12 @@ class CustomSignals(QObject):
     on_cardlist_dataChanged = pyqtSignal(object)  # CardListDataChangedEvent
     # 目前主要影响clipbox的toolsbar的cardcombox更新数据
     # 传送的数据用不起来
-
+    on_ClipperExecuteProgresser_show = pyqtSignal()
     on_cardlist_deleteItem = pyqtSignal(object)
     on_cardlist_addCard = pyqtSignal(object)  # CardListAddCardEvent
+
+    # 涉及 QA,TextQA,Text,Card_id 四者的变化
+    on_clipbox_toolsbar_update = pyqtSignal(object)  # ClipBoxToolsbarUpdateEvent
 
     on_clipbox_closed = pyqtSignal(object)
     on_clipboxstate_switch = pyqtSignal(object)  # ClipboxStateSwitchEvent
@@ -100,11 +113,13 @@ class CustomSignals(QObject):
 class SrcAdmin:
     """单例"""
     instance = None
+    get = SrcAdmin_.Get._()
     imgDir = SrcAdmin_.IMGDir()
     jsonDir = SrcAdmin_.JSONDir()
     get_json = SrcAdmin_.Get._().json_dict
     get_config = SrcAdmin_.Get._().config_dict
     save_config = SrcAdmin_.Get._().save_dict
+    DB = SrcAdmin_.DB()
 
     @classmethod
     def call(cls):
@@ -147,3 +162,11 @@ class NoRepeatShortcut(QShortcut):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setAutoRepeat(False)
+
+
+class ProgressBarBlackFont(QProgressBar):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.setStyleSheet("text-align:center;color:black;")
+
+    pass

@@ -11,10 +11,11 @@ from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsLineItem, QGraphicsItem
     QGraphicsRectItem
 # from .. import ClipBox2
 from aqt.utils import showInfo
-
+from .. import ALL, events, funcs, objs
 from ....RightSideBar_ import CardList
 from .ToolsBar_ import QAButton, CloseButton, EditQAbutton, LineEdit, CardCombox
 
+print = funcs.print
 
 class ToolsBar(QGraphicsWidget):
     """QAswitchButton,CardSwitchButton,closeButton,EditLine"""
@@ -136,7 +137,7 @@ class Frame(QGraphicsItemGroup):
         for i in range(4):
             if self.dir_lines[i].contains(event.pos()):
                 count = i
-                print(self.direction[i] + " has been clicked")
+                # print(self.direction[i] + " has been clicked")
         if count > -1:
             pass
         else:

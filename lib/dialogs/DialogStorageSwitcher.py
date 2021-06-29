@@ -63,12 +63,12 @@ class StorageSwitcherDialog(QDialog,Ui_Dialog):
                 count +=1
 
 
-    def onButtonCorrectClicked(self ):
-        data_from = self.comboBox_from.currentData()
-        data_to = self.comboBox_to.currentData()
+    def onButtonCorrectClicked(self):
+        data_from = self.comboBox_from.desc_item_uuid()
+        data_to = self.comboBox_to.desc_item_uuid()
         data_mode = self.comboBox_switchMode.currentText()
         # showInfo("{} {} {}".format(data_from,data_to,data_mode))
-        #三步走: 1读取,2写入,3删除
+        # 三步走: 1读取,2写入,3删除
         card_li = [item.card_id for item in Input().dataflat_]
         cardinfo = {}
         for card_id in card_li:

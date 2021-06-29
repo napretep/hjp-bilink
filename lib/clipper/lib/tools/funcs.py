@@ -1,6 +1,7 @@
 from ..fitz import fitz
 from PyQt5.QtCore import QItemSelection, QThread, pyqtSignal, QSize
 from PyQt5.QtGui import QStandardItemModel, QImage, QPixmap
+import uuid
 
 qianziwen = "天地玄黄宇宙洪荒日月盈昃辰宿列张" \
             "寒来暑往秋收冬藏闰余成岁律吕调阳" \
@@ -127,6 +128,19 @@ def on_clipbox_addedToPageView(clipbox, cardlist, pageview):
 def clipbox_delete(clipbox, cardlist, pageview):
     pass
 
+
+def uuidmake():
+    return str(uuid.uuid4())
+
+
+def wrapper_print_debug(func):
+    def wrapper(*args, **kwargs):
+        from .ALL import ISDEBUG
+        if ISDEBUG:
+            return func(*args, **kwargs)
+
+
+print = wrapper_print_debug(print)
 
 if __name__ == "__main__":
     pass

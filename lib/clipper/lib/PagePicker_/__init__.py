@@ -555,7 +555,7 @@ class Previewer(QWidget):
             self.scene.clear()
             e = events.PagePickerPreviewerReadPageEvent
             ALL.signals.on_pagepicker_preivewer_read_page.emit(
-                e(sender=self, eventType=e.loadType, pagenum=event.pagenum)
+                e(sender=self, eventType=e.loadType, pagenum=event.pagenum, doc=event.doc)
             )
 
     def on_pagepicker_preivewer_read_page_handle(self, event: "events.PagePickerPreviewerReadPageEvent"):
@@ -563,13 +563,13 @@ class Previewer(QWidget):
             self.scene_page_add(0, reload=True)
         elif event.Type == event.loadType:
             print(event.pagenum)
-            self.scene_page_add(event.pagenum)
+            self.scene_page_add(event.pagenum, newdoc=event.doc)
         pass
 
-    def scene_page_add(self, pagenum, reload=False):
+    def scene_page_add(self, pagenum, reload=False, newdoc=None):
         from ..PageInfo import PageInfo
         ratio = self.pagepicker.ratio_value_get()
-        doc = self.pagepicker.doc
+        doc = newdoc if newdoc is not None else self.pagepicker.doc
         if reload:
             pageinfo = PageInfo(doc.name, self.pagenum, ratio)
         else:
