@@ -1,7 +1,61 @@
+import os
+import sys
+from typing import Union
+
 from ..fitz import fitz
 from PyQt5.QtCore import QItemSelection, QThread, pyqtSignal, QSize
 from PyQt5.QtGui import QStandardItemModel, QImage, QPixmap
 import uuid
+import logging
+import tempfile
+
+
+def event_handle_connect(event_dict):
+    for event, handle in event_dict.items():
+        event.connect(handle)
+
+
+def event_handle_disconnect(event_dict: "dict[pyqtSignal,callable]"):
+    for event, handle in event_dict.items():
+        try:
+            print(event.signal)
+            event.disconnect(handle)
+            # print(f"""{event.__str__()} still has {}  connects""")
+        except Exception:
+            print(f"{event.__str__()} do not connect to {handle.__str__()}")
+
+
+def logger(logname=None, level=None):
+    from . import ALL
+    if ALL.ISDEBUG:
+        if logname is None:
+            logname = "hjp_clipper"
+        if level is None:
+            level = ALL.DEBUG_LEVEL
+        printer = logging.getLogger(logname)
+        printer.setLevel(level)
+        from .SrcAdmin_ import Get
+        log_dir = os.path.join(Get.dir_root, "log.txt")
+
+        fmt = "%(asctime)s %(levelname)s %(threadName)s  %(pathname)s\n%(filename)s " \
+              "%(lineno)d\n%(funcName)s:\n %(message)s"
+        datefmt = "%Y-%m-%d %H:%M:%S"
+        formatter = logging.Formatter(fmt, datefmt)
+
+        filehandle = logging.FileHandler(log_dir)
+        filehandle.setLevel(level)
+        filehandle.setFormatter(formatter)
+
+        consolehandle = logging.StreamHandler()
+        consolehandle.setLevel(level)
+        consolehandle.setFormatter(formatter)
+
+        printer.addHandler(filehandle)
+        printer.addHandler(consolehandle)
+        return printer.debug, printer
+    else:
+        return print, print
+
 
 qianziwen = "天地玄黄宇宙洪荒日月盈昃辰宿列张" \
             "寒来暑往秋收冬藏闰余成岁律吕调阳" \
@@ -98,11 +152,21 @@ def str_shorten(string, length=30):
         return string[0:int(length/2)-3]+"..."+string[-int(length/2):]
 
 
-def pixmap_page_load(doc: "fitz.Document", pagenum, ratio=1, browser=False, browse_size: "QSize" = None):
+def pixmap_page_load(doc: "Union[fitz.Document,str]", pagenum, ratio=1, browser=False, browse_size: "QSize" = None):
     """从self.doc读取page,再转换为pixmap"""
+    if type(doc) == str:
+        doc = fitz.open(doc)
+    pdfname = os.path.basename(doc.name)
     page: "fitz.Page" = doc.load_page(pagenum)  # 加载的是页面
-
+    tempdir = tempfile.gettempdir()
+    tempPNGname = os.path.join(tempdir, f"{pdfname[0:-4]}_{pagenum}_{ratio}.png")
+    print, printer = logger(__name__)
+    # print(tempPNGname)
     pix: "fitz.Pixmap" = page.getPixmap(matrix=fitz.Matrix(ratio, ratio))  # 将页面渲染为图片
+    if not os.path.exists(tempPNGname):
+        pix.save(tempPNGname)
+    return tempPNGname
+    # return QPixmap(tempPNGname)
     # print(f"page.mediabox_size{}")
     # if preview and len(pix.tobytes())>120000:
     #     pix.shrink(3)
@@ -111,12 +175,12 @@ def pixmap_page_load(doc: "fitz.Document", pagenum, ratio=1, browser=False, brow
     #     print(pix.size  )
     # print(ratio.__str__())
 
-    fmt = QImage.Format_RGBA8888 if pix.alpha else QImage.Format_RGB888  # 渲染的格式
-    pageImage = QImage(pix.samples, pix.width, pix.height, pix.stride, fmt)
-
-    pixmap = QPixmap()
-    pixmap.convertFromImage(pageImage)  # 转为pixmap
-    return QPixmap(pixmap)
+    # fmt = QImage.Format_RGBA8888 if pix.alpha else QImage.Format_RGB888  # 渲染的格式
+    # pageImage = QImage(pix.samples, pix.width, pix.height, pix.stride, fmt)
+    #
+    # pixmap = QPixmap()
+    # pixmap.convertFromImage(pageImage)  # 转为pixmap
+    # return QPixmap(pixmap)
 
 
 def on_clipbox_addedToPageView(clipbox, cardlist, pageview):
@@ -134,13 +198,30 @@ def uuidmake():
 
 
 def wrapper_print_debug(func):
+    """当程序在anki中运行的时候,无法看到打印的东西,必须输出到文件"""
+
     def wrapper(*args, **kwargs):
         from .ALL import ISDEBUG
+
         if ISDEBUG:
+            log(args[0])
             return func(*args, **kwargs)
+        else:
+            return do_nothing(*args, **kwargs)
 
 
-print = wrapper_print_debug(print)
+def log(text):
+    from .SrcAdmin_ import Get
+
+    logdir = os.path.join(Get.dir_root, "log.txt")
+    f = open(logdir, "w+", encoding="utf-8")
+
+
+def do_nothing(*args, **kwargs):
+    pass
+
+
+# print = wrapper_print_debug(print)
 
 if __name__ == "__main__":
     pass

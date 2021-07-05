@@ -1,7 +1,7 @@
 import json
 import os
 
-from PyQt5.QtCore import QObject, pyqtSignal, Qt, QThread
+from PyQt5.QtCore import QObject, pyqtSignal, Qt, QThread, QTimer
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QPushButton, QSpinBox, QFileDialog, QToolButton, \
     QDoubleSpinBox, QComboBox, QVBoxLayout, QFrame, QGridLayout, QWidget, QShortcut, QProgressBar
@@ -9,6 +9,12 @@ from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QPushButton, QSpinBox,
 from .funcs import str_shorten
 from . import events, JSONschema_, SrcAdmin_
 
+
+# import logging
+#
+# class Logger(object):
+#     def __init__(self,text,loggername=None):
+#
 
 # from ..PageInfo import PageInfo
 
@@ -28,9 +34,6 @@ class CustomSignals(QObject):
     on_pagepicker_bookmark_open = pyqtSignal(object)  # OpenBookmarkEvent
     on_pagepicker_bookmark_clicked = pyqtSignal(object)  # BookmarkClickedEvent
 
-    on_pagepicker_config_reload = pyqtSignal()
-    on_pagepicker_config_reload_end = pyqtSignal()
-
     # PDFopen只用于打开PDF, 不参与分析的操作
     on_pagepicker_PDFopen = pyqtSignal(object)  # PDFOpenEvent
     on_pagepicker_PDFparse = pyqtSignal(object)  # PDFParseEvent
@@ -38,6 +41,8 @@ class CustomSignals(QObject):
 
     # 用于收集数据
     # on_pagepicker_Browser_pageselected = pyqtSignal(object)#PagePickerBrowserPageSelectedEvent
+
+    on_pagepicker_open = pyqtSignal(object)  # PagePickerOpenEvent
 
     on_pagepicker_rightpart_pageread = pyqtSignal(object)  # PagePickerRightPartPageReadEvent
     # click还管别的
@@ -55,19 +60,18 @@ class CustomSignals(QObject):
 
     on_pagepicker_previewer_ratio_adjust = pyqtSignal(object)  # PagePickerPreviewerRatioAdjustEvent
 
+    on_pagepicker_browser_frame_changed = pyqtSignal(object)  # PagePickerBrowserFrameChangedEvent
+
     # 涉及 pagenum,docname,ratio的更新变化
     on_pageItem_update = pyqtSignal(object)  # PageItemUpdateEvent
 
     on_pageItem_clicked = pyqtSignal(object)  # PageItemClickEvent
     on_pageItem_clipbox_added = pyqtSignal(object)
     on_pageItem_resize_event = pyqtSignal(object)  # PageItemResizeEvent
-    # on_pageItem_resetSize_event = pyqtSignal(object)
-    # on_pageItem_nextPage_event = pyqtSignal(object)
-    # on_pageItem_prevPage_event = pyqtSignal(object)
     on_pageItem_changePage = pyqtSignal(object)  # PageItemChangeEvent
     on_pageItem_addToScene = pyqtSignal(object)  # PagePickerEvent
     on_pageItem_removeFromScene = pyqtSignal(object)
-
+    on_pageItem_rubberBandRect_send = pyqtSignal(object)  # PageItemRubberBandRectSendEvent
     on_pageItem_needCenterOn = pyqtSignal(object)  # PageItemNeedCenterOnEvent
     on_pageItem_centerOn_process = pyqtSignal(object)  # PageItemCenterOnProcessEvent
 
@@ -86,6 +90,7 @@ class CustomSignals(QObject):
     on_clipboxstate_hide = pyqtSignal()
     on_clipboxCombox_updated = pyqtSignal(object)
     on_clipboxCombox_emptied = pyqtSignal()
+    on_clipbox_create = pyqtSignal(object)  # ClipboxCreateEvent
 
     on_rightSideBar_settings_clicked = pyqtSignal(object)
     on_rightSideBar_refresh_clicked = pyqtSignal(object)
@@ -95,10 +100,12 @@ class CustomSignals(QObject):
     on_clipper_hotkey_prev_card = pyqtSignal()
     on_clipper_hotkey_setA = pyqtSignal()
     on_clipper_hotkey_setQ = pyqtSignal()
+    on_clipper_config_reload = pyqtSignal()
+    on_clipper_config_reload_end = pyqtSignal()
 
     on_PDFView_ResizeView = pyqtSignal(object)  # PDFViewResizeViewEvent
 
-
+    regist_dict = {}  # hashcode:[signal,connector]
 
     @classmethod
     def start(cls):
@@ -170,3 +177,77 @@ class ProgressBarBlackFont(QProgressBar):
         self.setStyleSheet("text-align:center;color:black;")
 
     pass
+
+
+class AllEventAdmin(object):
+    from . import funcs
+
+    def __init__(self, event_dict):
+        self.event_dict = event_dict
+
+    def bind(self):
+        self.funcs.event_handle_connect(self.event_dict)
+
+    def unbind(self, classname=""):
+        self.funcs.event_handle_disconnect(self.event_dict)
+        if not classname == "":
+            print(f"{classname} all events unbind")
+
+
+class UniversalProgresser(QDialog):
+    on_close = pyqtSignal()  #
+
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.progressbar = ProgressBarBlackFont(self)
+        self.signal_func_dict: "dict[str,list[callable,callable,Union[dict,None]]]" = None  # "signal_name":[signal,funcs,kwargs] 传入的信号与槽函数
+        self.signal_sequence: "list[list[str]]" = None  # [["signal_name"]] 0,1,2 分别是前,中,后的回调函数.
+        self.timer = QTimer()
+        self.format_dict = {}
+        self.event_dict = {}
+        self.init_UI()
+        self.show()
+
+    def close_dely(self, dely=100):
+        self.timer.singleShot(dely, self.close)
+
+    def data_load(self, format_dict=None, signal_func_dict=None, signal_sequence=None):
+        if self.signal_sequence is not None:
+            raise ValueError("请先启动data_clear,再赋值")
+        self.format_dict = format_dict
+        self.signal_sequence = signal_sequence
+        self.signal_func_dict = signal_func_dict
+        if self.signal_sequence is not None:
+            if len(self.signal_sequence) != 3:
+                raise ValueError("signal_sequence 的元素必须是 3个数组")
+        if self.signal_func_dict is not None:
+            self.event_dict = {}
+            for k, v in self.signal_func_dict.items():
+                if len(v) != 3:
+                    raise ValueError("signal_func_dict 的value必须是长度为3的数组")
+                self.event_dict[v[0]] = v[1]
+                if v[2] is not None:
+                    v[2]["type"] = self.__class__.__name__
+            self.all_event = AllEventAdmin(self.event_dict)
+            self.all_event.bind()
+        return self
+
+    def data_clear(self):
+        self.signal_func_dict = None  # "signal_name":[signal,func] 传入的信号与槽函数
+        self.signal_sequence = None  # ["signal_name",{"args":[],"kwargs":{}]
+        self.pdf_page_list = None  # [[pdfdir,pagenum]]
+        self.all_event.unbind()
+        return self
+
+    def valtxt_set(self, value, format=None):
+        """set value and format,"""
+        if format is not None:
+            self.progressbar.setFormat(format)
+        self.progressbar.setValue(value)
+
+    def init_UI(self):
+        self.setMinimumWidth(400)
+        self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
+        glayout = QGridLayout(self)
+        glayout.addWidget(self.progressbar, 0, 0, 1, 4)
+        self.setLayout(glayout)

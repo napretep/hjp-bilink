@@ -1,11 +1,11 @@
 """用于实现跨三级模块以上的信息交互"""
-from aqt import mw
+from aqt import mw, dialogs, browser
 from aqt.utils import showInfo
 
 from .tools import objs, events, funcs, ALL
 from .backlink_reader import BackLinkReader
 from . import ModuleProxyfunc
-
+from . import utils
 
 def on_cardlist_addCard_handle(event: "events.CardListAddCardEvent"):
     """添加来自anki现有的卡片"""
@@ -40,8 +40,14 @@ def on_anki_field_insert_handle(event: "events.AnkiFieldInsertEvent"):
 
 def on_anki_browser_activate_handle(event: "events.AnkiBrowserActivateEvent"):
     if event.Type == event.ClipperTaskFinishedType:
-        mw.browser.model.search(f"tag:{event.data}")
-        mw.browser.activateWindow()
+        browser = dialogs._dialogs["Browser"][1]
+        if browser is None:
+            dialogs.open("Browser", mw)
+            browser = dialogs._dialogs["Browser"][1]
+        tag = f"tag:hjp-bilink::timestamp::{event.data.__str__()}"
+        browser.model.search(tag)
+        utils.console(tag).log.end()
+        browser.activateWindow()
 
 
 def on_anki_file_create_handle(event: "events.AnkiFileCreateEvent"):

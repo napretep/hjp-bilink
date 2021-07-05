@@ -1,4 +1,5 @@
 import time
+import traceback
 from math import ceil
 from typing import Union
 
@@ -9,6 +10,10 @@ from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsProxyWidget,
     QGraphicsPixmapItem, QGraphicsTextItem, QGraphicsRectItem, QApplication, QProgressBar, QToolButton
 from PyQt5.QtCore import Qt, QRect, QSize, QRectF, QThread, pyqtSignal, QPointF, QPoint, QSizeF
 from ..tools import objs, events, funcs, ALL
+
+print, debugger = funcs.logger(logname=__name__)
+from ..PDFView_ import PageItem5
+from ..PageInfo import PageInfo
 
 
 def frame_partition(cols_per_row, view_size: "QSize", shift_width, total_unit_num=1, _total_list=None) -> object:
@@ -36,19 +41,20 @@ def frame_partition(cols_per_row, view_size: "QSize", shift_width, total_unit_nu
     pass
 
 
-def setup_item(item_idx, row_per_frame=None, col_per_row=None, unit_size=None, frame_num=None,
-               doc: "fitz.Document" = None,
-               frame_list=None, need_positioning=True):
-    pagenum = frame_num * row_per_frame * col_per_row + item_idx
-    pixmap = funcs.pixmap_page_load(doc, pagenum)
-    item = Item2(pixmap=pixmap, pagenum=pagenum, unit_size=unit_size)
-    # 调整位置, 需要 x,y坐标
-    X = (item_idx % col_per_row) * unit_size
-    Y = (frame_num * row_per_frame + int(item_idx / col_per_row)) * unit_size
-
-    item.setPos(X, Y)
-    frame_list[frame_num][item_idx] = item
-    return frame_list
+#
+# def setup_item(item_idx, row_per_frame=None, col_per_row=None, unit_size=None, frame_num=None,
+#                doc: "fitz.Document" = None,
+#                frame_list=None, need_positioning=True):
+#     pagenum = frame_num * row_per_frame * col_per_row + item_idx
+#     pixmap = funcs.pixmap_page_load(doc, pagenum)
+#     item = Item2(pixmap=pixmap, pagenum=pagenum, unit_size=unit_size)
+#     # 调整位置, 需要 x,y坐标
+#     X = (item_idx % col_per_row) * unit_size
+#     Y = (frame_num * row_per_frame + int(item_idx / col_per_row)) * unit_size
+#
+#     item.setPos(X, Y)
+#     frame_list[frame_num][item_idx] = item
+#     return frame_list
 
 
 def browser_pageinfo_make(frame_idx, frame_item_idx, row_per_frame, col_per_row, unit_size, show, focus):
@@ -96,7 +102,7 @@ class ReLayoutJob(QThread):
 
     def run(self):
         self.on_job_begin.emit()
-        if self.framelist is None:
+        if self.frame_list is None:
             self.unit_size, self.row_per_frame, self.frame_list = frame_partition(
                 self.col_per_row, self.view_size, _total_list=self.total_list
             )
@@ -144,84 +150,87 @@ class PageContinueLoadJob(QThread):
         pass
 
 
-class PageInitLoadJob(QThread):
-    """从 pdf 读取 页面转化为pageitem, 只在第一次读取pdf时启动"""
-    on_job_begin = pyqtSignal()
-    on_job_end = pyqtSignal()
-    on_job_progress = pyqtSignal(int)
-    on_1_page_loaded = pyqtSignal(object)
-    on_1_frame_loaded = pyqtSignal(object)
-    on_all_page_loaded = pyqtSignal(object)
-    on_frame_partition_done = pyqtSignal(object)
-
-    def __init__(self, doc=None,
-                 browser: 'QWidget' = None, frame_idx=None, parent=None, select=True,
-                 begin_page=0, focus=True):
-
-        super().__init__(parent=parent)
-        self.browser = browser
-        self.doc = doc
-        self.total_list: "list" = []
-        self.unit_size: "int" = self.browser.unit_size
-        self.view_size: "QSize" = self.browser.size()
-        self.col_per_row: "int" = self.browser.col_per_row
-        self.row_per_frame = self.browser.row_per_frame
-        self.begin_page: "int" = begin_page if begin_page is not None else 0
-        self.pageItemList = []
-        self.shift_width = self.browser.scene_shift_width
-        self.progress_count = 0
-        self.subjob_queue = []
-        self.frame_list = self.browser.frame_list
-        self.focus = focus
-        self.frame_idx = frame_idx
-        self.select = select
-        self.exc_time = 0.005
-        pass
-
-    def run(self) -> None:
-        self.on_job_begin.emit()
-        if self.frame_list is None:  # 如果为空则重建
-            self.unit_size, self.row_per_frame, self.frame_list = frame_partition(
-                self.col_per_row, self.view_size, self.shift_width, total_unit_num=len(self.doc))
-            self.on_frame_partition_done.emit(
-                [self.unit_size, self.row_per_frame, self.frame_list])
-
-        main_frame_num = self.frame_idx if self.frame_idx is not None \
-            else int(self.begin_page / (self.row_per_frame * self.col_per_row))
-        if self.frame_list[main_frame_num][0] is None:  # 如果一帧的开头为空,说明还未初始化,需要初始化
-            for frame_item_idx in range(len(self.frame_list[main_frame_num])):
-                d = browser_pageinfo_make(main_frame_num, frame_item_idx, self.row_per_frame, self.col_per_row,
-                                          self.unit_size, True, True)
-                self.on_1_page_loaded.emit(d)
-                self.on_job_progress.emit(int(frame_item_idx / len(self.frame_list[main_frame_num]) * 100))
-                time.sleep(self.exc_time)
-            self.on_job_progress.emit(100)
-        # 无论做了什么, 都需要最终都要返回这个, 是否有选择啊,是否要聚焦啊,这里解决
-        self.on_all_page_loaded.emit({"frame": self.frame_list[main_frame_num],
-                                      "focus": self.focus, "select": self.select, "pagenum": self.begin_page})
-
-        self.on_job_end.emit()
-        pass
-
-    def pageinfo_make(self, frame_idx, frame_item_idx, show, focus):
-        pagenum = frame_idx * self.row_per_frame * self.col_per_row + frame_item_idx
-        d = {"frame_idx": frame_idx, "frame_item_idx": frame_item_idx,
-             "pagenum": pagenum}
-        X = (frame_item_idx % self.col_per_row) * self.unit_size
-        Y = (frame_idx * self.row_per_frame + int(frame_item_idx / self.col_per_row)) * self.unit_size
-        d["posx"] = X
-        d["posy"] = Y
-        d["show"] = show
-        d["focus"] = focus
-        self.on_1_page_loaded.emit(d)
-        self.progress_move_1()
-        time.sleep(self.exc_time)
-
-    def progress_move_1(self):
-        self.progress_count += 1
-        self.on_job_progress.emit(int(self.progress_count / len(self.doc) * 100 + 1))
-
-    pass
+# class PageInitLoadJob(QThread):
+#     """从 pdf 读取 页面转化为pageitem, 只在第一次读取pdf时启动"""
+#     on_job_begin = pyqtSignal()
+#     on_job_end = pyqtSignal()
+#     on_job_progress = pyqtSignal(int)
+#     on_1_page_loaded = pyqtSignal(object)
+#     on_1_frame_loaded = pyqtSignal(object)
+#     on_all_page_loaded = pyqtSignal(object)
+#     on_frame_partition_done = pyqtSignal(object)
+#
+#     def __init__(self, doc=None,
+#                  browser: 'QWidget' = None, frame_idx=None, parent=None, select=True,
+#                  begin_page=0, focus=True):
+#
+#         super().__init__(parent=parent)
+#         self.browser = browser
+#         self.doc = doc
+#         self.total_list: "list" = []
+#         self.unit_size: "int" = self.browser.unit_size
+#         self.view_size: "QSize" = self.browser.size()
+#         self.col_per_row: "int" = self.browser.col_per_row
+#         self.row_per_frame = self.browser.row_per_frame
+#         self.begin_page: "int" = begin_page if begin_page is not None else 0
+#         self.pageItemList = []
+#         self.shift_width = self.browser.scene_shift_width
+#         self.progress_count = 0
+#         self.subjob_queue = []
+#         self.frame_list = self.browser.frame_list
+#         self.focus = focus
+#         self.frame_idx = frame_idx
+#         self.select = select
+#         self.exc_time = 0.005
+#         pass
+#
+#     def run(self) -> None:
+#         try:
+#             self.on_job_begin.emit()
+#             if self.frame_list is None:  # 如果为空则重建
+#                 self.unit_size, self.row_per_frame, self.frame_list = frame_partition(
+#                     self.col_per_row, self.view_size, self.shift_width, total_unit_num=len(self.doc))
+#                 self.on_frame_partition_done.emit(
+#                     [self.unit_size, self.row_per_frame, self.frame_list])
+#
+#             main_frame_num = self.frame_idx if self.frame_idx is not None \
+#                 else int(self.begin_page / (self.row_per_frame * self.col_per_row))
+#             if self.frame_list[main_frame_num][0] is None:  # 如果一帧的开头为空,说明还未初始化,需要初始化
+#                 for frame_item_idx in range(len(self.frame_list[main_frame_num])):
+#                     d = browser_pageinfo_make(main_frame_num, frame_item_idx, self.row_per_frame, self.col_per_row,
+#                                               self.unit_size, True, True)
+#                     self.on_1_page_loaded.emit(d)
+#                     self.on_job_progress.emit(int(frame_item_idx / len(self.frame_list[main_frame_num]) * 100))
+#                     time.sleep(self.exc_time)
+#                 self.on_job_progress.emit(100)
+#             # 无论做了什么, 都需要最终都要返回这个, 是否有选择啊,是否要聚焦啊,这里解决
+#             self.on_all_page_loaded.emit({"frame": self.frame_list[main_frame_num],
+#                                           "focus": self.focus, "select": self.select, "pagenum": self.begin_page})
+#
+#             self.on_job_end.emit()
+#         except Exception as e:
+#             print(traceback.format_exc()+"\n"+e.__str__())
+#         pass
+#
+#     def pageinfo_make(self, frame_idx, frame_item_idx, show, focus):
+#         pagenum = frame_idx * self.row_per_frame * self.col_per_row + frame_item_idx
+#         d = {"frame_idx": frame_idx, "frame_item_idx": frame_item_idx,
+#              "pagenum": pagenum}
+#         X = (frame_item_idx % self.col_per_row) * self.unit_size
+#         Y = (frame_idx * self.row_per_frame + int(frame_item_idx / self.col_per_row)) * self.unit_size
+#         d["posx"] = X
+#         d["posy"] = Y
+#         d["show"] = show
+#         d["focus"] = focus
+#         self.on_1_page_loaded.emit(d)
+#         self.progress_move_1()
+#         time.sleep(self.exc_time)
+#
+#     def progress_move_1(self):
+#         self.progress_count += 1
+#         self.on_job_progress.emit(int(self.progress_count / len(self.doc) * 100 + 1))
+#
+#     pass
 
 
 class SelectedRect(QGraphicsRectItem):
@@ -231,9 +240,60 @@ class SelectedRect(QGraphicsRectItem):
         self.setRect(target.boundingRect())
 
 
+class FrameItem(object):
+    state_free = 0
+    state_bussy = 1
+    state_done = 2
+    state_doing = 3
+
+    def __init__(self, parent=None, frame_list=None, frame_unit_count: "int" = None):
+        self.frame_unit_count = frame_unit_count
+        self.parent = parent
+        self.frame_list = frame_list
+        self.blocks = [None] * frame_unit_count  # 将来要赋值
+        self.state = self.state_free
+
+    def reset_blocks(self, frame_unit_count):
+        """用法: 当你给frame_unit_count赋值时, 会调用这个方法, 重新设定blocks"""
+        for i in self.blocks:
+            del i
+        self.blocks = [None] * frame_unit_count
+        self.state = self.state_free
+
+    def effective_len(self):
+        return len(list(filter(lambda x: x is not None, self.blocks)))
+
+    def blocks_full(self):
+        return len(self) == self.effective_len()
+
+    def __setattr__(self, key, value):
+        if key == "frame_unit_count" and "blocks" in self.__dict__:
+            self.reset_blocks(value)
+        self.__dict__[key] = value
+
+    def __len__(self):
+        """返回实际长度?"""
+        return len(self.blocks)
+
+    def __getitem__(self, key):
+        return self.blocks[key]
+
+    def __setitem__(self, key, value):
+        self.blocks[key] = value
+        self.state = self.state_doing
+
+    def __del__(self):
+        self.__delattr__("parent")
+        self.__delattr__("frame_list")
+        for i in self.blocks:
+            del i
+        self.__delattr__("blocks")
+
+
 class Item2(QGraphicsPixmapItem):
-    def __init__(self, parent=None, pixmap: "QPixmap" = None, pagenum=None, unit_size=None):
+    def __init__(self, parent=None, pixmap: "QPixmap" = None, pagenum=None, unit_size=None, browser=None):
         super().__init__(parent=parent)
+        self.browser = browser
         self.uuid = funcs.uuidmake()  # 仅需要内存级别的唯一性
         self._pixmap = pixmap
         self.is_selected = False
@@ -242,7 +302,8 @@ class Item2(QGraphicsPixmapItem):
         self.setPixmap(pixmap.scaled(self.unit_size, self.unit_size, Qt.KeepAspectRatio))
         self.pagenum = pagenum
         self.pagenumtext = QGraphicsTextItem(parent=self)
-        self.pagenumtext.setHtml(f"<div style='background-color:green;color:white;padding:2px;'>{self.pagenum}</div>")
+        self.pagenumtext.setHtml(
+            f"<div style='background-color:green;color:white;padding:2px;font-size:20px;align:center;'>{self.pagenum}</div>")
         self.pagenumtext.setPos(0, 0)
         # self.pixmap = QGraphicsPixmapItem(pixmap)
         # self.setScale(unit_size/(max(self.pixmap().width(),self.pixmap().height())))
@@ -288,11 +349,19 @@ class Item2(QGraphicsPixmapItem):
         super().mousePressEvent(event)
 
     def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-        e = events.PagePickerBrowserSelectSendEvent
-        ALL.signals.on_pagepicker_browser_select_send.emit(
-            e(sender=self, eventType=e.overWriteType, pagenumlist=[self.pagenum])
-        )
-
+        # e = events.PagePickerBrowserSelectSendEvent
+        # ALL.signals.on_pagepicker_browser_select_send.emit(
+        #     e(sender=self, eventType=e.overWriteType, pagenumlist=[self.pagenum])
+        # )
+        e = events.PageItemAddToSceneEvent
+        PDFpath = self.browser.doc.name
+        pagenum = self.pagenum
+        ratio = self.browser.pagepicker.ratio_value_get()
+        item = PageInfo(PDFpath, pagenum, ratio=ratio)
+        pageitem = PageItem5(item, rightsidebar=self.browser.pagepicker.clipper.rightsidebar)
+        ALL.signals.on_pageItem_addToScene.emit(
+            e(sender=self, eventType=e.addMultiPageType, pageItemList=[pageitem]))
+        self.browser.pagepicker.close()
     #
     def on_pagepicker_browser_select_handle(self, event: "events.PagePickerBrowserSelectEvent"):
         if event.Type == event.singleSelectType:
@@ -356,7 +425,10 @@ class Item2(QGraphicsPixmapItem):
         super().paint(painter, option, widget)
         self.show_selected_rect(self.isSelected())
 
-        #
+    # def __del__(self):
+    #     ALL.signals.on_pagepicker_browser_select.disconnect(self.on_pagepicker_browser_select_handle)
+    #
+    #
 
 
 class Scene(QGraphicsScene):
@@ -364,6 +436,7 @@ class Scene(QGraphicsScene):
         super().__init__(parent=parent)
         self.browser = parent
         self.init_events()
+        self.itemlist = []
 
     def init_events(self):
         ALL.signals.on_pagepicker_browser_sceneClear.connect(
@@ -374,7 +447,6 @@ class Scene(QGraphicsScene):
         if event.collectType == event.Type:
             pagenumlist = [page.pagenum for page in self.selectedItems()]
             pagenumlist.sort()
-            print(pagenumlist)
             e = events.PagePickerBrowserSelectSendEvent
             ALL.signals.on_pagepicker_browser_select_send.emit(
                 e(sender=self, eventType=e.appendType, pagenumlist=pagenumlist)
@@ -384,6 +456,18 @@ class Scene(QGraphicsScene):
         if event.Type == event.clearType:
             self.clear()
 
+    def addItem(self, item):
+        self.itemlist.append(item)
+        super().addItem(item)
+
+    def clear(self):
+        # list(map(lambda item:ALL.signals.on_pagepicker_browser_select.disconnect(item.on_pagepicker_browser_select_handle),
+        #          self.itemlist))
+        super().clear()
+
+    def selected_item_pagenum(self):
+        return sorted([page.pagenum for page in self.selectedItems()])
+
     #
     # def mouseMoveEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
     #     print(self.selectedItems())
@@ -391,10 +475,13 @@ class Scene(QGraphicsScene):
 
 
 class View(QGraphicsView):
-    def __init__(self, parent=None, scene=None, browser=None):
+    scrollUp = 0
+    scrollDown = 1
+
+    def __init__(self, parent=None, scene=None):
         super().__init__(parent=parent)
         # self.setFixedWidth(580)
-        self.browser = browser
+        self.browser = parent
         self.begin_dragband = False
         self.origin_pos = None
         self.wheel_event_last_item = 0
@@ -404,11 +491,12 @@ class View(QGraphicsView):
         if scene is not None:
             self.setScene(scene)
         self.init_UI()
-        self.init_events()
+        self.event_dict = {
+            ALL.signals.on_pagepicker_PDFparse: self.on_pagepicker_PDFparse_handle
+        }
+        self.all_event = objs.AllEventAdmin(self.event_dict)
+        self.all_event.bind()
 
-    def init_events(self):
-        ALL.signals.on_pagepicker_PDFparse.connect(self.on_pagepicker_PDFparse_handle)
-        # self.rubberBandChanged.connect(self.on_rubberBandChanged_handle)
 
     def on_pagepicker_PDFparse_handle(self, event: "events.PDFParseEvent"):
         # self.centerOn(0,0)
@@ -427,13 +515,8 @@ class View(QGraphicsView):
         now_time = time.time()
         if self.paint_event_last_time == 0:
             self.paint_event_last_time = now_time
-        if now_time - self.paint_event_last_time >= 0.5 and not self.browser.PageLoadJob_isBussy:
-
-            if event.rect().y() == 0:  # 向上
-                self.frame_idx_update(0)
-            else:  # 向下
-                # print("向下")
-                self.frame_idx_update(1)
+        if now_time - self.paint_event_last_time >= 0.1:
+            self.frame_idx_change_check(self.scrollUp)
             self.paint_event_last_time = now_time
         super().paintEvent(event)
 
@@ -441,50 +524,49 @@ class View(QGraphicsView):
     def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
         """下拉上拉触发子线程加载"""
         if event.modifiers() == Qt.ControlModifier:
-            if not self.browser.PageLoadJob_isBussy:
-                if event.angleDelta().y() > 0 and self.browser.col_per_row > 1:
-                    self.browser.col_per_row -= 1
-                if event.angleDelta().y() < 0:
-                    self.browser.col_per_row += 1
-                e = events.PDFParseEvent
-                # if frame_item_first is not None:
-                height_per_frame = self.browser.row_per_frame * self.browser.unit_size
-                count_per_frame = self.browser.row_per_frame * self.browser.col_per_row
-                frame_item_first = int(self.mapToScene(self.pos()).y() / height_per_frame) * count_per_frame
-                ALL.signals.on_pagepicker_PDFparse.emit(
-                    e(sender=self, eventType=e.PDFInitParseType,
-                      doc=self.browser.pagepicker.doc, pagenum=frame_item_first)
-                )
+            if event.angleDelta().y() > 0 and self.browser.col_per_row > 1:
+                self.browser.col_per_row -= 1
+            if event.angleDelta().y() < 0:
+                self.browser.col_per_row += 1
+            e = events.PDFParseEvent
+            # if frame_item_first is not None:
+            height_per_frame = self.browser.row_per_frame * self.browser.unit_size
+            count_per_frame = self.browser.row_per_frame * self.browser.col_per_row
+            frame_item_first = int(self.mapToScene(self.pos()).y() / height_per_frame) * count_per_frame
+            ALL.signals.on_pagepicker_PDFparse.emit(
+                e(sender=self, eventType=e.PDFInitParseType,
+                  doc=self.browser.pagepicker.doc, pagenum=frame_item_first)
+            )
         else:
             # print(f"view pos = {self.mapToScene(self.pos())}")
             if not self.browser.PageLoadJob_isBussy:
-                if event.angleDelta().y() > 0:
-                    self.frame_idx_update(0)
+                if event.angleDelta().y() > 0:  # 千万别再错了
+                    self.frame_idx_change_check(self.scrollUp)
                 if event.angleDelta().y() < 0:
-                    self.frame_idx_update(1)
+                    self.frame_idx_change_check(self.scrollDown)
             super().wheelEvent(event)
 
-    def frame_idx_update(self, goType=0):
+    def frame_idx_change_check(self, scrollDir):
         if self.browser.frame_list is None or self.browser.row_per_frame is None:
             return
         height_per_frame = self.browser.row_per_frame * self.browser.unit_size
-        goUp = 0
-        goDown = 1
-        at_frame_idx = -1
-        if goType == goUp:
-            at_frame_idx = int(self.mapToScene(self.pos()).y() / height_per_frame)
-        if goType == goDown:
+        at_frame_idx = int(self.mapToScene(self.pos()).y() / height_per_frame)  # 向上滚很容易解释
+        if scrollDir == self.scrollDown:
             at_frame_idx = int(self.mapToScene(self.pos()).y() / height_per_frame)
             curr_frame_height_y = (at_frame_idx + 0.3) * height_per_frame
             # print(f"curr_frame_height_y={curr_frame_height_y},self.mapToScene(self.pos()).y()="
             #       f"{self.mapToScene(self.pos()).y()}")
             if curr_frame_height_y < self.mapToScene(self.pos()).y():
                 at_frame_idx += 1
-        if -1 < at_frame_idx < len(self.browser.pagepicker.doc) and self.browser.frame_list[at_frame_idx][0] is None:
+        # print(f"at_frame_idx={at_frame_idx},curr_frame_idx={self.browser.curr_frame_idx}")
+        if len(self.browser.frame_list) > at_frame_idx > -1 and at_frame_idx != self.browser.curr_frame_idx:
+            # e= events.PagePickerBrowserFrameChangedEvent
+            # ALL.signals.on_pagepicker_browser_frame_changed.emit(
+            #     e(sender=self,eventType=e.FrameChangedType,frame_idx=at_frame_idx)
+            # )
             e = events.PDFParseEvent
-            ALL.signals.on_pagepicker_PDFparse.emit(
-                e(eventType=e.ScrollType, doc=self.browser.pagepicker.doc, frame_idx=at_frame_idx)
-            )
+            ALL.signals.on_pagepicker_PDFparse.emit(e(eventType=e.ScrollType, frame_idx=at_frame_idx, sender=self))
+            self.browser.curr_frame_idx = at_frame_idx
 
 
 class BottomBar(QWidget):
@@ -493,31 +575,39 @@ class BottomBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.browser = parent
-        self.progressBar = objs.GridHDescUnit(labelname="加载进度/loading", widget=QProgressBar())
-        self.pick_page_button = QToolButton(self)
+        self.progressBar = objs.ProgressBarBlackFont(
+            self)  # objs.GridHDescUnit(labelname="加载进度/loading", widget=QProgressBar())
+        # self.pick_page_button = QToolButton(self)
         self.init_UI()
-        self.init_events()
+        self.event_dict = {
+            # self.pick_page_button.clicked:(self.pick_page_button_clicked_handle),
+            # ALL.signals.on_pagepicker_browser_progress:(self.on_pagepicker_browser_progress_handle)
+        }
+        self.all_event = objs.AllEventAdmin(self.event_dict)
+        self.all_event.bind()
 
     def init_UI(self):
-        self.pick_page_button.setIcon(QIcon(objs.SrcAdmin.imgDir.download))
-        self.pick_page_button.setToolTip("将选中的页码插入页码收集器\npick the selected pagenum and add to the page collector")
+        # self.pick_page_button.setIcon(QIcon(objs.SrcAdmin.imgDir.download))
+        # self.pick_page_button.setToolTip("将选中的页码插入页码收集器\npick the selected pagenum and add to the page collector")
+        self.progressBar.setFormat("任务完成/task complete %p%")
         H_layout = QHBoxLayout(self)
+
         H_layout.addWidget(self.progressBar)
-        H_layout.addWidget(self.pick_page_button)
+        # H_layout.addWidget(self.pick_page_button)
         H_layout.setStretch(0, 1)
         H_layout.setStretch(1, 0)
         self.setLayout(H_layout)
 
-    def init_events(self):
-        self.pick_page_button.clicked.connect(self.pick_page_button_clicked_handle)
-        ALL.signals.on_pagepicker_browser_progress.connect(self.on_pagepicker_browser_progress_handle)
-
     def on_pagepicker_browser_progress_handle(self, value):
         self.progressBar.widget.setValue(value)
 
-    def pick_page_button_clicked_handle(self):
-        e = events.PagePickerBrowserSelectEvent
-        ALL.signals.on_pagepicker_browser_select.emit(
-            e(sender=self, eventType=e.collectType)
-        )
-        pass
+    #
+    # def pick_page_button_clicked_handle(self):
+    #     e = events.PagePickerBrowserSelectEvent
+    #     ALL.signals.on_pagepicker_browser_select.emit(
+    #         e(sender=self, eventType=e.collectType)
+    #     )
+    #     pass
+
+    # def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+    #     self.all_event.unbind(self.__class__.__str__())

@@ -5,6 +5,7 @@ from PyQt5.QtGui import QIcon
 from aqt.utils import showInfo, aqt_data_folder
 
 
+
 class Get:
     instance = None
     dir_SrcAdmin_ = os.path.abspath(os.path.dirname(__file__))
@@ -15,6 +16,7 @@ class Get:
     dir_root = os.path.split(dir_lib0)[0]
     dir_user_files = "user_files"
     dir_resource = "resource"
+    dir_tempfile = "tempfile"
     dir_bookmark = ""
     dir_img = ""
     dir_json = ""
@@ -64,6 +66,12 @@ class Get:
         if DBname == "":
             DBname = self.dir_DB
         return os.path.join(self.dir_root, self.dir_user_files, DBname)
+
+    def temp_dir(self):
+        return os.path.join(self.dir_root, self.dir_user_files, self.dir_tempfile)
+
+    def user_files_dir(self):
+        return os.path.join(self.dir_root, self.dir_user_files)
 
     @classmethod
     def _(cls):
@@ -228,14 +236,12 @@ pdfname varchar not null
 
     def return_all(self):
         s = self.excute_queue.pop(0)
-        print(s)
         if s != "":
             result = self.cursor.execute(s).fetchall()
             return result
 
     def commit(self):
         s = self.excute_queue.pop(0)
-        print(s)
         if s != "":
             result = self.cursor.execute(s)
             self.connection.commit()

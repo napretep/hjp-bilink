@@ -25,17 +25,25 @@ class Clipper(QMainWindow):
         self.viewlayout_mode = objs.JSONschema.viewlayout_mode
         self.config = objs.SrcAdmin.get_config("clipper")
         self.clipboxstateshowed = False
-        # print(self.config)
         self.viewlayout_value = self.config["viewlayout.mode"]["value"]
         self.viewlayout_col_per_row = self.config["viewlayout.col_per_row"]["value"]
         self.viewlayout_row_per_col = self.config["viewlayout.row_per_col"]["value"]
         self.pageItemList: 'list[PageItem5]' = []
-        # from ...obj.backlink_reader import BackLinkReader
-
+        self.container0 = QWidget(self)  # 不能删
+        self.scene = QGraphicsScene()
+        self.pdfview = PDFView(self.scene, parent=self, clipper=self)
+        self.rightsidebar = RightSideBar(clipper=self)
         self.init_UI()
-        self.init_signals()
-        self.init_events()
-        # self.init_view()
+        self.event_dict = {
+            ALL.signals.on_clipbox_closed: self.scene_clipbox_remove,
+            ALL.signals.on_pageItem_clicked: self.on_pageItem_clicked_handle,
+            ALL.signals.on_pageItem_addToScene: self.on_pageItem_addToScene_handle,
+            ALL.signals.on_pageItem_removeFromScene: self.on_pageItem_removeFromScene_handle,
+            ALL.signals.on_rightSideBar_buttonGroup_clicked: self.on_rightSideBar_buttonGroup_clicked_handle,
+            ALL.signals.on_clipboxstate_switch: self.on_clipboxstate_switch_handle,
+        }
+        self.all_event = objs.AllEventAdmin(self.event_dict)
+        self.all_event.bind()
         self.init_shortcuts()
         # self.showMaximized()
         self.show()
@@ -43,23 +51,6 @@ class Clipper(QMainWindow):
     def init_view(self):
         page = PageInfo(self.doc, 0)
         self.scene_pageitem_add(page)
-
-    def init_signals(self):
-        self.on_clipbox_closed = ALL.signals.on_clipbox_closed
-        self.on_pageItem_clicked = ALL.signals.on_pageItem_clicked
-        self.on_pageItem_addToScene = ALL.signals.on_pageItem_addToScene
-        self.on_pageItem_removeFromScene = ALL.signals.on_pageItem_removeFromScene
-
-    def init_events(self):
-        self.resizeEvent = self.OnResize
-        self.on_clipbox_closed.connect(self.scene_clipbox_remove)
-        self.on_pageItem_clicked.connect(self.on_pageItem_clicked_handle)
-        self.on_pageItem_addToScene.connect(self.on_pageItem_addToScene_handle)
-        self.on_pageItem_removeFromScene.connect(self.on_pageItem_removeFromScene_handle)
-        ALL.signals.on_rightSideBar_buttonGroup_clicked.connect(
-            self.on_rightSideBar_buttonGroup_clicked_handle
-        )
-        ALL.signals.on_clipboxstate_switch.connect(self.on_clipboxstate_switch_handle)
 
     def init_shortcuts(self):
         objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_Tab), self,
@@ -86,11 +77,7 @@ class Clipper(QMainWindow):
         # 经验：QGraphicsView 必须放置在 QWidget 中， 才能和其他QWidget 保持正常的大小关系
         self.setWindowIcon(QIcon(objs.SrcAdmin.call().imgDir.clipper))
         self.setWindowTitle("PDF clipper")
-        self.container0 = QWidget(self)  # 不能删
-        self.scene = QGraphicsScene()
-        self.pdfview = PDFView(self.scene, parent=self, clipper=self)
 
-        self.rightsidebar = RightSideBar(clipper=self)
         self.h_layout = QHBoxLayout(self)
         self.h_layout.addWidget(self.pdfview)
         self.h_layout.addWidget(self.rightsidebar)
@@ -100,7 +87,7 @@ class Clipper(QMainWindow):
         self.container0.resize(self.width(), self.height())
         self.container0.setLayout(self.h_layout)
 
-    def OnResize(self, *args):
+    def resizeEvent(self, *args):
         self.container0.resize(self.width(), self.height())
         pass
 

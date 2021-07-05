@@ -36,5 +36,5 @@
   "iconFile_input": "lib/resource/icon/icon_input.ico",
   "iconFile_anchor": "lib/resource/icon/icon_anchor.ico",
   "iconFile_config": "lib/resource/icon/icon_config.ico",
-  "ISDEBUG": 1
+  "ISDEBUG": 0
 }

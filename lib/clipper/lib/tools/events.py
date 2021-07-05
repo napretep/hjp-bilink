@@ -4,6 +4,44 @@ class AllEvent:
         self.Type = eventType
 
 
+class ClipboxCreateEvent(AllEvent):
+    rubbingType = 0
+    rubbedType = 1
+
+    def __init__(self, sender=None, eventType=None, rubberBandRect=None):
+        super().__init__(sender, eventType)
+
+
+class PageItemRubberBandRectSendEvent(AllEvent):
+    oneType = 0
+
+    def __init__(self, sender=None, eventType=None, rubberBandRect=None):
+        super().__init__(sender, eventType)
+        self.rubberBandRect = rubberBandRect
+
+
+class PagePickerOpenEvent(AllEvent):
+    fromPageType = 0
+    fromAddButtonType = 1
+    fromPageListType = 2
+
+    def __init__(self, sender=None, eventType=None, clipper=None,
+                 pdfpath=None, pagenum=None, fromPageItem=None):
+        super().__init__(sender=sender, eventType=eventType)
+        self.clipper = clipper
+        self.pdfpath = pdfpath
+        self.pagenum = pagenum
+        self.fromPageItem = fromPageItem
+
+
+class PagePickerBrowserFrameChangedEvent(AllEvent):
+    FrameChangedType = 0
+
+    def __init__(self, sender=None, eventType=None, frame_idx=None):
+        super(PagePickerBrowserFrameChangedEvent, self).__init__(sender, eventType)
+        self.frame_idx = frame_idx
+
+
 class AnkiFileCreateEvent(AllEvent):
     ClipperCreatePNGType = 0
     ClipperCreatePNGDoneType = 1

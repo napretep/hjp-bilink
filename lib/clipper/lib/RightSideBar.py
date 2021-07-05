@@ -16,6 +16,9 @@ class RightSideBar(QWidget):
     def __init__(self, parent=None, clipper: 'Clipper' = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.clipper = clipper
+        self.pagelist = PageList(rightsidebar=self)
+        self.cardlist = CardList(rightsidebar=self)
+        self.buttonPanel = ButtonPanel(rightsidebar=self)
         self.init_UI()
         self.init_events()
 
@@ -24,9 +27,7 @@ class RightSideBar(QWidget):
 
     def init_UI(self):
         self.V_layout = QVBoxLayout()
-        self.pagelist = PageList(rightsidebar=self)
-        self.cardlist = CardList(rightsidebar=self)
-        self.buttonPanel = ButtonPanel(rightsidebar=self)
+
         self.V_layout.addWidget(self.pagelist)
         self.V_layout.addWidget(self.cardlist)
         self.V_layout.addWidget(self.buttonPanel)

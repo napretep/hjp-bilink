@@ -15,7 +15,6 @@ from .. import ALL, events, funcs, objs
 from ....RightSideBar_ import CardList
 from .ToolsBar_ import QAButton, CloseButton, EditQAbutton, LineEdit, CardCombox
 
-print = funcs.print
 
 class ToolsBar(QGraphicsWidget):
     """QAswitchButton,CardSwitchButton,closeButton,EditLine"""

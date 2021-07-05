@@ -6,12 +6,12 @@ import typing
 from functools import reduce
 
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import QPointF, QRectF, Qt, QSizeF, QLineF
+from PyQt5.QtCore import QPointF, QRectF, Qt, QSizeF, QLineF, QRect
 from PyQt5.QtGui import QPixmap, QBrush, QColor, QPen, QPainter, QIcon, QPainterPath, QPainterPathStroker
 from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsPixmapItem, QApplication, QGraphicsTextItem, QGraphicsItem, \
     QGraphicsRectItem, QWidget, QGraphicsWidget, QGraphicsLinearLayout, QLabel, QLineEdit, QGraphicsProxyWidget, \
     QGraphicsGridLayout, QToolButton, QGraphicsAnchorLayout, QComboBox, QGraphicsSceneMouseEvent, \
-    QGraphicsSceneHoverEvent
+    QGraphicsSceneHoverEvent, QGraphicsView
 
 from ...tools.funcs import pixmap_page_load, str_shorten
 from ...tools.objs import SrcAdmin
@@ -55,7 +55,7 @@ class ClipBox2(QGraphicsRectItem):
     handlerSize = 14
 
     def __init__(self, *args, parent_pos: QPointF = None,
-                 pageview: 'PageView' = None, card_id: str = "0",
+                 pageview: 'PageView' = None, card_id: str = "0", rect=None,
                  QA: str = "Q"):
         super().__init__(*args)
         # 规定自身
@@ -64,7 +64,6 @@ class ClipBox2(QGraphicsRectItem):
         self.text = ""
         self.textQA = "Q"
         self.ratio = pageview.ratio * pageview.pageinfo.ratio
-
         self.docname = pageview.pageinfo.doc.name
         self.pagenum = pageview.pageinfo.pagenum
         self.last_delta = None
@@ -72,11 +71,14 @@ class ClipBox2(QGraphicsRectItem):
         # self.setPos(0,0) #默认赋值为0,因此不必设置
         self.pageview = pageview
         self.pageitem = pageview.pageitem
+        self.pdfview = self.pageitem.rightsidebar.clipper.pdfview
         self.isHovered = False
-        self.setRect(
-            # 0,0,
-            parent_pos.x() - self.default_height / 2, parent_pos.y() - self.default_height / 2,
-            self.default_height * 6, self.default_height * 2)
+        if parent_pos is not None:
+            self.setRect(
+                parent_pos.x() - self.default_height / 2, parent_pos.y() - self.default_height / 2,
+                self.default_height * 6, self.default_height * 2)
+        else:
+            self.setRect(rect)
         self.birthPos = QPointF(self.rect().x(), self.rect().y())
         self.birthRect = QRectF(self.rect())
         self.setParentItem(pageview)
@@ -99,12 +101,29 @@ class ClipBox2(QGraphicsRectItem):
 
         self.setFlag(QGraphicsItem.ItemIsFocusable, False)
         self.init_handlers()
-        self.init_events()
 
-    def init_events(self):
-        ALL.signals.on_pageItem_update.connect(self.on_pageItem_update_handle)
-        ALL.signals.on_clipbox_toolsbar_update.connect(self.on_clipbox_toolsbar_update_handle)
-        ALL.signals.on_cardlist_dataChanged.connect(self.on_cardlist_dataChanged_handle)
+        self.event_dict = {
+            # ALL.signals.on_clipbox_create:self.on_clipbox_create_handle,
+            ALL.signals.on_pageItem_update: self.on_pageItem_update_handle,
+            ALL.signals.on_clipbox_toolsbar_update: self.on_clipbox_toolsbar_update_handle,
+            ALL.signals.on_cardlist_dataChanged: self.on_cardlist_dataChanged_handle,
+        }
+        self.all_event = objs.AllEventAdmin(self.event_dict)
+        self.all_event.bind()
+
+    #     self.init_events()
+    #
+    # def init_events(self):
+    #     ALL.signals.on_pageItem_update.connect(self.on_pageItem_update_handle)
+    #     ALL.signals.on_clipbox_toolsbar_update.connect(self.on_clipbox_toolsbar_update_handle)
+    #     ALL.signals.on_cardlist_dataChanged.connect(self.on_cardlist_dataChanged_handle)
+
+    def on_clipbox_create_handle(self, event: "events.ClipboxCreateEvent"):
+        print("on_clipbox_create_handle")
+        if event.Type == event.rubbingType:
+            self.setFlag(QGraphicsItem.ItemIsSelectable, False)
+        if event.Type == event.rubbedType:
+            self.setFlag(QGraphicsItem.ItemIsSelectable, True)
 
     def on_cardlist_dataChanged_handle(self, event: "events.CardListDataChangedEvent"):
         if event.Type == event.TextChangeType:
@@ -213,6 +232,12 @@ class ClipBox2(QGraphicsRectItem):
             #     path.addRect(rect)
             # return path
 
+    def swicth_pdfview_dragmode(self):
+        if self.pdfview.DragMode == QGraphicsView.NoDrag:
+            self.pageitem.rightsidebar.clipper.pdfview.setDragMode(QGraphicsView.NoDrag)
+        else:
+            self.pageitem.rightsidebar.clipper.pdfview.setDragMode(QGraphicsView.ScrollHandDrag)
+
     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
               widget: typing.Optional[QWidget] = ...) -> None:
         # self.prepareGeometryChange()  # 这个 非常重要. https://www.cnblogs.com/ybqjymy/p/13862382.html
@@ -223,6 +248,14 @@ class ClipBox2(QGraphicsRectItem):
             pen.setWidth(5)
         if self.isSelected():
             painter.setBrush(QBrush(QColor(0, 255, 0, 30)))
+            # if not self.pdfview.DragMode == QGraphicsView.NoDrag:
+            #     # print("not self.pdfview.DragMode == QGraphicsView.NoDrag:")
+            #     self.pdfview.setDragMode(QGraphicsView.NoDrag)
+        # else:
+        #     # print("self.pdfview.DragMode == QGraphicsView.NoDrag:")
+        #     if self.pdfview.DragMode == QGraphicsView.NoDrag:
+        #         self.pdfview.setDragMode(QGraphicsView.ScrollHandDrag)
+
         painter.setPen(pen)
         painter.drawRect(self.rect())
 
@@ -263,6 +296,11 @@ class ClipBox2(QGraphicsRectItem):
         view_top = 0
         view_right = self.pageview.boundingRect().width()
         view_bottom = self.pageview.boundingRect().height()
+        if rect.width() > view_right:
+            rect.setWidth(view_right)
+        if rect.height() > view_bottom:
+            rect.setHeight(view_bottom)
+
         top = rect.top() + y
         bottom = rect.bottom() + y
         left = rect.left() + x
@@ -450,6 +488,7 @@ class ClipBox2(QGraphicsRectItem):
         if self.handleSelected:
             self.mousePressPos = event.pos()
             event.accept()
+        super().mousePressEvent(event)
 
     def hoverMoveEvent(self, event: 'QGraphicsSceneHoverEvent') -> None:
         # print('hoverMoveEvent')
@@ -528,8 +567,8 @@ class PageView(QGraphicsPixmapItem):
         self.pageinfo = pageinfo
         self.pageitem = pageitem
         self.setParentItem(pageitem)
-        self.init_signals()
-        self.init_events()
+        # self.init_signals()
+        # self.init_events()
         self._delta = 0.1
         self.ratio = 1 if ratio is None else ratio
         self.viewratio = 1
@@ -539,19 +578,27 @@ class PageView(QGraphicsPixmapItem):
         self.start_height = self.height
         if self.ratio != 1:
             self.zoom(self.ratio)
+        self.event_dict = {
+            ALL.signals.on_clipbox_closed: self.pageview_clipbox_remove,
+            ALL.signals.on_pageItem_changePage: self.on_pageItem_changePage_handle,
+            ALL.signals.on_pageItem_resize_event: self.on_pageItem_resize_event_handle,
+            ALL.signals.on_pageItem_rubberBandRect_send: self.on_pageItem_rubberBandRect_send_handle
+        }
+        self.all_event = objs.AllEventAdmin(self.event_dict)
+        self.all_event.bind()
         # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
 
-    def init_signals(self):
-        self.on_clipbox_closed = ALL.signals.on_clipbox_closed
-        self.on_pageItem_clipbox_added = ALL.signals.on_pageItem_clipbox_added
-        self.on_pageItem_changePage = ALL.signals.on_pageItem_changePage
-        self.on_pageItem_resize_event = ALL.signals.on_pageItem_resize_event
+    # def init_signals(self):
+    #     self.on_clipbox_closed = ALL.signals.on_clipbox_closed
+    #     self.on_pageItem_changePage = ALL.signals.on_pageItem_changePage
+    #     self.on_pageItem_resize_event = ALL.signals.on_pageItem_resize_event
+    #     self.on_pageItem_clipbox_added = ALL.signals.on_pageItem_clipbox_added
 
-    def init_events(self):
-        self.on_clipbox_closed.connect(self.pageview_clipbox_remove)
-        self.on_pageItem_changePage.connect(self.on_pageItem_changePage_handle)
-        self.on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
-        # objs.ALL.signals.on_PDFView_ResizeView.connect(self.on_PDFView_ResizeView_handle)
+    # def init_events(self):
+    #     ALL.signals.on_clipbox_closed.connect(self.pageview_clipbox_remove)
+    #     ALL.signals.on_pageItem_changePage.connect(self.on_pageItem_changePage_handle)
+    #     ALL.signals.on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
+    # objs.ALL.signals.on_PDFView_ResizeView.connect(self.on_PDFView_ResizeView_handle)
 
     # def on_PDFView_ResizeView_handle(self,event:"events.PDFViewResizeViewEvent"):
     #     self.keep_resolution_from_resize(event.ratio)
@@ -563,6 +610,13 @@ class PageView(QGraphicsPixmapItem):
     #     self.setScale(1 / ratio)#大小保持不变
     #     self.viewratio = ratio #记录本次,因为view那边就是累计值,所以这里只要赋过去就好了.
     #     self.keep_clipbox_in_postion()
+
+    def on_pageItem_rubberBandRect_send_handle(self, event: "events.PageItemRubberBandRectSendEvent"):
+        if event.sender.uuid == self.pageitem.uuid:
+            pdfview = self.pageitem.pdfview
+            r: "QRectF" = self.mapRectFromScene(event.rubberBandRect)
+            self.pageview_clipbox_add(rect=r)
+            # print(f"event.rubberBandRect={(r)}")
 
     def on_pageItem_resize_event_handle(self, event: "PageItemResizeEvent"):
         if event.pageItem.uuid == self.pageitem.uuid:
@@ -599,20 +653,25 @@ class PageView(QGraphicsPixmapItem):
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         modifiers = QApplication.keyboardModifiers()
-        if self.contains(event.pos()) and modifiers == QtCore.Qt.ControlModifier:
-            self.pageview_clipbox_add(event.pos())
-        elif event.modifiers() == (Qt.ShiftModifier & Qt.ControlModifier):
-            print("天地在我心")
-        else:
-            super().mousePressEvent(event)
+        # if self.contains(event.pos()) and modifiers == QtCore.Qt.ControlModifier:
+        #     # self.pageview_clipbox_add(event.pos())
+        # elif event.modifiers() == (Qt.ShiftModifier & Qt.ControlModifier):
+        #     print("天地在我心")
+        # else:
+        #     super().mousePressEvent(event)
 
-    def pageview_clipbox_add(self, pos):
+        super().mousePressEvent(event)
+
+    def pageview_clipbox_add(self, pos=None, rect=None):
         """顺带解决"""
         QA = self.pageitem.rightsidebar.get_QA()
-        clipbox = ClipBox2(parent_pos=pos, pageview=self, QA=QA)
+        if pos:
+            clipbox = ClipBox2(parent_pos=pos, pageview=self, QA=QA)
+        else:
+            clipbox = ClipBox2(rect=rect, pageview=self, QA=QA)
         uuid = clipbox.toolsbar.cardComboxProxy.desc_item_uuid
         self.clipBoxList.append(clipbox)  # 创建后必须添加到clipboxlist
-        self.on_pageItem_clipbox_added.emit(PageItem_ClipBox_Event(clipbox=clipbox, cardUuid=uuid))
+        ALL.signals.on_pageItem_clipbox_added.emit(PageItem_ClipBox_Event(clipbox=clipbox, cardUuid=uuid))
 
     def pageview_clipbox_remove(self, event: 'ClipBox_.ToolsBar_.ClipboxEvent'):
         """这里要做的事情就是从clipBoxList中移除"""
@@ -649,7 +708,7 @@ class PageView(QGraphicsPixmapItem):
             # 防止过大过小
             return
         p = pixmap_page_load(self.pageinfo.doc, self.pageinfo.pagenum, ratio=factor * self.pageinfo.ratio)
-        self.setPixmap(p)
+        self.setPixmap(QPixmap(p))
         self.width = self.pixmap().width()
         self.height = self.pixmap().height()
         self.keep_clipbox_in_postion()
@@ -813,10 +872,15 @@ class ToolsBar2(QGraphicsWidget):
             PageItemDeleteEvent(pageItem=self.pageitem, eventType=PageItemDeleteEvent.deleteType))
 
     def on_button_pageinfo_clicked_handle(self):
-        p = PagePicker(pdfDirectory=self.pageinfo.doc.name, frompageitem=self.pageitem,
-                       pageNum=self.pageinfo.pagenum, clipper=self.pageitem.rightsidebar.clipper)
-        p.start(self.pageinfo.pagenum)
-        p.exec()
+        e = events.PagePickerOpenEvent
+        ALL.signals.on_pagepicker_open.emit(
+            e(sender=self, eventType=e.fromPageType, clipper=self.pageitem.rightsidebar.clipper
+              , pdfpath=self.pageinfo.doc.name, fromPageItem=self.pageitem, pagenum=self.pageinfo.pagenum, )
+        )
+        # p = PagePicker(pdfDirectory=self.pageinfo.doc.name, frompageitem=self.pageitem,
+        #                pageNum=self.pageinfo.pagenum, clipper=self.pageitem.rightsidebar.clipper)
+        # p.start(self.pageinfo.pagenum)
+        # p.exec()
         pass
 
     def boundingRect(self) -> QtCore.QRectF:

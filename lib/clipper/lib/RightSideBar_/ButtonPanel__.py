@@ -13,6 +13,7 @@ class CardinfosPreviewer(QDialog):
     pass
 
 
+
 class ClipperExecuteProgresser(QDialog):
     def __init__(self, cardlist=None):
         super().__init__(parent=cardlist)
@@ -20,9 +21,9 @@ class ClipperExecuteProgresser(QDialog):
         self.prepare_progress = objs.ProgressBarBlackFont(self)
         # self.curCard_progress = objs.ProgressBarBlackFont(self)
         # self.allCard_progress = objs.ProgressBarBlackFont(self)
-        self.return_button = QToolButton(self)
-        self.close_button = QToolButton(self)
-        self.stop_button = QToolButton(self)
+        # self.return_button = QToolButton(self)
+        # self.close_button = QToolButton(self)
+        # self.stop_button = QToolButton(self)
         self.init_UI()
         self.init_events()
 
@@ -34,11 +35,14 @@ class ClipperExecuteProgresser(QDialog):
         self.job.start()
 
     def on_masterjob_done_handle(self, timestamp):
+        # self.setWindowModality(Qt.NonModal)
+        self.close()
         e = events.AnkiBrowserActivateEvent
         ALL.signals.on_anki_browser_activate.emit(
             e(eventType=e.ClipperTaskFinishedType, sender=self, data=timestamp)
         )
         self.prepare_progress.setFormat("任务完成/task complete %p%")
+
 
     def progress_dispatcher(self, data):
         status = ["提取clipbox信息/extract clipbox info %p%",
@@ -57,44 +61,44 @@ class ClipperExecuteProgresser(QDialog):
         # self.allCard_progress.setFormat("全部卡片进度/all cards progress %p%")
         # self.allCard_progress.setValue(10)
         # self.curCard_progress.setValue(10)
-        self.return_button.setIcon(QIcon(objs.SrcAdmin.imgDir.goback))
-        self.close_button.setIcon(QIcon(objs.SrcAdmin.imgDir.close))
-        self.stop_button.setIcon(QIcon(objs.SrcAdmin.imgDir.stop))
-        self.return_button.setToolTip("回到clipper主窗口\ngoback to clipper window")
-        self.stop_button.setToolTip("终止任务\nterminate the task")
-        self.close_button.setToolTip("关闭整个clipper工作室\nclose the whole pdf-clipper-workshop")
+        # self.return_button.setIcon(QIcon(objs.SrcAdmin.imgDir.goback))
+        # self.close_button.setIcon(QIcon(objs.SrcAdmin.imgDir.close))
+        # self.stop_button.setIcon(QIcon(objs.SrcAdmin.imgDir.stop))
+        # self.return_button.setToolTip("回到clipper主窗口\ngoback to clipper window")
+        # self.stop_button.setToolTip("终止任务\nterminate the task")
+        # self.close_button.setToolTip("关闭整个clipper工作室\nclose the whole pdf-clipper-workshop")
         g_layout = QGridLayout(self)
 
         g_layout.addWidget(self.prepare_progress, 0, 0, 1, 4)
-        g_layout.addWidget(self.return_button, 1, 1)
-        g_layout.addWidget(self.stop_button, 1, 2)
-        g_layout.addWidget(self.close_button, 1, 3)
+        # g_layout.addWidget(self.return_button, 1, 1)
+        # g_layout.addWidget(self.stop_button, 1, 2)
+        # g_layout.addWidget(self.close_button, 1, 3)
         self.setLayout(g_layout)
 
     def init_events(self):
-        self.return_button.clicked.connect(self.on_return_button_clicked_handle)
-        self.close_button.clicked.connect(self.on_close_button_clicked_handle)
-        self.stop_button.clicked.connect(self.on_stop_button_clicked_handle)
+        # self.return_button.clicked.connect(self.on_return_button_clicked_handle)
+        # self.close_button.clicked.connect(self.on_close_button_clicked_handle)
+        # self.stop_button.clicked.connect(self.on_stop_button_clicked_handle)
         ALL.signals.on_ClipperExecuteProgresser_show.connect(self.on_ClipperExecuteProgresser_show_handle)
         # self.setShortcutEnabled()
         pass
 
-    def on_close_button_clicked_handle(self):
-        self.cardlist.rightsidebar.clipper.close()
-        self.close()
-
-    def on_stop_button_clicked_handle(self):
-        """终止任务"""
-
-    def on_return_button_clicked_handle(self):
-        self.close()
+    # def on_close_button_clicked_handle(self):
+    #     self.cardlist.rightsidebar.clipper.close()
+    #     self.close()
+    #
+    # def on_stop_button_clicked_handle(self):
+    #     """终止任务"""
+    #
+    # def on_return_button_clicked_handle(self):
+    #     self.close()
 
     def on_ClipperExecuteProgresser_show_handle(self):
         self.init_job()
 
-    def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
-        """阻止所有键盘事件"""
-        pass
+    # def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
+    #     """阻止所有键盘事件"""
+    #     pass
 
     pass
 

@@ -10,8 +10,9 @@ from aqt.utils import showInfo
 
 from .tools import events, fitz, objs
 from anki import stdmodels, notes
-from aqt import mw
+from aqt import mw, browser
 
+pngfileprefix = "hjp_clipper_"
 
 def on_anki_create_card_handle1(model_id, deck_id):
     if model_id is None:
@@ -66,7 +67,7 @@ def on_anki_field_insert_handle1(self, clipboxlist: "list"):
             note = mw.col.getCard(int(card_id)).note()
             html = reduce(lambda x, y: x + "\n" + y, note.fields)
             if clipbox["uuid"] not in html:
-                note.fields[clipbox["QA"]] += f"""<img src="{clipbox["uuid"]}_.png">\n"""
+                note.fields[clipbox["QA"]] += f"""<img src="{pngfileprefix}{clipbox["uuid"]}_.png">\n"""
             if clipbox["text_"] != "" and clipbox["uuid"] not in html:
                 note.fields[clipbox["textQA"]] += f"""<p id="{clipbox["uuid"]}">{clipbox["text_"]}<p>\n"""
 
@@ -103,7 +104,17 @@ def anki_file_create_handle1(self, clipboxslist):
     for clipbox in clipboxslist:
         count += 1
         self.job_progress(self.state_create_png, 4, count / total)
-        # doc:"fitz.Document" =
+        doc: "fitz.Document" = fitz.open(clipbox["pdfname"])
+        # 0.144295302 0.567695962 0.5033557047 0.1187648456
+        page = doc.load_page(clipbox["pagenum"])
+        pagerect: "fitz.rect_like" = page.rect
+        x0, y0 = clipbox["x"] * pagerect.width, clipbox["y"] * pagerect.height
+        x1, y1 = x0 + clipbox["w"] * pagerect.width, y0 + clipbox["h"] * pagerect.height
+        pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2), clip=fitz.Rect(x0, y0, x1, y1))
+        pngdir = os.path.join(mediafolder, f"""{pngfileprefix}{clipbox["uuid"]}_.png""")
+        if os.path.exists(pngdir):
+            os.remove(pngdir)
+        pixmap.save(pngdir)
 
 
 e = events.AnkiCardCreateEvent

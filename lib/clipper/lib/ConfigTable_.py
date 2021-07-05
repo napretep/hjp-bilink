@@ -1,11 +1,13 @@
 import json
 import os
 import sys
+import typing
 
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, QSpinBox, QHBoxLayout, QFrame, QDoubleSpinBox, QToolButton, \
-    QLineEdit
-from PyQt5.QtCore import Qt, QRect, QSize
+    QLineEdit, QTabWidget, QFormLayout, QTabBar, QStylePainter, QStyleOptionTab, QStyle, QProxyStyle, QStyleOption
+from PyQt5.QtCore import Qt, QRect, QSize, QPoint
 from .tools import funcs, objs, events, ALL
 
 MAX_INT = 2147483646
@@ -52,17 +54,16 @@ def config_get_left_right(config, itemname):
 
 
 class BaseWidget(QWidget):
-    def __init__(self, configtable=None, gridposLi=None):
-        super().__init__(parent=configtable)
+    def __init__(self, parent=None, configtable=None, gridposLi=None):
+        super().__init__(parent=parent)
         self.configtable = configtable
         # self.config_dict = config_dict
         self.gridposLi = gridposLi
 
 
 class ViewLayoutWidget(BaseWidget):
-    def __init__(self, configtable=None, gridposLi=None):
-        super().__init__(configtable=configtable, gridposLi=gridposLi)
-        self.label_head = QLabel(configtable)
+    def __init__(self, parent=None, configtable=None, gridposLi=None):
+        super().__init__(parent=None, configtable=configtable, gridposLi=gridposLi)
         self.layoutVerticalColCountWidget = QSpinBox(self.configtable)
         self.layoutHorizontalRowCountWidget = QSpinBox(self.configtable)
         self.layoutModeWidget = QComboBox(self.configtable)
@@ -85,22 +86,25 @@ class ViewLayoutWidget(BaseWidget):
         self.init_events()
 
     def init_UI(self):
-        self.label_head.setText("布局预设/layout preset")
-        self.label_head.setToolTip("用来定义下一个页面出现的位置/define the position of next page to place")
+        # self.label_head.setText("布局预设/layout preset")
+        # self.label_head.setToolTip("用来定义下一个页面出现的位置/define the position of next page to place")
         self.init_viewlayoutmodecombox()
         left = self.configtable.config_dict["viewlayout.col_per_row"]["constrain"]["data_range"]["left"]
         right = self.configtable.config_dict["viewlayout.col_per_row"]["constrain"]["data_range"]["right"]
         self.init_viewlayout_vertical_colcount(left, right)
         self.init_viewlyout_horizontal_rowcount(left, right)
         self.widgetLi = [
-            self.label_head,
+            # self.label_head,
             self.layoutmode,
             self.layoutVerticalColCount
         ]
-
-        for i in range(len(self.widgetLi)):
-            self.configtable.G_Layout.addWidget(self.widgetLi[i], self.gridposLi[i][0], self.gridposLi[i][1])
-        self.configtable.G_Layout.addWidget(self.layoutHorizontalRowCount, self.gridposLi[-1][0], self.gridposLi[-1][1])
+        h_layout = QHBoxLayout(self)
+        for w in self.widgetLi:
+            h_layout.addWidget(w)
+        self.setLayout(h_layout)
+        # for i in range(len(self.widgetLi)):
+        #     self.configtable.G_Layout.addWidget(self.widgetLi[i], self.gridposLi[i][0], self.gridposLi[i][1])
+        # self.configtable.G_Layout.addWidget(self.layoutHorizontalRowCount, self.gridposLi[-1][0], self.gridposLi[-1][1])
         self.showhide_ColRow_count()
 
     def init_viewlyout_horizontal_rowcount(self, left, right):
@@ -133,7 +137,7 @@ class ViewLayoutWidget(BaseWidget):
         self.layoutVerticalColCountWidget.valueChanged.connect(self.on_layoutVerticalColCountWidget_valueChanged_handle)
         self.layoutHorizontalRowCountWidget.valueChanged.connect(
             self.on_layoutHorizontalRowCountWidget_valueChanged_handle)
-        ALL.signals.on_pagepicker_config_reload_end.connect(self.on_pagepicker_config_reload_end_handle)
+        ALL.signals.on_clipper_config_reload_end.connect(self.on_pagepicker_config_reload_end_handle)
 
     def on_pagepicker_config_reload_end_handle(self):
         print(f"{self.__class__.__name__} 接受on_pagepicker_config_reload_end_handle")
@@ -168,10 +172,12 @@ class ViewLayoutWidget(BaseWidget):
 
 
 class PagePresetWidget(BaseWidget):
-    def __init__(self, configtable=None, gridposLi=None):
-        super().__init__(configtable=configtable, gridposLi=gridposLi)
+    """for pagepicker"""
+
+    def __init__(self, parent=None, configtable=None, gridposLi=None):
+        super().__init__(parent=None, configtable=configtable, gridposLi=gridposLi)
         # super().__init__(parent=parent)
-        self.label_head = QLabel(configtable)
+        # self.label_head = QLabel(configtable)
         self.h_layout = QHBoxLayout(configtable)
         self.pagenumWidget = QSpinBox(self.configtable)
         self.imgRatioWidget = QDoubleSpinBox(self.configtable)
@@ -208,23 +214,29 @@ class PagePresetWidget(BaseWidget):
             parent=self.configtable, labelname="默认读取位置/default load path", widget=self.defaultPathWidget)
 
     def init_UI(self):
-        self.label_head.setText("页面预设/page preset")
-        self.label_head.setToolTip("用来定义如何从PDF中提取页面/define how to extract page from PDF")
+        # self.label_head.setText("页面预设/page preset")
+        # self.label_head.setToolTip("用来定义如何从PDF中提取页面/define how to extract page from PDF")
         self.init_defaultpath()
         self.init_imgratio()
         self.init_pagenum()
 
         self.widgetLi = [
-            self.label_head, self.pagenum, self.imgratio, self.defaultpath
+            # self.label_head,
+            self.pagenum, self.imgratio, self.defaultpath
         ]
-        for i in range(len(self.widgetLi)):
-            self.configtable.G_Layout.addWidget(self.widgetLi[i], self.gridposLi[i][0], self.gridposLi[i][1])
+        f_layout = QFormLayout(self)
+        for i in self.widgetLi:
+            f_layout.addRow("test", i)
+        self.setLayout(f_layout)
+
+        # for i in range(len(self.widgetLi)):
+        #     self.configtable.G_Layout.addWidget(self.widgetLi[i], self.gridposLi[i][0], self.gridposLi[i][1])
 
     def init_events(self):
         self.defaultPathWidget.textChanged.connect(self.on_defaultPathWidget_textChanged_handle)
         self.pagenumWidget.valueChanged.connect(self.on_pagenumWidget_valueChanged_handle)
         self.imgRatioWidget.valueChanged.connect(self.on_imgRatioWidget_valueChanged_handle)
-        ALL.signals.on_pagepicker_config_reload_end.connect(self.on_pagepicker_config_reload_end_handle)
+        ALL.signals.on_clipper_config_reload_end.connect(self.on_pagepicker_config_reload_end_handle)
 
     def on_pagepicker_config_reload_end_handle(self):
         print(f"{self.__class__.__name__} 接受on_pagepicker_config_reload_end_handle")
@@ -301,7 +313,7 @@ class OutPutWidget(BaseWidget):
     def init_events(self):
         self.needRatioFixWidget.currentIndexChanged.connect(self.on_needRatioFixWidget_currentIndexChanged_handle)
         self.RatioFixWidget.valueChanged.connect(self.on_RatioFixWidget_valueChanged_handle)
-        ALL.signals.on_pagepicker_config_reload_end.connect(self.on_pagepicker_config_reload_end_handle)
+        ALL.signals.on_clipper_config_reload_end.connect(self.on_pagepicker_config_reload_end_handle)
 
     def on_pagepicker_config_reload_end_handle(self):
         print(f"{self.__class__.__name__} 接受on_pagepicker_config_reload_end_handle")
@@ -319,6 +331,61 @@ class OutPutWidget(BaseWidget):
             self.RatioFixWidget.setDisabled(True)
         else:
             self.RatioFixWidget.setDisabled(False)
+
+
+class TabBar(QtWidgets.QTabBar):
+    def tabSizeHint(self, index):
+        s = QtWidgets.QTabBar.tabSizeHint(self, index)
+        s.transpose()
+        return s
+
+    def paintEvent(self, event):
+        painter = QtWidgets.QStylePainter(self)
+        opt = QtWidgets.QStyleOptionTab()
+
+        for i in range(self.count()):
+            self.initStyleOption(opt, i)
+            painter.drawControl(QtWidgets.QStyle.CE_TabBarTabShape, opt)
+            painter.save()
+
+            s = opt.rect.size()
+            s.transpose()
+            r = QtCore.QRect(QtCore.QPoint(), s)
+            r.moveCenter(opt.rect.center())
+            opt.rect = r
+            c = self.tabRect(i).center()
+
+            painter.translate(c)
+            painter.rotate(90)
+            painter.translate(-c)
+            painter.drawControl(QtWidgets.QStyle.CE_TabBarTabLabel, opt)
+            painter.restore()
+
+
+#
+# class ProxyStyle(QtWidgets.QProxyStyle):
+#     def drawControl(self, element, opt, painter, widget):
+#         if element == QtWidgets.QStyle.CE_TabBarTabLabel:
+#             ic = self.pixelMetric(QtWidgets.QStyle.PM_TabBarIconSize)
+#             r = QtCore.QRect(opt.rect)
+#             w =  0 if opt.icon.isNull() else opt.rect.width() + self.pixelMetric(QtWidgets.QStyle.PM_TabBarIconSize)
+#             r.setHeight(opt.fontMetrics.width(opt.text)*2+20 + w)
+#             r.moveBottom(opt.rect.bottom())
+#             opt.rect = r
+#         QtWidgets.QProxyStyle.drawControl(self, element, opt, painter, widget)
+# QtWidgets.QApplication.setStyle(ProxyStyle())
+class TabWidget(QTabWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.tab_viewlayout = ViewLayoutWidget(parent=self, configtable=parent)
+        self.tab_pagepreset = PagePresetWidget(parent=self, configtable=parent)
+        self.setTabBar(TabBar(self))
+        self.setTabPosition(QTabWidget.West)
+        self.addTab(self.tab_viewlayout, "主视口/main_viewport")
+        self.addTab(self.tab_pagepreset, "页面选取器/pagepicker")
+        # self.setTabToolTip(0,"用来定义下一个页面出现的位置/define the position of next page to place")
+        # self.setTabToolTip(1,"用来定义如何从PDF中提取页面/define how to extract page from PDF")
 
 
 class ButtonGroup(BaseWidget):
@@ -352,14 +419,14 @@ class ButtonGroup(BaseWidget):
                           separators=(',', ':'))
         path = objs.SrcAdmin.jsonDir.clipper
         objs.SrcAdmin.save_config(path, data)
-        ALL.signals.on_pagepicker_config_reload.emit()
+        ALL.signals.on_clipper_config_reload.emit()
         print('发射on_pagepicker_config_reload')
 
     def on_correct_button_clicked_handle(self):
         print("correct_button clicked")
         self.config_memo_load()
         self.config_disk_save()
-        ALL.signals.on_pagepicker_config_reload.emit()
+        ALL.signals.on_clipper_config_reload.emit()
         self.configtable.close()
         pass
 

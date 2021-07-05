@@ -251,7 +251,7 @@ class CardCombox(QGraphicsProxyWidget):
             item = model.item(row, 0)
             t = item.text()
             self.cardCombox.addItem(t, userData=item.uuid)
-        print("self.cardCombox.addItem(t, userData=item.uuid)")
+        # print("self.cardCombox.addItem(t, userData=item.uuid)")
         if self.cardCombox.count() == 0:
             while self.cardlistchanging:
                 pass

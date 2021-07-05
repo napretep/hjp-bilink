@@ -7,7 +7,7 @@ from PyQt5.QtGui import QPixmap, QIcon, QPainterPath, QColor, QPen, QBrush, QKey
 from PyQt5.QtWidgets import QGraphicsItemGroup, QApplication, QGraphicsSceneMouseEvent, QGraphicsSceneWheelEvent, \
     QGraphicsItem, QGraphicsPixmapItem, QGraphicsWidget, QGraphicsLayout, QGraphicsGridLayout, QGraphicsLinearLayout, \
     QGraphicsLayoutItem, QWidget, QTextEdit, QGraphicsScene, QPushButton, QGraphicsProxyWidget, QLabel, QToolButton, \
-    QGraphicsRectItem, QSizePolicy, QGraphicsDropShadowEffect, QShortcut
+    QGraphicsRectItem, QSizePolicy, QGraphicsDropShadowEffect, QShortcut, QGraphicsView
 from PyQt5 import QtGui
 from ..tools.funcs import pixmap_page_load
 from ..tools.objs import CustomSignals
@@ -47,13 +47,12 @@ class PageItem5(QGraphicsItem):
         self.clipBoxList = []
         self._delta = None
         self.rightsidebar = rightsidebar  # 指向的是主窗口的rightsidebar
+        self.pdfview = rightsidebar.clipper.pdfview
         self.belongto_pagelist_row = None
         self.pageinfo = pageinfo
         self.pageview = PageItem_.PageView(pageinfo, pageitem=self, ratio=pageview_ratio)
         self.toolsBar = PageItem_.ToolsBar2(pageinfo, pageitem=self)
         self.setAcceptHoverEvents(True)
-        self.setFlag(QGraphicsItem.ItemIsMovable, True)
-        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemIsFocusable, True)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
         self.init_toolsbar_position()
@@ -83,15 +82,6 @@ class PageItem5(QGraphicsItem):
         painter.setPen(QPen(QColor(127, 127, 127), 2.0, Qt.DashLine))
         painter.drawRect(self.boundingRect())
 
-    def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-        print("double clicked")
-        super().mouseDoubleClickEvent(event)
-
-        # e = events.PageItemResizeEvent
-        # objs.CustomSignals.start().on_pageItem_resize_event.emit(
-        #     e(pageItem=self, eventType=e.fullscreenType)
-        # )
-
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
 
         modifiers = QApplication.keyboardModifiers()
@@ -110,27 +100,42 @@ class PageItem5(QGraphicsItem):
 
     def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         self.setCursor(Qt.ArrowCursor)
+        self.setFlag(QGraphicsItem.ItemIsMovable, False)
+        self.setFlag(QGraphicsItem.ItemIsSelectable, False)
+        self.pdfview.setDragMode(QGraphicsView.ScrollHandDrag)
         super().mouseReleaseEvent(event)
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         modifiers = QApplication.keyboardModifiers()
-        if (modifiers & Qt.ControlModifier) and (modifiers & Qt.ShiftModifier):
-            super().mousePressEvent(event)
-        elif event.buttons() == Qt.MidButton:
-            e = events.PageItemResizeEvent
-            self.centerOn_job = centerOn_job(pageitem=self)
-            self.centerOn_job.start()
-        else:
+        if (modifiers & Qt.ControlModifier):
             if event.button() == Qt.LeftButton:
-                self.on_pageItem_clicked.emit(
-                    PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.leftClickType))
-                self.toolsBar.hide()
+                self.setFlag(QGraphicsItem.ItemIsMovable, True)
+                self.setFlag(QGraphicsItem.ItemIsSelectable, True)
             if event.button() == Qt.RightButton:
                 self.on_pageItem_clicked.emit(
                     PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.rightClickType))
                 self.toolsBar.setPos(event.pos())
                 self.toolsBar.show()
-            super().mousePressEvent(event)
-
+        else:
+            if event.buttons() == Qt.MidButton:
+                e = events.PageItemResizeEvent
+                self.centerOn_job = centerOn_job(pageitem=self)
+                self.centerOn_job.start()
+            elif event.button() == Qt.RightButton:
+                self.pdfview.curr_selected_item = self
+                self.setCursor(Qt.CrossCursor)
+                self.pdfview.setDragMode(QGraphicsView.RubberBandDrag)
+                super().mousePressEvent(event)
+            elif event.button() == Qt.LeftButton:
+                self.on_pageItem_clicked.emit(
+                    PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.leftClickType))
+                self.toolsBar.hide()
+                # if event.button() == Qt.RightButton:
+                #     self.on_pageItem_clicked.emit(
+                #         PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.rightClickType))
+                #     self.toolsBar.setPos(event.pos())
+                #     self.toolsBar.show()
+                super().mousePressEvent(event)
+        super().mousePressEvent(event)
     def toEvent(self):
         return PageItemAddToSceneEvent(pageItem=self, eventType=PageItemAddToSceneEvent.addPageType)

@@ -78,7 +78,7 @@ class FinalExecution_masterJob(QThread):
             return
         self.job_clipbox_DB_insert(li)
         self.job_clipbox_field_insert(li)
-
+        self.job_clipbox_png_create(li)
         self.on_job_done.emit(self.fieldinserted_timestamp)
         pass
 
@@ -157,11 +157,22 @@ class PageList(QWidget):
         super().__init__(parent=parent, *args, **kwargs)
         self.rightsidebar = rightsidebar
         self.parent = parent
+        self.pagepicker = None
         self.pageItemDict = {}
         self.init_UI()
         self.init_model()
-        self.init_signals()
-        self.init_event()
+        self.event_dict = {
+            self.addButton.clicked: (self.on_addButton_clicked_handle),
+            self.delButton.clicked: (self.on_delButton_clicked_handle),
+            self.listView.clicked: (self.on_listview_clicked_handle),
+            self.listView.doubleClicked: (self.on_listview_doubleClicked_handle),
+            ALL.signals.on_pageItem_removeFromScene: (self.on_pageItem_removeFromScene_handle),
+            ALL.signals.on_pageItem_addToScene: (self.on_pageItem_addToScene_handle),
+            ALL.signals.on_pageItem_changePage: (self.on_pageItem_changePage_handle),
+            ALL.signals.on_pagepicker_open: (self.on_pagepicker_open_handle)
+        }
+        self.all_event = objs.AllEventAdmin(self.event_dict)
+        self.all_event.bind()
 
     def init_UI(self):
         H_layout = QHBoxLayout()
@@ -196,39 +207,55 @@ class PageList(QWidget):
         self.listView.header().setSectionsMovable(False)
         self.listView.setColumnWidth(1, 10)
 
-    def init_signals(self):
-        self.on_pageItem_addToScene = ALL.signals.on_pageItem_addToScene
-        self.on_pageItem_removeFromScene = ALL.signals.on_pageItem_removeFromScene
-        self.on_pageItem_changePage = ALL.signals.on_pageItem_changePage
+    # def init_signals(self):
+    #     self.on_pageItem_addToScene = ALL.signals.on_pageItem_addToScene
+    #     self.on_pageItem_removeFromScene = ALL.signals.on_pageItem_removeFromScene
+    #     self.on_pageItem_changePage = ALL.signals.on_pageItem_changePage
 
-    def init_event(self):
-        self.addButton.clicked.connect(self.openDialogPDFOpen)
-        self.delButton.clicked.connect(self.delete_selected_item)
-        self.listView.clicked.connect(self.on_listview_clicked)
-        self.listView.doubleClicked.connect(self.on_listview_doubleClicked)
-        self.on_pageItem_removeFromScene.connect(self.on_pageItem_removeFromScene_handle)
-        self.on_pageItem_addToScene.connect(self.on_pageItem_addToScene_handle)
-        self.on_pageItem_changePage.connect(self.on_pageItem_changePage_handle)
+    def on_pagepicker_open_handle(self, event: "events.PagePickerOpenEvent"):
+        # print("收到指令")
+        if self.pagepicker is None:
+            self.pagepicker = PagePicker(pdfpath=event.pdfpath, frompageitem=event.fromPageItem,
+                                         pageNum=event.pagenum, clipper=event.clipper)
+            # print("pagepicker 创建")
+        self.pagepicker.init_data(pagenum=event.pagenum, PDFpath=event.pdfpath, frompageitem=event.fromPageItem)
+        if event.pagenum is not None:
+            self.pagepicker.start(event.pagenum)
+        else:
+            self.pagepicker.start(0)
+        QApplication.processEvents()
+        self.pagepicker.show()
 
-    def on_listview_clicked(self):
+    def on_listview_clicked_handle(self):
         itemli = [self.model.itemFromIndex(idx) for idx in self.listView.selectedIndexes()]
         print(itemli)
         print(itemli[0].data(Qt.UserRole))
         print(itemli[1].data(Qt.UserRole))
         pass
 
-    def on_listview_doubleClicked(self):
+    def on_listview_doubleClicked_handle(self):
         idx = self.listView.selectedIndexes()
         item = [self.model.itemFromIndex(i) for i in idx][-2:]
         PDFpath = item[0].toolTip()
         pagenum = int(item[1].text())
         pageitem = item[0].data(Qt.UserRole)
-        P = PagePicker(pdfDirectory=PDFpath, pageNum=pagenum, frompageitem=pageitem,
-                       clipper=self.rightsidebar.clipper)
-        P.start(pagenum)
-        P.exec_()
+        e = events.PagePickerOpenEvent
+        ALL.signals.on_pagepicker_open.emit(
+            e(sender=self, eventType=e.fromPageListType, clipper=self.rightsidebar.clipper
+              , pdfpath=PDFpath, fromPageItem=pageitem, pagenum=pagenum, )
+        )
+        # if self.pagepicker is None:
+        #     self.pagepicker = PagePicker(pdfpath=PDFpath, pageNum=pagenum, frompageitem=pageitem,
+        #                    clipper=self.rightsidebar.clipper)
+        #     self.pagepicker.start(pagenum)
+        #     QApplication.processEvents()
+        #     self.pagepicker.show()
+        #     QApplication.processEvents()
+        # else:
+        #     self.pagepicker.start(pagenum)
+        #     self.pagepicker.show()
 
-    def openDialogPDFOpen(self):
+    def on_addButton_clicked_handle(self):
         """打开的时候，确定默认的路径和页码"""
         idx = self.listView.selectedIndexes()
         pageitem = None
@@ -240,15 +267,13 @@ class PageList(QWidget):
         else:
             PDFpath = None
             pagenum = None
-        P = PagePicker(pdfDirectory=PDFpath, pageNum=pagenum, frompageitem=pageitem,
-                       clipper=self.rightsidebar.clipper)
-        P.start(pagenum)
-        QApplication.processEvents()
-        P.exec_()
-        QApplication.processEvents()
-        # print("PagePicker opened")
 
-    def delete_selected_item(self):
+        e = events.PagePickerOpenEvent
+        ALL.signals.on_pagepicker_open.emit(
+            e(sender=self, eventType=e.fromAddButtonType, clipper=self.rightsidebar.clipper, pagenum=pagenum)
+        )
+
+    def on_delButton_clicked_handle(self):
         rowli = self.model_selected_rows()
         for row in rowli:
             self.on_pageItem_removeFromScene.emit(
@@ -539,7 +564,7 @@ class ButtonPanel(QWidget):
             self.QAbutton_switch()
         elif event.Type == event.configType:
             from ..ConfigTable import ConfigTable
-            C = ConfigTable()
+            C = ConfigTable(self)
             C.exec()
         elif event.Type == event.correctType:
             from .ButtonPanel__ import ClipperExecuteProgresser
