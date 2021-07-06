@@ -103,7 +103,7 @@ class ClipBox2(QGraphicsRectItem):
         self.init_handlers()
 
         self.event_dict = {
-            # ALL.signals.on_clipbox_create:self.on_clipbox_create_handle,
+            ALL.signals.on_clipbox_closed: self.on_clipbox_closed_handle,
             ALL.signals.on_pageItem_update: self.on_pageItem_update_handle,
             ALL.signals.on_clipbox_toolsbar_update: self.on_clipbox_toolsbar_update_handle,
             ALL.signals.on_cardlist_dataChanged: self.on_cardlist_dataChanged_handle,
@@ -117,6 +117,9 @@ class ClipBox2(QGraphicsRectItem):
     #     ALL.signals.on_pageItem_update.connect(self.on_pageItem_update_handle)
     #     ALL.signals.on_clipbox_toolsbar_update.connect(self.on_clipbox_toolsbar_update_handle)
     #     ALL.signals.on_cardlist_dataChanged.connect(self.on_cardlist_dataChanged_handle)
+
+    def on_clipbox_closed_handle(self):
+        self.all_event.unbind(self.__class__.__name__)
 
     def on_clipbox_create_handle(self, event: "events.ClipboxCreateEvent"):
         print("on_clipbox_create_handle")
@@ -182,19 +185,19 @@ class ClipBox2(QGraphicsRectItem):
             self.toolsbar.lineEditProxy.resize(self.rect().width() - self.toolsbar.editQAButtonProxy.rect().width() - 1,
                                                self.toolsbar.lineEditProxy.rect().height())
 
-            c = self.toolsbar.closeButtonProxy
-            Q = self.toolsbar.QAButtonProxy
             C = self.toolsbar.cardComboxProxy
             l = self.toolsbar.lineEditProxy
+            c = self.toolsbar.closeButtonProxy
+            Q = self.toolsbar.QAButtonProxy
             eQ = self.toolsbar.editQAButtonProxy
             r = self.rect()
-            c.setPos(r.width() - c.rect().width() - 1, 0)
-            Q.setPos(r.width() - c.rect().width() - Q.rect().width() - 1, 0)
-            C.setPos(0, 0)
             self.toolsbar.cardComboxProxy.resize(
                 self.rect().width() - c.rect().width() - Q.rect().width() - 1,
                 Q.rect().height() - 1
             )
+            C.setPos(0, 0)
+            c.setPos(r.width() - c.rect().width() - 1, 0)
+            Q.setPos(r.width() - c.rect().width() - Q.rect().width() - 1, 0)
             l.setPos(0, C.rect().height())
             eQ.setPos(l.rect().right() - 1, C.rect().height() + 1)
             C.update()
@@ -241,7 +244,7 @@ class ClipBox2(QGraphicsRectItem):
     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
               widget: typing.Optional[QWidget] = ...) -> None:
         # self.prepareGeometryChange()  # 这个 非常重要. https://www.cnblogs.com/ybqjymy/p/13862382.html
-        self.calc_ratio()
+        self.calc_ratio()  # 计算所占page的比例
 
         pen = QPen(QColor(127, 127, 127), 2.0, Qt.DashLine)
         if self.isHovered or self.isSelected():
@@ -557,6 +560,8 @@ class ClipBox2(QGraphicsRectItem):
 
         return info
 
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.all_event.unbind(self.__class__.__name__)
 
 class PageView(QGraphicsPixmapItem):
     """只需要pixmap就够了"""
@@ -839,8 +844,6 @@ class ToolsBar2(QGraphicsWidget):
         pass
 
     def on_button_nextpage_clicked_handle(self):
-        print("next clicked")
-
         if self.pageinfo.pagenum + 1 == len(self.pageinfo.doc):
             return
         modifiers = QApplication.keyboardModifiers()
@@ -857,15 +860,17 @@ class ToolsBar2(QGraphicsWidget):
         pageinfo = PageInfo(pageinfo.doc.name, pageinfo.pagenum + pagenum_delta, pageinfo.ratio)
         pageview_ratio = self.pageitem.pageview.ratio
         if modifiers == QtCore.Qt.ControlModifier:
-            self.on_pageItem_changePage.emit(
-                PageItemChangeEvent(pageInfo=pageinfo, pageItem=self.pageitem,
-                                    eventType=PageItemChangeEvent.updateType))
-        else:
             from .. import PageItem5
             pageitem = PageItem5(pageinfo, rightsidebar=self.pageitem.rightsidebar, pageview_ratio=pageview_ratio)
 
             self.on_pageItem_addToScene.emit(
                 PageItemAddToSceneEvent(pageItem=pageitem, eventType=PageItemAddToSceneEvent.addPageType))
+
+        else:
+
+            self.on_pageItem_changePage.emit(
+                PageItemChangeEvent(pageInfo=pageinfo, pageItem=self.pageitem,
+                                    eventType=PageItemChangeEvent.updateType))
 
     def on_button_close_clicked_handle(self):
         self.on_pageItem_removeFromScene.emit(

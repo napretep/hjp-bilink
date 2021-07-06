@@ -34,12 +34,13 @@ class PDFView(QGraphicsView):
         self.setCursor(Qt.ArrowCursor)
         self.curr_selected_item = None
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-        self.event_dict = {ALL.signals.on_pageItem_resize_event: self.on_pageItem_resize_event_handle,
-                           ALL.signals.on_rightSideBar_buttonGroup_clicked: self.on_rightSideBar_buttonGroup_clicked_handle,
-                           ALL.signals.on_pageItem_needCenterOn: self.on_pageItem_needCenterOn_handle,
-                           ALL.signals.on_pageItem_centerOn_process: self.on_pageItem_centerOn_process_handle,
-                           self.rubberBandChanged: self.on_rubberBandChanged_handle,
-                           }
+        self.event_dict = {
+            ALL.signals.on_pageItem_resize_event: self.on_pageItem_resize_event_handle,
+            ALL.signals.on_rightSideBar_buttonGroup_clicked: self.on_rightSideBar_buttonGroup_clicked_handle,
+            ALL.signals.on_pageItem_needCenterOn: self.on_pageItem_needCenterOn_handle,
+            ALL.signals.on_pageItem_centerOn_process: self.on_pageItem_centerOn_process_handle,
+            self.rubberBandChanged: self.on_rubberBandChanged_handle,
+        }
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
         self.init_shortcuts()
@@ -113,6 +114,7 @@ class PDFView(QGraphicsView):
 
     def keyReleaseEvent(self, event: QtGui.QKeyEvent) -> None:
         self.setDragMode(QGraphicsView.ScrollHandDrag)
+        super().keyReleaseEvent(event)
 
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
         if event.buttons() == Qt.RightButton:

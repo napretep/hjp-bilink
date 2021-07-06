@@ -41,6 +41,7 @@ class Clipper(QMainWindow):
             ALL.signals.on_pageItem_removeFromScene: self.on_pageItem_removeFromScene_handle,
             ALL.signals.on_rightSideBar_buttonGroup_clicked: self.on_rightSideBar_buttonGroup_clicked_handle,
             ALL.signals.on_clipboxstate_switch: self.on_clipboxstate_switch_handle,
+            ALL.signals.on_config_changed: self.on_config_changed_handle,
         }
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
@@ -69,7 +70,7 @@ class Clipper(QMainWindow):
                 ALL.signals.on_clipboxstate_switch.emit(
                     e(sender=self, eventType=e.hideType)
                 )
-            # print("on_clipboxstate_hide emit")
+            print("on_clipboxstate_hide emit")
         else:
             super().keyReleaseEvent(event)
 
@@ -167,7 +168,17 @@ class Clipper(QMainWindow):
             if item.uuid != pageitem.uuid:
                 item.toolsBar.hide()
 
+    def config_update(self):
+        self.config = objs.SrcAdmin.get_config("clipper")
+        self.viewlayout_value = self.config["viewlayout.mode"]["value"]
+        self.viewlayout_col_per_row = self.config["viewlayout.col_per_row"]["value"]
+        self.viewlayout_row_per_col = self.config["viewlayout.row_per_col"]["value"]
+
+    def on_config_changed_handle(self):
+        self.config_update()
+
     def pageitem_layout_arrange(self, pageitem):
+
         old_count = len(self.pageItemList)
         if self.viewlayout_value == self.viewlayout_mode.Horizontal:
             row = self.viewlayout_row_per_col

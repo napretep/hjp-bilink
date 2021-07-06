@@ -28,15 +28,15 @@ class ToolsBar(QGraphicsWidget):
         self.cardlist = cardlist
         self.clipbox = clipbox
         self.imgDir = self.cardlist.rightsidebar.clipper.objs.SrcAdmin.imgDir
-        self.QAdict = {
+        self.QA_icon_dict = {
             "Q": QIcon(self.imgDir.question),
             "A": QIcon(self.imgDir.answer)
         }
-        self.QAButtonProxy: 'QAButton' = QAButton(toolsbar=self, QA=QA)
+        self.cardComboxProxy: 'CardCombox' = CardCombox(toolsbar=self)
         self.lineEditProxy: 'LineEdit' = LineEdit(toolsbar=self)
+        self.QAButtonProxy: 'QAButton' = QAButton(toolsbar=self, QA=QA)
         self.editQAButtonProxy: 'EditQAbutton' = EditQAbutton(toolsbar=self)
         self.closeButtonProxy: 'CloseButton' = CloseButton(toolsbar=self)
-        self.cardComboxProxy: 'CardCombox' = CardCombox(toolsbar=self)
         self.setParentItem(clipbox)
 
     def cardcombox_update(self):

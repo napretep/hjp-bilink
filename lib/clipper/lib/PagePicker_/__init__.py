@@ -29,7 +29,6 @@ class ToolsBar(QWidget):
         self.frompageitem = frompageitem
         self.pagenum_valueSet = set()
         self.pagenum_value = pageNum
-        self.ratio_value = ratio if ratio is not None else self.config_dict["pagepicker.bottombar.page_ratio"]["value"]
         self.g_layout = QGridLayout(self)
         self.open_button = QToolButton()
         self.open = objs.GridHDescUnit(parent=parent, widget=self.open_button)
@@ -40,6 +39,8 @@ class ToolsBar(QWidget):
         self.newPage_button = QToolButton()
         self.update_button = QToolButton()
         self.bookmark_button = QToolButton()
+        self.ratio_value = ratio if ratio is not None else self.config_dict["pagepicker.bottombar.page_ratio"]["value"]
+        # print(f"self.ratio_value={self.ratio_value}")
         self.w_l = [self.bookmark_button, self.open, self.pagenum, self.ratio, self.update_button, self.newPage_button]
         self.g_pos = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5)]
         self.init_UI()
@@ -61,10 +62,23 @@ class ToolsBar(QWidget):
             ALL.signals.on_pagepicker_PDFparse: self.on_pagepicker_PDFparse_handle,
             ALL.signals.on_pagepicker_browser_select_send: self.on_pagepicker_browser_select_send_handle,
             ALL.signals.on_pagepicker_previewer_ratio_adjust: self.on_pagepicker_previewer_ratio_adjust_handle,
+            ALL.signals.on_config_changed: self.on_config_changed_handle,
         }
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
         self.state_check()
+        print("update")
+
+    def on_config_changed_handle(self):
+        self.config_reload()
+        pass
+
+    def config_reload(self):
+        self.config_dict = objs.SrcAdmin.get_config("clipper")
+        self.ratio_value = self.config_dict["pagepicker.bottombar.page_ratio"]["value"]
+        self.pagenum_value = self.config_dict["pagepicker.bottombar.page_num"]["value"]
+        # self.pdfDir
+        pass
 
     def init_UI(self):
         self.init_open()
@@ -116,6 +130,7 @@ class ToolsBar(QWidget):
         ALL.signals.on_pagepicker_preivewer_read_page.emit(
             e(sender=self, eventType=e.reloadType)
         )
+        print("on_ratio_DBspinbox_valueChanged_handle")
 
     def on_pagenum_lineEdit_textChanged_handle(self, string):
         if not self.pagenumText_validity(string):
@@ -149,6 +164,14 @@ class ToolsBar(QWidget):
             else:
                 self.pagenum_valueSet.add(int(num))
         print(self.pagenum_valueSet)
+
+    # def on_pagepicker_browser_select_handle(self,event:"events.PagePickerBrowserSelectEvent"):
+    #     print("on_pagepicker_browser_select_handle")
+    #     li = self.packup_pageinfo()
+    #     if len(li)>1:
+    #         self.update_button.setDisabled(True)
+    #     else:
+    #         self.update_button.setDisabled(False)
 
     def on_pagepicker_browser_select_send_handle(self, event: "events.PagePickerBrowserSelectSendEvent"):
         if event.Type == event.appendType:
@@ -210,17 +233,21 @@ class ToolsBar(QWidget):
             self.newPage_button.setDisabled(False)
         if self.frompageitem is None:
             self.update_button.setDisabled(True)
-        if self.frompageitem is not None:
-            self.ratio_DBspinbox_setValue(self.frompageitem.pageinfo.ratio)
-        else:
-            self.ratio_DBspinbox_setValue(self.config_dict["pagepicker.bottombar.page_ratio"]["value"])
+        # if self.frompageitem is not None:
+        #     self.ratio_DBspinbox_setValue(self.frompageitem.pageinfo.ratio)
+        # else:
+        #     self.ratio_DBspinbox_setValue(self.config_dict["pagepicker.bottombar.page_ratio"]["value"])
 
     def on_update_button_clicked_handle(self):
+        from ..PageInfo import PageInfo
         pageinfoli = self.packup_pageinfo()
+        pageinfo = PageInfo(self.open.label.toolTip(), pageinfoli[0], self.ratio_value)
         self.on_pageItem_changePage.emit(
-            events.PageItemChangeEvent(pageInfo=pageinfoli[0], pageItem=self.frompageitem,
+            events.PageItemChangeEvent(pageInfo=pageinfo, pageItem=self.frompageitem,
                                        eventType=events.PageItemChangeEvent.updateType)
         )
+        e = events.PagePickerCloseEvent
+        ALL.signals.on_pagepicker_close.emit(e(sender=self, eventType=e.closeType))
 
     def on_newPage_button_clicked_handle(self):
 
@@ -344,7 +371,7 @@ class Browser(QWidget):
         self.pagepicker = parent
         self.PageLoadJob_isBussy = False
         self.frame_list = None
-        self.col_per_row = 4
+        self.col_per_row = self.pagepicker.config_dict["pagepicker.browser.layout_col_per_row"]["value"]
         self.row_per_frame = None
         self.unit_size = None
         self.wait_for_page_select = None
@@ -369,6 +396,9 @@ class Browser(QWidget):
         self.init_UI()
         # self.init_events()
         # print("browser_init")
+
+    def config_reload(self):
+        self.col_per_row = self.pagepicker.config_dict["pagepicker.browser.layout_col_per_row"]["value"]
 
     def init_UI(self):
         # self.setFixedSize(600, self.pagepicker.size().height()-100)
@@ -638,11 +668,19 @@ class Previewer(QWidget):
         self.scene: "Previewer__.Scene" = Previewer__.Scene(parent=self)
         self.view: 'Previewer__.View' = Previewer__.View(parent=self)
         # self.toolsbar:"Previewer__.ToolsBar" = Previewer__.ToolsBar(parent=self)
-        self.ratio = self.pagepicker
+        # self.ratio = self.pagepicker
         # self.hasItem = False
         self.pagenum = None
         self.init_UI()
-        self.init_event()
+        self.event_dict = {
+            ALL.signals.on_pagepicker_PDFparse: self.on_pagepicker_PDFparse_handle,
+            ALL.signals.on_pagepicker_preivewer_read_page: self.on_pagepicker_preivewer_read_page_handle
+        }
+        self.all_event = objs.AllEventAdmin(self.event_dict)
+        self.all_event.bind()
+
+    def config_reload(self):
+        pass
 
     def init_UI(self):
         V_layout = QVBoxLayout(self)
@@ -653,11 +691,6 @@ class Previewer(QWidget):
         self.setLayout(V_layout)
 
         pass
-
-    def init_event(self):
-        ALL.signals.on_pagepicker_PDFparse.connect(self.on_pagepicker_PDFparse_handle)
-        ALL.signals.on_pagepicker_preivewer_read_page.connect(
-            self.on_pagepicker_preivewer_read_page_handle)
 
     def on_pagepicker_PDFparse_handle(self, event: "events.PDFParseEvent"):
         if event.Type == event.PDFInitParseType:
@@ -732,7 +765,8 @@ class BookMark(QTreeView):
         self.root.level = 0
         self.model.setHorizontalHeaderItem(0, QStandardItem("toc"))
 
-
+    def config_reload(self):
+        pass
 
     def on_self_clicked_handle(self, index):
         item = self.model.itemFromIndex(index)

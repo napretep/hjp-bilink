@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 from functools import reduce
 from math import ceil
+import tempfile
 
 from aqt.utils import showInfo
 
@@ -14,7 +15,8 @@ from aqt import mw, browser
 
 pngfileprefix = "hjp_clipper_"
 
-def on_anki_create_card_handle1(model_id, deck_id):
+
+def on_anki_create_card_handle1(model_id=None, deck_id=None):
     if model_id is None:
         if not "Basic" in mw.col.models.allNames():
             mw.col.models.add(stdmodels.addBasicModel(mw.col))
@@ -69,13 +71,13 @@ def on_anki_field_insert_handle1(self, clipboxlist: "list"):
             if clipbox["uuid"] not in html:
                 note.fields[clipbox["QA"]] += f"""<img src="{pngfileprefix}{clipbox["uuid"]}_.png">\n"""
             if clipbox["text_"] != "" and clipbox["uuid"] not in html:
-                note.fields[clipbox["textQA"]] += f"""<p id="{clipbox["uuid"]}">{clipbox["text_"]}<p>\n"""
+                note.fields[clipbox["textQA"]] += f"""<img id="{clipbox["uuid"]}" alt="{clipbox["text_"]}">\n"""
 
             note.addTag(f"""hjp-bilink::timestamp::{timestamp}""")
             note.addTag(f"""hjp-bilink::books::{pdfname_in_tag}::page::{clipbox["pagenum"]}""")
             # 下面都是为了得到PDF的书签
             path = objs.SrcAdmin.get
-            jsonfilename = os.path.join(path.dir_root, path.dir_user_files, path.dir_bookmark, pdfname[0:-3] + "json")
+            jsonfilename = os.path.join(tempfile.gettempdir(), pdfname[0:-3] + "json")
             if os.path.exists(jsonfilename):
                 bookdict = json.loads(open(jsonfilename, "r", encoding="utf-8").read())
             else:
@@ -84,7 +86,7 @@ def on_anki_field_insert_handle1(self, clipboxlist: "list"):
                 bookdict = bookmark_to_tag(toc)
                 json.dump(bookdict, open(jsonfilename, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
             pagelist = sorted(list(bookdict.keys()), key=lambda x: int(x))
-            # showInfo(pagelist.__str__())
+
             atbookmark = -1
             for idx in range(len(pagelist)):
                 if int(pagelist[idx]) > clipbox["pagenum"]:

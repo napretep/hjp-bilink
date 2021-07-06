@@ -24,6 +24,7 @@ class PagePicker(QDialog):
         self.doc = None
         self.pdfDir = pdfpath
         self.clipper = clipper
+        self.config_dict = objs.SrcAdmin.get_config("clipper")
         self.frompageitem = frompageitem
         self.pageNum = pageNum
         self.bookmark_opened = False
@@ -47,9 +48,6 @@ class PagePicker(QDialog):
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
         self.show()
-        # self.bookmark.resize(100,500)
-        # self.bookmark.move(self.pos().x()-self.bookmark.maximumWidth(),self.pos().y())
-        # self.bookmark.show()
 
     def init_UI(self):
         self.setWindowModality(Qt.ApplicationModal)
@@ -91,6 +89,14 @@ class PagePicker(QDialog):
         self.pdfDir = PDFpath
         self.frompageitem = frompageitem
         self.pageNum = pagenum
+        self.config_reload()
+
+    def config_reload(self):
+        self.config_dict = objs.SrcAdmin.get_config("clipper")
+        self.bookmark.config_reload()
+        self.browser.config_reload()
+        self.previewer.config_reload()
+        self.toolsbar.config_reload()
 
     def on_pagepicker_openBookmark_handle(self, event: 'events.OpenBookmarkEvent'):
         # self.setMaximumWidth(QApplication.desktop().width())
@@ -116,7 +122,7 @@ class PagePicker(QDialog):
             self.bookmark_opened = False
 
     def on_pagepicker_close_handle(self, event: 'events.PagePickerCloseEvent'):
-        self.close()
+        self.hide()
 
     def on_pagepicker_PDFopen_handle(self, event: "events.PDFOpenEvent"):
         if event.Type == event.PDFReadType and event.path is not None and os.path.exists(
@@ -126,6 +132,12 @@ class PagePicker(QDialog):
             e = events.PDFParseEvent
             ALL.signals.on_pagepicker_PDFparse.emit(
                 e(sender=self, eventType=e.PDFInitParseType, path=event.path, doc=self.doc, pagenum=event.beginpage))
+        else:
+            self.browser.scene.clear()
+            self.previewer.scene.clear()
+            self.bookmark.model.clear()
+            self.toolsbar.open.label.setText("")
+            self.toolsbar.open.label.setToolTip("")
 
     def ratio_value_get(self):
         """这些接口太深了,所以提出来一点"""
@@ -138,7 +150,8 @@ class PagePicker(QDialog):
             ALL.signals.on_pagepicker_PDFparse.emit(
                 e(sender=self, eventType=e.PDFInitParseType, doc=self.doc, pagenum=curr_frame_first_page)
             )
-
+    # def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+    #     self.all_event.unbind(self.__class__.__name__)
     # def browser_progressbar_value_set(self,value):
     #     self.browser.bottomBar.progressBar.setValue(value)
 

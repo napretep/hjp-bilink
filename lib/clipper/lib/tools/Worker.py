@@ -2,7 +2,7 @@ import time
 from typing import Union
 
 from PyQt5.QtCore import QThread, pyqtSignal
-from . import ALL, funcs
+from . import ALL, funcs, objs
 
 print, printer = funcs.logger(__name__)
 
@@ -30,7 +30,14 @@ class FrameLoadWorker(QThread):
         # self.sleepgap = 0.01
         self.do = False
         self.bussy = False
-        self.init_events()
+        self.event_dict = {
+            self.on_frame_load_begin: self.on_frame_load_begin_handle,
+            self.on_stop_load: self.on_stop_load_handle,
+            self.on_all_page_loaded: self.on_all_page_loaded_handle,
+            self.on_1_page_loaded: self.on_1_page_loaded_handle,
+        }
+        self.all_event = objs.AllEventAdmin(self.event_dict)
+        self.all_event.bind()
 
     def sleepgap(self):
         gap = 1
@@ -44,12 +51,7 @@ class FrameLoadWorker(QThread):
         self.row_per_frame = row_per_frame
         self.bussy = False
 
-    def init_events(self):
-        self.on_frame_load_begin.connect(self.on_frame_load_begin_handle)
-        self.on_stop_load.connect(self.on_stop_load_handle)
-        self.on_all_page_loaded.connect(self.on_all_page_loaded_handle)
-        self.on_1_page_loaded.connect(self.on_1_page_loaded_handle)
-        print("event binded")
+        # print("event binded")
 
     def on_1_page_loaded_handle(self, _):
         # print("1 page loaded self.bussy = False")

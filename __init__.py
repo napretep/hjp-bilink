@@ -251,11 +251,14 @@ from .lib.clipper.lib.Clipper import Clipper
 from .lib.obj.tools import events, objs, funcs, ALL
 from .lib.obj import ModuleProxy
 
+print, print_ = funcs.logger(__name__)
 ALL.signals.on_cardlist_addCard.connect(ModuleProxy.on_cardlist_addCard_handle)
 ALL.signals.on_anki_card_create.connect(ModuleProxy.on_anki_create_card_handle)
 ALL.signals.on_anki_field_insert.connect(ModuleProxy.on_anki_field_insert_handle)
 ALL.signals.on_anki_browser_activate.connect(ModuleProxy.on_anki_browser_activate_handle)
 ALL.signals.on_anki_file_create.connect(ModuleProxy.on_anki_file_create_handle)
+ALL.signals.on_config_ankidata_load.connect(ModuleProxy.on_config_ankidata_load_handle)
+# print("ALL.signals.on_config_ankidata_load.connect(ModuleProxy.on_config_ankidata_load_handle)")
 clipper = Clipper()
 # pageitem = PageItem5(PageInfo("./resource/徐森林_数学分析_第8章.pdf", 0), rightsidebar=clipper.rightsidebar)
 # event = events.PageItemAddToSceneEvent(pageItem=pageitem, eventType=events.PageItemAddToSceneEvent.addPageType)

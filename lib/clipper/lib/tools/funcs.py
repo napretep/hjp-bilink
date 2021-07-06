@@ -18,7 +18,7 @@ def event_handle_connect(event_dict):
 def event_handle_disconnect(event_dict: "dict[pyqtSignal,callable]"):
     for event, handle in event_dict.items():
         try:
-            print(event.signal)
+            # print(event.signal)
             event.disconnect(handle)
             # print(f"""{event.__str__()} still has {}  connects""")
         except Exception:

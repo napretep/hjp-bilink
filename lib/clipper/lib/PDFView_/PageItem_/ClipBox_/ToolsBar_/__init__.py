@@ -77,7 +77,12 @@ class CloseButton(QGraphicsProxyWidget):
         self.init_UI()
         self.init_data()
         self.init_signals()
-        self.init_events()
+        self.event_dict = {
+            self.closeButton.clicked: self.onCloseButtonClicked
+        }
+        self.all_event = objs.AllEventAdmin(self.event_dict)
+        self.all_event.bind()
+        # self.init_events()
         self.setWidget(self.closeButton)
 
     def init_UI(self):
@@ -91,9 +96,6 @@ class CloseButton(QGraphicsProxyWidget):
     def init_data(self):
         self.closeButton.setIcon(QIcon(self.imgDir.close))
         self.closeButton.setToolTip("关闭/close")
-
-    def init_events(self):
-        self.closeButton.clicked.connect(self.onCloseButtonClicked)
 
     def onCloseButtonClicked(self):
         clipbox = self.toolsbar.clipbox

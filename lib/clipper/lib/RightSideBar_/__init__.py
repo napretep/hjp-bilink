@@ -3,7 +3,7 @@ import time
 from math import ceil
 
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QToolButton, QTreeView, QApplication
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QToolButton, QTreeView, QApplication, QHeaderView
 from PyQt5.QtCore import Qt, QRect, QItemSelectionModel, pyqtSignal, QTimer, QThread
 from aqt.utils import showInfo
 
@@ -205,6 +205,7 @@ class PageList(QWidget):
         self.listView.setModel(self.model)
         self.listView.header().setDefaultSectionSize(180)
         self.listView.header().setSectionsMovable(False)
+        self.listView.header().setSectionResizeMode((QHeaderView.Stretch))
         self.listView.setColumnWidth(1, 10)
 
     # def init_signals(self):
@@ -244,33 +245,12 @@ class PageList(QWidget):
             e(sender=self, eventType=e.fromPageListType, clipper=self.rightsidebar.clipper
               , pdfpath=PDFpath, fromPageItem=pageitem, pagenum=pagenum, )
         )
-        # if self.pagepicker is None:
-        #     self.pagepicker = PagePicker(pdfpath=PDFpath, pageNum=pagenum, frompageitem=pageitem,
-        #                    clipper=self.rightsidebar.clipper)
-        #     self.pagepicker.start(pagenum)
-        #     QApplication.processEvents()
-        #     self.pagepicker.show()
-        #     QApplication.processEvents()
-        # else:
-        #     self.pagepicker.start(pagenum)
-        #     self.pagepicker.show()
 
     def on_addButton_clicked_handle(self):
         """打开的时候，确定默认的路径和页码"""
-        idx = self.listView.selectedIndexes()
-        pageitem = None
-        if len(idx) > 0:
-            item = [self.model.itemFromIndex(i) for i in idx][-2:]
-            PDFpath = item[0].toolTip()
-            pagenum = int(item[1].text())
-            pageitem = item[0].data(Qt.UserRole)
-        else:
-            PDFpath = None
-            pagenum = None
-
         e = events.PagePickerOpenEvent
         ALL.signals.on_pagepicker_open.emit(
-            e(sender=self, eventType=e.fromAddButtonType, clipper=self.rightsidebar.clipper, pagenum=pagenum)
+            e(sender=self, eventType=e.fromAddButtonType, clipper=self.rightsidebar.clipper, pagenum=None)
         )
 
     def on_delButton_clicked_handle(self):
@@ -366,6 +346,7 @@ class CardList(QWidget):
         clipbox, uuid = event.clipBox, event.cardUuid
         if uuid is not None:
             self.card_clipboxlist_del(clipbox, uuid)
+        # clipbox.close()
 
     def on_clipboxCombox_updated_handle(self, event: 'ClipBox_.ToolsBar_.ClipboxEvent'):
         self.card_clipboxlist_add(event.clipBox, event.cardUuid)
@@ -424,10 +405,10 @@ class CardList(QWidget):
     def on_clipboxstate_switch_handle(self, event: "events.ClipboxStateSwitchEvent"):
         """clipboxstate"""
         if event.Type == event.showType:
-            if self.ClipboxState is not None:
-                self.ClipboxState.data_update()
-            else:
+            if self.ClipboxState is None:
                 self.ClipboxState = CardList_.ClipboxState(parent=self)
+
+            self.ClipboxState.data_update()
             self.ClipboxState.show()
             clipboxstate_switch_done()
         elif event.Type == event.hideType:
@@ -483,6 +464,7 @@ class CardList(QWidget):
         self.delButton.setText("-")
         self.listView = QTreeView(self)
         self.listView.setIndentation(0)
+        self.listView.header().setSectionResizeMode((QHeaderView.Stretch))
         H_layout.addWidget(self.label)
         H_layout.addWidget(self.addButton)
         H_layout.addWidget(self.delButton)

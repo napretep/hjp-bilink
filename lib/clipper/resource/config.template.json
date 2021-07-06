@@ -1,4 +1,48 @@
 {
+  "clipbox.textQ_map_Field": {
+    "value": 0,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 0,
+      "data_range": {
+        "left": 0,
+        "right": false
+      }
+    }
+  },
+  "clipbox.textQ_map_Field": {
+    "value": 0,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 0,
+      "data_range": {
+        "left": 0,
+        "right": false
+      }
+    }
+  },
+  "clipbox.A_map_Field": {
+    "value": 1,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 0,
+      "data_range": {
+        "left": 0,
+        "right": false
+      }
+    }
+  },
+  "clipbox.Q_map_Field": {
+    "value": 0,
+    "constrain": {
+      "allow_empty": 0,
+      "data_type": 0,
+      "data_range": {
+        "left": 0,
+        "right": false
+      }
+    }
+  },
   "pagepicker.browser.layout_col_per_row": {
     "value": 4,
     "constrain": {

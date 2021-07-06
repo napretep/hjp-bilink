@@ -7,6 +7,9 @@ from .backlink_reader import BackLinkReader
 from . import ModuleProxyfunc
 from . import utils
 
+print, printer = funcs.logger(__name__)
+
+
 def on_cardlist_addCard_handle(event: "events.CardListAddCardEvent"):
     """添加来自anki现有的卡片"""
     if event.eventType == event.parseStrType:
@@ -57,3 +60,17 @@ def on_anki_file_create_handle(event: "events.AnkiFileCreateEvent"):
         ALL.signals.on_anki_file_create.emit(
             e(eventType=e.ClipperCreatePNGDoneType)
         )
+
+
+def on_config_ankidata_load_handle(event: "events.ConfigAnkiDataLoadEvent"):
+    data = {}
+    if event.modelType in event.Type:
+        model = mw.col.models.all_names_and_ids()
+        data["model"] = model
+    if event.deckType in event.Type:
+        data["deck"] = []
+        deck = mw.col.decks.all_names_and_ids()
+        for i in deck:
+            data["deck"].append({"id": i.id, "name": i.name})
+    e = events.ConfigAnkiDataLoadEndEvent
+    ALL.signals.on_config_ankidata_load_end.emit(e(eventType=event.Type, ankidata=data))

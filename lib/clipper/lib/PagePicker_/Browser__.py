@@ -346,6 +346,7 @@ class Item2(QGraphicsPixmapItem):
         e = events.PagePickerPreviewerReadPageEvent
         ALL.signals.on_pagepicker_preivewer_read_page.emit(
             e(sender=self, eventType=e.loadType, pagenum=self.pagenum))
+
         super().mousePressEvent(event)
 
     def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:

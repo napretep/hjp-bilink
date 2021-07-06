@@ -4,7 +4,8 @@ import os
 from PyQt5.QtCore import QObject, pyqtSignal, Qt, QThread, QTimer
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QPushButton, QSpinBox, QFileDialog, QToolButton, \
-    QDoubleSpinBox, QComboBox, QVBoxLayout, QFrame, QGridLayout, QWidget, QShortcut, QProgressBar
+    QDoubleSpinBox, QComboBox, QVBoxLayout, QFrame, QGridLayout, QWidget, QShortcut, QProgressBar, QStyledItemDelegate, \
+    QItemDelegate
 
 from .funcs import str_shorten
 from . import events, JSONschema_, SrcAdmin_
@@ -30,7 +31,7 @@ class CustomSignals(QObject):
     on_anki_browser_activate = pyqtSignal(object)  # AnkiBrowserActivateEvent
     on_anki_file_create = pyqtSignal(object)  # AnkiFileCreateEvent
 
-    on_pagepicker_close = pyqtSignal(object)  # PagePickerCloseEvent
+
     on_pagepicker_bookmark_open = pyqtSignal(object)  # OpenBookmarkEvent
     on_pagepicker_bookmark_clicked = pyqtSignal(object)  # BookmarkClickedEvent
 
@@ -41,7 +42,7 @@ class CustomSignals(QObject):
 
     # 用于收集数据
     # on_pagepicker_Browser_pageselected = pyqtSignal(object)#PagePickerBrowserPageSelectedEvent
-
+    on_pagepicker_close = pyqtSignal(object)  # PagePickerCloseEvent
     on_pagepicker_open = pyqtSignal(object)  # PagePickerOpenEvent
 
     on_pagepicker_rightpart_pageread = pyqtSignal(object)  # PagePickerRightPartPageReadEvent
@@ -100,9 +101,11 @@ class CustomSignals(QObject):
     on_clipper_hotkey_prev_card = pyqtSignal()
     on_clipper_hotkey_setA = pyqtSignal()
     on_clipper_hotkey_setQ = pyqtSignal()
-    on_clipper_config_reload = pyqtSignal()
-    on_clipper_config_reload_end = pyqtSignal()
-
+    on_config_changed = pyqtSignal()
+    on_config_reload = pyqtSignal()
+    on_config_reload_end = pyqtSignal()
+    on_config_ankidata_load = pyqtSignal(object)  # ConfigAnkiDataLoadEvent
+    on_config_ankidata_load_end = pyqtSignal(object)  # ConfigAnkiDataLoadEndEvent
     on_PDFView_ResizeView = pyqtSignal(object)  # PDFViewResizeViewEvent
 
     regist_dict = {}  # hashcode:[signal,connector]
@@ -251,3 +254,42 @@ class UniversalProgresser(QDialog):
         glayout = QGridLayout(self)
         glayout.addWidget(self.progressbar, 0, 0, 1, 4)
         self.setLayout(glayout)
+
+
+# class ColumnSpinboxDelegate(QStyledItemDelegate):
+#     """先设计基本的SpinboxDelegate, 然后通过load_config 配置第几列,或多列的情况 """
+
+class ColumnSpinboxDelegate(QItemDelegate):
+    def __init__(self, columns, parent=None):
+        super(ColumnSpinboxDelegate, self).__init__(parent)
+        self.columns = columns
+
+    def paint(self, painter, option, index):
+        if index.column() in self.columns:
+            value = index.model().data(index, Qt.DisplayRole)
+            option.displayAlignment = Qt.AlignRight | Qt.AlignVCenter
+            self.drawDisplay(painter, option, option.rect, str(value) if value is not None else None)
+            self.drawFocus(painter, option, option.rect)
+        else:
+            super(ColumnSpinboxDelegate, self).paint(painter, option, index)
+
+    def createEditor(self, parent, option, index):
+        if index.column() in self.columns:
+            spinBox = QSpinBox(parent)
+            spinBox.setRange(0, 2000)
+            spinBox.editingFinished.connect(self.commitAndCloseEditor)
+            return spinBox
+        else:
+            return super(ColumnSpinboxDelegate, self).createEditor(parent, option, index)
+
+    def commitAndCloseEditor(self):
+        spinBox = self.sender()
+        self.commitData.emit(spinBox)
+        self.closeEditor.emit(spinBox)
+
+    def setEditorData(self, editor, index):
+        if index.column() in self.columns:
+            value = int(index.model().data(index, Qt.DisplayRole))
+            editor.setValue(value if value is not None else 0)
+        else:
+            super(ColumnSpinboxDelegate, self).setEditorData(editor, index)

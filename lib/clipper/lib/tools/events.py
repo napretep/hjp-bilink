@@ -4,6 +4,24 @@ class AllEvent:
         self.Type = eventType
 
 
+class ConfigAnkiDataLoadEvent(AllEvent):
+    modelType = 0
+    deckType = 1
+
+    def __init__(self, sender=None, eventType=None, ankidata=None):
+        super().__init__(sender, eventType)
+        self.ankidata = ankidata
+
+
+class ConfigAnkiDataLoadEndEvent(AllEvent):
+    modelType = 0
+    deckType = 1
+
+    def __init__(self, sender=None, eventType=None, ankidata=None):
+        super().__init__(sender, eventType)
+        self.ankidata = ankidata
+
+
 class ClipboxCreateEvent(AllEvent):
     rubbingType = 0
     rubbedType = 1
@@ -262,7 +280,7 @@ class OpenBookmarkEvent:
 class PagePickerCloseEvent:
     closeType = 0
 
-    def __init__(self, eventType=None):
+    def __init__(self, eventType=None, sender=None):
         self.Type = eventType
 
 
