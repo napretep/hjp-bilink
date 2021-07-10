@@ -10,9 +10,24 @@ import logging
 import tempfile
 
 
+def show_clipbox_state():
+    from . import ALL, events
+    e = events.ClipboxStateSwitchEvent
+    ALL.signals.on_clipboxstate_switch.emit(e(eventType=e.showType))
+
+
+def clipboxstate_switch_done(show=True):
+    from . import ALL, events
+    e = events.ClipboxStateSwitchEvent
+    ALL.signals.on_clipboxstate_switch.emit(
+        e(eventType=e.showedType if show else e.hiddenType)
+    )
+
+
 def event_handle_connect(event_dict):
     for event, handle in event_dict.items():
         event.connect(handle)
+    return event_dict
 
 
 def event_handle_disconnect(event_dict: "dict[pyqtSignal,callable]"):
@@ -22,10 +37,11 @@ def event_handle_disconnect(event_dict: "dict[pyqtSignal,callable]"):
             event.disconnect(handle)
             # print(f"""{event.__str__()} still has {}  connects""")
         except Exception:
-            print(f"{event.__str__()} do not connect to {handle.__str__()}")
+            # print(f"{event.__str__()} do not connect to {handle.__str__()}")
+            pass
 
 
-def logger(logname=None, level=None):
+def logger(logname=None, level=None, allhandler=None):
     from . import ALL
     if ALL.ISDEBUG:
         if logname is None:
@@ -49,12 +65,11 @@ def logger(logname=None, level=None):
         consolehandle = logging.StreamHandler()
         consolehandle.setLevel(level)
         consolehandle.setFormatter(formatter)
-
-        printer.addHandler(filehandle)
         printer.addHandler(consolehandle)
+        printer.addHandler(filehandle)
         return printer.debug, printer
     else:
-        return print, print
+        return do_nothing, do_nothing
 
 
 qianziwen = "天地玄黄宇宙洪荒日月盈昃辰宿列张" \
@@ -221,7 +236,7 @@ def do_nothing(*args, **kwargs):
     pass
 
 
-# print = wrapper_print_debug(print)
+print = wrapper_print_debug(print)
 
 if __name__ == "__main__":
     pass

@@ -16,25 +16,27 @@ from ..tools import events, objs, funcs, ALL
 from ..PageInfo import PageInfo
 from . import PageItem_
 
+print, printer = funcs.logger(__name__)
 
-class centerOn_job(QThread):
-    def __init__(self, pageitem):
-        super().__init__()
-        self.pageitem = pageitem
 
-    def run(self) -> None:
-        time.sleep(0.01)
-        e = events.PageItemResizeEvent
-        type = e.fullscreenType
-        if self.pageitem.isFullscreen:
-            self.pageitem.isFullscreen = False
-            type = e.resetType
-        else:
-            self.pageitem.isFullscreen = True
-        ALL.signals.on_pageItem_resize_event.emit(
-            e(pageItem=self.pageitem, eventType=type)
-        )
-        time.sleep(0.01)
+# class centerOn_job(QThread):
+#     def __init__(self, pageitem):
+#         super().__init__()
+#         self.pageitem = pageitem
+#
+#     def run(self) -> None:
+#         time.sleep(0.01)
+#         e = events.PageItemResizeEvent
+#         type = e.fullscreenType
+#         if self.pageitem.isFullscreen:
+#             self.pageitem.isFullscreen = False
+#             type = e.resetType
+#         else:
+#             self.pageitem.isFullscreen = True
+#         ALL.signals.on_pageItem_resize_event.emit(
+#             e(pageItem=self.pageitem, eventType=type)
+#         )
+#         time.sleep(0.01)
 
 class PageItem5(QGraphicsItem):
     """
@@ -46,8 +48,7 @@ class PageItem5(QGraphicsItem):
         self.uuid = funcs.uuidmake()  # 仅需要内存级别的唯一性
         self.clipBoxList = []
         self._delta = None
-        self.rightsidebar = rightsidebar  # 指向的是主窗口的rightsidebar
-        self.pdfview = rightsidebar.clipper.pdfview
+        self.rightsidebar = rightsidebar  # 指向的是主窗口的rightsidebar 这个属性已经弃用
         self.belongto_pagelist_row = None
         self.pageinfo = pageinfo
         self.pageview = PageItem_.PageView(pageinfo, pageitem=self, ratio=pageview_ratio)
@@ -83,26 +84,15 @@ class PageItem5(QGraphicsItem):
         painter.drawRect(self.boundingRect())
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
-
-        modifiers = QApplication.keyboardModifiers()
-        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_E:
-            e = events.PageItemResizeEvent
-            if not self.isFullscreen:
-                ALL.signals.on_pageItem_resize_event.emit(e(pageItem=self, eventType=e.fullscreenType))
-                self.isFullscreen = True
-            else:
-                ALL.signals.on_pageItem_resize_event.emit(e(pageItem=self, eventType=e.resetType))
-                self.isFullscreen = False
+        super().keyPressEvent(event)
 
     def mouseMoveEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
         self.setCursor(Qt.ArrowCursor)
         self.setFlag(QGraphicsItem.ItemIsMovable, False)
         self.setFlag(QGraphicsItem.ItemIsSelectable, False)
-        self.pdfview.setDragMode(QGraphicsView.ScrollHandDrag)
         super().mouseReleaseEvent(event)
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
@@ -113,28 +103,20 @@ class PageItem5(QGraphicsItem):
                 self.setFlag(QGraphicsItem.ItemIsSelectable, True)
             if event.button() == Qt.RightButton:
                 self.on_pageItem_clicked.emit(
-                    PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.rightClickType))
+                    PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.ctrl_rightClickType))
                 self.toolsBar.setPos(event.pos())
                 self.toolsBar.show()
         else:
             if event.buttons() == Qt.MidButton:
-                e = events.PageItemResizeEvent
-                self.centerOn_job = centerOn_job(pageitem=self)
-                self.centerOn_job.start()
-            elif event.button() == Qt.RightButton:
-                self.pdfview.curr_selected_item = self
-                self.setCursor(Qt.CrossCursor)
-                self.pdfview.setDragMode(QGraphicsView.RubberBandDrag)
+                pass  # 本来这里有一个全屏功能,删掉了.
+            elif event.button() == Qt.RightButton:  # 了解当前选中的是哪个pageitem,因为我之前已经取消了selectable功能,
+                e = events.PageItemClickEvent
+                ALL.signals.on_pageItem_clicked.emit(e(pageitem=self, eventType=e.rightClickType))
                 super().mousePressEvent(event)
             elif event.button() == Qt.LeftButton:
                 self.on_pageItem_clicked.emit(
                     PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.leftClickType))
                 self.toolsBar.hide()
-                # if event.button() == Qt.RightButton:
-                #     self.on_pageItem_clicked.emit(
-                #         PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.rightClickType))
-                #     self.toolsBar.setPos(event.pos())
-                #     self.toolsBar.show()
                 super().mousePressEvent(event)
         super().mousePressEvent(event)
     def toEvent(self):

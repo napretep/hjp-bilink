@@ -6,7 +6,7 @@ from PyQt5.QtGui import QPainter, QIcon, QKeySequence
 from PyQt5.QtWidgets import QGraphicsView, QToolButton, QGraphicsProxyWidget, QGraphicsGridLayout, QGraphicsItem, \
     QShortcut, QApplication
 
-from .tools import events, objs, ALL
+from .tools import events, objs, ALL, funcs
 
 
 class PDFView(QGraphicsView):
@@ -40,10 +40,17 @@ class PDFView(QGraphicsView):
             ALL.signals.on_pageItem_needCenterOn: self.on_pageItem_needCenterOn_handle,
             ALL.signals.on_pageItem_centerOn_process: self.on_pageItem_centerOn_process_handle,
             self.rubberBandChanged: self.on_rubberBandChanged_handle,
+            ALL.signals.on_pageItem_clicked: self.on_pageItem_clicked_handle,
         }
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
         self.init_shortcuts()
+
+    def on_pageItem_clicked_handle(self, event: "events.PageItemClickEvent"):
+        if event.Type == event.rightClickType:
+            self.curr_selected_item = event.pageitem
+            self.setDragMode(QGraphicsView.RubberBandDrag)
+            self.setCursor(Qt.CrossCursor)
 
     def on_pageItem_centerOn_process_handle(self, event: "events.PageItemCenterOnProcessEvent"):
         self.centerOn(event.centerpos)
@@ -119,6 +126,7 @@ class PDFView(QGraphicsView):
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
         if event.buttons() == Qt.RightButton:
             self.setDragMode(QGraphicsView.RubberBandDrag)
+            funcs.show_clipbox_state()
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
@@ -127,12 +135,6 @@ class PDFView(QGraphicsView):
         pass
 
     def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
-        # print(self.scene().selectedItems())
-        # if len(self.scene().selectedItems())==0:
-        #     self.setDragMode(QGraphicsView.ScrollHandDrag)
-        # else:
-        #     self.setDragMode(QGraphicsView.NoDrag)
-        self.setDragMode(QGraphicsView.ScrollHandDrag)
         if self.curr_selected_item is not None and self.curr_rubberBand_rect is not None:
             r = self.curr_rubberBand_rect
             pos = self.mapToScene(r.x(), r.y())
@@ -145,9 +147,13 @@ class PDFView(QGraphicsView):
             e = events.ClipboxCreateEvent
             ALL.signals.on_clipbox_create.emit(e(sender=self, eventType=e.rubbedType))
 
-        # print(self.rubberBandRect())
-
         super().mouseReleaseEvent(event)
+        self.setDragMode(QGraphicsView.ScrollHandDrag)
+        e = events.ClipboxStateSwitchEvent
+
+        ALL.signals.on_clipboxstate_switch.emit(
+            e(sender=self, eventType=e.hideType)
+        )
 
     def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
         modifiers = QApplication.keyboardModifiers()

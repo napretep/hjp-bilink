@@ -1,7 +1,7 @@
 import os
 
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, QTimer
 from PyQt5.QtGui import QIcon, QResizeEvent
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QGridLayout, QHBoxLayout, QSizePolicy, QApplication, QMainWindow
 from .tools import objs, funcs, events, ALL
@@ -44,6 +44,7 @@ class PagePicker(QDialog):
             ALL.signals.on_pagepicker_close: (self.on_pagepicker_close_handle),
             ALL.signals.on_pagepicker_PDFopen: (self.on_pagepicker_PDFopen_handle),
             ALL.signals.on_pagepicker_bookmark_open: (self.on_pagepicker_openBookmark_handle)
+
         }
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
@@ -122,13 +123,12 @@ class PagePicker(QDialog):
             self.bookmark_opened = False
 
     def on_pagepicker_close_handle(self, event: 'events.PagePickerCloseEvent'):
-        self.hide()
+        print("get close order")
 
     def on_pagepicker_PDFopen_handle(self, event: "events.PDFOpenEvent"):
         if event.Type == event.PDFReadType and event.path is not None and os.path.exists(
                 event.path) and event.beginpage is not None:
             self.doc: "fitz.Document" = fitz.open(event.path)
-
             e = events.PDFParseEvent
             ALL.signals.on_pagepicker_PDFparse.emit(
                 e(sender=self, eventType=e.PDFInitParseType, path=event.path, doc=self.doc, pagenum=event.beginpage))
@@ -138,10 +138,14 @@ class PagePicker(QDialog):
             self.bookmark.model.clear()
             self.toolsbar.open.label.setText("")
             self.toolsbar.open.label.setToolTip("")
+            QTimer.singleShot(100, self.toolsbar.on_open_button_clicked_handle)
 
     def ratio_value_get(self):
         """这些接口太深了,所以提出来一点"""
         return self.toolsbar.ratio_value
+
+    def pageshift_value_get(self):
+        return self.toolsbar.pageoffset_spinbox.value()
 
     def resizeEvent(self, a0: QtGui.QResizeEvent) -> None:
         if self.browser.curr_frame_idx is not None and self.browser.row_per_frame is not None and not self.bookmark_openning:

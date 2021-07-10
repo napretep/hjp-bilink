@@ -43,7 +43,7 @@
       }
     }
   },
-  "pagepicker.browser.layout_col_per_row": {
+  "pagepicker.browser_layout_col_per_row": {
     "value": 4,
     "constrain": {
       "allow_empty": 0,
@@ -54,14 +54,14 @@
       }
     }
   },
-  "pagepicker.bottombar.default_path": {
+  "pagepicker.bottombar_default_path": {
     "value": "",
     "constrain": {
       "allow_empty": 1,
       "data_type": 4
     }
   },
-  "pagepicker.bottombar.page_ratio": {
+  "pagepicker.bottombar_page_ratio": {
     "value": 1,
     "constrain": {
       "allow_empty": 0,
@@ -72,7 +72,7 @@
       }
     }
   },
-  "pagepicker.bottombar.page_num": {
+  "pagepicker.bottombar_page_num": {
     "value": 0,
     "constrain": {
       "allow_empty": 0,
@@ -83,7 +83,7 @@
       }
     }
   },
-  "viewlayout.mode": {
+  "mainview.layout_mode": {
     "value": 1,
     "constrain": {
       "allow_empty": 0,
@@ -95,7 +95,7 @@
       ]
     }
   },
-  "viewlayout.col_per_row": {
+  "mainview.layout_col_per_row": {
     "value": 2,
     "constrain": {
       "allow_empty": 0,
@@ -106,7 +106,7 @@
       }
     }
   },
-  "viewlayout.row_per_col": {
+  "mainview.layout_row_per_col": {
     "value": 2,
     "constrain": {
       "allow_empty": 0,

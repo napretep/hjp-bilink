@@ -39,7 +39,7 @@
       }
     }
   },
-  "viewlayout.mode": {
+  "mainview.layout_mode": {
     "value": 1,
     "constrain": {
       "allow_empty": 0,
@@ -51,7 +51,7 @@
       ]
     }
   },
-  "viewlayout.row_per_col": {
+  "mainview.layout_row_per_col": {
     "value": 2,
     "constrain": {
       "allow_empty": 0,
@@ -62,7 +62,7 @@
       }
     }
   },
-  "viewlayout.row_per_col": {
+  "mainview.layout_row_per_col": {
     "value": 2,
     "constrain": {
       "allow_empty": 0,

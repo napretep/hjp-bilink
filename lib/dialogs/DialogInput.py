@@ -9,6 +9,10 @@ from .DialogCardPrev import external_card_dialog
 from ..obj.utils import Config
 from .metaUIobj import SpecialTreeItem, item_insert_rows
 from ..obj.languageObj import rosetta as say
+from ..obj import imports
+
+print, printer = imports.funcs.logger(__name__)
+
 
 class InputDialog(QDialog, Ui_input):
     """INPUT对话窗口类"""
@@ -26,6 +30,7 @@ class InputDialog(QDialog, Ui_input):
         self.model_init()
         self.events_init()
         self.show()
+
         console("初始化完成!").log.end()
 
     def signup(self):

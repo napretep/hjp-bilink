@@ -175,7 +175,9 @@ class MainWindowPageLoadWorker(QThread):
             if self.do and i < total:
                 self.do = False
                 pair = self.pdf_page_list[i]
-                page_path = self.funcs.pixmap_page_load(pair[0], pair[1], ratio=self.ratio)
+                ratio = self.ratio if len(pair) < 3 else pair[2]
+                # print(f"pdfdir={pair[0]}")
+                page_path = self.funcs.pixmap_page_load(pair[0], pair[1], ratio=ratio)
                 for event_name in self.signal_sequence[1]:
                     event = self.signal_func_dict[event_name][0]
                     kwargs = self.signal_func_dict[event_name][2]
@@ -203,6 +205,4 @@ class MainWindowPageLoadWorker(QThread):
         self.data_clear()
         self.quit()
 
-
-frame_load_worker = FrameLoadWorker()
-frame_load_worker.start()
+# frame_load_worker = FrameLoadWorker()

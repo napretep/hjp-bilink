@@ -156,13 +156,16 @@ def func_add_browsermenu(browser: Browser = None):
     链接:5个,插入:3个,打开,清空,配置,版本,帮助
     '''
     func_menuAddHelper(menu=menu, parent=browser,
-                       actionTypes=["link", "browserinsert", "clear_open_input", "basicMenu","openStorageDir"])
+                       actionTypes=["link", "browserinsert", "clear_open_input", "open_clipper", "basicMenu",
+                                    "openStorageDir"])
 
 
 def fun_add_browsercontextmenu(browser: Browser, menu: QMenu):
     """用来给browser加上下文菜单"""
     func_menuAddHelper(menu=menu, parent=browser, features=["prefix"], actionTypes=["browserinsert"])
     func_menuAddHelper(menu=menu, parent=browser, features=["prefix"], actionTypes=["browsercopylink"])
+    func_menuAddHelper(menu=menu, parent=browser, features=["prefix"], actionTypes=["browser_clipper_open"])
+
 
 def func_add_editorcontextmenu(view: AnkiWebView, menu: QMenu):
     """用来给editor界面加上下文菜单"""
@@ -189,8 +192,9 @@ def func_add_webviewcontextmenu(view: AnkiWebView, menu: QMenu):
         cid = view.parent().card().id
     if cid != "0":
         func_menuAddHelper(pair=Pair(desc=selected, card_id=str(cid)), features=["prefix"],
-                           parent=view, menu=menu, actionTypes=["webviewcopylink" ,"link", "insert", "alter_deck",
-                                                                "alter_tag", "clear_open_input", "anchor"])
+                           parent=view, menu=menu, actionTypes=["webviewcopylink", "link", "insert", "alter_deck",
+                                                                "alter_tag", "clear_open_input", "anchor",
+                                                                "webview_clipper_open"])
 
 def editor_shortcuts(cuts,editor):
     if not editor.addMode:
@@ -243,23 +247,27 @@ gui_hooks.profile_did_open.append(shortcut_addto_originalcode)
 gui_hooks.profile_will_close.append(func_onProgramClose)
 gui_hooks.card_will_show.append(HTML_injecttoweb)
 gui_hooks.browser_menus_did_init.append(func_add_browsermenu)
+gui_hooks.main_window_did_init.append(func_add_mainwindowmenu)
 gui_hooks.browser_will_show_context_menu.append(fun_add_browsercontextmenu)
 gui_hooks.webview_will_show_context_menu.append(func_add_webviewcontextmenu)
 gui_hooks.webview_did_receive_js_message.append(on_js_message)
 
-from .lib.clipper.lib.Clipper import Clipper
-from .lib.obj.tools import events, objs, funcs, ALL
+# from .lib.clipper.lib.Clipper import Clipper,Clipper2
+# from .lib.obj.tools import events, objs, funcs, ALL
+from .lib.obj import imports
 from .lib.obj import ModuleProxy
 
-print, print_ = funcs.logger(__name__)
-ALL.signals.on_cardlist_addCard.connect(ModuleProxy.on_cardlist_addCard_handle)
-ALL.signals.on_anki_card_create.connect(ModuleProxy.on_anki_create_card_handle)
-ALL.signals.on_anki_field_insert.connect(ModuleProxy.on_anki_field_insert_handle)
-ALL.signals.on_anki_browser_activate.connect(ModuleProxy.on_anki_browser_activate_handle)
-ALL.signals.on_anki_file_create.connect(ModuleProxy.on_anki_file_create_handle)
-ALL.signals.on_config_ankidata_load.connect(ModuleProxy.on_config_ankidata_load_handle)
+print, print_ = imports.funcs.logger(__name__)
+imports.ALL.signals.on_cardlist_addCard.connect(ModuleProxy.on_cardlist_addCard_handle)
+imports.ALL.signals.on_anki_card_create.connect(ModuleProxy.on_anki_card_create_handle)
+imports.ALL.signals.on_anki_field_insert.connect(ModuleProxy.on_anki_field_insert_handle)
+imports.ALL.signals.on_anki_browser_activate.connect(ModuleProxy.on_anki_browser_activate_handle)
+imports.ALL.signals.on_anki_file_create.connect(ModuleProxy.on_anki_file_create_handle)
+imports.ALL.signals.on_config_ankidata_load.connect(ModuleProxy.on_config_ankidata_load_handle)
+imports.ALL.signals.on_clipper_closed.connect(lambda: mw.__dict__[addonName].__setitem__("clipper", None))
 # print("ALL.signals.on_config_ankidata_load.connect(ModuleProxy.on_config_ankidata_load_handle)")
-clipper = Clipper()
+# clipper = Clipper2(mw)
+# print("clipper = Clipper()")
 # pageitem = PageItem5(PageInfo("./resource/徐森林_数学分析_第8章.pdf", 0), rightsidebar=clipper.rightsidebar)
 # event = events.PageItemAddToSceneEvent(pageItem=pageitem, eventType=events.PageItemAddToSceneEvent.addPageType)
 # objs.CustomSignals.start().on_pageItem_addToScene.emit(event)

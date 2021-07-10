@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 import typing
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -122,24 +123,25 @@ class MainViewLayoutWidget(BaseWidget):
 
     def init_viewlyout_horizontal_rowcount(self, left, right):
         self.layoutHorizontalRowCountWidget.setRange(left, right if right != False else MAX_INT)
-        self.layoutHorizontalRowCountWidget.setValue(self.configtable.config_dict["viewlayout.row_per_col"]["value"])
+        self.layoutHorizontalRowCountWidget.setValue(
+            self.configtable.config_dict["mainview.layout_row_per_col"]["value"])
 
     def init_viewlayout_vertical_colcount(self, left, right):
         self.layoutVerticalColCountWidget.setRange(left, right if right != False else MAX_INT)
-        self.layoutVerticalColCountWidget.setValue(self.configtable.config_dict["viewlayout.col_per_row"]["value"])
+        self.layoutVerticalColCountWidget.setValue(self.configtable.config_dict["mainview.layout_col_per_row"]["value"])
 
     def init_viewlayoutmodecombox(self):
         self.layoutModeWidget.clear()
-        for val in self.configtable.config_dict["viewlayout.mode"]["constrain"]["data_range"]:
+        for val in self.configtable.config_dict["mainview.layout_mode"]["constrain"]["data_range"]:
             self.layoutModeWidget.addItem(self.viewlayout_mode[val][0], userData=val)
 
-        value = self.viewlayout_mode[self.configtable.config_dict["viewlayout.mode"]["value"]][0]
+        value = self.viewlayout_mode[self.configtable.config_dict["mainview.layout_mode"]["value"]][0]
         self.layoutModeWidget.setCurrentIndex(self.layoutModeWidget.findText(value))
 
     def init_data(self):
         self.init_viewlayoutmodecombox()
-        left = self.configtable.config_dict["viewlayout.col_per_row"]["constrain"]["data_range"]["left"]
-        right = self.configtable.config_dict["viewlayout.col_per_row"]["constrain"]["data_range"]["right"]
+        left = self.configtable.config_dict["mainview.layout_col_per_row"]["constrain"]["data_range"]["left"]
+        right = self.configtable.config_dict["mainview.layout_col_per_row"]["constrain"]["data_range"]["right"]
         self.init_viewlayout_vertical_colcount(left, right)
         self.init_viewlyout_horizontal_rowcount(left, right)
         self.showhide_ColRow_count()
@@ -162,13 +164,14 @@ class MainViewLayoutWidget(BaseWidget):
         if layoutmode == self.viewlayoutName.Vertical:
             self.layoutHorizontalRowCountWidget.setEnabled(False)
             self.layoutVerticalColCountWidget.setEnabled(True)
-            self.layoutVerticalColCountWidget.setValue(self.configtable.config_dict["viewlayout.col_per_row"]["value"])
+            self.layoutVerticalColCountWidget.setValue(
+                self.configtable.config_dict["mainview.layout_col_per_row"]["value"])
 
         elif layoutmode == self.viewlayoutName.Horizontal:
             self.layoutHorizontalRowCountWidget.setEnabled(True)
             self.layoutVerticalColCountWidget.setEnabled(False)
             self.layoutHorizontalRowCountWidget.setValue(
-                self.configtable.config_dict["viewlayout.row_per_col"]["value"])
+                self.configtable.config_dict["mainview.layout_row_per_col"]["value"])
 
         else:
             self.layoutVerticalColCountWidget.setEnabled(False)
@@ -176,9 +179,9 @@ class MainViewLayoutWidget(BaseWidget):
 
     def return_data(self):
         data_map = {
-            "viewlayout.col_per_row": self.layoutVerticalColCountWidget.value(),
-            "viewlayout.mode": self.layoutModeWidget.currentData(Qt.UserRole),
-            "viewlayout.row_per_col": self.layoutHorizontalRowCountWidget.value()
+            "mainview.layout_col_per_row": self.layoutVerticalColCountWidget.value(),
+            "mainview.layout_mode": self.layoutModeWidget.currentData(Qt.UserRole),
+            "mainview.layout_row_per_col": self.layoutHorizontalRowCountWidget.value()
         }
         return data_map
 
@@ -220,24 +223,24 @@ class PagePickerPresetWidget(BaseWidget):
         self.all_event.bind()
 
     def init_pagenum(self):
-        left, right = config_get_left_right(self.configtable.config_dict, "pagepicker.bottombar.page_ratio")
+        left, right = config_get_left_right(self.configtable.config_dict, "pagepicker.bottombar_page_num")
         self.pagenumWidget.setRange(left, right if right != False else MAX_INT)
-        self.pagenumWidget.setValue(self.configtable.config_dict["pagepicker.bottombar.page_num"]["value"])
+        self.pagenumWidget.setValue(self.configtable.config_dict["pagepicker.bottombar_page_num"]["value"])
 
     def init_imgratio(self):
-        left, right = config_get_left_right(self.configtable.config_dict, "pagepicker.bottombar.page_ratio")
+        left, right = config_get_left_right(self.configtable.config_dict, "pagepicker.bottombar_page_ratio")
         self.imgRatioWidget.setRange(left, right if right != False else MAX_INT)
         self.imgRatioWidget.setSingleStep(0.1)
-        self.imgRatioWidget.setValue(self.configtable.config_dict["pagepicker.bottombar.page_ratio"]["value"])
+        self.imgRatioWidget.setValue(self.configtable.config_dict["pagepicker.bottombar_page_ratio"]["value"])
 
     def init_col_per_row(self):
-        self.col_per_row_val = self.configtable.config_dict["pagepicker.browser.layout_col_per_row"]["value"]
-        left, right = config_get_left_right(self.configtable.config_dict, "pagepicker.browser.layout_col_per_row")
+        self.col_per_row_val = self.configtable.config_dict["pagepicker.browser_layout_col_per_row"]["value"]
+        left, right = config_get_left_right(self.configtable.config_dict, "pagepicker.browser_layout_col_per_row")
         self.col_per_row_widget.setRange(left, right if right != False else MAX_INT)
-        self.imgRatioWidget.setValue(self.col_per_row_val)
+        self.col_per_row_widget.setValue(self.col_per_row_val)
 
     def init_defaultpath(self):
-        self.defaultPathWidget.setText(self.configtable.config_dict["pagepicker.bottombar.default_path"]["value"])
+        self.defaultPathWidget.setText(self.configtable.config_dict["pagepicker.bottombar_default_path"]["value"])
 
     def init_UI(self):
         self.setLayout(self.form_layout_setup())
@@ -281,10 +284,10 @@ class PagePickerPresetWidget(BaseWidget):
 
     def return_data(self):
         data_map = {
-            "pagepicker.bottombar.default_path": self.defaultPathWidget.text(),
-            "pagepicker.bottombar.page_num": self.pagenumWidget.value(),
-            "pagepicker.bottombar.page_ratio": self.imgRatioWidget.value(),
-            "pagepicker.browser.layout_col_per_row": self.col_per_row_widget.value()
+            "pagepicker.bottombar_default_path": self.defaultPathWidget.text(),
+            "pagepicker.bottombar_page_num": self.pagenumWidget.value(),
+            "pagepicker.bottombar_page_ratio": self.imgRatioWidget.value(),
+            "pagepicker.browser_layout_col_per_row": self.col_per_row_widget.value()
         }
         return data_map
 
@@ -309,7 +312,7 @@ class OutPutWidget(BaseWidget):
             self.schema.needratiofix_mode.yes: "需要/need"
         }
         self.init_UI()
-        self.init_data()
+        self._init_data()
         self.event_dict = {
             self.needRatioFixWidget.currentIndexChanged: self.on_needRatioFixWidget_currentIndexChanged_handle,
             self.RatioFixWidget.valueChanged: self.on_RatioFixWidget_valueChanged_handle,
@@ -338,17 +341,16 @@ class OutPutWidget(BaseWidget):
 
     def init_RatioFix(self):
         left, right = config_get_left_right(self.configtable.config_dict, "output.RatioFix")
-
         self.RatioFixWidget.setRange(left, right)
         self.RatioFixWidget.setSingleStep(0.1)
         self.RatioFixWidget.setValue(self.configtable.config_dict["output.RatioFix"]["value"])
 
-    def init_data(self):
+    def _init_data(self):
         self.init_RatioFix()
         self.init_needRatioFix()
 
     def on_config_reload_end_handle(self):
-        self.init_data()
+        self._init_data()
 
     def on_RatioFixWidget_valueChanged_handle(self, value):
         self.RatioFix_changed = True
@@ -368,7 +370,7 @@ class OutPutWidget(BaseWidget):
             "output.RatioFix": self.RatioFixWidget.value(),
             "output.needRatioFix": self.needRatioFixWidget.currentData(Qt.UserRole)
         }
-
+        return data_map
 
 class ClipboxMacroWidget(QWidget):
 
@@ -456,10 +458,10 @@ class ClipboxMacroWidget(QWidget):
         cols = self.model.columnCount()
         data = []
         for row in range(rows):
-            if row == 0:
-                continue
             rowdata = []
             for col in range(cols):
+                if col == 0:
+                    continue
                 rowdata.append(int(self.model.item(row, col).data(Qt.DisplayRole)))
             data.append(rowdata)
         return data
@@ -469,6 +471,7 @@ class ClipboxWidget(BaseWidget):
     def __init__(self, parent=None, configtable=None):
         super().__init__(parent=parent, configtable=configtable)
         # 基本变量声明
+        self.deck_and_model_data_retrieved = False
         self.Q_widget = QSpinBox(self)
         self.A_widget = QSpinBox(self)
         self.text_Q_widget = QSpinBox(self)
@@ -498,7 +501,7 @@ class ClipboxWidget(BaseWidget):
         VBoxLayout.addWidget(self.macro_widget)
         self.setLayout(VBoxLayout)
 
-    def init_data(self):
+    def _init_data(self):
         c = self.configtable.config_dict
         self.macro_widget.init_data(c["clipbox.macro"]["value"])
         self.data_map = {
@@ -510,11 +513,43 @@ class ClipboxWidget(BaseWidget):
         for k, v in self.data_map.items():
             v.setValue(c[k]["value"])
             v.setRange(0, MAX_INT)
+        ALL.signals.on_config_ankidata_load_end.connect(self.on_config_ankidata_load_end_handle)
         e = events.ConfigAnkiDataLoadEvent
         ALL.signals.on_config_ankidata_load.emit(
             e(sender=self, eventType={e.deckType, e.modelType})
         )
-        print("ConfigAnkiDataLoadEvent")
+
+    def on_config_ankidata_load_end_handle(self, event: "events.ConfigAnkiDataLoadEndEvent"):
+        # print(event.ankidata)
+        if event.sender == self:
+            self._model_load(event.ankidata["model"])
+            self._deck_load(event.ankidata["deck"])
+            self.deck_and_model_data_retrieved = True
+        ALL.signals.on_config_ankidata_load_end.disconnect(self.on_config_ankidata_load_end_handle)
+
+    def _model_load(self, modeldata):
+
+        for item in modeldata:
+            self.newcard_model_id_widget.addItem(item["name"], userData=item["id"])
+        c = self.configtable.config_dict
+        curr_data = c["clipbox.newcard_model_id"]["value"]
+        idx = self.newcard_model_id_widget.findData(curr_data, role=Qt.UserRole)
+        if curr_data != 0 and idx > -1:
+            self.newcard_model_id_widget.setCurrentIndex(idx)
+        else:
+            self.newcard_model_id_widget.setCurrentIndex(0)
+
+    def _deck_load(self, deckdata):
+        # print(deckdata)
+        for item in deckdata:
+            self.newcard_deck_id_widget.addItem(item["name"], userData=item["id"])
+        c = self.configtable.config_dict
+        curr_data = c["clipbox.newcard_deck_id"]["value"]
+        idx = self.newcard_deck_id_widget.findData(curr_data, role=Qt.UserRole)
+        if curr_data != 0 and idx > -1:
+            self.newcard_deck_id_widget.setCurrentIndex(idx)
+        else:
+            self.newcard_deck_id_widget.setCurrentIndex(0)
 
     def return_data(self):
         data_map = {
@@ -526,8 +561,10 @@ class ClipboxWidget(BaseWidget):
             "clipbox.textA_map_Field": self.text_A_widget.value(),
             "clipbox.textQ_map_Field": self.text_Q_widget.value()
         }
+        if not self.deck_and_model_data_retrieved:
+            data_map.pop("clipbox.newcard_model_id")
+            data_map.pop("clipbox.newcard_deck_id")
         return data_map
-
 
 class WestTabBar(QtWidgets.QTabBar):
     def tabSizeHint(self, index):
@@ -560,7 +597,6 @@ class WestTabBar(QtWidgets.QTabBar):
 class TabWidget(QTabWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-
         self.tab_viewlayout = MainViewLayoutWidget(parent=self, configtable=parent)
         self.tab_pagepicker = PagePickerPresetWidget(parent=self, configtable=parent)
         self.tab_output = OutPutWidget(parent=self, configtable=parent)
@@ -578,8 +614,15 @@ class TabWidget(QTabWidget):
         self.init_data()
 
     def init_data(self):
-        self.tab_clipbox.init_data()
+        self.tab_clipbox._init_data()
 
+    def return_data(self):
+        data = {}
+        data["clipbox"] = self.tab_clipbox.return_data()
+        data["pagepicker"] = self.tab_pagepicker.return_data()
+        data["viewlayout"] = self.tab_viewlayout.return_data()
+        data["output"] = self.tab_output.return_data()
+        return data
 
 class ButtonGroup(BaseWidget):
     def __init__(self, parent=None, configtable=None):
@@ -642,43 +685,48 @@ class ButtonGroup(BaseWidget):
         """
         d = self.configtable.config_dict
         tab = self.configtable.tablayout
-        # config_map={
-        #     "pagepicker.bottombar.default_path":tab.tab_pagepicker.defaultPathWidget.text(),
-        #     "pagepicker.bottombar.page_ratio": tab.tab_pagepicker.imgRatioWidget.value(),
-        #     "pagepicker.bottombar.page_num":tab.tab_pagepicker.,
-        #            "viewlayout.mode",
-        #            "viewlayout.col_per_row",
-        #            "viewlayout.row_per_col",
-        #            "output.needRatioFix",
-        #            "output.RatioFix",
-        #            "pagepicker.browser.layout_col_per_row",
-        # }
-        if self.configtable.tablayout.tab_pagepicker.defaultPath_changed:
-            d["pagepicker.bottombar.default_path"][
-                "value"] = self.configtable.tablayout.tab_pagepicker.defaultPathWidget.text()
-        if self.configtable.tablayout.tab_pagepicker.imgRatio_changed:
-            d["pagepicker.bottombar.page_ratio"][
-                "value"] = self.configtable.tablayout.tab_pagepicker.imgRatioWidget.value()
-        if self.configtable.tablayout.tab_pagepicker.pagenum_changed:
-            d["pagepicker.bottombar.page_num"][
-                "value"] = self.configtable.tablayout.tab_pagepicker.pagenumWidget.value()
-        if self.configtable.tablayout.tab_viewlayout.layoutMode_changed:
-            d["viewlayout.mode"]["value"] = self.configtable.tablayout.tab_viewlayout.layoutModeWidget.currentData(
-                Qt.UserRole)
-        if self.configtable.tablayout.tab_viewlayout.layoutVerticalColCount_changed:
-            d["viewlayout.col_per_row"][
-                "value"] = self.configtable.tablayout.tab_viewlayout.layoutVerticalColCountWidget.value()
-        if self.configtable.tablayout.tab_viewlayout.layoutHorizontalRowCount_changed:
-            d["viewlayout.row_per_col"][
-                "value"] = self.configtable.tablayout.tab_viewlayout.layoutHorizontalRowCountWidget.value()
-        if self.configtable.tablayout.tab_output.needRatioFix_changed:
-            d["output.needRatioFix"]["value"] = self.configtable.tablayout.tab_output.needRatioFixWidget.currentData(
-                Qt.UserRole)
-        if self.configtable.tablayout.tab_output.RatioFix_changed:
-            d["output.RatioFix"]["value"] = self.configtable.tablayout.tab_output.RatioFixWidget.value()
-        if self.configtable.tablayout.tab_pagepicker.col_per_row_changed:
-            d["pagepicker.browser.layout_col_per_row"]["value"] = tab.tab_pagepicker.col_per_row_val
-        pass
+        tab_map = tab.return_data()
+        for tab, widget in tab_map.items():
+            for k, v in widget.items():
+                d[k]["value"] = v
+
+        # # config_map={
+        # #     "pagepicker.bottombar.default_path":tab.tab_pagepicker.defaultPathWidget.text(),
+        # #     "pagepicker.bottombar.page_ratio": tab.tab_pagepicker.imgRatioWidget.value(),
+        # #     "pagepicker.bottombar.page_num":tab.tab_pagepicker.,
+        # #            "mainview.layout_mode",
+        # #            "mainview.layout_col_per_row",
+        # #            "mainview.layout_row_per_col",
+        # #            "output.needRatioFix",
+        # #            "output.RatioFix",
+        # #            "pagepicker.browser.layout_col_per_row",
+        # # }
+        # if self.configtable.tablayout.tab_pagepicker.defaultPath_changed:
+        #     d["pagepicker.bottombar.default_path"][
+        #         "value"] = self.configtable.tablayout.tab_pagepicker.defaultPathWidget.text()
+        # if self.configtable.tablayout.tab_pagepicker.imgRatio_changed:
+        #     d["pagepicker.bottombar.page_ratio"][
+        #         "value"] = self.configtable.tablayout.tab_pagepicker.imgRatioWidget.value()
+        # if self.configtable.tablayout.tab_pagepicker.pagenum_changed:
+        #     d["pagepicker.bottombar.page_num"][
+        #         "value"] = self.configtable.tablayout.tab_pagepicker.pagenumWidget.value()
+        # if self.configtable.tablayout.tab_viewlayout.layoutMode_changed:
+        #     d["mainview.layout_mode"]["value"] = self.configtable.tablayout.tab_viewlayout.layoutModeWidget.currentData(
+        #         Qt.UserRole)
+        # if self.configtable.tablayout.tab_viewlayout.layoutVerticalColCount_changed:
+        #     d["mainview.layout_col_per_row"][
+        #         "value"] = self.configtable.tablayout.tab_viewlayout.layoutVerticalColCountWidget.value()
+        # if self.configtable.tablayout.tab_viewlayout.layoutHorizontalRowCount_changed:
+        #     d["mainview.layout_row_per_col"][
+        #         "value"] = self.configtable.tablayout.tab_viewlayout.layoutHorizontalRowCountWidget.value()
+        # if self.configtable.tablayout.tab_output.needRatioFix_changed:
+        #     d["output.needRatioFix"]["value"] = self.configtable.tablayout.tab_output.needRatioFixWidget.currentData(
+        #         Qt.UserRole)
+        # if self.configtable.tablayout.tab_output.RatioFix_changed:
+        #     d["output.RatioFix"]["value"] = self.configtable.tablayout.tab_output.RatioFixWidget.value()
+        # if self.configtable.tablayout.tab_pagepicker.col_per_row_changed:
+        #     d["pagepicker.browser.layout_col_per_row"]["value"] = tab.tab_pagepicker.col_per_row_val
+        # pass
 
     def config_disk_save(self):
         """从内存中保存回磁盘"""

@@ -1,19 +1,18 @@
 """
 专门用来加按钮的文件
 prefix 必须由consolerName规定
+别的函数尽量拿走
 """
 from anki.cards import Card
 from anki.decks import Deck
 from anki.notes import Note
-
+from ..clipper.lib.Clipper import Clipper
 from .mainfunctions import *
 from .utils import *
 
 addonName = BaseInfo().dialogName
 mw.__dict__[addonName] = {}
 mw.__dict__[addonName]["card_window"] = {}
-
-
 
 def func_actionMenuConnector(*args, **kwargs):
     """执行动作链接的一个辅助函数"""
@@ -206,6 +205,7 @@ def func_menuAddBaseMenu(*args, **kwargs):
     menu = param.menu.addMenu(say("其他"))
     list(map(lambda x, y: menu.addAction(f"{say(x)}").triggered.connect(y), menuli, funcli))
 
+
 def func_menuAddBrowserStorageDir(*args, **kwargs):
     param = Params(**kwargs)
     cfg = BaseInfo()
@@ -221,6 +221,23 @@ def func_menuAddAnchorMenu(*args, **kwargs):
     func_actionMenuConnector(actionName=f"{prefix}{say('打开anchor')}", action=func_openAnchor, **kwargs)
 
 
+def func_menuAddBrowser_select_openClipper(**kwargs):
+    param = Params(**kwargs)
+    prefix = "" if ("prefix" not in param.features) or "selected" in param.features else BaseInfo().consolerName
+    func_actionMenuConnector(actionName=f"{prefix}{say('在clipper中打开')}", action=func_browserOpenClipper, **kwargs)
+
+
+def func_menuAddBrowser_direct_openclipper(**kwargs):
+    param = Params(**kwargs)
+    prefix = "" if ("prefix" not in param.features) or "selected" in param.features else BaseInfo().consolerName
+    func_actionMenuConnector(actionName=f"{prefix}{say('打开clipper')}", action=func_open_clipper, **kwargs)
+
+
+def func_menuAddWebview_oepnClipper(**kwargs):
+    param = Params(**kwargs)
+    prefix = "" if ("prefix" not in param.features) or "selected" in param.features else BaseInfo().consolerName
+    func_actionMenuConnector(actionName=f"{prefix}{say('在clipper中打开')}", action=func_webviewOpenClipper, **kwargs)
+
 
 # @debugWatcher
 def func_menuAddHelper(*args, **kwargs):
@@ -230,16 +247,30 @@ def func_menuAddHelper(*args, **kwargs):
         func_menuAdderLi[action](**kwargs)
 
 
+def func_add_mainwindowmenu():
+    if hasattr(mw, "hjp_bilink"):
+        menu = mw.hjp_bilink_menu
+    else:
+        menu = mw.hjp_bilink_menu = QMenu("hjp_bilink")
+        mw.menuBar().addMenu(menu)
+    # menu_open_clipper=QMenu("menu_open_clipper")
+    menu.addAction("open_clipper").triggered.connect(func_open_clipper)
+    # menu.addMenu(menu_open_clipper)
+
+
 func_menuAdderLi = {
     "link": func_menuAddLink,
     "browserinsert": func_menuAddBrowserInsert,
-    "browsercopylink":func_menuAddBrowserCopylink,
+    "browsercopylink": func_menuAddBrowserCopylink,
+    "browser_clipper_open": func_menuAddBrowser_select_openClipper,
+    "webview_clipper_open": func_menuAddWebview_oepnClipper,
     "clear_open_input": func_menuAddClearOpen,
     "basicMenu": func_menuAddBaseMenu,
     "insert": func_menuAddSingleInsert,
     "anchor": func_menuAddAnchorMenu,
     "alter_deck": func_menuAddAlterDeck,
     "alter_tag": func_menuAddAlterTag,
-    "webviewcopylink":func_menuAddWebviewCopylink,
-    "openStorageDir":func_menuAddBrowserStorageDir
+    "webviewcopylink": func_menuAddWebviewCopylink,
+    "openStorageDir": func_menuAddBrowserStorageDir,
+    "open_clipper": func_menuAddBrowser_direct_openclipper
 }

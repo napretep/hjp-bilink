@@ -1,5 +1,5 @@
 {
-  "VERSION": "0.10.2",
+  "VERSION": "0.10.3",
   "linkInfoStorageLocation": 0,
   "addLinkTo_Field_or_MetaInfo": "Field",
   "defaultLinkMode": 1,
@@ -26,5 +26,6 @@
   "shortcut_browserTableSelected_insert": "Alt+3",
   "shortcut_copylink": "Alt+q",
   "shortcut_inputFile_clear": "Alt+4",
-  "shortcut_inputDialog_open": "Alt+`"
+  "shortcut_inputDialog_open": "Alt+`",
+  "delete_intext_link_when_extract_desc": 1
 }

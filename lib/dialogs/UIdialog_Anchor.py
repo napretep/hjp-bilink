@@ -24,6 +24,7 @@ class Ui_anchor(object):
         self.anchorTree.setDefaultDropAction(QtCore.Qt.MoveAction)
         self.anchorTree.setAlternatingRowColors(True)
         self.anchorTree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+
         self.anchorTree.setAnimated(True)
         self.anchorTree.setWordWrap(True)
         self.anchorTree.setObjectName("anchorTree")

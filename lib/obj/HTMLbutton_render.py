@@ -11,14 +11,16 @@ from .utils import BaseInfo, Pair, console, Config, THIS_FOLDER
 from .HTML_converterObj import HTML_converter
 from .linkData_reader import LinkDataReader
 import os
-
+from . import funcs
 
 class FieldHTMLData(Config):
     def __init__(self, html: str):
         super().__init__()
         self.html_str = html
         self.output_str = ""
-        self.html_page = BeautifulSoup(self.html_str, "html.parser")
+        self.html_root = BeautifulSoup(self.html_str, "html.parser")
+        self.anchor_container_L0 = funcs.HTML_LeftTopContainer_make(self.html_root)
+        self.anchor_body_L1 = self.anchor_container_L0.find("div", attrs={"class": "container_body_L1"})
 
 
 class AnchorButtonMaker(FieldHTMLData):
@@ -39,53 +41,54 @@ class AnchorButtonMaker(FieldHTMLData):
     def build(self, data: dict):
         """直接的出口, 返回HTML的string"""
         self.data = data
-        self.anchor_el_find()
-        self.style_el_create()
-        self.cascadeDIV_create()
-        self.backlink_create()
-        return self.html_page.__str__()
+        # self.anchor_el_find()    #找到anchor 的元素所在位置, 一般如果用户预设了位置,那么就会出现在那里,如果没有预设,那么就会新建一个.
+        # self.style_el_create()   #找到anchor后要给他插入预先设置的style元素
+        self.cascadeDIV_create()  # 这个名字其实取得不好,就是反链的设计
+        self.backlink_create()  # 这个是文内链接的设计,顺便放着的,因为用的元素基本一样.
+        return self.html_root.__str__()
 
     def button_make(self, card_id):
-        h = self.html_page
-        b = h.new_tag("button", attrs={"card_id": card_id,"class":"hjp-bilink anchor button",
+        h = self.html_root
+        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor button",
                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
         cardinfo = self.data["node"][card_id]
         b.string = cardinfo["dir"] + cardinfo["desc"]
         return b
 
-    def anchor_el_find(self):
-        self.anchorname = self.user_cfg["button_appendTo_AnchorId"] \
-            if self.user_cfg["button_appendTo_AnchorId"] != "" else "anchor_container"
-        resultli = self.html_page.select(f"#{self.anchorname}")
-        if len(resultli) > 0:
-            self.anchor_el: element.Tag = resultli[0]
-        else:
-            self.anchor_el: element.Tag = self.html_page.new_tag("div", attrs={"id": self.anchorname})
-            self.html_page.insert(1, self.anchor_el)
+    # def anchor_el_find(self):
+    #     self.anchorname = self.user_cfg["button_appendTo_AnchorId"] \
+    #         if self.user_cfg["button_appendTo_AnchorId"] != "" else "anchor_container"
+    #     resultli = self.html_page.select(f"#{self.anchorname}")
+    #     if len(resultli) > 0:
+    #         self.anchor_el: element.Tag = resultli[0]
+    #     else:
+    #         self.anchor_el: element.Tag = self.html_page.new_tag("div", attrs={"id": self.anchorname})
+    #         self.html_page.insert(1, self.anchor_el)
 
     def cascadeDIV_create(self):
-        L0 = self.html_page.new_tag("div", attrs={"class": "container_L0"})
-        header_L1 = self.html_page.new_tag("div", attrs={"class": "container_header_L1"})
-        header_L1.string = "hjp_bilink"
-        body_L1 = self.html_page.new_tag("div", attrs={"class": "container_body_L1"})
-        L0.append(header_L1)
-        L0.append(body_L1)
+        # L0 = self.html_page.new_tag("div", attrs={"class": "container_L0"})
+        # header_L1 = self.html_page.new_tag("div", attrs={"class": "container_header_L1"})
+        # header_L1.string = "hjp_bilink"
+        # body_L1 = self.html_page.new_tag("div", attrs={"class": "container_body_L1"})
+        # L0.append(header_L1)
+        # L0.append(body_L1)
+
         for item in self.data["root"]:
             if "card_id" in item:
                 L2 = self.button_make(item["card_id"])
             elif "nodename" in item:
                 L2 = self.details_make(item["nodename"])
-            body_L1.append(L2)
-        self.anchor_el.append(L0)
+            self.anchor_body_L1.append(L2)
 
     def details_make(self, nodename):
+        # details = self.html_root.new_tag("details", attrs={"class": "hjp_bilink details"})
+        # summary = self.html_root.new_tag("summary")
+        # summary.string = nodename
+        # div = self.html_root.new_tag("div")
+        # details.append(summary)
+        # details.append(div)
+        details, div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, nodename)
         li = self.data["node"][nodename]
-        details = self.html_page.new_tag("details", attrs={"class": "hjp_bilink details"})
-        summary = self.html_page.new_tag("summary")
-        summary.string = nodename
-        div = self.html_page.new_tag("div")
-        details.append(summary)
-        details.append(div)
         for item in li:
             if "card_id" in item:
                 L2 = self.button_make(item["card_id"])
@@ -94,32 +97,34 @@ class AnchorButtonMaker(FieldHTMLData):
             div.append(L2)
         return details
 
-    def style_el_create(self):
-        style_str = open(os.path.join(THIS_FOLDER, self.base_cfg["anchorCSSFileName"]), "r", encoding="utf-8").read()
-        style = self.html_page.new_tag("style")
-        style.string = style_str
-        self.anchor_el.append(style)
+    # def style_el_create(self):
+    #     style_str = open(os.path.join(THIS_FOLDER, self.base_cfg["anchorCSSFileName"]), "r", encoding="utf-8").read()
+    #     style = self.html_page.new_tag("style")
+    #     style.string = style_str
+    #     self.anchor_el.append(style)
 
     def backlink_create(self):
-        h = self.html_page
+        h = self.html_root
         if "backlink" in self.data:
             card_id_li = self.data["backlink"]
-            if len(card_id_li)==0:
+            if len(card_id_li) == 0:
                 return None
         else:
             return None
-        details = self.html_page.new_tag("details", attrs={"class": "hjp_bilink details","open":""})
-        summary = self.html_page.new_tag("summary")
-        summary.string = "referenced_in_text"
-        details.append(summary)
+        # details = h.new_tag("details", attrs={"class": "hjp_bilink details","open":""})
+        # summary = h.new_tag("summary")
+        # summary.string = "referenced_in_text"
+        # details.append(summary)
+        details, div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "referenced_in_text",
+                                                                  attr={"open": ""})
         for card_id in card_id_li:
             data = LinkDataReader(card_id).read()["self_data"]
-            b = h.new_tag("button", attrs={"card_id": card_id,"class":"hjp-bilink anchor button",
-                                       "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
-            b.string = "→"+data["desc"]
-            details.append(b)
-        body_L1 = self.html_page.select("div.container_body_L1")[0]
-        body_L1.append(details)
+            L2 = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor button",
+                                            "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
+            L2.string = "→" + data["desc"]
+            div.append(L2)
+
+        self.anchor_body_L1.append(details)
     pass
 
 
@@ -141,25 +146,27 @@ class InTextButtonMaker(FieldHTMLData):
     def button_make(self,data):
         card_id = data["card_id"]
         desc = data["desc"]
-        h = self.html_page
-        b = h.new_tag("button", attrs={"card_id": card_id,"class":"hjp-bilink intext button",
+        h = self.html_root
+        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink intext button",
                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
         b.string = desc
         return b.__str__()
 
 
-
+class PDFPageButtonMaker(FieldHTMLData):
+    pass
 
 def HTMLbutton_make(htmltext, card):
     html_string = htmltext
     data = LinkDataReader(str(card.id)).read()
-    if "backlink" not in data: data["backlink"] =[]
-    if len(data["link_list"]) > 0 or len(data["backlink"])>0:
+    if "backlink" not in data: data["backlink"] = []
+    if len(data["link_list"]) > 0 or len(data["backlink"]) > 0:
         html_string = AnchorButtonMaker(html_string).build(data)
-    hasInTextButton = len(BackLinkReader(html_str = htmltext).backlink_get()) > 0
+    hasInTextButton = len(BackLinkReader(html_str=htmltext).backlink_get()) > 0
     if hasInTextButton:
         html_string = InTextButtonMaker(html_string).build()
-
+    if funcs.HTML_clipbox_exists(html_string):
+        PDFPageButtonMaker(html_string)
     return html_string
 
 

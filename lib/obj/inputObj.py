@@ -11,6 +11,8 @@ from .linkData_writer import LinkDataWriter
 from .HTML_converterObj import HTML_converter
 from .handle_DB import LinkDataDBmanager
 from .utils import *
+from . import funcs
+from . import imports
 
 
 class Input(object
@@ -117,8 +119,9 @@ class Input(object
         note = self.model.col.getCard(cid).note()
         desc = LinkDataReader(cid).read()["self_data"]["desc"]
         if desc == "":
-            content = note.fields[self.regexDescPosi]
-            desc = self.HTMLmanage.clear().feed(content).script_el_remove().text_get().text
+            content = reduce(lambda x, y: x + y, note.fields)
+            # desc = self.HTMLmanage.clear().feed(content).script_el_remove().text_get().text
+            desc = funcs.HTML_txtContent_read(content)
             desc = re.sub(r"\n+", "", desc)
             desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
         return desc

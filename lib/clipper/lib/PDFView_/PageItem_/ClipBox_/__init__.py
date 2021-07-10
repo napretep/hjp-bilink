@@ -21,38 +21,33 @@ class ToolsBar(QGraphicsWidget):
 
     def __init__(self, cardlist: 'CardList' = None, clipbox: 'ClipBox2' = None, QA="Q"):
         super().__init__(parent=clipbox)
-        self.G_Layout = QGraphicsGridLayout()
+        self.__G_Layout = QGraphicsGridLayout()
         # self.G_Layout = QGraphicsLinearLayout()
-        self.G_Layout.setSpacing(0)
-        self.layout()
+        self.__G_Layout.setSpacing(0)
         self.cardlist = cardlist
         self.clipbox = clipbox
-        self.imgDir = self.cardlist.rightsidebar.clipper.objs.SrcAdmin.imgDir
-        self.QA_icon_dict = {
-            "Q": QIcon(self.imgDir.question),
-            "A": QIcon(self.imgDir.answer)
+        self.__imgDir = self.cardlist.rightsidebar.clipper.objs.SrcAdmin.imgDir
+        self.__QA_icon_dict = {
+            "Q": QIcon(self.__imgDir.question),
+            "A": QIcon(self.__imgDir.answer)
         }
-        self.cardComboxProxy: 'CardCombox' = CardCombox(toolsbar=self)
         self.lineEditProxy: 'LineEdit' = LineEdit(toolsbar=self)
+        self.cardComboxProxy: 'CardCombox' = CardCombox(toolsbar=self)
         self.QAButtonProxy: 'QAButton' = QAButton(toolsbar=self, QA=QA)
         self.editQAButtonProxy: 'EditQAbutton' = EditQAbutton(toolsbar=self)
         self.closeButtonProxy: 'CloseButton' = CloseButton(toolsbar=self)
         self.setParentItem(clipbox)
 
-    def cardcombox_update(self):
+    def __cardcombox_update(self):
         for row in range(self.cardlist.model.rowCount()):
             item = self.cardlist.model.item(row, 0)
             t = item.text()
             self.cardCombox.addItem(t, userData=item)
 
-    def onCardComboxIndexChanged(self, index):
+    def __onCardComboxIndexChanged(self, index):
         print(f"you choosed {self.cardCombox.itemText(index)}")
 
     def boundingRect(self) -> QtCore.QRectF:
-        # if "lineEditProxy" in self.__dict__ \
-        #         and "QAButtonProxy" in self.__dict__ \
-        #         and "cardComboxProxy" in self.__dict__ \
-        #         and "closeButtonProxy" in self.__dict__:
         try:  # anki所使用的pyqt版本在这块会出问题,需要加一个try 来避免问题.
             height = self.lineEditProxy.rect().height()
             width = self.lineEditProxy.rect().width() + self.cardComboxProxy.rect().width() + \
@@ -61,9 +56,36 @@ class ToolsBar(QGraphicsWidget):
         except:
             return QtCore.QRectF(0, 0, 200, 200)
 
-        pass
+    def size_pos_adjust(self):
+        self.setPos(self.clipbox.rect().x() + 1, self.clipbox.rect().y() + 1)
+        self.lineEditProxy.resize(self.clipbox.rect().width() - self.editQAButtonProxy.rect().width() - 1,
+                                  self.lineEditProxy.rect().height())
 
+        C = self.cardComboxProxy
+        l = self.lineEditProxy
+        c = self.closeButtonProxy
+        Q = self.QAButtonProxy
+        eQ = self.editQAButtonProxy
+        r = self.clipbox.rect()
+        self.cardComboxProxy.resize(
+            self.clipbox.rect().width() - c.rect().width() - Q.rect().width() - 1,
+            Q.rect().height() - 1
+        )
+        C.setPos(0, 0)
+        c.setPos(r.width() - c.rect().width() - 1, 0)
+        Q.setPos(r.width() - c.rect().width() - Q.rect().width() - 1, 0)
+        l.setPos(0, C.rect().height())
+        eQ.setPos(l.rect().right() - 1, C.rect().height() + 1)
+        C.update()
 
+    def return_data(self):
+        data = {
+            "QA": self.QAButtonProxy.return_data(),
+            "text_": self.lineEditProxy.return_data(),
+            "textQA": self.editQAButtonProxy.return_data(),
+            # "card_id":self.cardlist.cardUuidDict[self.cardComboxProxy.return_data()][1].text()
+        }
+        return data
 class FramePen(QPen):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

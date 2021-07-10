@@ -6,7 +6,9 @@ from .tools.funcs import str_shorten, index_from_row
 from .RightSideBar_ import PageList, CardList, ButtonPanel, PageList_, CardList_
 from . import PDFView_
 from .PageInfo import PageInfo
-from .tools import events, objs, ALL
+from .tools import events, objs, ALL, funcs
+
+print, printer = funcs.logger(__name__)
 
 
 class RightSideBar(QWidget):
@@ -20,10 +22,11 @@ class RightSideBar(QWidget):
         self.cardlist = CardList(rightsidebar=self)
         self.buttonPanel = ButtonPanel(rightsidebar=self)
         self.init_UI()
-        self.init_events()
-
-    def init_events(self):
-        ALL.signals.on_cardlist_addCard.connect(self.on_cardlist_addCard_handle)
+        self.__event = {
+            ALL.signals.on_cardlist_addCard: (self.on_cardlist_addCard_handle),
+        }
+        self.__all_event = objs.AllEventAdmin(self.__event)
+        self.__all_event.bind()
 
     def init_UI(self):
         self.V_layout = QVBoxLayout()
@@ -79,10 +82,13 @@ class RightSideBar(QWidget):
         rowli = [[itemli[i], itemli[i + 1]] for i in range(int(len(itemli) / 2))]
         for row in rowli:
             cardlist.model.takeRow(row[0].row())
+
         # row = [cardlist.model.item(cardlist.model.rowCount()-1,0),cardlist.model.item(cardlist.model.rowCount()-1,1)]
         # cardlist.listView.selectionModel().clearSelection()
         # cardlist.listView.selectionModel().select(index_from_row(cardlist.model,row),QItemSelectionModel.Select)
-        self.on_cardlist_dataChanged.emit(events.CardListDataChangedEvent(cardlist=self.cardlist))
+        e = events.CardListDataChangedEvent
+        self.on_cardlist_dataChanged.emit(e(cardlist=self.cardlist, eventType=e.deleteType))
+
         self.on_cardlist_deleteItem.emit(events.CardListDeleteItemEvent(cardlist=self.cardlist))
 
         pass

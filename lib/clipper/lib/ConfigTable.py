@@ -3,7 +3,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QDialog, QGridLayout
 from .tools import objs, events, funcs, ALL
 from . import ConfigTable_
-
+print, printer = funcs.logger(__name__)
 
 class ConfigTable(QDialog):
     """
@@ -28,6 +28,7 @@ class ConfigTable(QDialog):
         self.all_event.bind()
         # self.init_events()
         self.show()
+        print("__init__")
 
     def init_UI(self):
         self.setWindowIcon(QIcon(objs.SrcAdmin.imgDir.config))

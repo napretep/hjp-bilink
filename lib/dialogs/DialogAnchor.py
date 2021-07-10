@@ -128,10 +128,10 @@ class AnchorDialog(QDialog, Ui_anchor):
         """
         pos = e.pos()
         drop_index = self.anchorTree.indexAt(pos)
-        item_target = self.model.itemFromIndex(drop_index)
-        insert_posi = self.position_insert_check(pos, drop_index)
-        item_target, insert_posi = self.item_target_recorrect(item_target, insert_posi)
-        selected_row_li = self.rowli_index_make()
+        item_target = self.model.itemFromIndex(drop_index)  # 获取目标项
+        insert_posi = self.position_insert_check(pos, drop_index)  # 位置检查
+        item_target, insert_posi = self.item_target_recorrect(item_target, insert_posi)  # 通过修正函数重新确定位置
+        selected_row_li = self.rowli_index_make()  # 选中的行的检查
         # 下面是根据不同的插入情况做出选择。
         self.rowli_selected_insert(insert_posi, selected_row_li, item_target)
         self.anchorTree.expandAll()

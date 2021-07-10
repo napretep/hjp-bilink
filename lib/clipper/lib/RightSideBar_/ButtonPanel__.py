@@ -7,42 +7,42 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QToolButton, QLabel, QVBo
 from PyQt5.QtCore import Qt
 
 from ..tools import events, funcs, objs, ALL
-
+print, printer = funcs.logger(__name__)
 
 class CardinfosPreviewer(QDialog):
     pass
 
 
-
 class ClipperExecuteProgresser(QDialog):
-    def __init__(self, cardlist=None):
-        super().__init__(parent=cardlist)
-        self.cardlist = cardlist
+    def __init__(self, rightsidebar=None):
+        super().__init__(parent=rightsidebar)
+        self.rightsidebar = rightsidebar
         self.prepare_progress = objs.ProgressBarBlackFont(self)
-        # self.curCard_progress = objs.ProgressBarBlackFont(self)
-        # self.allCard_progress = objs.ProgressBarBlackFont(self)
-        # self.return_button = QToolButton(self)
-        # self.close_button = QToolButton(self)
-        # self.stop_button = QToolButton(self)
         self.init_UI()
-        self.init_events()
+        # self.init_events()
+        self.__event = {
+            ALL.signals.on_ClipperExecuteProgresser_show: self.on_ClipperExecuteProgresser_show_handle,
+        }
+        self.__all_event = objs.AllEventAdmin(self.__event)
+        self.__all_event.bind()
 
     def init_job(self):
         from .. import RightSideBar_
-        self.job = RightSideBar_.FinalExecution_masterJob(cardlist=self.cardlist)
-        self.job.on_job_done.connect(self.on_masterjob_done_handle)
+        self.job = RightSideBar_.FinalExecution_masterJob(cardlist=self.rightsidebar.cardlist)
         self.job.on_job_progress.connect(self.progress_dispatcher)
+        self.job.on_job_done.connect(self.on_masterjob_done_handle)
         self.job.start()
 
     def on_masterjob_done_handle(self, timestamp):
         # self.setWindowModality(Qt.NonModal)
         self.close()
+        # print(f"on_masterjob_done_handle timestamp={timestamp}")
         e = events.AnkiBrowserActivateEvent
         ALL.signals.on_anki_browser_activate.emit(
             e(eventType=e.ClipperTaskFinishedType, sender=self, data=timestamp)
         )
         self.prepare_progress.setFormat("任务完成/task complete %p%")
-
+        ALL.clipper.close()
 
     def progress_dispatcher(self, data):
         status = ["提取clipbox信息/extract clipbox info %p%",
@@ -56,49 +56,19 @@ class ClipperExecuteProgresser(QDialog):
     def init_UI(self):
         self.setFixedWidth(400)
         self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
-        # self.prepare_progress.setFormat("预备工作/prepare work progress %p%")
-        # self.curCard_progress.setFormat(("当前卡片进度/current card progress %p%"))
-        # self.allCard_progress.setFormat("全部卡片进度/all cards progress %p%")
-        # self.allCard_progress.setValue(10)
-        # self.curCard_progress.setValue(10)
-        # self.return_button.setIcon(QIcon(objs.SrcAdmin.imgDir.goback))
-        # self.close_button.setIcon(QIcon(objs.SrcAdmin.imgDir.close))
-        # self.stop_button.setIcon(QIcon(objs.SrcAdmin.imgDir.stop))
-        # self.return_button.setToolTip("回到clipper主窗口\ngoback to clipper window")
-        # self.stop_button.setToolTip("终止任务\nterminate the task")
-        # self.close_button.setToolTip("关闭整个clipper工作室\nclose the whole pdf-clipper-workshop")
         g_layout = QGridLayout(self)
 
         g_layout.addWidget(self.prepare_progress, 0, 0, 1, 4)
-        # g_layout.addWidget(self.return_button, 1, 1)
-        # g_layout.addWidget(self.stop_button, 1, 2)
-        # g_layout.addWidget(self.close_button, 1, 3)
         self.setLayout(g_layout)
 
-    def init_events(self):
-        # self.return_button.clicked.connect(self.on_return_button_clicked_handle)
-        # self.close_button.clicked.connect(self.on_close_button_clicked_handle)
-        # self.stop_button.clicked.connect(self.on_stop_button_clicked_handle)
-        ALL.signals.on_ClipperExecuteProgresser_show.connect(self.on_ClipperExecuteProgresser_show_handle)
-        # self.setShortcutEnabled()
-        pass
-
-    # def on_close_button_clicked_handle(self):
-    #     self.cardlist.rightsidebar.clipper.close()
-    #     self.close()
     #
-    # def on_stop_button_clicked_handle(self):
-    #     """终止任务"""
+    # def init_events(self):
     #
-    # def on_return_button_clicked_handle(self):
-    #     self.close()
+    #     # self.setShortcutEnabled()
+    #     pass
 
     def on_ClipperExecuteProgresser_show_handle(self):
         self.init_job()
-
-    # def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
-    #     """阻止所有键盘事件"""
-    #     pass
 
     pass
 
@@ -110,6 +80,13 @@ class CardinfosPreviewConfirm(QDialog):
         self.button_no = QToolButton(self)
         self.question_label = QLabel(self)
         self.init_UI()
+        self.__event = {
+            self.button_no.clicked: self.on_button_no_clicked_handle,
+            self.button_ok: self.on_button_ok_clicked_handle
+        }
+        self.__all_event = objs.AllEventAdmin(self.__event)
+        self.__all_event.bind()
+
         # self.show()
 
     def init_UI(self):
@@ -126,9 +103,9 @@ class CardinfosPreviewConfirm(QDialog):
         v_box.addLayout(h_box)
         self.setLayout(v_box)
 
-    def init_events(self):
-        self.button_no.clicked.connect(self.on_button_no_clicked_handle)
-        self.button_ok.clicked.connect(self.on_button_ok_clicked_handle)
+    # def init_events(self):
+    #     self.button_no.clicked.connect(self.on_button_no_clicked_handle)
+    #     self.button_ok.clicked.connect(self.on_button_ok_clicked_handle)
 
     def on_button_no_clicked_handle(self):
         print("execute")

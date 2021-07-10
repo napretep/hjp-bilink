@@ -1,5 +1,6 @@
 """
-这个文件保存常用函数
+这个文件保存常用函数,
+mainfunctions 是底层函数,尽量少引用其他高层块
 """
 import copy
 import os
@@ -28,6 +29,23 @@ from ..dialogs.DialogStorageSwitcher import StorageSwitcherDialog
 from ..dialogs.DialogVersion import VersionDialog
 from ..dialogs.DialogCardPrev import SingleCardPreviewerMod
 from ..dialogs.DialogSupport import SupportDialog
+from ..clipper.lib.Clipper import Clipper
+from . import funcs
+
+addonName = BaseInfo().dialogName
+mw.__dict__[addonName] = {}
+mw.__dict__[addonName]["card_window"] = {}
+
+
+def func_open_clipper(pairs_li=None, clipboxlist=None, **kwargs):
+    if "clipper" not in mw.__dict__[addonName] or mw.__dict__[addonName]["clipper"] is None:
+        mw.__dict__[addonName]["clipper"] = Clipper()
+        mw.__dict__[addonName]["clipper"].start(pairs_li=pairs_li, clipboxlist=clipboxlist)
+        mw.__dict__[addonName]["clipper"].exec()
+    else:
+        mw.__dict__[addonName]["clipper"].start(pairs_li=pairs_li, clipboxlist=clipboxlist)
+        mw.__dict__[addonName]["clipper"].activateWindow()
+
 
 def func_contactMe():
     # url =  QUrl(r"start chrome 'G:/备份/数学书大全/微分方程/俄罗斯数学教材选译-常微分方程（庞特里亚金）.pdf#page=20'")
@@ -220,6 +238,24 @@ class LinkStarter(QObject):
                 searchStr = f"tag:{param.input.tag}*"
             console(searchStr).log.end()
             browser.model.search(searchStr)
+
+
+def func_browserOpenClipper(**kwargs):
+    param = Params(**kwargs)
+    cardLi: List[str] = list(map(lambda x: str(x), param.parent.selectedCards()))
+    if len(cardLi) == 0:
+        console(say("没有选中任何卡片")).talk.end()
+    inputObj = Input()
+    pairLi = inputObj.pairLi_extract(cardLi)
+    func_open_clipper(pairs_li=pairLi)
+
+
+def func_webviewOpenClipper(**kwargs):
+    param = Params(**kwargs)
+    pair = {"desc": param.pair.desc, "card_id": param.pair.card_id}
+    if pair["desc"] == "":
+        pair["desc"] = funcs.desc_extract(pair["card_id"])
+    func_open_clipper(pairs_li=[pair])
 
 
 def func_browserInsert(*args, **kwargs):

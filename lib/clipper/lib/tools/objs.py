@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QPushButton, QSpinBox,
     QDoubleSpinBox, QComboBox, QVBoxLayout, QFrame, QGridLayout, QWidget, QShortcut, QProgressBar, QStyledItemDelegate, \
     QItemDelegate
 
-from .funcs import str_shorten
+from . import funcs
 from . import events, JSONschema_, SrcAdmin_
 
 
@@ -24,13 +24,17 @@ class CustomSignals(QObject):
     instance = None
     linkedEvent = pyqtSignal()
 
+    # on_macro_switch = pyqtSignal()
+    # on_macro_start = pyqtSignal()
+    # on_macro_stop = pyqtSignal()
+    # on_macro_pause= pyqtSignal()
+
     on_anki_card_create = pyqtSignal(object)  # AnkiCardCreateEvent
     on_anki_card_created = pyqtSignal(object)  # AnkiCardCreatedEvent
     on_anki_field_insert = pyqtSignal(object)  # AnkiFieldInsertEvent
     # on_anki_field_inserted = pyqtSignal(object) #AnkiFieldInsertedEvent
     on_anki_browser_activate = pyqtSignal(object)  # AnkiBrowserActivateEvent
     on_anki_file_create = pyqtSignal(object)  # AnkiFileCreateEvent
-
 
     on_pagepicker_bookmark_open = pyqtSignal(object)  # OpenBookmarkEvent
     on_pagepicker_bookmark_clicked = pyqtSignal(object)  # BookmarkClickedEvent
@@ -66,6 +70,7 @@ class CustomSignals(QObject):
     # 涉及 pagenum,docname,ratio的更新变化
     on_pageItem_update = pyqtSignal(object)  # PageItemUpdateEvent
 
+    on_pageItem_mouse_released = pyqtSignal(object)  # PageItemMouseReleasedEvent
     on_pageItem_clicked = pyqtSignal(object)  # PageItemClickEvent
     on_pageItem_clipbox_added = pyqtSignal(object)
     on_pageItem_resize_event = pyqtSignal(object)  # PageItemResizeEvent
@@ -82,7 +87,7 @@ class CustomSignals(QObject):
     on_ClipperExecuteProgresser_show = pyqtSignal()
     on_cardlist_deleteItem = pyqtSignal(object)
     on_cardlist_addCard = pyqtSignal(object)  # CardListAddCardEvent
-
+    on_cardlist_selectItem = pyqtSignal(object)  # CardListSelectItemEvent
     # 涉及 QA,TextQA,Text,Card_id 四者的变化
     on_clipbox_toolsbar_update = pyqtSignal(object)  # ClipBoxToolsbarUpdateEvent
 
@@ -96,28 +101,78 @@ class CustomSignals(QObject):
     on_rightSideBar_settings_clicked = pyqtSignal(object)
     on_rightSideBar_refresh_clicked = pyqtSignal(object)
     on_rightSideBar_buttonGroup_clicked = pyqtSignal(object)  # RightSideBarButtonGroupEvent
+    on_rightSideBar_cardModel_changed = pyqtSignal()  # RightSideBarModelChanged
 
     on_clipper_hotkey_next_card = pyqtSignal()
     on_clipper_hotkey_prev_card = pyqtSignal()
     on_clipper_hotkey_setA = pyqtSignal()
     on_clipper_hotkey_setQ = pyqtSignal()
+
     on_config_changed = pyqtSignal()
     on_config_reload = pyqtSignal()
     on_config_reload_end = pyqtSignal()
     on_config_ankidata_load = pyqtSignal(object)  # ConfigAnkiDataLoadEvent
     on_config_ankidata_load_end = pyqtSignal(object)  # ConfigAnkiDataLoadEndEvent
+
     on_PDFView_ResizeView = pyqtSignal(object)  # PDFViewResizeViewEvent
 
+    on_get_clipper = pyqtSignal(object)  # GetClipperEvent
+    on_clipper_closed = pyqtSignal()
     regist_dict = {}  # hashcode:[signal,connector]
 
     @classmethod
     def start(cls):
         """cls就相当于是self,这里的意思是如果instance不存在则创建一个,返回instance,这是单例模式"""
-        print(cls.instance)
+        # print(cls.instance)
         if cls.instance is None:
             cls.instance = cls()
         return cls.instance
 
+
+class ConfigDict:
+    class ClipBox:
+        def __init__(self, data):
+            self.A_map_Field = data["clipbox.A_map_Field"]["value"]
+            self.Q_map_Field = data["clipbox.Q_map_Field"]["value"]
+            self.macro = data["clipbox.macro"]["value"]
+            self.newcard_deck_id = data["clipbox.newcard_deck_id"]["value"]
+            self.newcard_model_id = data["clipbox.newcard_model_id"]["value"]
+            self.textA_map_Field = data["clipbox.textA_map_Field"]["value"]
+            self.textQ_map_Field = data["clipbox.textQ_map_Field"]["value"]
+
+    class Output:
+        def __init__(self, data):
+            self.RatioFix = data["output.RatioFix"]["value"]
+            self.needRatioFix = data["output.needRatioFix"]["value"]
+
+    class PagePicker:
+        def __init__(self, data):
+            self.bottombar_default_path = data["pagepicker.bottombar_default_path"]["value"]
+            self.bottombar_page_num = data["pagepicker.bottombar_page_num"]["value"]
+            self.bottombar_page_ratio = data["pagepicker.bottombar_page_ratio"]["value"]
+            self.browser_layout_col_per_row = data["pagepicker.browser_layout_col_per_row"]["value"]
+
+    class MainView:
+        def __init__(self, data):
+            self.layout_col_per_row = data["mainview.layout_col_per_row"]["value"]
+            self.layout_row_per_col = data["mainview.layout_row_per_col"]["value"]
+            self.layout_mode = data["mainview.layout_mode"]["value"]
+
+    def __init__(self):
+        self.data = SrcAdmin.call().get_config("clipper")
+        self.clipbox = self.ClipBox(self.data)
+        self.pagepicker = self.PagePicker(self.data)
+        self.mainview = self.MainView(self.data)
+        self.output = self.Output(self.data)
+        CustomSignals.start().on_config_changed.connect(self.load_data)
+
+    def load_data(self):
+        print("config_reloaded")
+        self.data = SrcAdmin.call().get_config("clipper")
+        self.clipbox = self.ClipBox(self.data)
+        self.pagepicker = self.PagePicker(self.data)
+        self.mainview = self.MainView(self.data)
+        self.output = self.Output(self.data)
 
 
 class SrcAdmin:
@@ -189,12 +244,15 @@ class AllEventAdmin(object):
         self.event_dict = event_dict
 
     def bind(self):
-        self.funcs.event_handle_connect(self.event_dict)
+        event_dict = self.funcs.event_handle_connect(self.event_dict)
+        AllEvents.update(event_dict)
+        # print(len(AllEvents))
 
     def unbind(self, classname=""):
         self.funcs.event_handle_disconnect(self.event_dict)
         if not classname == "":
-            print(f"{classname} all events unbind")
+            # print(f"{classname} all events unbind")
+            pass
 
 
 class UniversalProgresser(QDialog):
@@ -293,3 +351,81 @@ class ColumnSpinboxDelegate(QItemDelegate):
             editor.setValue(value if value is not None else 0)
         else:
             super(ColumnSpinboxDelegate, self).setEditorData(editor, index)
+
+
+class Macro(QObject):
+    stopState = 0
+    runningState = 1
+    pauseState = 2
+    on_start = pyqtSignal()
+    on_pause = pyqtSignal()
+    on_switch = pyqtSignal()
+    on_stop = pyqtSignal()
+
+    def __init__(self, ):
+        super().__init__()
+        self.macrodata = None
+        self.len = 1
+        self.step = 0
+        self.lastData = None
+        self.QAvalue = {}
+        self.state = self.stopState
+        self.on_pause.connect(self.on_pause_handle)
+        self.on_switch.connect(self.on_switch_handle)
+
+    def start(self, macrodata):
+        self.macrodata = macrodata
+        self.len = len(macrodata)
+        self.step = 0
+        self.state = self.runningState
+        from . import events
+        e = events.CardListSelectItemEvent
+        signals.on_cardlist_selectItem.emit(e(eventType=e.singleRowType, rowNum=0))
+
+    def pickQA(self):
+
+        instruct = self.macrodata[self.step % self.len][0:2]
+        self.QAvalue["QA"] = instruct[0]
+        self.QAvalue["textQA"] = instruct[1]
+        self.step += 1
+        if self.step % self.len == 0:
+            signals.on_clipper_hotkey_next_card.emit()
+
+    def get(self, QA):
+
+        if QA not in self.QAvalue:
+            self.pickQA()
+        self.lastData = self.QAvalue.copy()
+        return self.QAvalue.pop(QA)
+
+    def stop(self):
+        self.step = 0
+        self.state = self.stopState
+
+    def pause(self):
+        self.state = self.pauseState
+
+    def on_pause_handle(self):
+        from . import funcs
+        if self.state == self.pauseState:
+            self.state = self.runningState
+        elif self.state == self.runningState:
+            self.state = self.pauseState
+        # print(f"self.state={self.state}")
+        funcs.show_clipbox_state()
+
+    def on_switch_handle(self):
+        from . import funcs
+        if self.state == self.stopState:
+            self.start(CONFIG.clipbox.macro)
+        elif self.state == self.runningState:
+            self.stop()
+        # print(f"self.state={self.state}")
+        funcs.show_clipbox_state()
+
+
+CONFIG = ConfigDict()
+signals = CustomSignals.start()
+print, printer = funcs.logger(__name__)
+macro = Macro()
+AllEvents = {}

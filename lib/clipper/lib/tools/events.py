@@ -3,6 +3,9 @@ class AllEvent:
         self.sender = sender
         self.Type = eventType
 
+class PageItemMouseReleasedEvent(AllEvent):
+    def __init__(self, sender=None, eventType=None, ):
+        super().__init__(sender, eventType)
 
 class ConfigAnkiDataLoadEvent(AllEvent):
     modelType = 0
@@ -98,7 +101,7 @@ class AnkiCardCreateEvent(AllEvent):
 
 class AnkiCardCreatedEvent(AllEvent):
     ClipBoxType = 0
-
+    infoUpdateType = 1
     def __init__(self, sender=None, eventType=None, data=None):
         super().__init__(sender, eventType)
         self.data = data
@@ -305,10 +308,10 @@ class PageItemResizeEvent:
     fullscreenType = 0
     resetType = 1
 
-    def __init__(self, pageItem=None, eventType=None):
+    def __init__(self, pageItem=None, eventType=None, screen_width=None):
         self.pageItem = pageItem
         self.Type = eventType if eventType is not None else self.fullscreenType
-
+        self.screen_width = screen_width
         pass
 
 
@@ -328,6 +331,10 @@ class PageItemAddToSceneEvent:
 class CardListDataChangedEvent(AllEvent):
     DataChangeType = 0
     TextChangeType = 1
+    DescChangeType = 2
+    CardIdChangeType = 3
+    deleteType = 4
+    dragDropType = 5
 
     def __init__(self, sender=None, cardlist=None, eventType=None, data=None):
         super().__init__(sender, eventType)
@@ -338,8 +345,9 @@ class CardListDataChangedEvent(AllEvent):
 
 class PageItemClickEvent:
     clickType = 0
-    rightClickType = 1
+    ctrl_rightClickType = 1
     leftClickType = 2
+    rightClickType = 3
 
     def __init__(self, pageitem: 'PageItem5' = None, eventType=None):
         self.Type = eventType if eventType else self.clickType
@@ -355,12 +363,20 @@ class CardListDeleteItemEvent:
         pass
 
 
+class CardListSelectItemEvent(AllEvent):
+    singleRowType = 0
+
+    def __init__(self, sender=None, eventType=None, rowNum=None):
+        super().__init__(sender, eventType)
+        self.rowNum = rowNum
+
 class RightSideBarButtonGroupEvent:
     resetViewRatioType = 0
     reLayoutType = 1
     QAswitchType = 2
     configType = 3
     correctType = 4
+    clearViewType = 5
 
     def __init__(self, eventType=None):
         self.Type = eventType

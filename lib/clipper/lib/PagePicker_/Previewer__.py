@@ -71,10 +71,10 @@ class ToolsBar(QWidget):
                 H_layout.setStretch(i, 1)
         self.setLayout(H_layout)
 
-    def init_events(self):
-        self.nextpage_button.clicked.connect(self.on_nextpage_button_clicked_handle)
+    # def init_events(self):
+    #     self.nextpage_button.clicked.connect(self.on_nextpage_button_clicked_handle)
 
-    def on_nextpage_button_clicked_handle(self):
-        pass
+    # def on_nextpage_button_clicked_handle(self):
+    #     pass
 
     pass

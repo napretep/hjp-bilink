@@ -18,23 +18,21 @@ import sys
 
 if __name__ == '__main__':
     # from lib.fitz import fitz
+    #
 
-    from PyQt5.QtCore import QPointF
+    from PyQt5.QtCore import QPointF, QTimer
     from PyQt5.QtWidgets import QApplication
     from lib.PageInfo import PageInfo
     from lib.Clipper import Clipper
     from lib.PDFView_ import PageItem5
-    from lib.tools import ALL, funcs
+    from lib.tools import ALL, funcs, objs
     from lib.tools.events import PageItemAddToSceneEvent
     from aqt import QProcess
 
     app = QApplication(sys.argv)
 
     clipper = Clipper()
-    pageitem = PageItem5(PageInfo(r"D:\备份盘\经常更新\数学书大全\分析学\高等数学\高等数学学习手册+徐小湛2005_书签.pdf", 0),
-                         rightsidebar=clipper.rightsidebar)
-    event = PageItemAddToSceneEvent(pageItem=pageitem, eventType=PageItemAddToSceneEvent.addPageType)
-    ALL.signals.on_pageItem_addToScene.emit(event)
-    # QProcess
+    # result = objs.SrcAdmin.DB.go().select(true=True).return_all()
+    # print(result.zip_up())
 
     sys.exit(app.exec_())

@@ -310,7 +310,12 @@ class Item2(QGraphicsPixmapItem):
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemIsFocusable, True)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
-        self.init_events()
+        self.__event = {
+            ALL.signals.on_pagepicker_browser_select: self.on_pagepicker_browser_select_handle
+
+        }
+        self.__all_event = objs.AllEventAdmin(self.__event)
+        self.__all_event.bind()
 
     def __lt__(self, other: "Item2"):
         return self.pagenum < other.pagenum
@@ -318,11 +323,11 @@ class Item2(QGraphicsPixmapItem):
     def __eq__(self, other):
         return self.pagenum == other.pagenum
 
-    def init_events(self):
-        ALL.signals.on_pagepicker_browser_select.connect(
-            self.on_pagepicker_browser_select_handle
-        )
-        pass
+    # def init_events(self):
+    #     ALL.signals.on_pagepicker_browser_select.connect(
+    #         self.on_pagepicker_browser_select_handle
+    #     )
+    #     pass
 
     def set_pixmap_scale(self, size=None):
         if self.boundingRect().width() != size:
@@ -335,17 +340,16 @@ class Item2(QGraphicsPixmapItem):
         e = events.PagePickerBrowserSelectEvent
         if event.modifiers() == Qt.ControlModifier:
             self.multi_select = True
-            ALL.signals.on_pagepicker_browser_select.emit(
-                e(sender=self, item=self, eventType=e.multiSelectType))
+            ALL.signals.on_pagepicker_browser_select.emit(e(sender=self, item=self, eventType=e.multiSelectType))
+
         else:
             self.multi_select = False
             # 因为非多选,所以取消掉多选
             ALL.signals.on_pagepicker_browser_select.emit(e(sender=self, item=self))
-            ALL.signals.on_pagepicker_browser_select.emit(
-                e(sender=self, eventType=e.singleSelectType, item=self))
+            ALL.signals.on_pagepicker_browser_select.emit(e(sender=self, eventType=e.singleSelectType, item=self))
+
         e = events.PagePickerPreviewerReadPageEvent
-        ALL.signals.on_pagepicker_preivewer_read_page.emit(
-            e(sender=self, eventType=e.loadType, pagenum=self.pagenum))
+        ALL.signals.on_pagepicker_preivewer_read_page.emit(e(sender=self, eventType=e.loadType, pagenum=self.pagenum))
 
         super().mousePressEvent(event)
 
@@ -359,7 +363,7 @@ class Item2(QGraphicsPixmapItem):
         pagenum = self.pagenum
         ratio = self.browser.pagepicker.ratio_value_get()
         item = PageInfo(PDFpath, pagenum, ratio=ratio)
-        pageitem = PageItem5(item, rightsidebar=self.browser.pagepicker.clipper.rightsidebar)
+        pageitem = PageItem5(item)
         ALL.signals.on_pageItem_addToScene.emit(
             e(sender=self, eventType=e.addMultiPageType, pageItemList=[pageitem]))
         self.browser.pagepicker.close()
@@ -387,8 +391,6 @@ class Item2(QGraphicsPixmapItem):
 
         self.show_selected_rect(self.is_selected or self.multi_select)
 
-    #
-    #
     def show_selected_rect(self, need: "bool"):
         if "selected_rect" not in self.__dict__:
             rect = None
@@ -426,32 +428,37 @@ class Item2(QGraphicsPixmapItem):
         super().paint(painter, option, widget)
         self.show_selected_rect(self.isSelected())
 
-    # def __del__(self):
-    #     ALL.signals.on_pagepicker_browser_select.disconnect(self.on_pagepicker_browser_select_handle)
-    #
-    #
 
 
 class Scene(QGraphicsScene):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.browser = parent
-        self.init_events()
+        self.__event = {
+            ALL.signals.on_pagepicker_browser_sceneClear: self.on_pagepicker_browser_sceneClear_handle,
+        }
+        self.__all_event = objs.AllEventAdmin(self.__event)
+        self.__all_event.bind()
         self.itemlist = []
 
-    def init_events(self):
-        ALL.signals.on_pagepicker_browser_sceneClear.connect(
-            self.on_pagepicker_browser_sceneClear_handle)
-        ALL.signals.on_pagepicker_browser_select.connect(self.on_pagepicker_browser_select_handle)
+    # def init_events(self):
+    #     ALL.signals.on_pagepicker_browser_sceneClear.connect(
+    #         self.on_pagepicker_browser_sceneClear_handle)
+    #     ALL.signals.on_pagepicker_browser_select.connect(self.on_pagepicker_browser_select_handle)
 
-    def on_pagepicker_browser_select_handle(self, event: "events.PagePickerBrowserSelectEvent"):
-        if event.collectType == event.Type:
-            pagenumlist = [page.pagenum for page in self.selectedItems()]
-            pagenumlist.sort()
-            e = events.PagePickerBrowserSelectSendEvent
-            ALL.signals.on_pagepicker_browser_select_send.emit(
-                e(sender=self, eventType=e.appendType, pagenumlist=pagenumlist)
-            )
+    # def on_pagepicker_browser_select_handle(self, event: "events.PagePickerBrowserSelectEvent"):
+    #     if event.collectType == event.Type:
+    #         pagenumlist = [page.pagenum for page in self.selectedItems()]
+    #         pagenumlist.sort()
+    #         e = events.PagePickerBrowserSelectSendEvent
+    #         ALL.signals.on_pagepicker_browser_select_send.emit(
+    #             e(sender=self, eventType=e.appendType, pagenumlist=pagenumlist)
+    #         )
+    #         print(pagenumlist)
+
+    def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        e = events.PagePickerBrowserSelectSendEvent
+        ALL.signals.on_pagepicker_browser_select_send.emit(e(pagenumlist=self.selected_item_pagenum()))
 
     def on_pagepicker_browser_sceneClear_handle(self, event: "events.PagePickerBrowserSceneClear"):
         if event.Type == event.clearType:
@@ -487,7 +494,7 @@ class View(QGraphicsView):
         self.origin_pos = None
         self.wheel_event_last_item = 0
         self.paint_event_last_time = 0
-        self.setDragMode(QGraphicsView.RubberBandDrag)
+        self.setDragMode(QGraphicsView.RubberBandDrag)  # rubberband自带选中item的功能,所以没有任何调整.
         self.mousePressed = False
         if scene is not None:
             self.setScene(scene)
