@@ -12,7 +12,7 @@ from .HTML_converterObj import HTML_converter
 from .handle_DB import LinkDataDBmanager
 from .utils import *
 from . import funcs
-from . import imports
+from . import clipper_imports
 
 
 class Input(object
@@ -120,7 +120,6 @@ class Input(object
         desc = LinkDataReader(cid).read()["self_data"]["desc"]
         if desc == "":
             content = reduce(lambda x, y: x + y, note.fields)
-            # desc = self.HTMLmanage.clear().feed(content).script_el_remove().text_get().text
             desc = funcs.HTML_txtContent_read(content)
             desc = re.sub(r"\n+", "", desc)
             desc = desc[0:cfg['descMaxLength'] if len(desc) > cfg['descMaxLength'] != 0 else len(desc)]
@@ -181,27 +180,27 @@ class Input(object
             self.DB.cardinfo_update(dict_card_info)
         pass
 
-    def note_pair_insert(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
-        """往A note 加 pairB,默认不给自己加pair"""
-        html = self.HTMLmanage
-        if diffInsert and pairA.card_id == pairB.card_id:
-            return self
-        note = self.note_id_load(pairA)
-        html.clear().feed(note.fields[self.insertPosi]).HTMLdata_load()
-        if self.Id_noFoundInNote(pairB):
-            fieldcontent = html.pairLi_pair_append(pair=pairB).HTMLdata_save().HTML_get().HTML_text
-            console("最终要写入字段的内容:" + fieldcontent).log.end()
-            note.fields[self.insertPosi] = fieldcontent
-            note.flush()
-        return self
+    # def note_pair_insert(self, pairA: Pair, pairB: Pair, dirposi: str = "→", diffInsert=True):
+    #     """往A note 加 pairB,默认不给自己加pair"""
+    #     html = self.HTMLmanage
+    #     if diffInsert and pairA.card_id == pairB.card_id:
+    #         return self
+    #     note = self.note_id_load(pairA)
+    #     html.clear().feed(note.fields[self.insertPosi]).HTMLdata_load()
+    #     if self.Id_noFoundInNote(pairB):
+    #         fieldcontent = html.pairLi_pair_append(pair=pairB).HTMLdata_save().HTML_get().HTML_text
+    #         console("最终要写入字段的内容:" + fieldcontent).log.end()
+    #         note.fields[self.insertPosi] = fieldcontent
+    #         note.flush()
+    #     return self
 
-    def Id_noFoundInNote(self, pairA: Pair = None) -> bool:
-        """判断A id是否在B Note中,如果不在,返回真, 注意处理好pairLi的初始化"""
-        for pairB in self.HTMLmanage.card_linked_pairLi:
-            console(pairA.__dict__.__str__() + pairB.__dict__.__str__()).log.end()
-            if pairA.card_id == pairB.card_id:
-                return False
-        return True
+    # def Id_noFoundInNote(self, pairA: Pair = None) -> bool:
+    #     """判断A id是否在B Note中,如果不在,返回真, 注意处理好pairLi的初始化"""
+    #     for pairB in self.HTMLmanage.card_linked_pairLi:
+    #         console(pairA.__dict__.__str__() + pairB.__dict__.__str__()).log.end()
+    #         if pairA.card_id == pairB.card_id:
+    #             return False
+    #     return True
 
     def IdLi_FromLinkedCard(self, pair: Pair = None):
         """读取那些被链接的笔记中的卡片ID"""
@@ -273,14 +272,14 @@ class Input(object
             self.DB.cardinfo_update(dict_cardinfo)
         pass
 
-    def note_anchor_delete(self, pairA: Pair, pairB: Pair):
-        HTML = self.HTMLmanage
-        note = self.note_id_load(pairA)
-        HTML.clear().feed(note.fields[self.insertPosi]).HTMLdata_load()
-        HTML.pairLi_pair_remove(pair=pairB).HTMLdata_save()
-        note.fields[self.insertPosi] = HTML.HTML_get().HTML_text
-        note.flush()
-        pass
+    # def note_anchor_delete(self, pairA: Pair, pairB: Pair):
+    #     HTML = self.HTMLmanage
+    #     note = self.note_id_load(pairA)
+    #     HTML.clear().feed(note.fields[self.insertPosi]).HTMLdata_load()
+    #     HTML.pairLi_pair_remove(pair=pairB).HTMLdata_save()
+    #     note.fields[self.insertPosi] = HTML.HTML_get().HTML_text
+    #     note.flush()
+    #     pass
 
     def note_id_load(self, pair: Pair = None) -> Note:
         """从卡片的ID获取note"""

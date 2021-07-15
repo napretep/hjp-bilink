@@ -37,7 +37,7 @@ from ...lib.obj.inputObj import *
 from ...lib.dialogs.UIdialog_Anchor import Ui_anchor
 from ...lib.obj.linkData_reader import LinkDataReader
 from ...lib.obj.languageObj import rosetta as say
-
+from ..obj import all_objs
 
 
 
@@ -71,17 +71,16 @@ class AnchorDialog(QDialog, Ui_anchor):
 
     def signup(self):
         """注册到主窗口"""
-        addonName = self.baseinfo.dialogName
-        dialog = self.__class__.__name__
+
         card_id = self.pair.card_id
-        mw.__dict__[addonName][dialog][card_id] = self
+        all_objs.mw_anchor_window[card_id] = self
+        # mw.__dict__[addonName][dialog][card_id] = self
 
     def signout(self):
         """注销"""
-        addonName = self.baseinfo.dialogName
-        dialog = self.__class__.__name__
+
         card_id = self.pair.card_id
-        mw.__dict__[addonName][dialog][card_id] = None
+        all_objs.mw_anchor_window[card_id] = None
 
     def init_UI(self):
         """UI初始化"""
@@ -98,6 +97,7 @@ class AnchorDialog(QDialog, Ui_anchor):
     def init_events(self):
         """响应右键菜单,拖拽,绑定更新数据,思考如何实现变化后自动加载.如果实现不了,暂时先使用模态对话框 """
         self.closeEvent = self.onClose
+        # self.anchorTree.model().clear()
         self.anchorTree.doubleClicked.connect(self.onDoubleClick)
         self.anchorTree.dropEvent = self.onDrop
         self.anchorTree.customContextMenuRequested.connect(self.onAnchorTree_contextMenu)

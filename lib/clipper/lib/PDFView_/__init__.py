@@ -18,26 +18,6 @@ from . import PageItem_
 
 print, printer = funcs.logger(__name__)
 
-
-# class centerOn_job(QThread):
-#     def __init__(self, pageitem):
-#         super().__init__()
-#         self.pageitem = pageitem
-#
-#     def run(self) -> None:
-#         time.sleep(0.01)
-#         e = events.PageItemResizeEvent
-#         type = e.fullscreenType
-#         if self.pageitem.isFullscreen:
-#             self.pageitem.isFullscreen = False
-#             type = e.resetType
-#         else:
-#             self.pageitem.isFullscreen = True
-#         ALL.signals.on_pageItem_resize_event.emit(
-#             e(pageItem=self.pageitem, eventType=type)
-#         )
-#         time.sleep(0.01)
-
 class PageItem5(QGraphicsItem):
     """
     """
@@ -82,6 +62,11 @@ class PageItem5(QGraphicsItem):
         self.prepareGeometryChange()  # 这个 非常重要. https://www.cnblogs.com/ybqjymy/p/13862382.html
         painter.setPen(QPen(QColor(127, 127, 127), 2.0, Qt.DashLine))
         painter.drawRect(self.boundingRect())
+        width1 = self.toolsBar.boundingRect().width()
+
+        width2 = self.pageview.boundingRect().width()
+        height2 = self.pageview.boundingRect().height()
+        self.toolsBar.setPos(width2 - width1, height2)
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
         super().keyPressEvent(event)
@@ -104,20 +89,24 @@ class PageItem5(QGraphicsItem):
             if event.button() == Qt.RightButton:
                 self.on_pageItem_clicked.emit(
                     PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.ctrl_rightClickType))
-                self.toolsBar.setPos(event.pos())
-                self.toolsBar.show()
         else:
+            # self.toolsBar.setPos(event.pos())
+
             if event.buttons() == Qt.MidButton:
                 pass  # 本来这里有一个全屏功能,删掉了.
             elif event.button() == Qt.RightButton:  # 了解当前选中的是哪个pageitem,因为我之前已经取消了selectable功能,
+
                 e = events.PageItemClickEvent
-                ALL.signals.on_pageItem_clicked.emit(e(pageitem=self, eventType=e.rightClickType))
+                ALL.signals.on_pageItem_clicked.emit(e(sender=self, pageitem=self, eventType=e.rightClickType))
                 super().mousePressEvent(event)
             elif event.button() == Qt.LeftButton:
                 self.on_pageItem_clicked.emit(
-                    PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.leftClickType))
-                self.toolsBar.hide()
+                    PageItemClickEvent(sender=self, pageitem=self, eventType=PageItemClickEvent.leftClickType))
+                # self.toolsBar.hide()
+                self.toolsBar.show()
                 super().mousePressEvent(event)
+
         super().mousePressEvent(event)
+
     def toEvent(self):
         return PageItemAddToSceneEvent(pageItem=self, eventType=PageItemAddToSceneEvent.addPageType)

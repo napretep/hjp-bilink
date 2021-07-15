@@ -114,7 +114,7 @@ class ClipBox2(QGraphicsRectItem):
         self.all_event.unbind(self.__class__.__name__)
 
     def on_clipbox_create_handle(self, event: "events.ClipboxCreateEvent"):
-        print("on_clipbox_create_handle")
+        # print("on_clipbox_create_handle")
         if event.Type == event.rubbingType:
             self.setFlag(QGraphicsItem.ItemIsSelectable, False)
         if event.Type == event.rubbedType:
@@ -227,7 +227,10 @@ class ClipBox2(QGraphicsRectItem):
                 painter.drawRect(rect)
         self.move_bordercheck()
         self.prepareGeometryChange()
-
+        if ALL.pdfview.dragMode() == ALL.pdfview.RubberBandDrag:
+            self.setFlag(self.ItemIsSelectable, False)
+        else:
+            self.setFlag(self.ItemIsSelectable, True)
         # def mouseMoveEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
 
     def resize_bordercheck(self, toX=None, toY=None):
@@ -515,7 +518,7 @@ class ClipBox2(QGraphicsRectItem):
         info = {
             "uuid": self.uuid,
             "card_id": self.card_id,
-            "pdfname": os.path.abspath(self.docname),
+            "pdfname": os.path.abspath(self.docname).replace("\\", "/"),
             "pagenum": self.pagenum,
             "ratio": self.ratio,
             "x": x / self.pageview.boundingRect().width(),
@@ -543,6 +546,10 @@ class ClipBox2(QGraphicsRectItem):
 
 class PageView(QGraphicsPixmapItem):
     """只需要pixmap就够了"""
+    mousecenter = 0
+    viewcenter = 1
+    itemcenter = 2
+    nocenter = 3
 
     def __init__(self, pageinfo: 'PageInfo', pageitem: 'PageItem5' = None, ratio=None):
         super().__init__(pageinfo.pagepixmap)
@@ -550,6 +557,8 @@ class PageView(QGraphicsPixmapItem):
         self.pageinfo = pageinfo
         self.pageitem = pageitem
         self.setParentItem(pageitem)
+        self.isFullscreen = False
+        self.view = ALL.clipper.pdfview
         # self.init_signals()
         # self.init_events()
         self._delta = 0.1
@@ -580,13 +589,13 @@ class PageView(QGraphicsPixmapItem):
     def on_pageItem_resize_event_handle(self, event: "PageItemResizeEvent"):
         if event.pageItem.uuid == self.pageitem.uuid:
             if event.Type == PageItemResizeEvent.fullscreenType:
-                self.zoom(self.view_divde_page_ratio())
+                self.zoom(self.view_divde_page_ratio(), self.itemcenter)
             if event.Type == PageItemResizeEvent.resetType:
-                self.zoom(1)
+                self.zoom(1, self.itemcenter)
 
 
     def view_divde_page_ratio(self):
-        view_Width = ALL.clipper.pdfview.geometry().width()
+        view_Width = self.view.geometry().width()
         pixwidth = self.pageinfo.pagepixmap.width()
         ratio = view_Width / pixwidth
         return ratio
@@ -602,7 +611,7 @@ class PageView(QGraphicsPixmapItem):
 
     def pageinfo_read(self, pageinfo):
         self.pageinfo = pageinfo
-        self.zoom(self.ratio)
+        self.zoom(self.ratio, center=self.nocenter)
 
     def add_round(self):
         round = QGraphicsRectItem(QRectF(self.pixmap().rect()), parent=self)
@@ -610,16 +619,19 @@ class PageView(QGraphicsPixmapItem):
         round.update()
 
     def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+
         modifiers = QApplication.keyboardModifiers()
-        # if self.contains(event.pos()) and modifiers == QtCore.Qt.ControlModifier:
-        #     # self.pageview_clipbox_add(event.pos())
-        # elif event.modifiers() == (Qt.ShiftModifier & Qt.ControlModifier):
-        #     print("天地在我心")
-        # else:
-        #     super().mousePressEvent(event)
-        # if event.button()==Qt.RightButton:
-        #     print("mousePressEvent")
+
         super().mousePressEvent(event)
+
+    def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+        e = events.PageItemResizeEvent
+        if self.isFullscreen:
+            self.isFullscreen = False
+            objs.signals.on_pageItem_resize_event.emit(e(pageItem=self.pageitem, eventType=e.resetType))
+        else:
+            self.isFullscreen = True
+            objs.signals.on_pageItem_resize_event.emit(e(pageItem=self.pageitem, eventType=e.fullscreenType))
 
     def pageview_clipbox_add(self, pos=None, rect=None):
         """顺带解决"""
@@ -642,6 +654,7 @@ class PageView(QGraphicsPixmapItem):
         modifiers = QApplication.keyboardModifiers()  # 判断ctrl键是否按下
 
         if modifiers == QtCore.Qt.ControlModifier:
+            self.mouse_center_pos_get(event.pos())
             # print(event.delta().__str__())
             if event.delta() > 0:
                 self.zoomIn()
@@ -658,7 +671,70 @@ class PageView(QGraphicsPixmapItem):
         """缩小"""
         self.zoom(self.ratio / (1 + self._delta))
 
-    def zoom(self, factor):
+    def center_zoom(self, center=0):
+        if center == self.mousecenter:
+            X = self.mouse_center_item_p[0] * self.boundingRect().width()
+            Y = self.mouse_center_item_p[1] * self.boundingRect().height()
+            new_scene_p = self.mapToScene(X, Y)
+            dx = new_scene_p.x() - self.mouse_center_scene_p.x()
+            dy = new_scene_p.y() - self.mouse_center_scene_p.y()
+        elif center == self.viewcenter:
+            X = self.view_center_item_p[0] * self.boundingRect().width()
+            Y = self.view_center_item_p[1] * self.boundingRect().height()
+            new_scene_p = self.mapToScene(X, Y)
+            dx = new_scene_p.x() - self.view_center_scene_p.x()
+            dy = new_scene_p.y() - self.view_center_scene_p.y()
+        elif center == self.itemcenter:
+            X = self.item_center_item_size[0] * self.boundingRect().width()
+            Y = self.item_center_item_size[1] * self.boundingRect().height()
+            new_scene_p = self.mapToScene(X, Y)
+            dx = new_scene_p.x() - self.view_center_scene_p.x()
+            dy = new_scene_p.y() - self.view_center_scene_p.y()
+        else:
+            raise TypeError(f"无法处理数据:{center}")
+        scrollY = self.view.verticalScrollBar()
+        scrollX = self.view.horizontalScrollBar()
+
+        print(f"x={dx}, dy={dy}")
+        rect = self.view.sceneRect()
+        if scrollY.value() - dy < 0:
+            self.view.setSceneRect(rect.x(), rect.y() - dy, rect.width(), rect.height())
+        if scrollX.value() - dx < 0:
+            self.view.setSceneRect(rect.x() - dx, rect.y(), rect.width(), rect.height())
+        if scrollY.value() == scrollY.maximum():
+            self.view.setSceneRect(rect.x(), rect.y(), rect.width(), rect.height() + dy)
+        if scrollX.value() == scrollX.maximum():
+            self.view.setSceneRect(rect.x(), rect.y(), rect.width() + dx, rect.height())
+        # self.view.setSceneRect(self.mapRectToScene(self.boundingRect()))
+
+        scrollY.setValue(scrollY.value() + int(dy))
+        scrollX.setValue(scrollX.value() + int(dx))
+
+        self.view_center_scene_p = None
+        self.view_center_item_p = None
+
+    def item_center_pos_get(self):
+        self.item_center_item_size = [0.5, 0.5]
+        self.view_center_pos_get()
+
+    def mouse_center_pos_get(self, pos):
+        self.mouse_center_item_p = [pos.x() / self.boundingRect().width(),
+                                    pos.y() / self.boundingRect().height()]
+        self.mouse_center_scene_p = self.mapToScene(pos)
+
+    def view_center_pos_get(self):
+        centerpos = QPointF(self.view.size().width() / 2, self.view.size().height() / 2)
+        self.view_center_scene_p = self.view.mapToScene(centerpos.toPoint())
+        p = self.mapFromScene(self.view_center_scene_p)
+        self.view_center_item_p = [p.x() / self.boundingRect().width(), p.y() / self.boundingRect().height()]
+
+    def zoom(self, factor, center=None):
+        if center is None:
+            center = self.mousecenter
+        if center == self.viewcenter:
+            self.view_center_pos_get()
+        elif center == self.itemcenter:
+            self.item_center_pos_get()
         """缩放
         :param factor: 缩放的比例因子
         """
@@ -668,10 +744,15 @@ class PageView(QGraphicsPixmapItem):
             return
         p = pixmap_page_load(self.pageinfo.doc, self.pageinfo.pagenum, ratio=factor * self.pageinfo.ratio)
         self.setPixmap(QPixmap(p))
+        if center != self.nocenter:
+            self.center_zoom(center)
+
         self.width = self.pixmap().width()
         self.height = self.pixmap().height()
         self.keep_clipbox_in_postion()
+
         self.ratio = factor
+
         e = events.PageItemUpdateEvent
         self.update_sginal_emit(where=e.ratioType)
         self.update()
@@ -718,9 +799,18 @@ class ToolsBar2(QGraphicsWidget):
         self.__event = {
             self.on_pageItem_changePage: self.on_pageItem_changePage_handle,
             self.on_pageItem_resize_event: self.on_pageItem_resize_event_handle,
+            objs.signals.on_PDFView_clicked: self.on_PDFView_clicked_handle,
+            objs.signals.on_pageItem_clicked: self.on_pageItem_clicked_handle,
         }
         self.__all_event = objs.AllEventAdmin(self.__event)
         self.__all_event.bind()
+
+    def on_PDFView_clicked_handle(self, event):
+        self.hide()
+
+    def on_pageItem_clicked_handle(self, event: "events.PageItemClickEvent"):
+        if event.sender.uuid != self.pageitem.uuid:
+            self.hide()
 
     def add_round(self):
         round = QGraphicsRectItem(QRectF(self.pixmap().rect()), parent=self)
@@ -745,7 +835,7 @@ class ToolsBar2(QGraphicsWidget):
                     self.on_button_fullscreen_clicked_handle, self.on_button_pageinfo_clicked_handle]
 
         buttons_dict = {}
-        gridpos = [(1, 2), (0, 0), (0, 1), (1, 0), (1, 1), (2, 0)]
+        gridpos = [(0, 5), (0, 0), (0, 1), (0, 2), (0, 3), (0, 4)]
         for i in range(6):
             buttons_dict[nameli[i]] = QToolButton()
             if iconli[i] != "":
@@ -819,17 +909,16 @@ class ToolsBar2(QGraphicsWidget):
         pageinfo = PageInfo(pageinfo.doc.name, pageinfo.pagenum + pagenum_delta, pageinfo.ratio)
         pageview_ratio = self.pageitem.pageview.ratio
         if modifiers == QtCore.Qt.ControlModifier:
+            self.on_pageItem_changePage.emit(
+                PageItemChangeEvent(pageInfo=pageinfo, pageItem=self.pageitem,
+                                    eventType=PageItemChangeEvent.updateType))
+        else:
             from .. import PageItem5
             pageitem = PageItem5(pageinfo, pageview_ratio=pageview_ratio)
 
             self.on_pageItem_addToScene.emit(
                 PageItemAddToSceneEvent(pageItem=pageitem, eventType=PageItemAddToSceneEvent.addPageType))
 
-        else:
-
-            self.on_pageItem_changePage.emit(
-                PageItemChangeEvent(pageInfo=pageinfo, pageItem=self.pageitem,
-                                    eventType=PageItemChangeEvent.updateType))
 
     def on_button_close_clicked_handle(self):
         self.on_pageItem_removeFromScene.emit(

@@ -1,5 +1,7 @@
+import json
 import os
 import time
+import uuid
 from math import ceil
 
 from PyQt5 import QtGui
@@ -150,15 +152,21 @@ class FinalExecution_masterJob(QThread):
         DB = objs.SrcAdmin.DB
         DB.go()
         for clipbox in clipboxlist:
+            pdfname = clipbox["pdfname"]
+            pdfuuid = str(uuid.uuid3(uuid.NAMESPACE_URL, pdfname))
+            objs.SrcAdmin.PDF_JSON.mount(pdfuuid, pdfname, page_shift=0, ratio=1).save()
+
+            clipbox["pdfuuid"] = pdfuuid
+            # print(clipbox)
             if DB.exists(clipbox["uuid"]):
                 result = DB.select(uuid=clipbox["uuid"]).return_all().zip_up()[0]
                 if result["card_id"].__contains__(clipbox["card_id"]):
                     clipbox["card_id"] = result["card_id"]
                 else:
                     result["card_id"] = clipbox["card_id"] + "," + result["card_id"]
-                DB.update(values=DB.value_maker(**clipbox), where=f"""uuid="{clipbox["uuid"]}" """).commit()
+                DB.update(values=DB.value_maker(**clipbox), where=f"""uuid="{clipbox["uuid"]}" """).commit(print)
             else:
-                DB.insert(**clipbox).commit()
+                DB.insert(**clipbox).commit(print)
             current += 1
             self.job_progress(self.state_insert_DB, 2, current / uuidcount)
             time.sleep(self.speed)

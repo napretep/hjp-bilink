@@ -31,20 +31,22 @@ from ..dialogs.DialogCardPrev import SingleCardPreviewerMod
 from ..dialogs.DialogSupport import SupportDialog
 from ..clipper.lib.Clipper import Clipper
 from . import funcs
+from . import all_objs
 
-addonName = BaseInfo().dialogName
-mw.__dict__[addonName] = {}
-mw.__dict__[addonName]["card_window"] = {}
+
+# addonName = BaseInfo().dialogName
+# mw.__dict__[addonName] = {}
+# mw.__dict__[addonName]["card_window"] = {}
 
 
 def func_open_clipper(pairs_li=None, clipboxlist=None, **kwargs):
-    if "clipper" not in mw.__dict__[addonName] or mw.__dict__[addonName]["clipper"] is None:
-        mw.__dict__[addonName]["clipper"] = Clipper()
-        mw.__dict__[addonName]["clipper"].start(pairs_li=pairs_li, clipboxlist=clipboxlist)
-        mw.__dict__[addonName]["clipper"].exec()
+    if not isinstance(all_objs.mw_win_clipper, Clipper):
+        all_objs.mw_win_clipper = Clipper()
+        all_objs.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
+        all_objs.mw_win_clipper.exec()
     else:
-        mw.__dict__[addonName]["clipper"].start(pairs_li=pairs_li, clipboxlist=clipboxlist)
-        mw.__dict__[addonName]["clipper"].activateWindow()
+        all_objs.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
+        all_objs.mw_win_clipper.activateWindow()
 
 
 def func_contactMe():
@@ -98,13 +100,13 @@ def DialogSingleCheck(Dialog):
     """单一窗口的打开"""
     consoler_Name = BaseInfo().dialogName
     dialog = Dialog.__name__
-    if dialog not in mw.__dict__[consoler_Name]:
-        mw.__dict__[consoler_Name][dialog] = None
-    if mw.__dict__[consoler_Name][dialog] is not None:
-        mw.__dict__[consoler_Name][dialog].activateWindow()
+    if dialog not in all_objs.mw_addonName:
+        all_objs.mw_addonName[dialog] = None
+    if all_objs.mw_addonName[dialog] is not None:
+        all_objs.mw_addonName[dialog].activateWindow()
     else:
-        mw.__dict__[consoler_Name][dialog] = Dialog()
-        mw.__dict__[consoler_Name][dialog].exec()
+        all_objs.mw_addonName[dialog] = Dialog()
+        all_objs.mw_addonName[dialog].exec()
     """返回input窗口"""
 
 def func_openAnchor(*args, **kwargs):
@@ -112,17 +114,13 @@ def func_openAnchor(*args, **kwargs):
     param = Params(**kwargs)
     card_id = param.pair.card_id
     dialog = AnchorDialog.__name__
-    addonName = BaseInfo().dialogName
-    if dialog not in mw.__dict__[addonName]:
-        mw.__dict__[addonName][dialog] = {}
-    dialog_dict = mw.__dict__[addonName][dialog]
-    if card_id not in dialog_dict:
-        dialog_dict[card_id] = None
-    if dialog_dict[card_id] is not None:
-        mw.__dict__[addonName][dialog][card_id].activateWindow()
+    if card_id not in all_objs.mw_anchor_window:
+        all_objs.mw_anchor_window[card_id] = None
+    if all_objs.mw_anchor_window[card_id] is not None:
+        all_objs.mw_anchor_window[card_id].activateWindow()
     else:
-        mw.__dict__[addonName][dialog][card_id] = AnchorDialog(param.pair, parent=param.parent)
-        mw.__dict__[addonName][dialog][card_id].exec()
+        all_objs.mw_anchor_window[card_id] = AnchorDialog(param.pair, parent=param.parent)
+        all_objs.mw_anchor_window[card_id].exec()
 
 
 def func_clearInput():

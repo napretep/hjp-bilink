@@ -10,6 +10,19 @@ import logging
 import tempfile
 
 
+def pdf_page_unique(results):
+    d = {}
+    for record in results:
+        if record["pdfuuid"] not in d:
+            d[record["pdfuuid"]] = {"pagenum": set(), "pdfname": record["pdfname"]}
+        d[record["pdfuuid"]]["pagenum"].add(record["pagenum"])
+    return d
+
+
+def pdf_uuid_read(uuid):
+    pass
+
+
 def show_clipbox_state():
     from . import ALL, events
     e = events.ClipboxStateSwitchEvent
@@ -167,11 +180,15 @@ def str_shorten(string, length=30):
         return string[0:int(length/2)-3]+"..."+string[-int(length/2):]
 
 
-def pixmap_page_load(doc: "Union[fitz.Document,str]", pagenum, ratio=1, browser=False, browse_size: "QSize" = None):
+def pixmap_page_load(doc: "Union[fitz.Document,str]", pagenum, ratio=1, browser=False, browse_size: "QSize" = None,
+                     callback=None):
     """从self.doc读取page,再转换为pixmap"""
     if type(doc) == str:
         doc = fitz.open(doc)
     pdfname = os.path.basename(doc.name)
+    # print(f"pagenum={pagenum}")
+    if callback:
+        callback(f"pagenum={pagenum},")
     page: "fitz.Page" = doc.load_page(pagenum)  # 加载的是页面
     tempdir = tempfile.gettempdir()
     tempPNGname = os.path.join(tempdir, f"{pdfname[0:-4]}_{pagenum}_{ratio}.png")
@@ -236,7 +253,7 @@ def do_nothing(*args, **kwargs):
     pass
 
 
-print = wrapper_print_debug(print)
+# print,_ = logger(__name__)
 
 if __name__ == "__main__":
     pass

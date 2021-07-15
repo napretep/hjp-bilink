@@ -7,6 +7,7 @@ from aqt.utils import showInfo
 
 from .backlink_reader import BackLinkReader
 from aqt import mw
+from . import funcs
 
 class DataSyncer:
     """

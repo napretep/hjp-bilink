@@ -8,3 +8,5 @@ ISDEBUG = False
 DEBUG_LEVEL = logging.DEBUG
 CONFIG = objs.CONFIG
 connects = {}
+pdfview = None
+clipper = None

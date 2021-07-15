@@ -434,7 +434,7 @@ class ClipboxMacroWidget(QWidget):
         self.G_Layout.addWidget(self.del_button, 1, 2)
         self.setLayout(self.G_Layout)
         self.view.verticalHeader().hide()
-        self.model.setHorizontalHeaderLabels(["step", "QA_map_Field", "textQA_map_Field"])
+        self.model.setHorizontalHeaderLabels(["step", "QA_map_Field", "commentQA_map_Field"])
         header = self.view.horizontalHeader()
         self.view.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         self.view.setColumnWidth(0, 20)

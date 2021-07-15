@@ -15,7 +15,6 @@ from aqt.previewer import Previewer
 from aqt.webview import AnkiWebView
 from aqt.browser import Browser
 
-
 THIS_FOLDER = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 USER_FOLDER = os.path.join(THIS_FOLDER, "user_files")
 JSONFile_FOLDER = os.path.join(USER_FOLDER,"linkdata")
@@ -144,19 +143,6 @@ if not os.path.exists(userInfoDir):
     json.dump({}, open(userInfoDir, "w", encoding="utf-8"), indent=4,
               ensure_ascii=False)
 
-def template_data(card_id,version):
-    json_data = {
-        "backlink":[],
-        "version": version,
-        "link_list": [],
-        "self_data": {
-            "card_id": str(card_id),
-            "desc": ""
-        },
-        "root": [],
-        "node": {}
-    }
-    return json_data
 
 def compatible_browser_sidebar_refresh(browser: Browser):
     """向下兼容browser的sidebar refresh api"""

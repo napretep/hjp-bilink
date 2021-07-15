@@ -3,9 +3,20 @@ class AllEvent:
         self.sender = sender
         self.Type = eventType
 
+
+class PDFViewClickedEvent(AllEvent):
+    leftclickType = 0
+    rightclickType = 1
+    doubleleftclickType = 2
+
+    def __init__(self, sender=None, eventType=None):
+        super().__init__(sender, eventType)
+
+
 class PageItemMouseReleasedEvent(AllEvent):
     def __init__(self, sender=None, eventType=None, ):
         super().__init__(sender, eventType)
+
 
 class ConfigAnkiDataLoadEvent(AllEvent):
     modelType = 0
@@ -155,14 +166,11 @@ class PageItemCenterOnProcessEvent:
         self.centerpos = centerpos
 
 
-class PagePickerPreviewerRatioAdjustEvent:
-    ZoomInType = 0
-    ZoomOutType = 1
+class PagePickerPreviewerRatioAdjustEvent(AllEvent):
 
-    def __init__(self, sender=None, eventType=None):
-        self.sender = sender
-        self.Type = eventType if eventType is not None else self.ZoomInType
-
+    def __init__(self, sender=None, eventType=None, data=None):
+        super().__init__(sender, eventType)
+        self.data = data
 
 class PagePickerPreviewerReadPageEvent:
     fromBrowserType = 0
@@ -343,13 +351,14 @@ class CardListDataChangedEvent(AllEvent):
         pass
 
 
-class PageItemClickEvent:
+class PageItemClickEvent(AllEvent):
     clickType = 0
     ctrl_rightClickType = 1
     leftClickType = 2
     rightClickType = 3
 
-    def __init__(self, pageitem: 'PageItem5' = None, eventType=None):
+    def __init__(self, sender=None, pageitem: 'PageItem5' = None, eventType=None):
+        super().__init__(sender, eventType)
         self.Type = eventType if eventType else self.clickType
         self.pageitem = pageitem
 

@@ -6,6 +6,8 @@ class BackLinkReader():
     def __init__(self,card_id="",html_str=""):
         if card_id !="":
             note = mw.col.getCard(int(card_id)).note()
+            if note is None:
+                raise ValueError("note is None")
             html_str = " ".join(note.fields)
         self.html_str = html_str
 

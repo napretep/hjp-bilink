@@ -3,13 +3,14 @@ import os
 import re
 from math import ceil
 
+import uuid
 from PyQt5 import QtGui
 from PyQt5.QtCore import QRegExp, Qt, QPointF, QMutex, QRectF, QTimer, pyqtSignal
 from PyQt5.QtGui import QIcon, QRegExpValidator, QStandardItem, QStandardItemModel, QPixmap
 from PyQt5.QtWidgets import QToolButton, QLineEdit, QDoubleSpinBox, QWidget, QGridLayout, QFileDialog, \
     QTreeView, QVBoxLayout, QGraphicsPixmapItem, QApplication, QProgressDialog, QSpinBox
 from ..tools import funcs, objs, events, ALL, Worker
-
+from . import Previewer__
 print, debugger = funcs.logger(logname=__name__)
 
 mutex = QMutex()
@@ -74,7 +75,7 @@ class ToolsBar(QWidget):
             self.pageoffset_spinbox.valueChanged: self.on_pageoffset_spinbox_valueChanged_handle,
             ALL.signals.on_pagepicker_PDFparse: self.on_pagepicker_PDFparse_handle,
             ALL.signals.on_pagepicker_browser_select_send: self.on_pagepicker_browser_select_send_handle,
-            ALL.signals.on_pagepicker_previewer_ratio_adjust: self.on_pagepicker_previewer_ratio_adjust_handle,
+            # ALL.signals.on_pagepicker_previewer_ratio_adjust: self.on_pagepicker_previewer_ratio_adjust_handle,
             ALL.signals.on_config_changed: self.on_config_changed_handle,
         }
         self.all_event = objs.AllEventAdmin(self.event_dict)
@@ -92,7 +93,6 @@ class ToolsBar(QWidget):
         self.config_dict = objs.SrcAdmin.get_config("clipper")
         self.ratio_value = self.config_dict["pagepicker.bottombar_page_ratio"]["value"]
         self.pagenum_value = self.config_dict["pagepicker.bottombar_page_num"]["value"]
-        # self.pdfDir
         pass
 
     def init_UI(self):
@@ -159,19 +159,19 @@ class ToolsBar(QWidget):
         self.pagejump.setDescText("page jump")
 
     def on_pageoffset_spinbox_valueChanged_handle(self, value):
-        pdf_info = json.load(open(objs.SrcAdmin.jsonDir.pdf_info, "r", encoding="utf-8"))
-        if self.pdfDir not in pdf_info:
-            pdf_info[self.pdfDir] = {}
-        pdf_info[self.pdfDir]["page_shift"] = value
-        json.dump(pdf_info, open(objs.SrcAdmin.jsonDir.pdf_info, "w", encoding="utf-8"),
-                  ensure_ascii=False, sort_keys=True, indent=4)
+        assert self.pdfDir is not None and os.path.exists(self.pdfDir)
+        pdf_info = objs.SrcAdmin.PDF_JSON
+        if not pdf_info.exists(pdfname=self.pdfDir):
+            pdf_info.mount(pdfname=self.pdfDir)
+        pdf_info[pdf_info.to_uuid(self.pdfDir)]["page_shift"] = value
+        pdf_info.save()
 
-    def on_pagepicker_previewer_ratio_adjust_handle(self, event: "events.PagePickerPreviewerRatioAdjustEvent"):
-        if event.Type == event.ZoomInType:
-            self.ratio_DBspinbox_setValue(self.ratio_DBspinbox.value() + 0.1)
-        elif event.Type == event.ZoomOutType:
-            self.ratio_DBspinbox_setValue(self.ratio_DBspinbox.value() - 0.1)
-        # self.ratio_value = self.ratio_DBspinbox.value()
+    # def on_pagepicker_previewer_ratio_adjust_handle(self, event: "events.PagePickerPreviewerRatioAdjustEvent"):
+    #     if event.Type == event.ZoomInType:
+    #         self.ratio_DBspinbox_setValue(self.ratio_DBspinbox.value() + 0.1)
+    #     elif event.Type == event.ZoomOutType:
+    #         self.ratio_DBspinbox_setValue(self.ratio_DBspinbox.value() - 0.1)
+    # self.ratio_value = self.ratio_DBspinbox.value()
 
     def ratio_DBspinbox_setValue(self, value):
         """public"""
@@ -181,9 +181,11 @@ class ToolsBar(QWidget):
     def on_ratio_DBspinbox_valueChanged_handle(self, value):
         # print(value)
         self.ratio_value = value
-        e = events.PagePickerPreviewerReadPageEvent
-        ALL.signals.on_pagepicker_preivewer_read_page.emit(
-            e(sender=self, eventType=e.reloadType)
+
+        # ALL.signals.on_pagepicker_previewer_ratio_adjust.emit()
+        e = events.PagePickerPreviewerRatioAdjustEvent
+        ALL.signals.on_pagepicker_previewer_ratio_adjust.emit(
+            e(sender=self, data=value)
         )
         # print("on_ratio_DBspinbox_valueChanged_handle")
 
@@ -289,32 +291,6 @@ class ToolsBar(QWidget):
         else:
             self.newPage_button.setDisabled(True)
 
-        # if self.frompageitem is not None:
-        #     if len(self.browser_selected_pagenumlist)>1:
-        #         self.update_button.setDisabled(True)
-        #     elif len(self.browser_selected_pagenumlist)==1:
-        #         self.update_button.setDisabled(False)
-        #     else:
-        #         if self.pagenum_lineEdit_isvalide and len(self.pagenum_valueSet)==1:
-        #             self.update_button.setDisabled(False)
-        #         else:
-        #             self.update_button.setDisabled(True)
-        # 添加页面按钮
-        # print(f"len(self.browser_selected_pagenumlist)={len(self.browser_selected_pagenumlist)}")
-        # if len(self.browser_selected_pagenumlist)==0:
-        #     if self.pagenum_lineEdit_isvalide:
-        #         self.newPage_button.setDisabled(False)
-        #     else:
-        #         self.newPage_button.setDisabled(True)
-        #
-        # if self.pdfDir is None:
-        #     self.update_button.setDisabled(True)
-        #     self.newPage_button.setDisabled(True)
-        # else:
-        #     if self.frompageitem is not None:
-        #         self.update_button.setDisabled(False)
-        #     self.newPage_button.setDisabled(False)
-
     def on_update_button_clicked_handle(self):
         from ..PageInfo import PageInfo
         pageinfoli = self.packup_pageinfo()
@@ -403,31 +379,39 @@ class ToolsBar(QWidget):
     def on_open_button_clicked_handle(self):
         default_path = objs.CONFIG.pagepicker.bottombar_default_path if objs.CONFIG.pagepicker.bottombar_default_path \
             else objs.SrcAdmin.get.user_files_dir()
-        path = os.path.dirname(self.open.label.toolTip()) if self.open.label.toolTip() else default_path
+        path = os.path.dirname(self.pdfDir) if self.pdfDir else default_path
         fileName_choose, filetype = QFileDialog.getOpenFileName(self, "选取文件", path, "(*.pdf)")
 
         if fileName_choose:
             e = events.PDFOpenEvent
             ALL.signals.on_pagepicker_PDFopen.emit(
                 e(path=fileName_choose, sender=self, beginpage=objs.CONFIG.pagepicker.bottombar_page_num))
+
         # else:
         #     # self.pagepicker.show()
         #     e = events.PagePickerCloseEvent
         #     ALL.signals.on_pagepicker_close.emit(e())
         pass
 
+    def ratio_state_check(self):
+        if not self.pdfDir:
+            self.ratio_DBspinbox.setDisabled(True)
+
     def on_pagepicker_PDFparse_handle(self, event: "events.PDFParseEvent"):
         if event.Type == event.PDFInitParseType:
             self.pdfDir = event.path
+            self.pdfDir
             # if self.pdfDir:
             pagenum = event.pagenum if event.pagenum else str(objs.CONFIG.pagepicker.bottombar_page_num)
             self.pagenum_lineEdit.setText(str(pagenum))
             # print(f"pdfDir= {self.pdfDir}")
-            pdf_info = json.load(open(objs.SrcAdmin.jsonDir.pdf_info, "r", encoding="utf-8"))
+            pdf_info = objs.SrcAdmin.PDF_JSON
             value = 0
-            if self.pdfDir is not None and self.pdfDir in pdf_info:
-                value = pdf_info[self.pdfDir]["page_shift"]
+            if pdf_info.exists(pdfname=self.pdfDir):
+                value = pdf_info.read(pdfname=self.pdfDir)["page_shift"]
             self.pageoffset_spinbox.setValue(value)
+            self.open.setToolTip(self.pdfDir)
+            self.open.setDescText(funcs.str_shorten(os.path.basename(self.pdfDir)))
             self.pagebutton_state_check()
 
     def init_signals(self):
@@ -437,8 +421,10 @@ class ToolsBar(QWidget):
         pass
 
     def __setattr__(self, key, value):
-        if key in self.__dict__ and key == "ratio_value" and "ratio_DBspinbox" in self.__dict__:
-            self.ratio_DBspinbox.setValue(value)
+        # print(f"""key=%s value=%s""" % (key, value))
+        if key in self.__dict__ and key == "ratio_value" \
+                and "ratio_DBspinbox" in self.__dict__ and self.ratio_DBspinbox.value() != value:
+            self.ratio_DBspinbox_setValue(value)
         if key in self.__dict__ and key == "pdfDir" and "open" in self.__dict__ and value is not None:
             self.open.setDescText(funcs.str_shorten(os.path.basename(value)))
             self.open.setToolTip(value)
@@ -803,15 +789,17 @@ class Previewer(QWidget):
 
     def scene_page_add(self, pagenum, reload=False, newdoc=None):
         from ..PageInfo import PageInfo
-        ratio = self.pagepicker.ratio_value_get()
-        doc = newdoc if newdoc is not None else self.pagepicker.doc
-        if reload:
-            pageinfo = PageInfo(doc.name, self.pagenum, ratio)
-        else:
-            pageinfo = PageInfo(doc.name, pagenum, ratio)
-            self.pagenum = pagenum
-        item = QGraphicsPixmapItem(pageinfo.pagepixmap)
+        # ratio = self.pagepicker.ratio_value_get()
+        self.doc = newdoc if newdoc is not None else self.pagepicker.doc
+        # if reload:
+        #     pageinfo = PageInfo(self.doc.name, self.pagenum, ratio)
+        # else:
+        #     pageinfo = PageInfo(self.doc.name, pagenum, ratio)
+        #     self.pagenum = pagenum
+        self.view.init_data(pdfname=self.doc.name, pagenum=pagenum)
+        item = Previewer__.Item(view=self.view)
         # item.setFlag(QGraphicsItem.ItemIsMovable)
+        self.view.single_item = item
         self.scene.clear()
         self.scene.addItem(item)
         self.scene.setSceneRect(0, 0, item.boundingRect().width(), item.boundingRect().height())

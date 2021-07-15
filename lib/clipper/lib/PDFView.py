@@ -16,6 +16,7 @@ class PDFView(QGraphicsView):
 
     def __init__(self, scene: 'QGraphicsScene', parent=None, clipper=None, *args, **kwargs):
         super().__init__(scene, parent=parent)
+        ALL.pdfview = self
         self.parent = parent
         self.clipper = clipper
         self.begin_drag = False
@@ -25,9 +26,9 @@ class PDFView(QGraphicsView):
         self.reset_ratio_value = 1
         self._delta = 0.1
         self.setTransformationAnchor(QGraphicsView.NoAnchor)
-        self.setRenderHints(QPainter.Antialiasing |  # 抗锯齿
-                            QPainter.HighQualityAntialiasing |  # 高精度抗锯齿
-                            QPainter.SmoothPixmapTransform)  # 平滑过渡 渲染设定
+        # self.setRenderHints(QPainter.Antialiasing |  # 抗锯齿
+        #                     QPainter.HighQualityAntialiasing |  # 高精度抗锯齿
+        #                     QPainter.SmoothPixmapTransform)  # 平滑过渡 渲染设定
         self.setCacheMode(self.CacheBackground)  # 缓存背景图, 这个东西用来优化性能
         self.setViewportUpdateMode(self.SmartViewportUpdate)  # 智能地更新视口的图
         self.setDragMode(self.ScrollHandDrag)
@@ -41,6 +42,8 @@ class PDFView(QGraphicsView):
             ALL.signals.on_pageItem_centerOn_process: self.on_pageItem_centerOn_process_handle,
             self.rubberBandChanged: self.on_rubberBandChanged_handle,
             ALL.signals.on_pageItem_clicked: self.on_pageItem_clicked_handle,
+            self.horizontalScrollBar().valueChanged: self.on_horizontalScrollBar_valueChanged_handle,
+            self.verticalScrollBar().valueChanged: self.on_verticalScrollBar_valueChanged_handle,
         }
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
@@ -51,6 +54,23 @@ class PDFView(QGraphicsView):
             self.curr_selected_item = event.pageitem
             self.setDragMode(QGraphicsView.RubberBandDrag)
             self.setCursor(Qt.CrossCursor)
+
+    def on_verticalScrollBar_valueChanged_handle(self, value):
+        if value == self.verticalScrollBar().maximum():
+            rect = self.sceneRect()
+            self.setSceneRect(rect.x(), rect.y(), rect.width(), rect.height() + 50)
+        elif value == self.verticalScrollBar().minimum():
+            rect = self.sceneRect()
+            self.setSceneRect(rect.x(), rect.y() - 50, rect.width(), rect.height())
+
+    def on_horizontalScrollBar_valueChanged_handle(self, value):
+        # print(f"curr_value={value},total_value={self.horizontalScrollBar().value()}")
+        if value == self.horizontalScrollBar().maximum():
+            rect = self.sceneRect()
+            self.setSceneRect(rect.x(), rect.y(), rect.width() + 50, rect.height())
+        elif value == self.horizontalScrollBar().minimum():
+            rect = self.sceneRect()
+            self.setSceneRect(rect.x() - 50, rect.y(), rect.width(), rect.height())
 
     def on_pageItem_centerOn_process_handle(self, event: "events.PageItemCenterOnProcessEvent"):
         self.centerOn(event.centerpos)
@@ -110,9 +130,9 @@ class PDFView(QGraphicsView):
     def on_pageItem_resize_event_handle(self, event: "events.PageItemResizeEvent"):
         """无论是全屏,还是恢复,都需要centerOn"""
         e = events.PageItemNeedCenterOnEvent
-        ALL.signals.on_pageItem_needCenterOn.emit(
-            e(eventType=e.centerOnType, pageitem=event.pageItem)
-        )
+        # ALL.signals.on_pageItem_needCenterOn.emit(
+        #     e(eventType=e.centerOnType, pageitem=event.pageItem)
+        # )
         pass
 
     def init_shortcuts(self):
@@ -157,6 +177,7 @@ class PDFView(QGraphicsView):
 
     def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
         modifiers = QApplication.keyboardModifiers()
+
         if (modifiers & Qt.ControlModifier) and (modifiers & Qt.ShiftModifier):
             e = events.PDFViewResizeViewEvent
             if event.angleDelta().y() > 0:

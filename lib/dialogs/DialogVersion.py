@@ -6,7 +6,10 @@ import os
 from PyQt5 import QtCore, QtWidgets, Qt
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from ...lib.obj.utils import THIS_FOLDER, BaseInfo
+from ..obj import all_objs, clipper_imports
 from aqt import mw
+
+print, _ = clipper_imports.funcs.logger(__name__)
 
 VERSION_FOLDER = BaseInfo().baseinfo["versionsDir"]
 INTRO_FOLDER = BaseInfo().baseinfo["introDocDir"]
@@ -122,9 +125,10 @@ class VersionDialog(QtWidgets.QDialog, Ui_version):
             self.webengine_render(item.dir)
 
     def onClose(self, QCloseEvent):
-        addonName = BaseInfo().dialogName
-        dialog = self.__class__.__name__
-        mw.__dict__[addonName][dialog] = None
+        # addonName = BaseInfo().dialogName
+        # dialog = self.__class__.__name__
+        all_objs.mw_VersionDialog = None
+        # mw.__dict__[addonName][dialog] = None
 
     def webengine_render(self, path):
         """可能需要这个"""

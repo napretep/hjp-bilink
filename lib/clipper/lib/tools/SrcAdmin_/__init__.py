@@ -1,17 +1,12 @@
+import logging
 import os, json
-import sqlite3
+import sqlite3, uuid
 import queue
 from PyQt5.QtGui import QIcon
 from aqt.utils import showInfo, aqt_data_folder
 
+print = showInfo
 
-# def importer():
-#     from . import funcs,objs,events
-#     return funcs,objs,events
-#
-# def importprint():
-#     from ..funcs import logger
-#     return logger(__name__)
 
 
 class Get:
@@ -42,7 +37,7 @@ class Get:
             fullpath = cls.json_dir("clipper")
             # print(fullpath)
             if not os.path.exists(fullpath):
-                print(f"{fullpath}不存在,重建中")
+                # print(f"{fullpath}不存在,重建中")
                 default_path = cls.json_dir("clipper.template")
                 default_dict_str = open(default_path, "r", encoding="utf-8").read()
                 cls.save_dict(fullpath, default_dict_str)
@@ -97,7 +92,7 @@ class JSONDir:
         self.clipper_template = Get._().json_dir("clipper.template")
         self.pdf_info = Get._().json_dir("pdf_info")
         if not os.path.exists(self.clipper):
-            json.dump(d, open(self.clipper, "w", encoding="utf-8"))
+            json.dump(d, open(self.clipper, "w", encoding="utf-8"), ensure_ascii=False, sort_keys=True, indent=4)
         if not os.path.exists(self.pdf_info):
             json.dump(d, open(self.pdf_info, "w", encoding="utf-8"), ensure_ascii=False, sort_keys=True, indent=4)
 
@@ -126,6 +121,12 @@ class IMGDir:
         self.goback = Get._().img_dir("icon_return.png")
         self.stop = Get._().img_dir("icon_stop.png")
         self.clear = Get._().img_dir("icon_clear.png")
+        self.singlepage = Get._().img_dir("icon_SinglePage.png")
+        self.doublepage = Get._().img_dir("icon_DoublePage.png")
+        self.fit_in_width = Get._().img_dir("icon_fitin_width.png")
+        self.fit_in_height = Get._().img_dir("icon_fitin_height.png")
+        self.mouse_mid_button = Get._().img_dir("icon_fitin_width.png")
+        self.mouse_wheel_zoom = Get._().img_dir("icon_mouse_wheel_zoom.png")
 
 
 class DB(object):
@@ -150,7 +151,7 @@ textQA integer not null,
 card_id varchar not null,
 ratio float not null,
 pagenum integer not null,
-pdfname varchar not null
+pdfuuid varchar not null
 )"""
     sqlstr_TABLE_PRAGMA = """PRAGMA table_info({tablename})"""
     sqlstr_TABLE_ALTER = """alter table {tablename} add column {colname} {define}"""
@@ -173,11 +174,11 @@ pdfname varchar not null
         "card_id": "varchar not null",
         "ratio": "float not null",
         "pagenum": "integer not null",
-        "pdfname": "varchar not null",
+        "pdfuuid": "varchar not null",
     }
     constrain = {
         "number": ["textQA", "QA", "x", "y", "w", "h", "ratio", "pagenum"],
-        "string": ["uuid", "card_id", "text_", "pdfname"]
+        "string": ["uuid", "card_id", "text_", "pdfuuid"]
     }
 
     def __init__(self):
@@ -194,12 +195,12 @@ pdfname varchar not null
         table_fields = set([i[1] for i in pragma])
         compare_fields = set(self.table_all_column_names.keys())
         if len(compare_fields) > len(table_fields):
-            print("update table fields")
+            # print("update table fields")
             need_add_fields = list(compare_fields - table_fields)
             for field in need_add_fields:
                 self.alter_add_col(field).commit()
             # print(add_fields)
-            print("fields added")
+            # print("fields added")
 
     def pragma(self):
         s = self.sqlstr_TABLE_PRAGMA.format(tablename=self.tab_name)
@@ -217,13 +218,16 @@ pdfname varchar not null
         self.excute_queue = []
         self.result_queue = []
         self.connection = sqlite3.connect(self.db_dir)
+
         self.cursor = self.connection.cursor()
         self.table_ifEmpty_create().commit()
         self.table_fields_align()
         return self
 
     def end(self):
-        self.connection.close()
+        if self.connection is not None:
+            self.connection.close()
+
 
     # 存在性检查,如果为空则创建
     def table_ifEmpty_create(self, tablename=""):
@@ -235,7 +239,7 @@ pdfname varchar not null
 
     def exists(self, uuid):
         result = self.exists_check(uuid).return_all()
-        print("exists {}".format(result))
+        # print("exists {}".format(result))
         return result[0][0] > 0
 
     # 存在性检查
@@ -251,25 +255,35 @@ pdfname varchar not null
             return v
 
     def where_maker(self, **values):
-        print(values)
+        # print(values)
         where = ""
-        for k, v in values.items():
-            if v is not None:
-                where += f""" {k}={self.valCheck(k, v)} """
-        if where == "":
-            raise ValueError("where is empty!")
+        if "IN" in values:
+            colname = values["colname"]
+            val_li = ",".join([self.valCheck(colname, val) for val in values["vals"]])
+            where = f""" {colname} in ({val_li})"""
+        elif "LIKE" in values:
+            colname = values["colname"]
+            vals = values["vals"]
+            where = f""" {colname} like "{vals}" """
+        else:
+            for k, v in values.items():
+                if v is not None and k in self.table_all_column_names:
+                    where += f""" {k}={self.valCheck(k, v)} """
+            if where == "":
+                raise ValueError("where is empty!")
         return where
 
     def value_maker(self, **values):
         value = ""
         for k, v in values.items():
-            value += f""" {k}={self.valCheck(k, v)} ,"""
+            if k in self.table_all_column_names:
+                value += f""" {k}={self.valCheck(k, v)} ,"""
         if value == "":
             raise ValueError("values is empty!")
         return value[0:-1]
 
     # 查
-    def select(self, uuid: "str" = None, card_id: "str" = None, pagenum: "int" = None, pdfname: "str" = None,
+    def select(self, uuid: "str" = None, card_id: "str" = None, pagenum: "int" = None, pdfuuid: "str" = None,
                text_: "str" = None, where=None, limit=None, like=None, **kwargs):
         """# 简单的查询, 支持等于,包含,两种搜索条件,
         如果你想搜所有的记录,那么就输入 true=True
@@ -277,11 +291,11 @@ pdfname varchar not null
 
         if like is None:
             if where is None:
-                where = self.where_maker(uuid=uuid, card_id=card_id, pagenum=pagenum, pdfname=pdfname, text_=text_,
+                where = self.where_maker(uuid=uuid, card_id=card_id, pagenum=pagenum, pdfuuid=pdfuuid, text_=text_,
                                          **kwargs)
             s = self.sqlstr_RECORD_SELECT.format(tablename=self.tab_name, where=where)
         else:
-            colname = list(filter(lambda x: x is not None, [pdfname, card_id]))[0]
+            colname = list(filter(lambda x: x is not None, [pdfuuid, card_id]))[0]
             s = self.sqlstr_RECORD_SELECT.format(tablename=self.tab_name, where=f"{colname} like '{like}'")
         s += (f"limit {limit}" if limit is not None else "")
         self.excute_queue.append(s)
@@ -293,7 +307,8 @@ pdfname varchar not null
     #     return result
 
     # 改
-    def update(self, values, where):
+    def update(self, values=None, where=None):
+        assert values is not None and where is not None
         """values 和 where 可以用 valuemaker和wheremaker设计， 也可以自己设计"""
         s = self.sqlstr_RECORD_UPDATE.format(tablename=self.tab_name, values=values, where=where)
         self.excute_queue.append(s)
@@ -304,6 +319,8 @@ pdfname varchar not null
         cols = ""
         vals = ""
         for k, v in values.items():
+            if k not in self.table_all_column_names:
+                continue
             cols += k + ","
             vals += f"{self.valCheck(k, v)},"  # 最后一个逗号要去掉
         s = self.sqlstr_RECORD_INSERT.format(tablename=self.tab_name, cols=cols[0:-1], vals=vals[0:-1])
@@ -311,23 +328,27 @@ pdfname varchar not null
         return self
 
     # 删
-    def delete(self, uuid: "str" = None, card_id: "str" = None, pagenum: "int" = None, pdfname: "str" = None,
+    def delete(self, uuid: "str" = None, card_id: "str" = None, pagenum: "int" = None, pdfuuid: "str" = None,
                text_: "str" = None):
-        where = self.where_maker(uuid=uuid, card_id=card_id, pagenum=pagenum, pdfname=pdfname, text_=text_)
+        where = self.where_maker(uuid=uuid, card_id=card_id, pagenum=pagenum, pdfuuid=pdfuuid, text_=text_)
         s = self.sqlstr_RECORD_DELETE.format(tablename=self.tab_name, where=where)
         self.excute_queue.append(s)
         return self
 
-    def return_all(self):
+    def return_all(self, callback=None):
         s = self.excute_queue.pop(0)
-        print(s)
+        # print(s)
         if s != "":
+            if callback:
+                callback(s)
             result = self.cursor.execute(s).fetchall()
             return DBResults(result, self.table_all_column_names)
 
-    def commit(self):
+    def commit(self, callback=None):
         s = self.excute_queue.pop(0)
         if s != "":
+            if callback:
+                callback(s)
             result = self.cursor.execute(s)
             self.connection.commit()
             return result
@@ -340,7 +361,7 @@ class DBResults(object):
         self.results: "list" = results
         self.table_all_column_names = table_all_column_names
 
-    def zip_up(self):
+    def zip_up(self, compatible=True):
         new_results = []
         for result in self.results:
             record = {}
@@ -348,6 +369,9 @@ class DBResults(object):
             for col in (step1):
                 record[col[0]] = col[1]
             new_results.append(record)
+        PDFinfo = PDFJSON().load()
+        for result in new_results:
+            result["pdfname"] = PDFinfo.read(result["pdfuuid"])["pdf_path"]
         return new_results
 
     def __getitem__(self, key):
@@ -361,6 +385,59 @@ class DBResults(object):
 
     def __iter__(self):
         return self.results.__iter__()
+
+
+class PDFJSON(object):
+    from .. import objs
+    def __init__(self):
+        self.data = {}
+
+    def load(self):
+        self.pdf_json_dir = JSONDir().pdf_info
+        self.data = json.load(open(self.pdf_json_dir, "r", encoding="utf-8"))
+        return self
+
+    def save(self):
+        json.dump(self.data, open(self.pdf_json_dir, "w", encoding="utf-8"),
+                  ensure_ascii=False, sort_keys=True, indent=4)
+        return self
+
+    def exists(self, pdfuuid=None, pdfname=None):
+        if pdfname is not None:
+            pdfuuid = self.to_uuid(pdfname)
+        return pdfuuid in self.data
+
+    def to_uuid(self, pdfname):
+        return str(uuid.uuid3(uuid.NAMESPACE_URL, pdfname))
+
+    def read(self, uuid=None, pdfname=None):
+        """根据uuid查找PDF名字, 也可以传入pdfname转化为uuid"""
+        if pdfname is not None:
+            uuid = self.to_uuid(pdfname)
+        if uuid in self.data:
+            return self.data[uuid]
+        else:
+            raise TypeError(f"uuid={uuid},not found")
+
+    def mount(self, uuid=None, pdfname=None, **kwargs):
+        if pdfname is not None:
+            uuid = self.to_uuid(pdfname)
+        if uuid not in self.data:
+            self.data[uuid] = {
+                "pdf_path": pdfname
+            }
+        for key, val in kwargs.items():
+            self.data[uuid][key] = val
+        return self
+
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    def __contains__(self, item):
+        return item in self.data
 
 
 # funcs=importfuncs()

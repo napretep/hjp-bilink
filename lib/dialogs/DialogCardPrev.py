@@ -1,12 +1,13 @@
 # this code copied from https://ankiweb.net/shared/info/1423933177
 import aqt
+from PyQt5 import QtGui
 from anki.lang import _
 from aqt import qconnect, QPushButton, QHBoxLayout, QDialogButtonBox, QKeySequence, QCheckBox
 from aqt.previewer import Previewer
 from anki.cards import Card
 from aqt.utils import tooltip
 from ..obj.utils import BaseInfo
-
+from ..obj import funcs
 from .DialogCardEditor import EditNoteWindowFromThisLinkAddon, external_note_dialog
 
 
@@ -44,6 +45,7 @@ class SingleCardPreviewer(Previewer):
 
 
 class SingleCardPreviewerMod(SingleCardPreviewer):
+
     def _on_bridge_cmd(self, cmd):
         super()._on_bridge_cmd(cmd)
 
@@ -87,10 +89,13 @@ class SingleCardPreviewerMod(SingleCardPreviewer):
         note = self.mw.col.getNote(self.card().nid)
         external_note_dialog(note)
         aqt.QDialog.reject(self)
+        funcs.PDFprev_close(self.card().id, all=True)
 
     def onShowRatingBar(self):
         pass
 
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        funcs.PDFprev_close(self.card().id, all=True)
 
 def unregister(card_id, *args, **kwargs):
     addonName = BaseInfo().dialogName

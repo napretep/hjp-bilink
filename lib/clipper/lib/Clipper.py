@@ -81,6 +81,19 @@ class Clipper(QDialog):
         objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_M), self, activated=lambda: objs.macro.on_switch.emit())
         objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_P), self, activated=lambda: objs.macro.on_pause.emit())
 
+    def mouseDoubleClickEvent(self, event: QtGui.QMouseEvent) -> None:
+        e = events.PDFViewClickedEvent
+        ALL.signals.on_PDFView_clicked.emit(e(sender=self, eventType=e.doubleleftclickType))
+        super().mousePressEvent(event)
+
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        e = events.PDFViewClickedEvent
+        if event.buttons() == Qt.LeftButton:
+            ALL.signals.on_PDFView_clicked.emit(e(sender=self, eventType=e.leftclickType))
+        elif event.buttons() == Qt.RightButton:
+            ALL.signals.on_PDFView_clicked.emit(e(sender=self, eventType=e.rightclickType))
+        super().mousePressEvent(event)
+
     def keyReleaseEvent(self, event: QtGui.QKeyEvent) -> None:
         if not event.modifiers() & Qt.ControlModifier:
             if self.clipboxstateshowed:
@@ -251,14 +264,25 @@ class Clipper(QDialog):
             # 批量添加到cardlist
             for pair in pairs_li:
                 self.rightsidebar.card_list_add(desc=pair["desc"], card_id=pair["card_id"], newcard=False)
-            pdf_page_li = self.pdf_info_card_id_li_load(pairs_li)
-            if len(pdf_page_li) > 0:
-                self.start_mainpage_loader(pdf_page_li)
+            pdfinfo_dict = self.pdf_info_card_id_li_load(pairs_li)
+            pdf_page_ratio = []
+
+            for k, v in pdfinfo_dict.items():
+                PDF_JSON = objs.SrcAdmin.PDF_JSON
+                if PDF_JSON.exists(k) and "ratio" in PDF_JSON[k]:
+                    ratio = PDF_JSON.read(k)["ratio"]
+                else:
+                    ratio = 1
+                for pagenum in v["pagenum"]:
+                    pdf_page_ratio.append((v["pdfname"], pagenum, ratio))
+
+            if len(pdf_page_ratio) > 0:
+                self.start_mainpage_loader(pdf_page_ratio)
             pass
         else:
             QTimer.singleShot(50, self.check_empty)
 
-    def start_mainpage_loader(self, pdf_page_li):
+    def start_mainpage_loader(self, pdf_page_ratio):
         if self.mainwin_pageload_worker is None:
             self.mainwin_pageload_worker = Worker.MainWindowPageLoadWorker()
         self.worker_signal_func_dict = {
@@ -272,7 +296,7 @@ class Clipper(QDialog):
         }
         signal_sequence = [[], ["print"], []]
         self.mainwin_pageload_worker.data_load(1, signal_func_dict=self.worker_signal_func_dict,
-                                               signal_sequence=signal_sequence, pdf_page_list=pdf_page_li)
+                                               signal_sequence=signal_sequence, pdf_page_list=pdf_page_ratio)
         self.mainwin_pageload_worker.start()
         self.pageload_progress = objs.UniversalProgresser(self)
 
@@ -281,12 +305,10 @@ class Clipper(QDialog):
         pdf_info = []  # 每个单元为 pdf地址与页码
         for pair in pairli:
             results = DB.select(card_id="card_id", like=f"%{pair['card_id']}%").return_all().zip_up()
-            if len(results) > 0:
-                for result in results:
-                    d = (result["pdfname"], result["pagenum"], result["ratio"])
-                    if d not in pdf_info:
-                        pdf_info.append(d)
-        # print(pdf_info)
+            for result in results:
+                pdf_info.append(result)
+        pdf_info = funcs.pdf_page_unique(pdf_info)
+
         return pdf_info
 
     def clear(self):
@@ -301,10 +323,7 @@ class Clipper(QDialog):
         funcs.event_handle_disconnect(objs.AllEvents)
         self.frame_load_worker.quit()
         objs.signals.on_clipper_closed.emit()
-        # Worker.frame_load_worker.quit()
-    #
-    # def __del__(self):
-    #     funcs.event_handle_disconnect(objs.AllEvents)
+        objs.SrcAdmin.DB.end()
 
 
 if __name__ == '__main__':

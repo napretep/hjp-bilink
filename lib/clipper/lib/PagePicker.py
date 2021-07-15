@@ -131,7 +131,8 @@ class PagePicker(QDialog):
             self.doc: "fitz.Document" = fitz.open(event.path)
             e = events.PDFParseEvent
             ALL.signals.on_pagepicker_PDFparse.emit(
-                e(sender=self, eventType=e.PDFInitParseType, path=event.path, doc=self.doc, pagenum=event.beginpage))
+                e(sender=self, eventType=e.PDFInitParseType, path=(event.path).replace("\\", "/"), doc=self.doc,
+                  pagenum=event.beginpage))
         else:
             self.browser.scene.clear()
             self.previewer.scene.clear()
@@ -143,6 +144,9 @@ class PagePicker(QDialog):
     def ratio_value_get(self):
         """这些接口太深了,所以提出来一点"""
         return self.toolsbar.ratio_value
+
+    def ratio_value_set(self, value):
+        self.toolsbar.ratio_value = value
 
     def pageshift_value_get(self):
         return self.toolsbar.pageoffset_spinbox.value()

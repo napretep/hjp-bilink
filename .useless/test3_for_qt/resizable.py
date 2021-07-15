@@ -31,7 +31,7 @@ class ResizableRect(QGraphicsRectItem):
             self.selected_edge = 'bottom'
         else:
             self.selected_edge = None
-        self.click_pos = event.pos()
+        # self.click_pos = event.pos()
         self.click_rect = rect
         super().mousePressEvent(event)
 
@@ -46,9 +46,7 @@ class ResizableRect(QGraphicsRectItem):
         rect = QRectF(self.click_rect)
 
         # Then adjust by the distance the mouse moved.
-        if self.selected_edge is None:
-            rect.translate(x_diff, y_diff)
-        elif self.selected_edge == 'top':
+        if self.selected_edge == 'top':
             rect.adjust(0, y_diff, 0, 0)
         elif self.selected_edge == 'left':
             rect.adjust(x_diff, 0, 0, 0)

@@ -115,6 +115,7 @@ class CustomSignals(QObject):
     on_config_ankidata_load_end = pyqtSignal(object)  # ConfigAnkiDataLoadEndEvent
 
     on_PDFView_ResizeView = pyqtSignal(object)  # PDFViewResizeViewEvent
+    on_PDFView_clicked = pyqtSignal(object)  # PDFViewClickedEvent
 
     on_get_clipper = pyqtSignal(object)  # GetClipperEvent
     on_clipper_closed = pyqtSignal()
@@ -185,6 +186,7 @@ class SrcAdmin:
     get_config = SrcAdmin_.Get._().config_dict
     save_config = SrcAdmin_.Get._().save_dict
     DB = SrcAdmin_.DB()
+    PDF_JSON = SrcAdmin_.PDFJSON().load()
 
     @classmethod
     def call(cls):

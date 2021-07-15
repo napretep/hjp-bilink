@@ -2,7 +2,7 @@ from json.decoder import JSONDecodeError
 from aqt.utils import showInfo
 
 from .languageObj import rosetta as say
-from .HTML_converterObj import HTML_converter
+
 from .inputObj import Input
 from .utils import Pair, console
 

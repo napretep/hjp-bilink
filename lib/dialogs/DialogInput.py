@@ -9,9 +9,9 @@ from .DialogCardPrev import external_card_dialog
 from ..obj.utils import Config
 from .metaUIobj import SpecialTreeItem, item_insert_rows
 from ..obj.languageObj import rosetta as say
-from ..obj import imports
+from ..obj import clipper_imports, all_objs
 
-print, printer = imports.funcs.logger(__name__)
+print, printer = clipper_imports.funcs.logger(__name__)
 
 
 class InputDialog(QDialog, Ui_input):
@@ -35,15 +35,17 @@ class InputDialog(QDialog, Ui_input):
 
     def signup(self):
         """注册到主窗口"""
-        addonName = self.baseinfo.dialogName
-        dialog = self.__class__.__name__
-        mw.__dict__[addonName][dialog] = self
+        # addonName = self.baseinfo.dialogName
+        # dialog = self.__class__.__name__
+        all_objs.mw_input_window = self
+        # mw.__dict__[addonName][dialog] = self
 
     def signout(self):
         """注销"""
-        addonName = self.baseinfo.dialogName
-        dialog = self.__class__.__name__
-        mw.__dict__[addonName][dialog] = None
+        # addonName = self.baseinfo.dialogName
+        # dialog = self.__class__.__name__
+        all_objs.mw_input_window = None
+        # mw.__dict__[addonName][dialog] = None
 
     # @debugWatcher
     def UI_init(self, *args, **kwargs):

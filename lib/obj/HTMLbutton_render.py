@@ -8,14 +8,19 @@ from .backlink_reader import BackLinkReader
 from .inputObj import Input
 from .handle_DB import LinkDataDBmanager
 from .utils import BaseInfo, Pair, console, Config, THIS_FOLDER
-from .HTML_converterObj import HTML_converter
+
 from .linkData_reader import LinkDataReader
 import os
 from . import funcs
+from . import clipper_imports
+
+print, _ = clipper_imports.funcs.logger(__name__)
+
 
 class FieldHTMLData(Config):
-    def __init__(self, html: str):
+    def __init__(self, html: str, card_id=None):
         super().__init__()
+        self.card_id = card_id
         self.html_str = html
         self.output_str = ""
         self.html_root = BeautifulSoup(self.html_str, "html.parser")
@@ -38,11 +43,11 @@ class AnchorButtonMaker(FieldHTMLData):
                         div
     """
 
-    def build(self, data: dict):
+    def build(self):
         """直接的出口, 返回HTML的string"""
+        data = LinkDataReader(self.card_id).read()
         self.data = data
-        # self.anchor_el_find()    #找到anchor 的元素所在位置, 一般如果用户预设了位置,那么就会出现在那里,如果没有预设,那么就会新建一个.
-        # self.style_el_create()   #找到anchor后要给他插入预先设置的style元素
+        if "backlink" not in data: data["backlink"] = []
         self.cascadeDIV_create()  # 这个名字其实取得不好,就是反链的设计
         self.backlink_create()  # 这个是文内链接的设计,顺便放着的,因为用的元素基本一样.
         return self.html_root.__str__()
@@ -55,24 +60,7 @@ class AnchorButtonMaker(FieldHTMLData):
         b.string = cardinfo["dir"] + cardinfo["desc"]
         return b
 
-    # def anchor_el_find(self):
-    #     self.anchorname = self.user_cfg["button_appendTo_AnchorId"] \
-    #         if self.user_cfg["button_appendTo_AnchorId"] != "" else "anchor_container"
-    #     resultli = self.html_page.select(f"#{self.anchorname}")
-    #     if len(resultli) > 0:
-    #         self.anchor_el: element.Tag = resultli[0]
-    #     else:
-    #         self.anchor_el: element.Tag = self.html_page.new_tag("div", attrs={"id": self.anchorname})
-    #         self.html_page.insert(1, self.anchor_el)
-
     def cascadeDIV_create(self):
-        # L0 = self.html_page.new_tag("div", attrs={"class": "container_L0"})
-        # header_L1 = self.html_page.new_tag("div", attrs={"class": "container_header_L1"})
-        # header_L1.string = "hjp_bilink"
-        # body_L1 = self.html_page.new_tag("div", attrs={"class": "container_body_L1"})
-        # L0.append(header_L1)
-        # L0.append(body_L1)
-
         for item in self.data["root"]:
             if "card_id" in item:
                 L2 = self.button_make(item["card_id"])
@@ -81,12 +69,6 @@ class AnchorButtonMaker(FieldHTMLData):
             self.anchor_body_L1.append(L2)
 
     def details_make(self, nodename):
-        # details = self.html_root.new_tag("details", attrs={"class": "hjp_bilink details"})
-        # summary = self.html_root.new_tag("summary")
-        # summary.string = nodename
-        # div = self.html_root.new_tag("div")
-        # details.append(summary)
-        # details.append(div)
         details, div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, nodename)
         li = self.data["node"][nodename]
         for item in li:
@@ -97,12 +79,6 @@ class AnchorButtonMaker(FieldHTMLData):
             div.append(L2)
         return details
 
-    # def style_el_create(self):
-    #     style_str = open(os.path.join(THIS_FOLDER, self.base_cfg["anchorCSSFileName"]), "r", encoding="utf-8").read()
-    #     style = self.html_page.new_tag("style")
-    #     style.string = style_str
-    #     self.anchor_el.append(style)
-
     def backlink_create(self):
         h = self.html_root
         if "backlink" in self.data:
@@ -111,10 +87,6 @@ class AnchorButtonMaker(FieldHTMLData):
                 return None
         else:
             return None
-        # details = h.new_tag("details", attrs={"class": "hjp_bilink details","open":""})
-        # summary = h.new_tag("summary")
-        # summary.string = "referenced_in_text"
-        # details.append(summary)
         details, div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "referenced_in_text",
                                                                   attr={"open": ""})
         for card_id in card_id_li:
@@ -127,10 +99,8 @@ class AnchorButtonMaker(FieldHTMLData):
         self.anchor_body_L1.append(details)
     pass
 
-
 class InTextButtonMaker(FieldHTMLData):
     """负责将[[link:card-id_desc_]]替换成按钮"""
-
     def build(self):
         buttonli=BackLinkReader(html_str = self.html_str).backlink_get()
         if len(buttonli)>0:
@@ -154,19 +124,67 @@ class InTextButtonMaker(FieldHTMLData):
 
 
 class PDFPageButtonMaker(FieldHTMLData):
+    def build(self):
+        """
+        需要在  CLIPBOX_INFO_TABLE 先搜索card_id,获得clipbox from DB,后 根据卡片里的 class.clipbox 获得clipbox from field
+        作差, DB-Field>0, 删除多余的card_id
+        作差, Field-DB>0, 将多出来的加card_id
+        以上工作做完后, 开始插入链接,链接的href格式: hjp-bilink-clipid:clipboxUuid.
+        js监听器获得clipboxUuid后再选出文件进行打开
+        Returns:
+
+        """
+        funcs.HTML_clipbox_sync_check(self.card_id.__str__(), self.html_root)
+        PDF_page_dict = funcs.HTML_clipbox_PDF_info_dict_read(self.html_root)
+        self.cascadeDIV_create(PDF_page_dict)
+        return self.html_root.__str__()
+
+    def button_make(self, uuid, pagenum, desc):
+        """"""
+        h = self.html_root
+        b = h.new_tag("button", attrs={"card_id": "card_id", "class": "hjp-bilink anchor button",
+                                       "onclick": f"""javascript:pycmd('hjp-bilink-clipuuid:{uuid}_{pagenum}');"""})
+
+        b.string = desc
+        return b
+
+    def cascadeDIV_create(self, PDF_page_dict):
+        """层级只有两层,PDF名字和页码,页码显示为PDFpage:,BookPage:
+        PDF_page_dict={uuid:{pagenum:{},pdfname:{}}}
+        """
+        assert isinstance(PDF_page_dict, dict)
+        PDF_baseinfo_dict = clipper_imports.objs.SrcAdmin.PDF_JSON.load().data
+        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "clipped_PDF_from")
+        for pdfuuid, name_page in PDF_page_dict.items():  # {uuid:{pagenum:{},pdfname:""}}
+            if pdfuuid in PDF_baseinfo_dict and "page_shift" in PDF_baseinfo_dict[pdfuuid]:
+                page_shift = PDF_baseinfo_dict[pdfuuid]["page_shift"]
+            else:
+                page_shift = 0
+            pdfname = clipper_imports.funcs.str_shorten(os.path.basename(name_page["pdfname"]))
+            pagenumlist = list(name_page["pagenum"])
+            details2, div2 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, pdfname, attr={"open": ""})
+            details1.append(details2)
+            for pagenum in pagenumlist:
+                uuid = pdfuuid
+                desc = f""" pdf_page_at: {pagenum}, book_page_at:{pagenum + page_shift} """
+                button = self.button_make(uuid, pagenum, desc)
+                div2.append(button)
+        self.anchor_body_L1.append(details1)
+
     pass
 
 def HTMLbutton_make(htmltext, card):
     html_string = htmltext
     data = LinkDataReader(str(card.id)).read()
-    if "backlink" not in data: data["backlink"] = []
+
     if len(data["link_list"]) > 0 or len(data["backlink"]) > 0:
-        html_string = AnchorButtonMaker(html_string).build(data)
+        html_string = AnchorButtonMaker(html_string, card_id=card.id).build()
+        # print(html_string)
     hasInTextButton = len(BackLinkReader(html_str=htmltext).backlink_get()) > 0
     if hasInTextButton:
         html_string = InTextButtonMaker(html_string).build()
     if funcs.HTML_clipbox_exists(html_string):
-        PDFPageButtonMaker(html_string)
+        html_string = PDFPageButtonMaker(html_string, card_id=card.id).build()
     return html_string
 
 

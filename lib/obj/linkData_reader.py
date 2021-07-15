@@ -43,7 +43,8 @@ from aqt.utils import showInfo
 from .handle_DB import LinkDataDBmanager
 from .languageObj import rosetta as say
 from .linkData_syncer import DataSyncer
-from .utils import BaseInfo, Pair, console, Config, USER_FOLDER, JSONFile_FOLDER, template_data
+from .utils import BaseInfo, Pair, console, Config, JSONFile_FOLDER
+from . import funcs
 from bs4 import BeautifulSoup, element
 from aqt import mw
 
@@ -51,6 +52,19 @@ from aqt import mw
 # class FieldHandler(Config):
 # """可能是将来的统一类, 用来操作从field中提取"""
 
+def template_data(card_id, version):
+    json_data = {
+        "backlink": [],
+        "version": version,
+        "link_list": [],
+        "self_data": {
+            "card_id": str(card_id),
+            "desc": funcs.desc_extract(card_id, fromField=True)
+        },
+        "root": [],
+        "node": {}
+    }
+    return json_data
 
 
 class LinkDataReader(Config):

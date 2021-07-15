@@ -8,12 +8,12 @@ from math import ceil
 import tempfile
 
 from aqt.utils import showInfo
-from . import imports
+from . import clipper_imports
 # from .imports import events, fitz, objs,funcs
 from anki import stdmodels, notes
 from aqt import mw, browser
 
-print, printer = imports.funcs.logger(__name__)
+print, printer = clipper_imports.funcs.logger(__name__)
 
 pngfileprefix = "hjp_clipper_"
 
@@ -63,7 +63,9 @@ def on_anki_field_insert_handle1(self, clipboxlist: "list"):
     bookdict = {}
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     # print(f"before loop, timestamp={timestamp}")
-    for clipbox in clipboxlist:
+    DB = clipper_imports.objs.SrcAdmin.DB.go()
+    for clipbox_ in clipboxlist:  # must fetch from DB
+        clipbox = DB.select(uuid=clipbox_["uuid"]).return_all().zip_up()[0]
         count += 1
         self.job_progress(self.state_insert_DB, 3, count / total)
         # self.on_job_progress.emit([self.state_insert_cardfield,ceil( 100*2/self.job_part+(count/total)*100/self.job_part )])
@@ -74,17 +76,17 @@ def on_anki_field_insert_handle1(self, clipboxlist: "list"):
             note = mw.col.getCard(int(card_id)).note()
             html = reduce(lambda x, y: x + "\n" + y, note.fields)
             if clipbox["uuid"] not in html:
-                note.fields[clipbox[
-                    "QA"]] += f"""<img class="hjp_clipper_clipbox" src="{pngfileprefix}{clipbox["uuid"]}_.png">\n"""
+                note.fields[clipbox["QA"]] += \
+                    f"""<img class="hjp_clipper_clipbox" src="{pngfileprefix}{clipbox["uuid"]}_.png">\n"""
             if clipbox["text_"] != "" and clipbox["uuid"] not in html:
-                note.fields[clipbox[
-                    "textQA"]] += f"""<img class="hjp_clipper_clipbox text" id="{clipbox["uuid"]}" alt="{clipbox["text_"]}">\n"""
+                note.fields[clipbox["textQA"]] += \
+                    f"""<img class="hjp_clipper_clipbox text" id="{clipbox["uuid"]}" alt="{clipbox["text_"]}">\n"""
 
             note.addTag(f"""hjp-bilink::timestamp::{timestamp}""")
             # print(f"in the loop, timestamp={timestamp}")
             note.addTag(f"""hjp-bilink::books::{pdfname_in_tag}::page::{clipbox["pagenum"]}""")
             # 下面都是为了得到PDF的书签
-            doc: "imports.fitz.Document" = imports.fitz.open(clipbox["pdfname"])
+            doc: "clipper_imports.fitz.Document" = clipper_imports.fitz.open(clipbox["pdfname"])
             toc = doc.get_toc()
             if len(toc) > 0:
                 # path = objs.SrcAdmin.get
@@ -105,40 +107,44 @@ def on_anki_field_insert_handle1(self, clipboxlist: "list"):
                 if atbookmark != -1:
                     note.addTag(f"""hjp-bilink::books::{pdfname_in_tag}::bookmark::{bookdict[atbookmark]}""")
             note.flush()
+    DB.end()
     return timestamp
 
 
-def anki_file_create_handle1(self, clipboxslist):
+def anki_file_create_handle1(self, clipboxlist):
     count = 0
-    total = len(clipboxslist)
+    total = len(clipboxlist)
     mediafolder = os.path.join(mw.pm.profileFolder(), "collection.media")
-    for clipbox in clipboxslist:
+    DB = clipper_imports.objs.SrcAdmin.DB.go()
+    for clipbox_ in clipboxlist:
+        clipbox = DB.select(uuid=clipbox_["uuid"]).return_all().zip_up()[0]
         count += 1
         self.job_progress(self.state_create_png, 4, count / total)
-        doc: "imports.fitz.Document" = imports.fitz.open(clipbox["pdfname"])
+        doc: "clipper_imports.fitz.Document" = clipper_imports.fitz.open(clipbox["pdfname"])
         # 0.144295302 0.567695962 0.5033557047 0.1187648456
         page = doc.load_page(clipbox["pagenum"])
-        pagerect: "imports.fitz.rect_like" = page.rect
+        pagerect: "clipper_imports.fitz.rect_like" = page.rect
         x0, y0 = clipbox["x"] * pagerect.width, clipbox["y"] * pagerect.height
         x1, y1 = x0 + clipbox["w"] * pagerect.width, y0 + clipbox["h"] * pagerect.height
-        pixmap = page.get_pixmap(matrix=imports.fitz.Matrix(2, 2), clip=imports.fitz.Rect(x0, y0, x1, y1))
+        pixmap = page.get_pixmap(matrix=clipper_imports.fitz.Matrix(2, 2),
+                                 clip=clipper_imports.fitz.Rect(x0, y0, x1, y1))
         pngdir = os.path.join(mediafolder, f"""{pngfileprefix}{clipbox["uuid"]}_.png""")
         if os.path.exists(pngdir):
             os.remove(pngdir)
         pixmap.save(pngdir)
 
 
-e = imports.events.AnkiCardCreateEvent
+e = clipper_imports.events.AnkiCardCreateEvent
 anki_card_create_handle = {
     e.ClipBoxType: on_anki_create_card_handle1
 }
 
-e = imports.events.AnkiFieldInsertEvent
+e = clipper_imports.events.AnkiFieldInsertEvent
 anki_field_insert_handle = {
     e.ClipBoxBeginType: on_anki_field_insert_handle1
 }
 
-e = imports.events.AnkiFileCreateEvent
+e = clipper_imports.events.AnkiFileCreateEvent
 anki_file_create_handle = {
     e.ClipperCreatePNGType: anki_file_create_handle1
 }

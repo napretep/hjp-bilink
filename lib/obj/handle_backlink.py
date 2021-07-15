@@ -26,7 +26,7 @@ def backlink_append(self_card_id, add):
         if "backlink" not in data:
             data["backlink"] = []
         if self_card_id not in data["backlink"]:
-            data["backlink"].append(self_card_id)
+            data["backlink"].append(self_card_id)  # 此处并不提供 卡片描述
             LinkDataWriter(card_id, data).write()
             appended = True
     return appended

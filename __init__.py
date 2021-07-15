@@ -2,16 +2,20 @@
 from anki import notes
 from anki.notes import Note
 from aqt import gui_hooks
-from aqt.editor import EditorWebView,Editor
-from .lib.obj.editor_monitor import handle_editor_did_load_note, field_unfocus_backlink_check, \
-    handle_editor_will_munge_html, handle_editor_did_unfocus_field
+from aqt.editor import EditorWebView, Editor
+from .lib.obj.editor_monitor import handle_editor_did_load_note, handle_editor_will_munge_html
+
 from .lib.obj.HTMLbutton_render import HTMLbutton_make
 from .lib.obj.handle_js import on_js_message
 from .lib.obj.MenuAdder import *
 from .lib.obj.utils import userInfoDir
 from .lib.dialogs.DialogAnchor import AnchorDialog
-from .lib.dialogs.DialogCardPrev import  SingleCardPreviewerMod,EditNoteWindowFromThisLinkAddon
-from aqt.editcurrent import  EditCurrent
+from .lib.dialogs.DialogCardPrev import SingleCardPreviewerMod, EditNoteWindowFromThisLinkAddon
+from aqt.editcurrent import EditCurrent
+from .lib.obj import clipper_imports
+from .lib.obj import ModuleProxy
+from .lib.obj.connectors import Connector
+from .lib.obj import handles, wrappers, signals
 
 
 def checkUpdate():
@@ -230,19 +234,18 @@ browserShortcutDict = {
     "Link": (cfg.user_cfg["shortcut_browserTableSelected_link"], shortcut_browserTableSelected_link,),
     "Unlink": (cfg.user_cfg["shortcut_browserTableSelected_unlink"], shortcut_browserTableSelected_unlink),
     "Insert": (cfg.user_cfg["shortcut_browserTableSelected_insert"], shortcut_browserTableSelected_insert),
-"copylink":(cfg.user_cfg["shortcut_copylink"], shortcut_CopyLink)
+    "copylink": (cfg.user_cfg["shortcut_copylink"], shortcut_CopyLink)
 }
 placeDict = {"all": globalShortcutDict, Browser: browserShortcutDict}
 
-
-
+gui_hooks.reviewer_did_answer_card.append(handles.on_reviewer_did_answer_card_handle)
 gui_hooks.state_shortcuts_will_change.append(mw_shortcuts)
 gui_hooks.editor_did_init_shortcuts.append(editor_shortcuts)
 gui_hooks.editor_did_load_note.append(handle_editor_did_load_note)
-# gui_hooks.editor_will_munge_html.append(handle_editor_will_munge_html) #实时监测
-gui_hooks.editor_did_unfocus_field.append(handle_editor_did_unfocus_field)
+gui_hooks.editor_will_munge_html.append(handle_editor_will_munge_html)  # 实时监测
+# gui_hooks.editor_did_unfocus_field.append(handle_editor_did_unfocus_field)
 gui_hooks.editor_will_show_context_menu.append(func_add_editorcontextmenu)
-gui_hooks.editor_did_fire_typing_timer(test_func)
+# gui_hooks.editor_did_fire_typing_timer(test_func)
 gui_hooks.profile_did_open.append(shortcut_addto_originalcode)
 gui_hooks.profile_will_close.append(func_onProgramClose)
 gui_hooks.card_will_show.append(HTML_injecttoweb)
@@ -254,17 +257,16 @@ gui_hooks.webview_did_receive_js_message.append(on_js_message)
 
 # from .lib.clipper.lib.Clipper import Clipper,Clipper2
 # from .lib.obj.tools import events, objs, funcs, ALL
-from .lib.obj import imports
-from .lib.obj import ModuleProxy
 
-print, print_ = imports.funcs.logger(__name__)
-imports.ALL.signals.on_cardlist_addCard.connect(ModuleProxy.on_cardlist_addCard_handle)
-imports.ALL.signals.on_anki_card_create.connect(ModuleProxy.on_anki_card_create_handle)
-imports.ALL.signals.on_anki_field_insert.connect(ModuleProxy.on_anki_field_insert_handle)
-imports.ALL.signals.on_anki_browser_activate.connect(ModuleProxy.on_anki_browser_activate_handle)
-imports.ALL.signals.on_anki_file_create.connect(ModuleProxy.on_anki_file_create_handle)
-imports.ALL.signals.on_config_ankidata_load.connect(ModuleProxy.on_config_ankidata_load_handle)
-imports.ALL.signals.on_clipper_closed.connect(lambda: mw.__dict__[addonName].__setitem__("clipper", None))
+
+print, print_ = clipper_imports.funcs.logger(__name__)
+clipper_imports.ALL.signals.on_cardlist_addCard.connect(ModuleProxy.on_cardlist_addCard_handle)
+clipper_imports.ALL.signals.on_anki_card_create.connect(ModuleProxy.on_anki_card_create_handle)
+clipper_imports.ALL.signals.on_anki_field_insert.connect(ModuleProxy.on_anki_field_insert_handle)
+clipper_imports.ALL.signals.on_anki_browser_activate.connect(ModuleProxy.on_anki_browser_activate_handle)
+clipper_imports.ALL.signals.on_anki_file_create.connect(ModuleProxy.on_anki_file_create_handle)
+clipper_imports.ALL.signals.on_config_ankidata_load.connect(ModuleProxy.on_config_ankidata_load_handle)
+clipper_imports.ALL.signals.on_clipper_closed.connect(funcs.on_clipper_closed)
 # print("ALL.signals.on_config_ankidata_load.connect(ModuleProxy.on_config_ankidata_load_handle)")
 # clipper = Clipper2(mw)
 # print("clipper = Clipper()")
