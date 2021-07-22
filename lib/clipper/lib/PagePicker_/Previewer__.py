@@ -141,15 +141,6 @@ class View(QGraphicsView):
         self.pdfname = pdfname
         self.pagenum = pagenum
 
-    # def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
-    #     e = events.PagePickerPreviewerRatioAdjustEvent
-    #     if event.angleDelta().y() < 0:
-    #         type = e.ZoomInType
-    #     else:
-    #         type = e.ZoomOutType
-    #     ALL.signals.on_pagepicker_previewer_ratio_adjust.emit(
-    #         e(sender=self, eventType=type)
-    #     )
 
     pass
 

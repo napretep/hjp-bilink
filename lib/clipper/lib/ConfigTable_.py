@@ -8,7 +8,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QWidget, QLabel, QComboBox, QSpinBox, QHBoxLayout, QFrame, QDoubleSpinBox, QToolButton, \
     QLineEdit, QTabWidget, QFormLayout, QTabBar, QStylePainter, QStyleOptionTab, QStyle, QProxyStyle, QStyleOption, \
-    QVBoxLayout, QGridLayout, QTableView, QHeaderView, QAbstractItemView
+    QVBoxLayout, QGridLayout, QTableView, QHeaderView, QAbstractItemView, QCheckBox
 from PyQt5.QtCore import Qt, QRect, QSize, QPoint, pyqtSignal
 from .tools import funcs, objs, events, ALL
 
@@ -301,12 +301,22 @@ class OutPutWidget(BaseWidget):
         self.needRatioFix_changed = False
         self.RatioFixWidget = QDoubleSpinBox(self.configtable)
         self.RatioFix_changed = False
+        self.widget_clipper_close_after_insert = QCheckBox(self.configtable)
+        self.widget_clipbox_close_after_insert = QCheckBox(self.configtable)
         self.widget_info_dict = {
             self.needRatioFixWidget: ["比例修正\nratio fix",
                                       "final output ratio=(image load ratio)*(zoom in/out ratio)*(output ratio)"],
-            self.RatioFixWidget: ["修正数\noutput ratio", ""]
+            self.RatioFixWidget: ["修正数\noutput ratio", ""],
+            self.widget_clipbox_close_after_insert: ["输出完成后,关闭选框\n"
+                                                     "When the output is complete, close the clipbox", ""],
+            self.widget_clipper_close_after_insert: ["输出完成后,关闭clipper\n"
+                                                     "When the output is complete, close the clipper", ""]
         }
-        self.widgetLi = [self.needRatioFixWidget, self.RatioFixWidget]
+        self.widgetLi = [self.needRatioFixWidget,
+                         self.RatioFixWidget,
+                         self.widget_clipper_close_after_insert,
+                         self.widget_clipbox_close_after_insert
+                         ]
         self.needratiofixvalue = {
             self.schema.needratiofix_mode.no: "不需要/don't need",
             self.schema.needratiofix_mode.yes: "需要/need"
@@ -318,9 +328,17 @@ class OutPutWidget(BaseWidget):
             self.RatioFixWidget.valueChanged: self.on_RatioFixWidget_valueChanged_handle,
             ALL.signals.on_config_reload_end: self.on_config_reload_end_handle,
             ALL.signals.on_config_changed: self.on_config_changed_handle,
+            self.widget_clipper_close_after_insert.stateChanged: self.on_widget_clipper_close_after_insert_stateChanged_handle,
+
         }
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
+
+    def on_widget_clipper_close_after_insert_stateChanged_handle(self, *args):
+        if self.widget_clipper_close_after_insert.isChecked():
+            self.widget_clipbox_close_after_insert.setEnabled(False)
+        else:
+            self.widget_clipbox_close_after_insert.setEnabled(True)
 
     def on_config_changed_handle(self):
         print("on_config_changed_handle")
@@ -348,6 +366,15 @@ class OutPutWidget(BaseWidget):
     def _init_data(self):
         self.init_RatioFix()
         self.init_needRatioFix()
+        self.init_close()
+
+    def init_close(self):
+        val = self.configtable.config_dict["output.closeClipper"]["value"]
+        self.widget_clipper_close_after_insert.setChecked(val)
+        if val:
+            self.widget_clipbox_close_after_insert.setEnabled(False)
+        val = self.configtable.config_dict["output.closeClipbox"]["value"]
+        self.widget_clipbox_close_after_insert.setChecked(val)
 
     def on_config_reload_end_handle(self):
         self._init_data()
@@ -365,10 +392,14 @@ class OutPutWidget(BaseWidget):
         else:
             self.RatioFixWidget.setDisabled(False)
 
+    # def api_widget_clipper_close_after_insert_value(self):
+
     def return_data(self):
         data_map = {
             "output.RatioFix": self.RatioFixWidget.value(),
-            "output.needRatioFix": self.needRatioFixWidget.currentData(Qt.UserRole)
+            "output.needRatioFix": self.needRatioFixWidget.currentData(Qt.UserRole),
+            "output.closeClipper": self.widget_clipper_close_after_insert.isChecked(),
+            "output.closeClipbox": self.widget_clipbox_close_after_insert.isChecked()
         }
         return data_map
 
@@ -466,7 +497,6 @@ class ClipboxMacroWidget(QWidget):
             data.append(rowdata)
         return data
 
-
 class ClipboxWidget(BaseWidget):
     def __init__(self, parent=None, configtable=None):
         super().__init__(parent=parent, configtable=configtable)
@@ -482,8 +512,8 @@ class ClipboxWidget(BaseWidget):
         self.widget_info_dict = {
             self.Q_widget: ["问题侧对应字段:\nfield that Q-side will insert:"],
             self.A_widget: ["答案侧对应字段:\nfield that A-side will insert:"],
-            self.text_Q_widget: ["文字问题侧对应字段:\nfield that text-Q-side will insert:"],
-            self.text_A_widget: ["文字答案侧对应字段:\nfield that text-A-side will insert:"],
+            self.text_Q_widget: ["评论问题侧对应字段:\nfield that comment-Q-side will insert:"],
+            self.text_A_widget: ["评论答案侧对应字段:\nfield that comment-A-side will insert:"],
             self.newcard_deck_id_widget: ["新卡片插入的卡组\ndeck that new card will insert :"],
             self.newcard_model_id_widget: ["新卡片使用的类型\nmodel that used by new card"],
             self.macro_widget: ["宏\nmacro"]

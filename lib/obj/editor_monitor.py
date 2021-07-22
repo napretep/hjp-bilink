@@ -56,6 +56,6 @@ def handle_editor_will_munge_html(text, editor: "Editor"):
             # signals.all.on_data_refresh_webview.emit()
             # QTimer().singleShot(100,lambda : webview_refresh(True))
             # QTimer().singleShot(100,signals.all.on_data_refresh_webview.emit)
-            QTimer().singleShot(100, signals.all.on_data_refresh_all.emit)
+            QTimer().singleShot(100, signals.ALL.on_data_refresh_all.emit)
 
     return text

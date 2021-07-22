@@ -217,6 +217,7 @@ class GridHDescUnit(QWidget):
         self.H_layout.setSpacing(0)
         self.setLayout(self.H_layout)
         self.widget.setParent(self)
+        self.setContentsMargins(0, 0, 0, 0)
 
     def setDescText(self, txt):
         self.label.setText(txt)
@@ -249,12 +250,14 @@ class AllEventAdmin(object):
         event_dict = self.funcs.event_handle_connect(self.event_dict)
         AllEvents.update(event_dict)
         # print(len(AllEvents))
+        return self
 
     def unbind(self, classname=""):
         self.funcs.event_handle_disconnect(self.event_dict)
         if not classname == "":
             # print(f"{classname} all events unbind")
             pass
+        return self
 
 
 class UniversalProgresser(QDialog):
@@ -291,8 +294,7 @@ class UniversalProgresser(QDialog):
                 self.event_dict[v[0]] = v[1]
                 if v[2] is not None:
                     v[2]["type"] = self.__class__.__name__
-            self.all_event = AllEventAdmin(self.event_dict)
-            self.all_event.bind()
+            self.all_event = AllEventAdmin(self.event_dict).bind()
         return self
 
     def data_clear(self):
@@ -320,6 +322,9 @@ class UniversalProgresser(QDialog):
 #     """先设计基本的SpinboxDelegate, 然后通过load_config 配置第几列,或多列的情况 """
 
 class ColumnSpinboxDelegate(QItemDelegate):
+    # class combox(QComboBox):
+    #     def __init__(self):
+
     def __init__(self, columns, parent=None):
         super(ColumnSpinboxDelegate, self).__init__(parent)
         self.columns = columns

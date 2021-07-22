@@ -1,5 +1,6 @@
 import logging
 import os, json
+import re
 import sqlite3, uuid
 import queue
 from PyQt5.QtGui import QIcon
@@ -127,6 +128,13 @@ class IMGDir:
         self.fit_in_height = Get._().img_dir("icon_fitin_height.png")
         self.mouse_mid_button = Get._().img_dir("icon_fitin_width.png")
         self.mouse_wheel_zoom = Get._().img_dir("icon_mouse_wheel_zoom.png")
+        self.read = Get._().img_dir("icon_read.png")
+        self.link = Get._().img_dir("icon_link.png")
+        self.link2 = Get._().img_dir("icon_link2.png")
+        self.left_direction = Get._().img_dir("icon_direction_left.png")
+        self.right_direction = Get._().img_dir("icon_direction_right.png")
+        self.top_direction = Get._().img_dir("icon_direction_top.png")
+        self.bottom_direction = Get._().img_dir("icon_direction_bottom.png")
 
 
 class DB(object):
@@ -228,6 +236,25 @@ pdfuuid varchar not null
         if self.connection is not None:
             self.connection.close()
 
+    def del_card_id(self, condition, card_id, callback=None):
+        records = self.select(where=condition).return_all().zip_up()
+        uuidli = [item["uuid"] for item in records]
+        for r in records:
+            card_idlist: "list[str]" = list(filter(lambda x: x.isdecimal(), r["card_id"].split(",")))
+            if card_id in card_idlist:
+                card_idlist.remove(card_id)
+            r["card_id"] = ",".join(card_idlist)
+            self.update(where=self.where_maker(uuid=r["uuid"]), values=self.value_maker(**r)).commit(callback=callback)
+
+    def add_card_id(self, condition, card_id, callback=None):
+        records = self.select(where=condition).return_all().zip_up()
+        uuidli = [item["uuid"] for item in records]
+        for r in records:
+            card_idlist: "list[str]" = list(filter(lambda x: x.isdecimal(), r["card_id"].split(",")))
+            if card_id not in card_idlist:
+                card_idlist.append(card_id)
+            r["card_id"] = ",".join(card_idlist)
+            self.update(where=self.where_maker(uuid=r["uuid"]), values=self.value_maker(**r)).commit(callback=callback)
 
     # 存在性检查,如果为空则创建
     def table_ifEmpty_create(self, tablename=""):
@@ -266,9 +293,11 @@ pdfuuid varchar not null
             vals = values["vals"]
             where = f""" {colname} like "{vals}" """
         else:
+            b = values["BOOL"] if "BOOL" in values else " AND "
             for k, v in values.items():
                 if v is not None and k in self.table_all_column_names:
-                    where += f""" {k}={self.valCheck(k, v)} """
+                    where += f""" {k}={self.valCheck(k, v)} {b}"""
+            where = re.sub(f"{b}\s*$", "", where)
             if where == "":
                 raise ValueError("where is empty!")
         return where
@@ -361,7 +390,7 @@ class DBResults(object):
         self.results: "list" = results
         self.table_all_column_names = table_all_column_names
 
-    def zip_up(self, compatible=True):
+    def zip_up(self, version=1):
         new_results = []
         for result in self.results:
             record = {}

@@ -60,9 +60,7 @@ def bookmark_to_tag(bookmark: "list[list[int,str,int]]"):
 def on_anki_field_insert_handle1(self, clipboxlist: "list"):
     count = 0
     total = len(clipboxlist)
-    bookdict = {}
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    # print(f"before loop, timestamp={timestamp}")
     DB = clipper_imports.objs.SrcAdmin.DB.go()
     for clipbox_ in clipboxlist:  # must fetch from DB
         clipbox = DB.select(uuid=clipbox_["uuid"]).return_all().zip_up()[0]
@@ -80,7 +78,7 @@ def on_anki_field_insert_handle1(self, clipboxlist: "list"):
                     f"""<img class="hjp_clipper_clipbox" src="{pngfileprefix}{clipbox["uuid"]}_.png">\n"""
             if clipbox["text_"] != "" and clipbox["uuid"] not in html:
                 note.fields[clipbox["textQA"]] += \
-                    f"""<img class="hjp_clipper_clipbox text" id="{clipbox["uuid"]}" alt="{clipbox["text_"]}">\n"""
+                    f"""<p class="hjp_clipper_clipbox text" id="{clipbox["uuid"]}">{clipbox["text_"]}</p>\n"""
 
             note.addTag(f"""hjp-bilink::timestamp::{timestamp}""")
             # print(f"in the loop, timestamp={timestamp}")

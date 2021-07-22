@@ -1,10 +1,9 @@
 """用于实现跨三级模块以上的信息交互"""
 from aqt import mw, dialogs, browser
 from aqt.utils import showInfo
-from . import clipper_imports
 from .backlink_reader import BackLinkReader
-from . import ModuleProxyfunc
-from . import utils
+from . import ModuleProxyfunc, utils, events, clipper_imports, signals
+import time
 
 print, printer = clipper_imports.funcs.logger(__name__)
 

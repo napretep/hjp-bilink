@@ -5,7 +5,10 @@ from math import ceil
 from PyQt5 import QtGui
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtCore import Qt, QPointF, QTimer
-from PyQt5.QtWidgets import QMainWindow, QWidget, QGraphicsScene, QHBoxLayout, QApplication, QShortcut, QDialog
+from PyQt5.QtWidgets import QMainWindow, QWidget, QGraphicsScene, QHBoxLayout, QApplication, QShortcut, QDialog, \
+    QToolButton
+
+# from .PDFView_.PageItem_.ClipBox_.ToolsBar_ import ClipboxEvent
 from .PageInfo import PageInfo
 from .PDFView import PDFView
 from .PDFView_ import PageItem5
@@ -26,6 +29,8 @@ class Clipper(QDialog):
         self.ALL = ALL
         ALL.clipper = self
         ALL.signals = objs.CustomSignals.start()
+        self.all_clipbox_dict = {}
+        self.all_pageitem_dict: "dict[str,list[PageItem5]]" = {}
         self.events: 'events' = events
         self.viewlayout_mode = objs.JSONschema.viewlayout_mode
         self.config = objs.SrcAdmin.get_config("clipper")
@@ -40,15 +45,18 @@ class Clipper(QDialog):
         self.scene = QGraphicsScene(self)
         self.pdfview = PDFView(self.scene, parent=self, clipper=self)
         self.rightsidebar = RightSideBar(clipper=self)
+
         # print(f"{sys._getframe(1).f_code.co_name},Clipper.__init__")
+        self.widget_button_show_rightsidebar = QToolButton(self)
         self.init_UI()
         self.event_dict = {
-            ALL.signals.on_clipbox_closed: self.scene_clipbox_remove,
+            ALL.signals.on_clipbox_closed: self.on_clipbox_closed_handle,
             ALL.signals.on_pageItem_clicked: self.on_pageItem_clicked_handle,
             ALL.signals.on_pageItem_addToScene: self.on_pageItem_addToScene_handle,
             ALL.signals.on_pageItem_removeFromScene: self.on_pageItem_removeFromScene_handle,
             ALL.signals.on_rightSideBar_buttonGroup_clicked: self.on_rightSideBar_buttonGroup_clicked_handle,
             ALL.signals.on_clipboxstate_switch: self.on_clipboxstate_switch_handle,
+            self.widget_button_show_rightsidebar.clicked: self.on_widget_button_show_rightsidebar_clicked_hanlde,
         }
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
@@ -59,6 +67,13 @@ class Clipper(QDialog):
             self.showMaximized()
         self.frame_load_worker = Worker.FrameLoadWorker()
         self.frame_load_worker.start()
+
+    def on_clipbox_closed_handle(self, event):
+        self.scene_clipbox_remove(event.clipBox)
+
+    def on_widget_button_show_rightsidebar_clicked_hanlde(self):
+        self.rightsidebar.show()
+        self.widget_button_show_rightsidebar.hide()
 
     def check_empty(self):
         if len(self.scene.items()) == 0:
@@ -119,9 +134,14 @@ class Clipper(QDialog):
         self.resize(int(rect.width() * 2 / 3), int(rect.height() * 2 / 3))
         self.container0.resize(self.width(), self.height())
         self.container0.setLayout(self.h_layout)
+        # self.widget_button_show_rightsidebar.move(self.geometry().width(),self.geometry().height()/2)
+        self.widget_button_show_rightsidebar.setIcon(QIcon(objs.SrcAdmin.imgDir.left_direction))
+        self.widget_button_show_rightsidebar.move(self.geometry().width() - 20, self.geometry().height() / 2)
+        self.widget_button_show_rightsidebar.hide()
 
     def resizeEvent(self, *args):
         self.container0.resize(self.width(), self.height())
+        self.widget_button_show_rightsidebar.move(self.geometry().width() - 20, self.geometry().height() / 2)
         pass
 
     def scene_item_downgrade_z(self, except_item):
@@ -144,6 +164,11 @@ class Clipper(QDialog):
     def on_pageItem_removeFromScene_handle(self, event: 'events.PageItemDeleteEvent'):
         if event.Type == event.deleteType:
             self.scene_pageitem_remove(event.pageItem)
+            for clipbox in event.pageItem.pageview.clipBoxList:
+                # 要删除很多
+                e = ClipBox_.ToolsBar_.ClipboxEvent(clipBox=clipbox,
+                                                    eventType=ClipBox_.ToolsBar_.ClipboxEvent.closeType)
+                ALL.signals.on_clipbox_closed.emit(e)
         pass
 
     def on_pageItem_addToScene_handle(self, event: 'events.PageItemAddToSceneEvent'):
@@ -168,10 +193,14 @@ class Clipper(QDialog):
         # print(new_pos)
         new_item.setPos(new_pos)
 
-    def scene_pageitem_add(self, pageitem):
+    def scene_pageitem_add(self, pageitem: "PageItem5"):
         if len(self.pageItemList) > 0:
             self.pageitem_layout_arrange(pageitem)
         self.pageItemList.append(pageitem)
+        pdfuuid = funcs.uuid_hash_make(pageitem.pageinfo.doc.name + str(pageitem.pageinfo.pagenum))
+        if pdfuuid not in self.all_pageitem_dict:
+            self.all_pageitem_dict[pdfuuid] = []
+        self.all_pageitem_dict[pdfuuid].append(pageitem)
         self.scene.addItem(pageitem)
         ALL.signals.on_pageItem_needCenterOn.emit(events.PageItemNeedCenterOnEvent(
             eventType=events.PageItemNeedCenterOnEvent.centerOnType,
@@ -181,14 +210,21 @@ class Clipper(QDialog):
 
     def scene_pageitem_remove(self, pageitem: 'PageItem5'):
         self.pageItemList.remove(pageitem)
+        pdfuuid = funcs.uuid_hash_make(pageitem.pageinfo.doc.name + str(pageitem.pageinfo.pagenum))
+        for clipbox in pageitem.pageview.clipBoxList:
+            e = ClipBox_.ToolsBar_.ClipboxEvent
+            ALL.signals.on_clipbox_closed.emit(e(clipBox=clipbox))
+        self.all_pageitem_dict[pdfuuid].remove(pageitem)
         self.scene.removeItem(pageitem)
 
-    def scene_clipbox_remove(self, event: 'ClipBox_.ToolsBar_.ClipboxEvent'):
-        item = event.clipBox
-        self.scene.removeItem(item)
+    def scene_clipbox_remove(self, clipBox):
+        self.scene.removeItem(clipBox)
+        self.all_clipbox_dict.__delitem__(clipBox.uuid)
 
     def view_relayout_arrange(self):
         newli: 'list[PageItem5]' = self.pageItemList
+        if len(newli) == 0:
+            return
         newli[0].setPos(0, 0)
         self.pageItemList = [newli[0]]
         for item in newli[1:]:
@@ -229,6 +265,9 @@ class Clipper(QDialog):
             self.view_relayout_arrange()
         if event.Type == event.clearViewType:
             self.clear()
+        if event.Type == event.hideRighsidebarType:
+            self.rightsidebar.hide()
+            self.widget_button_show_rightsidebar.show()
 
     def on_job_1_pagepath_loaded_handle(self, kwargs):
         from .PageInfo import PageInfo

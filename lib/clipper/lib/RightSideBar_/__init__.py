@@ -7,8 +7,8 @@ from math import ceil
 from PyQt5 import QtGui
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QToolButton, QTreeView, QApplication, \
-    QHeaderView, QAbstractItemView
-from PyQt5.QtCore import Qt, QRect, QItemSelectionModel, pyqtSignal, QTimer, QThread, QPoint
+    QHeaderView, QAbstractItemView, QGridLayout
+from PyQt5.QtCore import Qt, QRect, QItemSelectionModel, pyqtSignal, QTimer, QThread, QPoint, QModelIndex
 from aqt.utils import showInfo
 
 from ..PDFView_.PageItem_ import ClipBox_
@@ -75,16 +75,17 @@ class FinalExecution_masterJob(QThread):
 
     def run(self):
         li = self.job_clipboxlist_make()
+        # print(li)
         # print("job_clipboxlist_make")
         if len(li) == 0:
+            # print("return")
+            self.on_job_done.emit(self.fieldinserted_timestamp)
             return
         self.job_clipbox_DB_insert(li)
-        # print("job_clipbox_DB_insert")
         self.job_clipbox_field_insert(li)
         # print("job_clipbox_field_insert")
         self.job_clipbox_png_create(li)
-        # print("job_clipbox_png_create")
-        while self.fieldinserted_timestamp is None:
+        while self.fieldinserted_timestamp is None and len(li) != 0:
             self.msleep(10)
         # print(f"self.on_job_done.emit(self.fieldinserted_timestamp)={self.fieldinserted_timestamp}")
         self.on_job_done.emit(self.fieldinserted_timestamp)
@@ -95,10 +96,13 @@ class FinalExecution_masterJob(QThread):
            DescItem:clipBoxList[clipbox]
 
             """
+        # print("job_clipboxlist_make start")
         clipboxlist = []
         uuidcount = len(self.cardlist.cardUuidDict)
         current = 0
+        print((self.cardlist.cardUuidDict))
         for uuid, row in self.cardlist.cardUuidDict.items():
+            # print("job_clipboxlist_make start2")
             if len(row[0].clipBoxList) == 0:
                 continue
 
@@ -160,7 +164,7 @@ class FinalExecution_masterJob(QThread):
             # print(clipbox)
             if DB.exists(clipbox["uuid"]):
                 result = DB.select(uuid=clipbox["uuid"]).return_all().zip_up()[0]
-                if result["card_id"].__contains__(clipbox["card_id"]):
+                if clipbox["card_id"] in result["card_id"]:
                     clipbox["card_id"] = result["card_id"]
                 else:
                     result["card_id"] = clipbox["card_id"] + "," + result["card_id"]
@@ -203,7 +207,7 @@ class PageList(QWidget):
     def init_UI(self):
         H_layout = QHBoxLayout()
         V_layout2 = QVBoxLayout()
-        self.label = QLabel()
+        self.label = QLabel("page list")
         self.label.setText("page list")
         self.V_layout = QVBoxLayout(self)
         self.addButton = QToolButton(self)
@@ -308,7 +312,8 @@ class PageList(QWidget):
         elif event.Type == event.addMultiPageType:
             for pageitem in event.pageItemList:
                 self.model_pageItem_add(pageitem)
-
+        if event.callback:
+            event.callback(kwargs=event.kwargs, pageitem=event.pageItem, pageitemlist=event.pageItemList)
         pass
 
     def on_pageItem_removeFromScene_handle(self, event: 'events.PageItemDeleteEvent'):
@@ -361,6 +366,7 @@ class CardList(QWidget):
             self.delButton.clicked: self.on_delButton_clicked_handle,
             self.listView.clicked: self.on_listView_clicked_handle,
             # list变化的
+            self.listView.doubleClicked: self.on_listView_doubleClicked_handle,
             self.model.dataChanged: self.on_model_data_changed_handle,
             self.on_clipbox_closed: self.on_clipbox_closed_handle,
             self.on_clipboxCombox_updated: self.on_clipboxCombox_updated_handle,
@@ -375,16 +381,28 @@ class CardList(QWidget):
         # self.init_events()
         # self.test()
 
+    def on_listView_doubleClicked_handle(self, idx: "QModelIndex"):
+        if idx.column() == 1 and idx.data(Qt.DisplayRole) != "/":
+            from .CardList_.card_clipbox_picker import CardClipboxPicker
+            card_uuid = self.model.item(idx.row(), 0).uuid
+            p = CardClipboxPicker(self, idx.data(Qt.DisplayRole), card_uuid)
+            p.show()
+            pass  # 一个新的窗口
+
     def card_clipboxlist_add(self, clipbox, uuid_new):
         """加入新的,删除旧的"""
         if uuid_new in self.cardUuidDict:
             self.cardUuidDict[uuid_new][0].clipBoxList.append(clipbox)
 
-    def card_clipboxlist_del(self, clipbox, cardUuid):
+    def card_clipboxlist_del(self, clipbox, cardUuid=None):
         """从中删除"""
-        if cardUuid in self.cardUuidDict:
-            if clipbox in self.cardUuidDict[cardUuid][0].clipBoxList:
+        if cardUuid is not None:
+            if cardUuid in self.cardUuidDict and clipbox in self.cardUuidDict[cardUuid][0].clipBoxList:
                 self.cardUuidDict[cardUuid][0].clipBoxList.remove(clipbox)
+        else:
+            for card_uuid, card_desc_pair_item in self.cardUuidDict.items():
+                if clipbox in card_desc_pair_item[0].clipBoxList:
+                    card_desc_pair_item[0].clipBoxList.remove(clipbox)
 
     def on_cardlist_selectItem_handle(self, event: "events.CardListSelectItemEvent"):
         if event.Type == event.singleRowType:
@@ -418,10 +436,7 @@ class CardList(QWidget):
 
     def on_clipbox_closed_handle(self, event: 'ClipBox_.ToolsBar_.ClipboxEvent'):
         clipbox, uuid = event.clipBox, event.cardUuid
-        if uuid is not None:
-            self.card_clipboxlist_del(clipbox, uuid)
-        # print(self.cardUuidDict)
-        # clipbox.close()
+        self.card_clipboxlist_del(clipbox, uuid)
 
     def on_clipboxCombox_updated_handle(self, event: 'ClipBox_.ToolsBar_.ClipboxEvent'):
         self.card_clipboxlist_add(event.clipBox, event.cardUuid)
@@ -521,8 +536,6 @@ class CardList(QWidget):
         self.listView.header().setDefaultSectionSize(150)
         self.listView.header().setSectionsMovable(False)
         self.listView.setColumnWidth(1, 10)
-        # print(f"HorizontalHeaderItem(0)={self.model.horizontalHeaderItem(0).text()},\n"
-        #       f"HorizontalHeaderItem(1)={self.model.horizontalHeaderItem(1).text()}")
 
     def init_signals(self):
         self.on_clipbox_closed = ALL.signals.on_clipbox_closed
@@ -648,8 +661,9 @@ class ButtonPanel(QWidget):
     def __init__(self, parent=None, rightsidebar: "RightSideBar" = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         # self.init_signals()
-        self.h_layout = QHBoxLayout(self)
+        self.h_layout = QGridLayout(self)
         self.QAbutton = QToolButton(self)
+        self.widget_button_hide = QToolButton(self)
         self.confirmButton = QToolButton(self)
         self.reLayoutButton = QToolButton(self)
         self.configButton = QToolButton(self)
@@ -663,6 +677,7 @@ class ButtonPanel(QWidget):
             QIcon(self.imgDir.correct),
             QIcon(self.imgDir.reset),
             QIcon(self.imgDir.clear),
+            QIcon(self.imgDir.right_direction)
         ]
 
         e = events.RightSideBarButtonGroupEvent
@@ -677,10 +692,10 @@ class ButtonPanel(QWidget):
                 events.RightSideBarButtonGroupEvent(eventType=events.RightSideBarButtonGroupEvent.correctType)),
             lambda: ALL.signals.on_rightSideBar_buttonGroup_clicked.emit(
                 events.RightSideBarButtonGroupEvent(eventType=events.RightSideBarButtonGroupEvent.resetViewRatioType)),
-            lambda: ALL.signals.on_rightSideBar_buttonGroup_clicked.emit(e(eventType=e.clearViewType))
+            lambda: ALL.signals.on_rightSideBar_buttonGroup_clicked.emit(e(eventType=e.clearViewType)),
+            lambda: ALL.signals.on_rightSideBar_buttonGroup_clicked.emit(e(eventType=e.hideRighsidebarType))
         ]
-        self.buttonLi = [self.configButton, self.reLayoutButton, self.QAbutton,
-                         self.confirmButton, self.resetViewRatioButton, self.clearViewButton]
+
         self.toolTipLi = ["配置选项\n"
                           "set configuration",
                           "视图布局重置\n"
@@ -692,8 +707,13 @@ class ButtonPanel(QWidget):
                           "恢复视图为正常比例\n"
                           "reset view size",
                           "清空视图中的项目\n"
-                          "clear view items"]
-        self.layout_button_li = [4, 1, 5, 2, 0, 3]  # 排在第0个的是第4个button,
+                          "clear view items", "隐藏侧边栏\nhide rightsidebar"]
+        self.buttonLi = [
+            self.configButton, self.reLayoutButton, self.QAbutton,
+            self.confirmButton, self.resetViewRatioButton, self.clearViewButton,
+            self.widget_button_hide
+        ]
+        self.layout_button_li = [6, 4, 1, 5, 2, 0, 3]  # 排在第0个的是第4个button,
 
         self.rightsidebar = rightsidebar
         self.init_UI()
@@ -704,6 +724,7 @@ class ButtonPanel(QWidget):
         }
         self.__all_event = objs.AllEventAdmin(self.__event)
         self.__all_event.bind()
+        # self.widget_button_hide.setText("5678")
         # self.init_events()
 
     def init_UI_lambda(self, i: int):
@@ -711,8 +732,8 @@ class ButtonPanel(QWidget):
         self.buttonLi[j].setIcon(self.icon_li[j])
         self.buttonLi[j].setToolTip(self.toolTipLi[j])
         self.buttonLi[j].clicked.connect(self.action_li[j])
-        self.h_layout.addWidget(self.buttonLi[j])
-        self.h_layout.setStretch(i, 1)
+        self.h_layout.addWidget(self.buttonLi[j], 0, i)
+        # self.h_layout.setStretch(i, 1)
 
     # def init_signals(self):
     # self.on_rightSideBar_buttonGroup_clicked = ALL.signals.on_rightSideBar_buttonGroup_clicked
@@ -721,7 +742,7 @@ class ButtonPanel(QWidget):
 
         # list(map(lambda w: self.h_layout.addWidget(self.buttonLi[w]),self.layout_button_li))
         #
-        list(map(lambda i: self.init_UI_lambda(i), range(6)))
+        list(map(lambda i: self.init_UI_lambda(i), range(len(self.layout_button_li))))
 
         self.QAbutton.setText("Q")
         ALL.QA = "Q"
@@ -739,7 +760,6 @@ class ButtonPanel(QWidget):
         elif event.Type == event.configType:
             from ..ConfigTable import ConfigTable
             C = ConfigTable(self)
-            print("C = ConfigTable(self)")
             C.exec()
         elif event.Type == event.correctType:
             from .ButtonPanel__ import ClipperExecuteProgresser

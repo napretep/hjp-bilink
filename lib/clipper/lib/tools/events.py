@@ -39,9 +39,11 @@ class ConfigAnkiDataLoadEndEvent(AllEvent):
 class ClipboxCreateEvent(AllEvent):
     rubbingType = 0
     rubbedType = 1
+    NewPageCreateType = 2
 
-    def __init__(self, sender=None, eventType=None, rubberBandRect=None):
+    def __init__(self, sender=None, eventType=None, rubberBandRect=None, clipuuid=None):
         super().__init__(sender, eventType)
+        self.clipuuid = clipuuid
 
 
 class PageItemRubberBandRectSendEvent(AllEvent):
@@ -328,12 +330,15 @@ class PageItemAddToSceneEvent:
     addPageType = 1
     addMultiPageType = 2
 
-    def __init__(self, sender=None, pageItem=None, pageItemList=None, eventType=None, parent=None):
+    def __init__(self, sender=None, pageItem=None, pageItemList=None, eventType=None, parent=None,
+                 callback=None, kwargs=None):
         self.sender = sender
         self.pageItem = pageItem
         self.pageItemList = pageItemList
         self.Type = eventType
         self.parent = parent
+        self.callback = callback  # 回调函数
+        self.kwargs = kwargs  # 回调函数的第一个参数
 
 
 class CardListDataChangedEvent(AllEvent):
@@ -386,6 +391,7 @@ class RightSideBarButtonGroupEvent:
     configType = 3
     correctType = 4
     clearViewType = 5
+    hideRighsidebarType=6
 
     def __init__(self, eventType=None):
         self.Type = eventType

@@ -34,9 +34,6 @@ from . import funcs
 from . import all_objs
 
 
-# addonName = BaseInfo().dialogName
-# mw.__dict__[addonName] = {}
-# mw.__dict__[addonName]["card_window"] = {}
 
 
 def func_open_clipper(pairs_li=None, clipboxlist=None, **kwargs):

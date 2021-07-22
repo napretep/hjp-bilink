@@ -17,6 +17,7 @@ class FrameLoadWorker(QThread):
     on_1_page_load = pyqtSignal(object)  # {"frame_id","percent"}
     on_1_page_loaded = pyqtSignal(object)
     on_all_page_loaded = pyqtSignal()  #
+    on_quit = pyqtSignal()
     frame_id_default = None
 
     def __init__(self, parent=None, frame_list=None, doc=None, unit_size=None, col_per_row=None):
@@ -35,9 +36,14 @@ class FrameLoadWorker(QThread):
             self.on_stop_load: self.on_stop_load_handle,
             self.on_all_page_loaded: self.on_all_page_loaded_handle,
             self.on_1_page_loaded: self.on_1_page_loaded_handle,
+            self.on_quit: self.on_quit_handle,
         }
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
+
+    def on_quit_handle(self):
+        self.all_event.unbind()
+        self.quit()
 
     def sleepgap(self):
         gap = 1

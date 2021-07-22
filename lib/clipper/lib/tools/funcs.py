@@ -10,7 +10,61 @@ import logging
 import tempfile
 
 
+def uuid_hash_make(s):
+    return str(uuid.uuid3(uuid.NAMESPACE_URL, s))
+
+
+def Qpixmap_from_fitzpixmap(pix):
+    fmt = QImage.Format_RGBA8888 if pix.alpha else QImage.Format_RGB888
+    qtimg = QImage(pix.samples, pix.width, pix.height, pix.stride, fmt)
+    pixmap = QPixmap()
+    pixmap.convertFromImage(qtimg)
+    return pixmap
+
+
+def png_pdf_clip(pdfname: "str", pagenum: "int", rect1: "dict" = None, rect2: "dict" = None,
+                 ratio=None) -> "fitz.Pixmap":
+    """
+
+    Args:
+        pdfname:
+        pagenum:
+        rect1: {"x","y","w","h"}必须是原画的比例值
+        rect2: {"x0","y0","x1","y1"}
+    Returns: fitz.Pixmap
+
+    """
+    doc: "fitz.Document" = fitz.open(pdfname)
+    # 0.144295302 0.567695962 0.5033557047 0.1187648456
+    page = doc.load_page(pagenum)
+    pagerect: "fitz.rect_like" = page.rect
+    if ratio is None:
+        ratio = 2
+
+    if rect1 is not None:
+        x0, y0 = rect1["x"] * pagerect.width, rect1["y"] * pagerect.height
+        x1, y1 = x0 + rect1["w"] * pagerect.width, y0 + rect1["h"] * pagerect.height
+    else:
+        x0, y0, x1, y1 = rect2["x0"], rect2["y0"], rect2["x1"], rect2["y1"]
+    pixmap = page.get_pixmap(matrix=fitz.Matrix(ratio, ratio), clip=fitz.Rect(x0, y0, x1, y1))
+    return pixmap
+    # pngdir = os.path.join(mediafolder, f"""{pngfileprefix}{clipbox["uuid"]}_.png""")
+    # if os.path.exists(pngdir):
+    #     os.remove(pngdir)
+    # else:
+    #     raise ValueError("没有对应的文件！")
+    # pixmap.save(pngdir)
+
+
 def pdf_page_unique(results):
+    """
+    目标是把pdf和page他们唯一化
+    Args:
+        results: sqlite记录
+
+    Returns:
+
+    """
     d = {}
     for record in results:
         if record["pdfuuid"] not in d:
@@ -18,6 +72,13 @@ def pdf_page_unique(results):
         d[record["pdfuuid"]]["pagenum"].add(record["pagenum"])
     return d
 
+
+def uuid_random_unique():
+    from . import objs
+    myid = str(uuid.uuid4())[0:8]
+    while objs.SrcAdmin.DB.go().exists_check(myid).return_all()[0][0] > 0:
+        myid = str(uuid.uuid4())[0:8]
+    return myid
 
 def pdf_uuid_read(uuid):
     pass
@@ -184,19 +245,26 @@ def pixmap_page_load(doc: "Union[fitz.Document,str]", pagenum, ratio=1, browser=
                      callback=None):
     """从self.doc读取page,再转换为pixmap"""
     if type(doc) == str:
+        pdfname = os.path.basename(doc)
+    else:
+        pdfname = os.path.basename(doc.name)
+    tempdir = tempfile.gettempdir()
+    preview = "preview_" if browser else ""
+    tempPNGname = os.path.join(tempdir, f"{preview}{pdfname[0:-4]}_{pagenum}_{ratio}.png")
+
+    if not os.path.exists(tempPNGname):
         doc = fitz.open(doc)
-    pdfname = os.path.basename(doc.name)
+        page: "fitz.Page" = doc.load_page(pagenum)
+        if browser:
+            ratio = 0.3
+        pix: "fitz.Pixmap" = page.getPixmap(matrix=fitz.Matrix(ratio, ratio))
+        pix.save(tempPNGname)
+
     # print(f"pagenum={pagenum}")
     if callback:
         callback(f"pagenum={pagenum},")
-    page: "fitz.Page" = doc.load_page(pagenum)  # 加载的是页面
-    tempdir = tempfile.gettempdir()
-    tempPNGname = os.path.join(tempdir, f"{pdfname[0:-4]}_{pagenum}_{ratio}.png")
-    print, printer = logger(__name__)
-    # print(tempPNGname)
-    pix: "fitz.Pixmap" = page.getPixmap(matrix=fitz.Matrix(ratio, ratio))  # 将页面渲染为图片
-    if not os.path.exists(tempPNGname):
-        pix.save(tempPNGname)
+    # 加载的是页面
+
     return tempPNGname
     # return QPixmap(tempPNGname)
     # print(f"page.mediabox_size{}")

@@ -19,13 +19,14 @@ from .ToolsBar_ import QAButton, CloseButton, EditQAbutton, LineEdit, CardCombox
 class ToolsBar(QGraphicsWidget):
     """QAswitchButton,CardSwitchButton,closeButton,EditLine"""
 
-    def __init__(self, cardlist: 'CardList' = None, clipbox: 'ClipBox2' = None, QA="Q"):
+    def __init__(self, cardlist: 'CardList' = None, clipbox: 'ClipBox2' = None, QA="Q", clipbox_dict=None):
         super().__init__(parent=clipbox)
         self.__G_Layout = QGraphicsGridLayout()
         # self.G_Layout = QGraphicsLinearLayout()
         self.__G_Layout.setSpacing(0)
         self.cardlist = cardlist
         self.clipbox = clipbox
+        self.clipbox_dict = clipbox_dict
         self.__imgDir = self.cardlist.rightsidebar.clipper.objs.SrcAdmin.imgDir
         self.__QA_icon_dict = {
             "Q": QIcon(self.__imgDir.question),

@@ -14,7 +14,7 @@ def signal_wrapper(signal=None, **signal_kwargs):
     return wrapper
 
 
-def func_wrapper(before=None, after=None, **signal_kwargs):
+def func_wrapper(before=None, after=None):
     """
     Args:
         before: list[list[callable,kwargs]]
@@ -28,18 +28,12 @@ def func_wrapper(before=None, after=None, **signal_kwargs):
     def wrapper(func):
         def do(*args, **kwargs):
             if before is not None:
-                for f, k in before:
-                    if k is not None:
-                        f(k)
-                    else:
-                        f()
+                for f in before:
+                    f(*args, **kwargs)
             result = func(*args, **kwargs)
             if after is not None:
-                for f, k in after:
-                    if k is not None:
-                        f(k)
-                    else:
-                        f()
+                for f in before:
+                    f(*args, **kwargs)
             return result
 
         return do
@@ -50,7 +44,8 @@ def func_wrapper(before=None, after=None, **signal_kwargs):
 def Previewer_close_wrapper(func):
     def do(self, QCloseEvent):
         result = func(self, QCloseEvent)
-        funcs.PDFprev_close(self.card().id, all=True)
+        if self.card() is not None:
+            funcs.PDFprev_close(self.card().id, all=True)
         return result
 
     return do

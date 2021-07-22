@@ -42,6 +42,7 @@ class PDFView(QGraphicsView):
             ALL.signals.on_pageItem_centerOn_process: self.on_pageItem_centerOn_process_handle,
             self.rubberBandChanged: self.on_rubberBandChanged_handle,
             ALL.signals.on_pageItem_clicked: self.on_pageItem_clicked_handle,
+            # ALL.signals.on_clipbox_create:self.on_clipbox_create_handle,
             self.horizontalScrollBar().valueChanged: self.on_horizontalScrollBar_valueChanged_handle,
             self.verticalScrollBar().valueChanged: self.on_verticalScrollBar_valueChanged_handle,
         }
@@ -49,6 +50,13 @@ class PDFView(QGraphicsView):
         self.all_event.bind()
         self.init_shortcuts()
 
+    #
+    # def on_clipbox_create_handle(self,event:"events.ClipboxCreateEvent"):
+    #     if event.Type==event.NewPageCreateType:
+    #         #1创建新page
+    #
+    #         #2创建新clipbox到page
+    #         pass
     def on_pageItem_clicked_handle(self, event: "events.PageItemClickEvent"):
         if event.Type == event.rightClickType:
             self.curr_selected_item = event.pageitem
@@ -91,7 +99,7 @@ class PDFView(QGraphicsView):
         self.scene().clearSelection()
         if self.curr_rubberBand_rect is not None and not self.on_clipbox_create_sended:
             e = events.ClipboxCreateEvent
-            ALL.signals.on_clipbox_create.emit(e(eventType=e.rubbingType, sender=self))
+            ALL.signals.on_clipbox_create.emit(e(eventType=e.rubbingType, sender=self))  # 用来取消选中
             self.on_clipbox_create_sended = True
         if viewportRect:  # 空的rect不要
             self.curr_rubberBand_rect = viewportRect

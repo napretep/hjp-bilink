@@ -25,8 +25,8 @@ class PageItem5(QGraphicsItem):
     def __init__(self, pageinfo: 'PageInfo', parent=None, rightsidebar: 'RightSideBar' = None, pageview_ratio=None):
         super().__init__(parent=parent)
         self.isFullscreen = False
-        self.uuid = funcs.uuidmake()  # 仅需要内存级别的唯一性
-        self.clipBoxList = []
+        self.uuid = funcs.uuidmake()  # 仅需要内存级别的唯一性,不可以用hash唯一, 因为两个相同路径相同pagenum的对象是可能存在的.
+        # self.clipBoxList = []
         self._delta = None
         self.rightsidebar = rightsidebar  # 指向的是主窗口的rightsidebar 这个属性已经弃用
         self.belongto_pagelist_row = None

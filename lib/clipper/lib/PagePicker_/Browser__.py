@@ -363,9 +363,16 @@ class Item2(QGraphicsPixmapItem):
         pagenum = self.pagenum
         ratio = self.browser.pagepicker.ratio_value_get()
         item = PageInfo(PDFpath, pagenum, ratio=ratio)
-        pageitem = PageItem5(item)
-        ALL.signals.on_pageItem_addToScene.emit(
-            e(sender=self, eventType=e.addMultiPageType, pageItemList=[pageitem]))
+        if self.browser.pagepicker.frompageitem is not None:
+            ALL.signals.on_pageItem_changePage.emit(
+                events.PageItemChangeEvent(pageInfo=item, pageItem=self.browser.pagepicker.frompageitem,
+                                           eventType=events.PageItemChangeEvent.updateType)
+            )
+            pass
+        else:
+            pageitem = PageItem5(item)
+            ALL.signals.on_pageItem_addToScene.emit(
+                e(sender=self, eventType=e.addMultiPageType, pageItemList=[pageitem]))
         self.browser.pagepicker.close()
     #
     def on_pagepicker_browser_select_handle(self, event: "events.PagePickerBrowserSelectEvent"):
@@ -512,7 +519,6 @@ class View(QGraphicsView):
 
     def init_UI(self):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # self.verticalScrollBar().setFixedWidth(10)
         self.verticalScrollBar().setStyleSheet("width:5px;")
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         # self.rubberBand = QRubberBand(QRubberBand.Rectangle, self)

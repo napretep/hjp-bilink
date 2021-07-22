@@ -4,7 +4,7 @@ import logging
 import importlib
 
 signals = objs.signals
-ISDEBUG = False
+ISDEBUG = True
 DEBUG_LEVEL = logging.DEBUG
 CONFIG = objs.CONFIG
 connects = {}

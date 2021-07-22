@@ -7,9 +7,10 @@ from aqt.previewer import Previewer
 from anki.cards import Card
 from aqt.utils import tooltip
 from ..obj.utils import BaseInfo
-from ..obj import funcs
+from ..obj import funcs, all_objs, clipper_imports
 from .DialogCardEditor import EditNoteWindowFromThisLinkAddon, external_note_dialog
 
+print, _1 = clipper_imports.funcs.logger(__name__)
 
 class SingleCardPreviewer(Previewer):
     def __init__(self, card: Card, *args, **kwargs):
@@ -96,6 +97,11 @@ class SingleCardPreviewerMod(SingleCardPreviewer):
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         funcs.PDFprev_close(self.card().id, all=True)
+        # addonName = BaseInfo().dialogName
+        all_objs.mw_card_window[str(self.card().id)] = None
+        # card_window = aqt.mw.__dict__[addonName]["card_window"]
+        # card_window[str(self.card().id)]=None
+        # print(all_objs.mw_card_window)
 
 def unregister(card_id, *args, **kwargs):
     addonName = BaseInfo().dialogName
@@ -104,11 +110,13 @@ def unregister(card_id, *args, **kwargs):
 
 
 def external_card_dialog(card):
-    addonName = BaseInfo().dialogName
-    card_window = aqt.mw.__dict__[addonName]["card_window"]
+    # addonName = BaseInfo().dialogName
+    # card_window = aqt.mw.__dict__[addonName]["card_window"]
+    card_window = all_objs.mw_card_window
     card_id = str(card.id)
     if card_id not in card_window:
         card_window[card_id] = None
+    # print(card_window == all_objs.mw_card_window)
     if card_window[card_id] is not None:
         card_window[card_id].activateWindow()
     else:

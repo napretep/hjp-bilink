@@ -51,6 +51,8 @@ class QAButton(QGraphicsProxyWidget):
         self.__update_sginal_emit()
         self.__QAButton.setIcon(self.__IconDict[self.__QA])
         self.__QAButton.setToolTip(self.__toolTipDict[self.__QA])
+        if self.__toolsbar.clipbox_dict is not None:
+            self.__QAButton.setText(str(self.__toolsbar.clipbox_dict["QA"]))
 
     def __on_QAButton_clicked_handle(self):
         if objs.macro.state == objs.macro.runningState:
@@ -151,6 +153,8 @@ class EditQAbutton(QGraphicsProxyWidget):
         self.__update_sginal_emit()
         self.__editQAButton.setIcon(self.__IconDict["Q"])
         self.__editQAButton.setToolTip("将选框保存到卡片问题字段\nrestore the clipbox to the question field of the card")
+        if self.__toolsbar.clipbox_dict is not None:
+            self.__editQAButton.setText(str(self.__toolsbar.clipbox_dict["textQA"]))
         pass
 
     def __update_sginal_emit(self):
@@ -195,11 +199,14 @@ class LineEdit(QGraphicsProxyWidget):
         self.setWidget(self.__lineEdit)
 
     def __init_UI(self):
+
         pass
 
     def __init_data(self):
         self.__lineEdit.setToolTip("在此处编辑可给选框增加文字描述\nedit here to add a description to the clipbox")
         self.__lineEdit.setPlaceholderText("edit here to add a description to the clipbox")
+        if self.__toolsbar.clipbox_dict is not None:
+            self.__lineEdit.setText(self.__toolsbar.clipbox_dict["text_"])
 
     def __on_lineEdit_textChanged_handle(self, text):
         self.__update_sginal_emit(text)
@@ -254,6 +261,8 @@ class CardCombox(QGraphicsProxyWidget):
             self.desc_item_uuid = row[0].uuid
 
         self.__cardCombox.setToolTip("选择一张卡片用来保存当前选框\nSelect a card to store the current clip box")
+        if self.__toolsbar.clipbox_dict is not None:
+            self.__data_setToCurrent(self.__toolsbar.clipbox_dict["card_uuid"])
         pass
 
     def __data_setToCurrent(self, itemUuid):

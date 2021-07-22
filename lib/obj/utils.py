@@ -153,7 +153,6 @@ def compatible_browser_sidebar_refresh(browser: Browser):
 
 
 def wrapper_mw_previewer_register(func):
-    """注册到mw.__dict__[consoler_Name][previewer] """
 
     def register(*args, **kwargs):
         """用来给previewer对象加一些内容"""

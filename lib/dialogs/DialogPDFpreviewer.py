@@ -1,23 +1,31 @@
+import json
+import os
 import sys
 import typing
 
 import uuid
+from math import ceil
 from typing import Union
-
-from PyQt5 import QtGui
-from PyQt5.QtCore import QObject, Qt, pyqtSignal, QRectF, QPointF, QPoint, QRect, QLineF
-from PyQt5.QtGui import QPixmap, QPainter, QIcon, QPen, QColor, QBrush, QPainterPathStroker, QPainterPath
+import tempfile
+from PyQt5 import QtGui, QtCore
+from PyQt5.QtCore import QObject, Qt, pyqtSignal, QRectF, QPointF, QPoint, QRect, QLineF, QModelIndex, \
+    QPersistentModelIndex, QThread
+from PyQt5.QtGui import QPixmap, QPainter, QIcon, QPen, QColor, QBrush, QPainterPathStroker, QPainterPath, \
+    QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QDialog, QGraphicsSceneHoverEvent, QWidget, QGraphicsView, QVBoxLayout, QHBoxLayout, \
     QApplication, QGraphicsScene, \
     QGraphicsPixmapItem, QGraphicsRectItem, QCheckBox, QSlider, QLabel, QToolButton, QSpinBox, QStyleOptionGraphicsItem, \
-    QGraphicsSceneMouseEvent, QMainWindow
+    QGraphicsSceneMouseEvent, QMainWindow, QTreeView, QGridLayout, QScrollArea, QTextEdit, QComboBox, QTableView, \
+    QStyledItemDelegate, QStyleOptionViewItem, QHeaderView, QListView, QProgressBar
+
+from aqt import mw
 
 if __name__ == "__main__":
-    # from lib.clipper.lib.fitz import fitz
-    from lib.obj import clipper_imports
+    from lib.obj import clipper_imports, funcs, signals, events, all_objs, handles
 else:
     # from ..clipper.lib.fitz import fitz
-    from ..obj import clipper_imports
+    from ..obj import clipper_imports, funcs, signals, events, all_objs, handles
+    from .DialogCardPrev import external_card_dialog
 
 fitz = clipper_imports.fitz
 print, _ = clipper_imports.funcs.logger(__name__)
@@ -37,6 +45,263 @@ class PDFPrevDialog(QDialog):
     """
     on_page_changed = pyqtSignal(object)
     on_page_added = pyqtSignal(object)
+    on_clipbox_deleted = pyqtSignal(object)
+
+    class API:
+        def __init__(self, parent: "PDFPrevDialog" = None):
+            self.pdfprevdialog = parent
+            self.change_page = parent.change_page
+            self.del_page = parent.del_page
+            self.add_page = parent.add_page
+            self.on_page_changed = parent.on_page_changed
+            self.on_clipbox_deleted = parent.on_clipbox_deleted
+            self.fit_in_width = parent.fit_in_width
+            self.fit_in_height = parent.fit_in_height
+            self.fit_in_disabled = parent.fit_in_disabled
+            self.relayout = parent.relayout
+            self.card_window_open = parent.card_window_open
+
+        @property
+        def curr_rightpagenum(self) -> int:
+            return min(self.pagecount - 1, self.curr_pagenum + 1)
+
+        @property
+        def pagecount(self) -> int:
+            return len(self.doc)
+
+        @property
+        def last_rightpagenum(self) -> int:
+            return min(self.pagecount - 1, self.last_pagenum + 1)
+
+        @property
+        def last_pagenum(self) -> int:
+            return self.pdfprevdialog.last_pagenum
+
+        def last_pagenum_setValue(self, value):
+            self.pdfprevdialog.last_pagenum = value
+
+        @property
+        def fit_in_policy(self):
+            return self.pdfprevdialog.fit_in_policy
+
+        @property
+        def page_shift(self) -> int:
+            return self.pdfprevdialog.pageshift
+
+        @property
+        def pdfname(self) -> str:
+            return self.pdfprevdialog.pdfname
+
+        @property
+        def curr_pagenum(self) -> int:
+            return self.pdfprevdialog.curr_pagenum
+
+        @property
+        def pdfuuid(self) -> str:
+            return self.pdfprevdialog.pdfuuid
+
+        @property
+        def card_id(self) -> str:
+            return self.pdfprevdialog.card_id
+
+        @property
+        def doc(self) -> "fitz.Document":
+            return self.pdfprevdialog.doc
+
+        @property
+        def pageratio(self) -> float:
+            return self.pdfprevdialog.pageratio
+
+        def page_shift_set(self, value):
+            self.pdfprevdialog.pageshift = value
+
+        def curr_pagenum_set(self, value):
+            self.pdfprevdialog.curr_pagenum = value
+
+        def pdfuuid_set(self, value):
+            self.pdfprevdialog.pdfuuid = value
+
+        def card_id_set(self, value):
+            self.pdfprevdialog.card_id = value
+
+        def fit_in_policy_set(self, value):
+            self.pdfprevdialog.fit_in_policy = value
+
+        def pageratio_set(self, value):
+            self.pdfprevdialog.pageratio = value
+
+    fit_in_height = 0
+    fit_in_width = 1
+    fit_in_disabled = 2
+
+    def __init__(self, cardwindow=None, pdfuuid=None, pdfname=None, pagenum=None, pageratio=None, card_id=None,
+                 pageshift=None):
+        super().__init__(parent=cardwindow)
+        self.api = self.API(self)
+        PDF_JSON = clipper_imports.objs.SrcAdmin.PDF_JSON
+        if pageshift is not None:
+            self.pageshift = pageshift
+        elif pdfuuid in PDF_JSON and "page_shift" in PDF_JSON[pdfuuid]:
+            self.pageshift = PDF_JSON[pdfuuid]["page_shift"]
+        else:
+            self.pageshift = 0
+        self.card_id = card_id
+        self.pdfuuid = pdfuuid
+        self.fit_in_policy = self.fit_in_disabled
+        self.pdfname = pdfname
+        self.pagenum = pagenum
+        self.last_pagenum = pagenum
+        self.curr_pagenum = pagenum
+        self.doc = fitz.open(pdfname)
+        self.pageratio = pageratio
+        self.leftSide_bookmark = self.LeftSideBookmark(parent=self)
+        self.bottom_toolsbar = self.BottomToolsBar(parent=self)
+        self.center_view = self.CenterView(parent=self)
+        self.widget_button_show = QToolButton(self)
+        self.init_UI()
+        self.init_show()
+        self._event = {
+            self.on_page_changed: self.on_page_changed_handle,
+            self.widget_button_show.clicked: self.on_widget_button_show_clicked
+        }
+        self.all_event = clipper_imports.objs.AllEventAdmin(self._event).bind()
+
+    def on_widget_button_show_clicked(self):
+        self.widget_button_show.hide()
+        self.bottom_toolsbar.show()
+
+    def on_page_changed_handle(self, event: "PDFPrevDialog.PageChangedEvent"):
+        self.center_view.api.hideclipbox()
+        self.last_pagenum = self.curr_pagenum
+        self.curr_pagenum = event.data
+        self.change_page(event.data)
+        self.center_view.api.showclipbox()
+
+    def card_window_open(self, card_id):
+        card = mw.col.getCard(int(card_id))
+        if not __name__ == "__main__":
+            external_card_dialog(card)
+
+    def init_UI(self):
+        self.setWindowIcon(QIcon(clipper_imports.objs.SrcAdmin.imgDir.read))
+        self.setWindowTitle(f"PDF previewer, belong to card={self.card_id}")
+        self.setWindowModality(Qt.NonModal)
+        self.setModal(False)
+        self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        self.setMinimumWidth(400)
+        self.setMinimumHeight(600)
+
+        G_Layout = QGridLayout(self)
+        # G_Layout.addWidget(self.leftSide_bookmark,0,0,2,1)
+        G_Layout.addWidget(self.center_view, 0, 1)
+        G_Layout.addWidget(self.bottom_toolsbar, 1, 1)
+        # G_Layout.addWidget(self.widget_button_show,0,1)
+        G_Layout.setContentsMargins(0, 0, 0, 0)
+        G_Layout.setSpacing(0)
+        self.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(G_Layout)
+        self.widget_button_show.resize(100, 15)
+        self.widget_button_show.setIcon(QIcon(clipper_imports.objs.SrcAdmin.imgDir.top_direction))
+        self.widget_button_show.hide()
+
+    def init_show(self):
+
+        self.leftSide_bookmark.api.init_data()
+        self.add_page()
+
+    def change_page(self, pagenum):
+        """用来换页,和底层的不同的是他同时换两页"""
+
+        self.center_view.api.leftpage.api.change_page(pagenum)
+
+        if self.center_view.api.rightpage:
+            self.center_view.api.rightpage.api.change_page(pagenum + 1)
+        pass
+
+    def del_page(self):
+        self.center_view.api.delpage()
+
+    def add_page(self):
+        self.center_view.api.addpage()
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        # 保存 pageshift ratio
+        PDF_JSON = clipper_imports.objs.SrcAdmin.PDF_JSON
+        PDF_JSON[self.pdfuuid]["ratio"] = self.pageratio
+        PDF_JSON[self.pdfuuid]["page_shift"] = self.pageshift
+        PDF_JSON.save()
+        pdf_path = PDF_JSON[self.pdfuuid]["pdf_path"]
+        pdfpageuuid = clipper_imports.funcs.uuid_hash_make(pdf_path + str(self.pagenum))
+        if not __name__ == "__main__":
+            all_objs.mw_pdf_prev[str(self.card_id)][pdfpageuuid] = None
+
+        # print(f"closed, {all_objs.mw_pdf_prev}")
+
+    def relayout(self):
+        if self.leftSide_bookmark.isVisible():
+            self.move(self.leftSide_bookmark.x() + self.leftSide_bookmark.width(), self.leftSide_bookmark.y())
+
+    def resizeEvent(self, a0: QtGui.QResizeEvent) -> None:
+        super().resizeEvent(a0)
+        w = int(self.geometry().width() / 2 - self.widget_button_show.geometry().width() / 2)
+        h = self.geometry().height() - 15
+        self.widget_button_show.move(w, h)
+        # self.widget_button_show.move(int(self.size().width() / 2), self.size().height())
+
+    def moveEvent(self, a0: QtGui.QMoveEvent) -> None:
+        self.leftSide_bookmark.api.relayout()
+
+    class RightSideBakclink(QDialog):
+
+        def __init__(self, parent: "PDFPrevDialog.BottomToolsBar", superior: "PDFPrevDialog"):
+            super().__init__(parent)
+            self.superior = superior
+            self.view = QTreeView(self)
+            self.h_layout = QHBoxLayout(self)
+            self.model = QStandardItemModel()
+            self.view.setModel(self.model)
+            self.init_UI()
+            self.all_event = clipper_imports.objs.AllEventAdmin({
+                self.view.doubleClicked: self.on_view_doubleclicked_handle
+            }).bind()
+
+        def on_view_doubleclicked_handle(self, index: "QModelIndex"):
+            card_id = self.model.index(index.row(), 0).data(role=Qt.DisplayRole)
+            self.superior.api.card_window_open(card_id)
+            self.close()
+
+        def init_UI(self):
+            self.setWindowTitle("current page are referenced by these cards ")
+            self.h_layout.addWidget(self.view)
+            self.setLayout(self.h_layout)
+            self.init_data()
+            self.view.resizeColumnToContents(0)
+            self.view.resizeColumnToContents(1)
+            self.resize(self.view.columnWidth(0) + self.view.columnWidth(1) + 40, self.superior.height())
+
+        def init_data(self):
+            pdfuuid = str(self.superior.api.pdfuuid)
+            page = str(self.superior.api.curr_pagenum)
+            DB = clipper_imports.objs.SrcAdmin.DB.go()
+            result = DB.select(pdfuuid=pdfuuid, pagenum=page).return_all(callback=None).zip_up()
+            all_card_li: "set[str]" = set()
+            for record in result:
+                card_li: "list[str]" = record["card_id"].split(",")
+                for card in card_li:
+                    if card.isdecimal():
+                        all_card_li.add(card)
+            for card_id in list(all_card_li):
+                # print(card_id)
+                card, desc = PDFPrevDialog.RightSideBakclink.Item(card_id), PDFPrevDialog.RightSideBakclink.Item(
+                    funcs.desc_extract(card_id))
+                self.model.appendRow([card, desc])
+
+        class Item(QStandardItem):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.setFlags(self.flags() & ~Qt.ItemIsEditable)
+
+        pass
 
     class AllEvent(QObject):
         def __init__(self, eventType=None, sender=None):
@@ -47,14 +312,119 @@ class PDFPrevDialog(QDialog):
     class PageChangedEvent(AllEvent):
         WheelType = 0
         SliderType = 1
+        BookmarkType = 2
+        PageAtType = 3
 
         def __init__(self, eventType=None, sender=None, data=None):
             super().__init__(eventType, sender)
             self.data = data
 
-    class LeftSideBookmark(QWidget):
-        def __init__(self, parent=None):
+    class ClipboxDeleteEvent(AllEvent):
+        def __init__(self, eventType=None, sender=None, data=None, pagenum=None):
+            super().__init__(eventType, sender)
+            self.data = data
+            self.pagenum = pagenum
+
+    class LeftSideBookmark(QDialog):
+        class BookMarkItem(QStandardItem):
+            def __init__(self, name=None, pagenum=None, level=1):
+                super().__init__(name)
+                self.pagenum = pagenum
+                self.level = level
+                self.setToolTip(name)
+                self.setFlags(self.flags() & ~Qt.ItemIsEditable)
+
+            pass
+
+        class API(QObject):
+            def __init__(self, father: "PDFPrevDialog.LeftSideBookmark"):
+                super().__init__()
+                self.father = father
+                self.load_bookmark = self.father.load_bookmark
+                self.init_data = self.father.init_data
+                self.relayout = self.father.relayout
+
+        def __init__(self, parent: "PDFPrevDialog" = None):
             super().__init__(parent)
+            self.pdfprevdialog = parent
+            self.view = QTreeView(self)
+            self.init_UI()
+            self.init_model()
+            self.event_dict = {
+                self.view.clicked: (self.on_self_clicked_handle)
+            }
+            self.all_event = clipper_imports.objs.AllEventAdmin(self.event_dict)
+            self.all_event.bind()
+            self.hide()
+            self.api = self.API(self)
+
+        def init_UI(self):
+            self.setMinimumWidth(150)
+            self.setWindowIcon(QIcon(clipper_imports.objs.SrcAdmin.imgDir.bookmark))
+            self.setWindowTitle("bookmark")
+            self.view.setIndentation(10)
+            V_layout = QVBoxLayout(self)
+            V_layout.addWidget(self.view)
+            self.setLayout(V_layout)
+            pass
+
+        def init_model(self):
+            self.model = QStandardItemModel()
+            self.view.setModel(self.model)
+            self.root = self.model.invisibleRootItem()
+            self.root.level = 0
+            self.model.setHorizontalHeaderLabels(["toc"])
+
+        def on_self_clicked_handle(self, index):
+            item = self.model.itemFromIndex(index)
+            e = self.pdfprevdialog.PageChangedEvent
+            self.pdfprevdialog.api.on_page_changed.emit(e(sender=self, eventType=e.BookmarkType, data=item.pagenum))
+
+        def setup_toc(self, toc: 'list[list[int,str,int]]'):
+            self.model.clear()
+            self.model.setHorizontalHeaderLabels(["table of contents"])
+            last = self.BookMarkItem(name="virtual item")
+            lastparent = self.root
+            for i in toc:
+                level, name, pagenum = i[0], i[1], i[2] + self.doc_shift
+                item = self.BookMarkItem(name=name, level=level, pagenum=pagenum)
+                if self.model.rowCount() == 0:  # 为空时添加第一个元素
+                    self.model.appendRow(item)
+                else:
+                    if level > 1:  # 层级大于1才在这里
+                        if last.level == level:  # 同级就可以加到父辈
+                            lastparent.appendRow(item)
+                        elif last.level > level:  # 前面的等级高,后面的等级低说明开了一个新上级,需要找到与他相同级的父级插入.
+                            templast = last
+                            while templast.level >= level and templast.parent() is not None:  # 找到比他小的那一级
+                                templast = templast.parent()
+                            templast.appendRow(item)
+                        elif last.level < level:
+                            last.appendRow(item)
+
+                    else:  #
+                        self.model.appendRow(item)
+                last = item
+                lastparent = item.parent() if item.parent() is not None else self.root
+
+        def init_data(self):
+            doc = self.pdfprevdialog.api.doc
+            self.load_bookmark(doc)
+            self.relayout()
+
+        def relayout(self):
+            # print(f"self.pos={self.pos()}")
+            self.move(self.pdfprevdialog.x() - self.width(), self.pdfprevdialog.y())
+            self.resize(self.width(), self.pdfprevdialog.height())
+
+        def moveEvent(self, a0: QtGui.QMoveEvent) -> None:
+            self.pdfprevdialog.api.relayout()
+
+        def load_bookmark(self, doc: "fitz.Document"):
+            # print("load_bookmark")
+            self.doc_shift = -1 if doc.xref_xml_metadata() != 0 else 0
+            self.toc = doc.get_toc()
+            self.setup_toc(self.toc)
 
         pass
 
@@ -73,6 +443,9 @@ class PDFPrevDialog(QDialog):
                 self.bottomtoolsbar = parent
                 self.label_pagenum_setText = self.bottomtoolsbar.widget_label_pagenum_setText
                 self.slider_page_setValue = self.bottomtoolsbar.widget_slider_page_setValue
+                self.page_at_setValue = self.bottomtoolsbar.widget_spinbox_page_at_setValue
+                self.pageshift_setValue = self.bottomtoolsbar.widget_spinbox_pageshift_setValue
+                self.pagenum_kind_blocksignal = parent.pagenum_kind_blocksignal
 
             @property
             def label_pagenum_text(self):
@@ -82,6 +455,14 @@ class PDFPrevDialog(QDialog):
             def slider_page_value(self):
                 return self.bottomtoolsbar.widget_slider_page.value()
 
+            @property
+            def pageshift_value(self):
+                return self.bottomtoolsbar.widget_spinbox_pageshift.value()
+
+            @property
+            def page_at_value(self):
+                return self.bottomtoolsbar.widget_spinbox_page_at.value()
+
         def __init__(self, parent: "PDFPrevDialog" = None):
             super().__init__(parent)
             self.icon_fit_width = QIcon(clipper_imports.objs.SrcAdmin.imgDir.fit_in_width)
@@ -89,13 +470,21 @@ class PDFPrevDialog(QDialog):
             self.icon_single_page = QIcon(clipper_imports.objs.SrcAdmin.imgDir.singlepage)
             self.icon_double_page = QIcon(clipper_imports.objs.SrcAdmin.imgDir.doublepage)
             self.icon_bookmark = QIcon(clipper_imports.objs.SrcAdmin.imgDir.bookmark)
+            self.icon_correct = QIcon(clipper_imports.objs.SrcAdmin.imgDir.correct)
             self.pdfprevdialog = parent
             self.widget_spinbox_pageshift = QSpinBox(self)
+            self.widget_spinbox_page_at = QSpinBox(self)
+            self.widget_pageshift = clipper_imports.objs.GridHDescUnit(
+                parent=self, labelname="pageshift", widget=self.widget_spinbox_pageshift)
+            self.widget_page_at = clipper_imports.objs.GridHDescUnit(
+                parent=self, labelname="jump to book page", widget=self.widget_spinbox_page_at)
             self.widget_button_bookmark = QToolButton(self)
             self.widget_button_double_page = QToolButton(self)
-            # self.widget_button_zoom_enable = QToolButton(self)
+            self.widget_button_correct = QToolButton(self)
+            self.widget_button_backlink = QToolButton(self)
             self.widget_button_fit_width = QToolButton(self)
             self.widget_button_fit_height = QToolButton(self)
+            self.widget_button_hide = QToolButton(self)
             # self.widget_button_clipbox=QToolButton(self)
             # self.double_side= clipper_imports.objs.GridHDescUnit(
             #     parent=self,labelname="double side",widget=self.double_side_widget)
@@ -103,17 +492,40 @@ class PDFPrevDialog(QDialog):
             self.widget_slider_page = self.PageSlider(Qt.Horizontal, parent=self)
             self.api = self.API(parent=self)
             self._event = {
+                self.widget_button_backlink.clicked: self.on_widget_button_backlink_clicked_handle,
                 self.widget_button_fit_width.clicked: self.on_widget_button_fit_width_clicked_handle,
                 self.widget_button_fit_height.clicked: self.on_widget_button_fit_height_clicked_handle,
                 self.widget_slider_page.valueChanged: self.on_widget_slider_page_valueChanged_handle,
                 self.widget_button_double_page.clicked: self.on_widget_button_double_page_clicked_handle,
                 self.widget_button_bookmark.clicked: self.on_widget_button_bookmark_clicked_handle,
+                self.widget_button_correct.clicked: self.on_widget_button_correct_clicked_handle,
+                self.widget_spinbox_pageshift.valueChanged: self.on_widget_spinbox_pageshift_valueChanged_handle,
+                self.widget_spinbox_page_at.valueChanged: self.on_widget_spinbox_page_at_valueChanged_handle,
+                self.widget_button_hide.clicked: self.on_widget_button_hide_clicked_handle,
                 self.pdfprevdialog.on_page_changed: self.on_pdfprevdialog_page_changed,
-
             }
             self.all_event = clipper_imports.objs.AllEventAdmin(self._event)
             self.all_event.bind()
             self.init_UI()
+
+        def on_widget_button_backlink_clicked_handle(self):
+            p = PDFPrevDialog.RightSideBakclink(self, self.pdfprevdialog)
+            p.show()
+
+        def on_widget_button_correct_clicked_handle(self):
+            data = self.pdfprevdialog.center_view.api.flatClipbox()
+            p = self.pdfprevdialog.CorrectionDialog(parent=self.pdfprevdialog, data=data)
+            p.show()
+
+        def on_widget_spinbox_pageshift_valueChanged_handle(self, value):
+            self.pdfprevdialog.api.page_shift_set(value)
+            # self.api.page_at_setValue(self.api.slider_page_value)
+            self.init_page_at()
+
+        def on_widget_spinbox_page_at_valueChanged_handle(self, value):
+            pagenum = self.widget_spinbox_pageshift.value() + value - 1  # 从1开始计数
+            e = self.pdfprevdialog.PageChangedEvent
+            self.pdfprevdialog.api.on_page_changed.emit(e(eventType=e.PageAtType, data=pagenum))
 
         def on_widget_button_fit_height_clicked_handle(self):
             self.pdfprevdialog.api.fit_in_policy_set(self.pdfprevdialog.api.fit_in_height)
@@ -142,41 +554,74 @@ class PDFPrevDialog(QDialog):
             self.pdfprevdialog.api.on_page_changed.emit(e)
 
         def on_widget_button_bookmark_clicked_handle(self):
-            print("yes")
+            # print("on_widget_button_bookmark_clicked_handle")
+            bookmark = self.pdfprevdialog.leftSide_bookmark
+            if not bookmark.isVisible():
+                bookmark.show()
+                bookmark.api.relayout()
+            else:
+                bookmark.hide()
 
         def on_pdfprevdialog_page_changed(self, event: "PDFPrevDialog.PageChangedEvent"):
-            if event.Type != event.SliderType:
-                self.api.slider_page_setValue(event.data)
+            self.api.pagenum_kind_blocksignal(True)
+            self.api.page_at_setValue(event.data)
+            self.api.slider_page_setValue(event.data)
             self.api.label_pagenum_setText(event.data)
+            self.api.pagenum_kind_blocksignal(False)
+
+        def pagenum_kind_blocksignal(self, T_or_F):
+            self.widget_spinbox_page_at.blockSignals(T_or_F)
+            self.widget_slider_page.blockSignals(T_or_F)
+
+        def widget_spinbox_page_at_setValue(self, value):
+            """这是给内部调用的时候用的,内部统一使用pdf作为页码,所以value的值=pdfpagenum,但是page_at展示的值是bookpagenum,所以要减去"""
+            pagenum = value - self.widget_spinbox_pageshift.value() + 1
+            self.widget_spinbox_page_at.setValue(pagenum)
+
+        def widget_spinbox_pageshift_setValue(self, value):
+            self.widget_spinbox_pageshift.setValue(value)
 
         def widget_slider_page_setValue(self, value):
             self.widget_slider_page.setValue(value)
             self.pdfprevdialog.api.curr_pagenum_set(value)
 
-        def widget_label_pagenum_setText(self, value1, value2=None):
-            if value2 is None:
-                value2 = self.pdfprevdialog.pageshift + value1
-            self.widget_label_pagenum.setText(f"pdf(book) page at {value1}({value2})")
+        def widget_label_pagenum_setText(self, value1):
+            self.widget_label_pagenum.setText(f"pdf page at {value1}")
             self.pdfprevdialog.api.curr_pagenum_set(value1)
 
         def init_UI(self):
+            self.init_hide()
             self.init_page_slider()
             self.init_label_pagenum()
+            self.init_correct()
             self.init_double_side_switch()
             self.init_pageshift()
-            # self.init_zoom_enable()
+            self.init_page_at()
             self.init_fit_width_height()
             self.init_bookmark()
+            self.init_backlink()
             V_layout = QVBoxLayout(self)
             V_layout.addWidget(self.widget_slider_page)
-            w_li = [self.widget_button_bookmark, self.widget_button_double_page, self.widget_button_fit_width,
-                    self.widget_button_fit_height, self.widget_spinbox_pageshift,
-                    self.widget_label_pagenum]
+            w_li = [self.widget_pageshift, self.widget_page_at, self.widget_label_pagenum, self.widget_button_hide,
+                    self.widget_button_backlink, self.widget_button_bookmark, self.widget_button_double_page,
+                    self.widget_button_fit_width, self.widget_button_fit_height, self.widget_button_correct]
+
             H_layout = QHBoxLayout(self)
             for w in w_li:
                 H_layout.addWidget(w)
+            H_layout.setAlignment(Qt.AlignRight)
             V_layout.addLayout(H_layout)
+
             self.setLayout(V_layout)
+
+        def init_hide(self):
+            self.widget_button_hide.setIcon(QIcon(clipper_imports.objs.SrcAdmin.imgDir.bottom_direction))
+
+        def init_backlink(self):
+            self.widget_button_backlink.setIcon(QIcon(clipper_imports.objs.SrcAdmin.imgDir.link2))
+
+        def init_correct(self):
+            self.widget_button_correct.setIcon(self.icon_correct)
 
         def init_bookmark(self):
             self.widget_button_bookmark.setIcon(self.icon_bookmark)
@@ -185,10 +630,15 @@ class PDFPrevDialog(QDialog):
             self.widget_spinbox_pageshift.setMaximumWidth(50)
             self.widget_spinbox_pageshift.setValue(self.pdfprevdialog.api.page_shift)
 
-        # def init_zoom_enable(self):
-        #     self.widget_button_zoom_enable.setIcon(QIcon(clipper_imports.objs.SrcAdmin.imgDir.mouse_wheel_zoom))
-        #     self.widget_button_zoom_enable.setText("1")
-        #     self.widget_button_zoom_enable.setToolTip("switchwheel")
+        def init_page_at(self):
+            self.widget_spinbox_page_at.setMaximumWidth(50)
+            self.widget_spinbox_page_at.setValue(self.pdfprevdialog.api.curr_pagenum + 1 - self.api.pageshift_value)
+            self.widget_spinbox_page_at.setRange(-self.api.pageshift_value,
+                                                 self.pdfprevdialog.api.pagecount - self.api.pageshift_value)
+
+        def on_widget_button_hide_clicked_handle(self):
+            self.hide()
+            self.pdfprevdialog.widget_button_show.show()
 
         def init_fit_width_height(self):
             self.widget_button_fit_width.setIcon(self.icon_fit_width)
@@ -202,13 +652,14 @@ class PDFPrevDialog(QDialog):
             self.widget_button_double_page.setToolTip("display single page")
 
         def init_label_pagenum(self):
-            self.widget_label_pagenum.setText("pdf(book) page at " + str(self.pdfprevdialog.curr_pagenum))
+            self.widget_label_pagenum.setText(f"pdf page at {self.pdfprevdialog.api.curr_pagenum}")
 
         def init_page_slider(self):
             pagecount = len(self.pdfprevdialog.doc)
             self.widget_slider_page.setFixedWidth(self.pdfprevdialog.size().width() - 40)
             self.widget_slider_page.setRange(0, pagecount - 1)
             self.widget_slider_page.setSingleStep(1)
+            self.widget_slider_page.setValue(self.pdfprevdialog.api.curr_pagenum)
             # self.page_slider.setLayoutDirection(Qt.Horizontal)
 
         def resizeEvent(self, a0: QtGui.QResizeEvent) -> None:
@@ -289,12 +740,19 @@ class PDFPrevDialog(QDialog):
                     self.curr_rubberBand_rect = None
                     self.centerview.api.curr_selected_item_setValue(None)
 
-                print(self.curr_rubberBand_rect)
+                # print(self.curr_rubberBand_rect)
 
         class Scene(QGraphicsScene):
-            def __init__(self, parent=None):
+            def __init__(self, parent: "PDFPrevDialog.CenterView" = None):
                 super().__init__(parent)
                 self.setBackgroundBrush(Qt.black)
+                self.centerview = parent
+                self.all_event = clipper_imports.objs.AllEventAdmin({
+                    self.centerview.pdfprevdialog.api.on_clipbox_deleted: self.on_clipbox_deleted_handle
+                }).bind()
+
+            def on_clipbox_deleted_handle(self, event: "PDFPrevDialog.ClipboxDeleteEvent"):
+                self.removeItem(event.data)
 
         class Page(QGraphicsPixmapItem):
             mousecenter = 0
@@ -456,6 +914,12 @@ class PDFPrevDialog(QDialog):
                     super().__init__()
                     self.parent = parent
                     self.keep_ratio = parent.keep_ratio
+                    self.self_info_get = parent.self_info_get
+                    self.clip_img_save = parent.clip_img_save
+
+                @property
+                def uuid(self) -> str:
+                    return self.parent.uuid
 
                 @property
                 def pageratio(self) -> float:
@@ -464,10 +928,11 @@ class PDFPrevDialog(QDialog):
                 def pageratio_setValue(self, value):
                     self.parent.pageratio = value
 
-            def __init__(self, parent: "PDFPrevDialog.CenterView.Page" = None, rect: "QRectF" = None):
+            def __init__(self, parent: "PDFPrevDialog.CenterView.Page" = None, rect: "QRectF" = None, pagenum=None):
                 super().__init__(parent)
-                self.setParentItem(parent)
+                self.uuid = clipper_imports.funcs.uuid_random_unique()
                 self.atpage = parent
+                self.pagenum = pagenum
                 self.fromrect = rect
                 self.isHovered = False
                 self.selected_at = None
@@ -640,6 +1105,10 @@ class PDFPrevDialog(QDialog):
                 self.setCursor(Qt.ArrowCursor)
                 super().hoverLeaveEvent(event)
 
+            def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+                e = PDFPrevDialog.ClipboxDeleteEvent
+                self.atpage.centerview.pdfprevdialog.api.on_clipbox_deleted.emit(e(data=self, pagenum=self.pagenum))
+
             # def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
             #     self.hide()
 
@@ -707,7 +1176,45 @@ class PDFPrevDialog(QDialog):
                 if view_right < right:
                     # print("over right")
                     rect.translate(view_right - right, 0)
+
+                # b = self.atpage.boundingRect()
+                # if rect.right() > b.right():
+                #     rect.setRight(b.right())
+                # if rect.top() < b.top():
+                #     rect.setTop(b.top())
+                # if rect.left() < b.left():
+                #     rect.setLeft(b.left())
+                # if rect.bottom() > b.bottom():
+                #     rect.setBottom(b.bottom())
+
                 self.setRect(rect)
+
+            def self_info_get(self):
+
+                clipbox_info = {
+                    "uuid": self.uuid,
+                    "pdfname": self.atpage.centerview.pdfprevdialog.api.pdfname,
+                    "pagenum": self.pagenum,
+                    "ratio": self.atpage.centerview.pdfprevdialog.api.pageratio,
+                    "x": self.ratioLeft,
+                    "y": self.ratioTop,
+                    "w": self.ratioRight - self.ratioLeft,
+                    "h": self.ratioBottom - self.ratioTop,
+                }
+                return clipbox_info
+
+            def clip_img_save(self, imgdir=None):
+                clipinfo = self.self_info_get()
+                pixmap = clipper_imports.funcs.png_pdf_clip(clipinfo["pdfname"], self.pagenum, rect1=clipinfo)
+                if imgdir is None:
+                    imgdir = os.path.join(tempfile.gettempdir(), f"""hjp_clipper_{self.uuid}_.png""")
+                pixmap.save(imgdir)
+                return imgdir
+
+            def __setattr__(self, key, value):
+                if "atpage" == key:
+                    self.setParentItem(value)
+                self.__dict__[key] = value
 
         class API(QObject):
             def __init__(self, centerview: "PDFPrevDialog.CenterView" = None):
@@ -719,9 +1226,16 @@ class PDFPrevDialog(QDialog):
                 self.relayoutpage = centerview.relayoutpage
                 self.fit_in = centerview.fit_in
                 self.clipbox_dict = centerview.clipbox_dict
+
+                # 选框的时候需要add
                 self.addClipbox = centerview.addClipbox
+                # 删除的时候需要del
+                self.delclipbox = centerview.delClipbox
+
+                # 换页的时候需要showhide
                 self.showclipbox = centerview.showclipbox
                 self.hideclipbox = centerview.hideclipbox
+                self.flatClipbox = centerview.flatClipbox
 
             def curr_selected_item_setValue(self, value):
                 self.centerview.curr_selected_item = value
@@ -751,6 +1265,13 @@ class PDFPrevDialog(QDialog):
             self.scene = self.Scene(self)
             self.init_UI()
             self.api = self.API(self)
+            self.all_event = clipper_imports.objs.AllEventAdmin({
+                self.pdfprevdialog.api.on_clipbox_deleted: self.on_clipbox_deleted_handle,
+
+            }).bind()
+
+        def on_clipbox_deleted_handle(self, event: "PDFPrevDialog.ClipboxDeleteEvent"):
+            self.delClipbox(event.data, event.pagenum)
 
         def init_UI(self):
             self.view.setScene(self.scene)
@@ -767,9 +1288,9 @@ class PDFPrevDialog(QDialog):
             pdfname = self.pdfprevdialog.api.pdfname
             pagenum = self.pdfprevdialog.api.curr_pagenum
             ratio = self.pdfprevdialog.api.pageratio
-            print(f"pagenum={pagenum}")
+            # print(f"pagenum={pagenum}")
             if self.leftpage is None:
-                pixmap = QPixmap(clipper_imports.funcs.pixmap_page_load(pdfname, pagenum, ratio, callback=print))
+                pixmap = QPixmap(clipper_imports.funcs.pixmap_page_load(pdfname, pagenum, ratio))
                 self.leftpage = self.Page(pixmap, parent=self)
                 self.scene.addItem(self.leftpage)
             else:
@@ -783,15 +1304,21 @@ class PDFPrevDialog(QDialog):
                         x = self.pdfprevdialog.pos().x() - m
                         self.pdfprevdialog.move(x, self.pdfprevdialog.pos().y())
                 else:
-                    self.api.fit_in(fit_in_policy=self.pdfprevdialog.api.fit_in_width)
+                    self.fit_in(fit_in_policy=self.pdfprevdialog.api.fit_in_width)
             self.relayoutpage()
             # self.pdfprevdialog.on_page_added.emit(pagenum)
 
         def delpage(self):
             self.scene.removeItem(self.rightpage)
             self.rightpage = None
-            self.pdfprevdialog.resize(int(self.pdfprevdialog.size().width() / 2), self.pdfprevdialog.size().height())
+            # self.pdfprevdialog.resize(int(self.pdfprevdialog.size().width() / 2), self.pdfprevdialog.size().height())
             self.relayoutpage()
+
+        def flatClipbox(self):
+            li = []
+            for pagenum, clipboxli in self.clipbox_dict.items():
+                li += clipboxli
+            return li
 
         def addClipbox(self, rect: "Union[QRectF,QRect]"):
             pagenum = self.pdfprevdialog.api.curr_pagenum
@@ -799,14 +1326,55 @@ class PDFPrevDialog(QDialog):
             if self.curr_selected_item == self.rightpage and self.rightpage is not None and pagenum + 1 < totalcount:
                 pagenum += 1
             r = self.curr_selected_item.mapRectFromScene(rect)
-            clipbox = self.Clipbox(parent=self.curr_selected_item, rect=r.normalized())
+            clipbox = self.Clipbox(parent=self.curr_selected_item, rect=r.normalized(), pagenum=pagenum)
             if pagenum not in self.clipbox_dict:
                 self.clipbox_dict[pagenum] = []
             self.clipbox_dict[pagenum].append(clipbox)
 
+        def delClipbox(self, clipbox: "PDFPrevDialog.CenterView.Clipbox" = None, pagenum: "int" = None,
+                       clipuuid: "str" = None, ):
+            clipbox_not_None = clipbox is not None
+            pagenum_not_None = pagenum is not None
+            clipuuid_not_None = clipuuid is not None
+
+            assert (clipbox_not_None or clipuuid_not_None)
+            if pagenum_not_None:
+                if clipbox_not_None:
+                    if clipbox in self.clipbox_dict[pagenum]:
+                        self.clipbox_dict[pagenum].remove(clipbox)
+                        self.pdfprevdialog.center_view.scene.removeItem(clipbox)
+                        return True
+                    else:
+                        return False
+                else:
+                    for clipbox in self.clipbox_dict[pagenum]:
+                        if clipbox.api.uuid == clipuuid:
+                            self.clipbox_dict[pagenum].remove(clipbox)
+                            self.pdfprevdialog.center_view.scene.removeItem(clipbox)
+                            return True
+                    return False
+            else:
+                for num, clip in self.clipbox_dict.items():
+                    result = self.delClipbox(clipbox=clipbox, pagenum=num, clipuuid=clipuuid)
+                    if result:
+                        return
+            # if clipbox is not None and pagenum is not None:
+            #     if clipbox in self.clipbox_dict[pagenum]:
+            #         self.clipbox_dict[pagenum].remove(clipbox)
+            #         return True
+            #     else:
+            #         return False
+            # elif clipbox is None and pagenum is not None and clipuuid is not None:
+            #     for clipbox in self.clipbox_dict[pagenum]:
+            #         if clipbox.api.uuid==clipuuid:
+            #             self.clipbox_dict[pagenum].remove(clipbox)
+            #             return True
+            #     return False
+            # elif pagenum is None
+
         def fit_in(self, fit_in_policy=None):
-            leftpage = self.api.leftpage
-            rightpage = self.api.rightpage
+            leftpage = self.leftpage
+            rightpage = self.rightpage
             if fit_in_policy is None:
                 fit_in_policy = self.pdfprevdialog.api.fit_in_policy
 
@@ -860,198 +1428,398 @@ class PDFPrevDialog(QDialog):
             curr_pagenum: int = self.pdfprevdialog.api.curr_pagenum
             if curr_pagenum in self.clipbox_dict:
                 for clipbox in self.clipbox_dict[curr_pagenum]:
-                    clipbox.setParentItem(self.leftpage)
+                    clipbox.atpage = self.leftpage
                     clipbox.api.keep_ratio()
                     clipbox.show()
             if self.rightpage:
                 curr_rightpagenum = self.pdfprevdialog.api.curr_rightpagenum
                 if curr_rightpagenum in self.clipbox_dict:
                     for clipbox in self.clipbox_dict[curr_rightpagenum]:
-                        clipbox.setParentItem(self.rightpage)
+                        clipbox.atpage = self.rightpage
                         clipbox.api.keep_ratio()
                         clipbox.show()
 
         pass
 
-    class API(QObject):
-        def __init__(self, parent: "PDFPrevDialog" = None):
-            super().__init__(parent)
+    class CorrectionDialog(QMainWindow):
+
+        on_pdfprev_insertClipbox_finished = pyqtSignal()
+
+        class API:
+            def __init__(self, parent: "PDFPrevDialog.CorrectionDialog"):
+                self.data = parent.data
+                self.packup_clipbox_info = parent.packup_clipbox_info
+                self.on_progerss_signal = parent.widget_progressbar.on_progress
+                self.table_clear = parent.table_clear
+                self.on_pdfprev_insertClipbox_finished = parent.on_pdfprev_insertClipbox_finished
+
+        def __init__(self, parent: "PDFPrevDialog" = None, data: "list[PDFPrevDialog.CenterView.Clipbox]" = None):
+            super().__init__()
+            self.data = data
+            self.container = QWidget(self)
             self.pdfprevdialog = parent
-            self.change_page = parent.change_page
-            self.del_page = parent.del_page
-            self.add_page = parent.add_page
-            self.on_page_changed = parent.on_page_changed
-            self.fit_in_width = parent.fit_in_width
-            self.fit_in_height = parent.fit_in_height
-            self.fit_in_disabled = parent.fit_in_disabled
+            self.widget_progressbar = self.progressBar(self)
+            self.widget_button_correct = QToolButton(self.container)
+            self.table = self.Table(self.container, superior=self)
+            self.api = self.API(self)
+            self.all_event = clipper_imports.objs.AllEventAdmin({
+                self.widget_button_correct.clicked: self.on_widget_button_correct_clicked_handle,
+                self.on_pdfprev_insertClipbox_finished: self.on_pdfprev_insertClipbox_finished_handle
+            }).bind()
+            self.init_UI()
+            self.worker_thread: "QThread" = None
 
-        @property
-        def curr_rightpagenum(self) -> int:
-            return min(self.pagecount - 1, self.curr_pagenum + 1)
+        def on_pdfprev_insertClipbox_finished_handle(self):
+            self.table_clear()
 
-        @property
-        def pagecount(self) -> int:
-            return len(self.doc)
+        def on_widget_button_correct_clicked_handle(self):
+            """
+            uuid,pdfname,pagenum,ratio,x,y,w,h,
+            QA,text_,textQA,card_id
+            Returns:
+                clipboxdict:{card_id:[clipbox,...,]}
+            1,收集clipbox要保存到DB的信息
+            2,根据之前设计过的经验,设计几个阶段,(需要用线程)
+            2.0 开启进度条,开启线程
+            2.1 新卡片设计,并将新卡片替换掉原来的"/"
+            2.2 插入卡片信息
+            2.3 复制图片到媒体库
+            3 删除已经链接过的clipbox
+            """
+            if not __name__ == "__main__":
+                QApplication.processEvents()
+                self.worker_thread = self.Thread(self)
+                QApplication.processEvents()
+                self.worker_thread.start()
+            else:
+                self.table_clear()
+                # print(json.dumps(self.api.packup_clipbox_info()))
 
-        @property
-        def last_rightpagenum(self) -> int:
-            return min(self.pagecount - 1, self.last_pagenum + 1)
+        def table_clear(self):
+            """在插入工作执行完后,执行这个函数, 分两个操作,一个是删除table的记录,一个是删除PDF上的clipbox"""
+            datali: "list[list[PDFPrevDialog.CenterView.Clipbox,str]]" = self.table.api.clipbox_clear()
+            for data in datali:
+                self.pdfprevdialog.center_view.api.delclipbox(clipbox=data[0], pagenum=int(data[1]))
 
-        @property
-        def last_pagenum(self) -> int:
-            return self.pdfprevdialog.last_pagenum
+        def packup_clipbox_info(self) -> "dict[str,list[dict[str,Union[str,int]]]]":
+            clipboxlist_temp = []
+            for i in range(self.table.api.mymodel.rowCount()):
+                clipbox_dict: "dict" = self.table.api.mymodel.item(i, self.table.pixmap).data(
+                    role=Qt.UserRole).self_info_get()
+                clipbox_dict["card_desc"] = self.table.api.mymodel.item(i, self.table.card_desc).data(
+                    role=Qt.DisplayRole)
+                clipbox_dict["QA"] = int(self.table.api.mymodel.item(i, self.table.to_field).data(role=Qt.DisplayRole))
+                clipbox_dict["textQA"] = int(
+                    self.table.api.mymodel.item(i, self.table.comment_to_field).data(role=Qt.DisplayRole))
+                clipbox_dict["text_"] = self.table.api.mymodel.item(i, self.table.comment).data(role=Qt.DisplayRole)
+                clipboxlist_temp.append(clipbox_dict)
+                clipbox_dict["pdfuuid"] = self.pdfprevdialog.pdfuuid
+            print(clipboxlist_temp)
+            clipboxlist_final = {}
+            for clipbox in clipboxlist_temp:
+                if clipbox["card_desc"] == self.Combox.curr_card:
+                    clipbox["card_id"] = self.pdfprevdialog.api.card_id
+                else:
+                    clipbox["card_id"] = "/"
+                if clipbox["card_desc"] not in clipboxlist_final:
+                    clipboxlist_final[clipbox["card_desc"]] = []
+                clipboxlist_final[clipbox["card_desc"]].append(clipbox)
+            return clipboxlist_final
 
-        def last_pagenum_setValue(self, value):
-            self.pdfprevdialog.last_pagenum = value
+        def init_UI(self):
+            self.setWindowModality(Qt.NonModal)
+            # self.setModal(False)
+            # self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+            self.setWindowTitle("overview")
+            self.widget_button_correct.setIcon(QIcon(clipper_imports.objs.SrcAdmin.imgDir.correct))
+            v_layout = QGridLayout(self.container)
+            v_layout.addWidget(self.table, 0, 0, 1, 2)
+            v_layout.addWidget(self.widget_button_correct, 1, 1)
+            v_layout.addWidget(self.widget_progressbar, 1, 0)
+            v_layout.setAlignment(Qt.AlignRight)
+            self.container.setLayout(v_layout)
+            self.setCentralWidget(self.container)
+            self.resize(800, 600)
+            # self.showMaximized()
 
-        @property
-        def fit_in_policy(self):
-            return self.pdfprevdialog.fit_in_policy
+        def init_data(self):
+            pass
 
-        @property
-        def page_shift(self) -> int:
-            return self.pdfprevdialog.pageshift
+        def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+            for w in self.table.api.imgli:
+                w.close()
+            if self.worker_thread is not None and self.worker_thread.isRunning():
+                self.worker_thread.quit()
+                self.worker_thread = None
 
-        @property
-        def pdfname(self) -> str:
-            return self.pdfprevdialog.pdfname
+        class Thread(QThread):
+            on_quit = pyqtSignal()
 
-        @property
-        def curr_pagenum(self) -> int:
-            return self.pdfprevdialog.curr_pagenum
+            def __init__(self, superior: "PDFPrevDialog.CorrectionDialog"):
+                super().__init__(superior)
+                self.superior = superior
 
-        @property
-        def pdfuuid(self) -> str:
-            return self.pdfprevdialog.pdfuuid
+            def on_quit_handle(self):
+                self.quit()
 
-        @property
-        def card_id(self) -> str:
-            return self.pdfprevdialog.card_id
+            def run(self):
+                data = self.superior.api.packup_clipbox_info()
+                card = mw.col.getCard(int(self.superior.pdfprevdialog.card_id))
+                print(data)
+                model_id, deck_id = card.model()["id"], card.did
+                part = 1
+                card_desc_total = len(data)
+                card_desc_count = 0
+                for card_desc, clipboxli in data.items():
 
-        @property
-        def doc(self) -> "fitz.Document":
-            return self.pdfprevdialog.doc
+                    clipboxli_total = len(clipboxli)
+                    clipboxli_count = 0
+                    if self.superior.Combox.new_card in card_desc:
+                        card_id = funcs.create_card(model_id, deck_id)
+                        for clipbox in clipboxli:
+                            # 新建卡片
+                            clipbox["card_id"] = card_id
 
-        @property
-        def pageratio(self) -> float:
-            return self.pdfprevdialog.pageratio
+                    for clipbox in clipboxli:
+                        # 插入DB
+                        DB = clipper_imports.objs.SrcAdmin.DB.go()
+                        DB.insert(**clipbox).commit(print)  # 这东西不可能是已经存在的
+                        DB.end()
+                        # 插入field
+                        funcs.clipbox_insert_cardField_suite(clipbox["uuid"])
+                        funcs.clipbox_png_save_to_media(clipbox["uuid"])
+                        clipboxli_count += 1
+                        self.superior.api.on_progerss_signal.emit(
+                            ceil((card_desc_count + clipboxli_count / clipboxli_total) / card_desc_total * part * 100)
+                        )
 
-        def page_shift_set(self, value):
-            self.pdfprevdialog.pageshift = value
+                    card_desc_count += 1
+                    self.superior.api.on_progerss_signal.emit(
+                        ceil((card_desc_count / clipboxli_total) / card_desc_total * part * 100)
+                    )
+                    self.msleep(100)
+                self.superior.api.on_pdfprev_insertClipbox_finished.emit()
+                self.quit()
 
-        def curr_pagenum_set(self, value):
-            self.pdfprevdialog.curr_pagenum = value
+        class progressBar(QProgressBar):
+            on_progress = pyqtSignal(object)
+            on_end = pyqtSignal(object)
 
-        def pdfuuid_set(self, value):
-            self.pdfprevdialog.pdfuuid = value
+            def __init__(self, parent: "PDFPrevDialog.CorrectionDialog"):
+                super().__init__(parent)
+                self.events = clipper_imports.objs.AllEventAdmin({
+                    signals.ALL.on_PDFprev_work_progress: self.setValue
+                }).bind()
+                self.on_progress.connect(self.setValue)
 
-        def card_id_set(self, value):
-            self.pdfprevdialog.card_id = value
+        class Combox(QComboBox):
+            curr_card, new_card, plus = "当前卡片/current_card", "new_card", "+"
 
-        def fit_in_policy_set(self, value):
-            self.pdfprevdialog.fit_in_policy = value
+            def __init__(self, table: "PDFPrevDialog.CorrectionDialog.Table", index: "QModelIndex", *args):
+                super().__init__(*args)
+                self.index = index
+                self.currentIndexChanged.connect(self.on_currentIndexChanged)
+                self.addItem(self.curr_card)
+                self.addItem(self.plus)
+                self.table = table
+                self.init_UI()
 
-        def pageratio_set(self, value):
-            self.pdfprevdialog.pageratio = value
+            def init_UI(self):
+                data = self.index.data(role=Qt.UserRole)
+                text = self.index.data(role=Qt.DisplayRole)
+                for i in data:
+                    self.addItem(i)
+                idx = self.findText(text)
+                self.setCurrentIndex(idx)
 
-    fit_in_height = 0
-    fit_in_width = 1
-    fit_in_disabled = 2
+            def on_currentIndexChanged(self, index):
+                data = self.itemText(index)
+                if data == "+":
+                    count = self.count()
+                    self.addItem(f"""{self.new_card}_{count - 2}""")
+                    self.table.api.on_combox_addItem_handle()
+                    self.setCurrentIndex(count)
 
-    def __init__(self, cardwindow=None, pdfuuid=None, pdfname=None, pagenum=None, pageratio=None, card_id=None,
-                 pageshift=None):
-        super().__init__(parent=cardwindow)
-        self.api = self.API(self)
-        PDF_JSON = clipper_imports.objs.SrcAdmin.PDF_JSON
-        if pageshift is not None:
-            self.pageshift = pageshift
-        elif pdfuuid in PDF_JSON and "page_shift" in PDF_JSON[pdfuuid]:
-            self.pageshift = PDF_JSON[pdfuuid]["page_shift"]
-        else:
-            self.pageshift = 0
-        self.card_id = card_id
-        self.pdfuuid = pdfuuid
-        self.fit_in_policy = self.fit_in_disabled
-        self.pdfname = pdfname
-        self.pagenum = pagenum
-        self.last_pagenum = pagenum
-        self.curr_pagenum = pagenum
-        self.doc = fitz.open(pdfname)
-        self.pageratio = pageratio
-        self.leftSide_bookmark = self.LeftSideBookmark(parent=self)
-        self.bottom_toolsbar = self.BottomToolsBar(parent=self)
-        self.center_view = self.CenterView(parent=self)
-        self.init_UI()
-        self.init_show()
-        self._event = {
-            self.on_page_changed: self.on_page_changed_handle,
-            # self.on_page_added:lambda x:setattr(self,"curr_pagenum",x)
-        }
-        self.all_event = clipper_imports.objs.AllEventAdmin(self._event)
-        self.all_event.bind()
+        class Delegate(QStyledItemDelegate):
+            pixmap, comment, page_at, card_desc, to_field, comment_to_field, close = 0, 1, 2, 3, 4, 5, 6
 
-    # def __setattr__(self, key, value):
-    #     # if key == "curr_pagenum" and "curr_pagenum" in self.__dict__ and value != self.__dict__["last_pagenum"]:
-    #     #     self.__dict__["last_pagenum"] =self.__dict__["curr_pagenum"]
-    #     #     self.on_page_changed.emit(value)
-    #     self.__dict__[key]=value
+            def __init__(self, table: "PDFPrevDialog.CorrectionDialog.Table", *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.table = table
 
-    def on_page_changed_handle(self, event: "PDFPrevDialog.PageChangedEvent"):
-        self.center_view.api.hideclipbox()
-        self.last_pagenum = self.curr_pagenum
-        self.curr_pagenum = event.data
-        self.api.change_page(event.data)
-        self.center_view.api.showclipbox()
+            def paint(self, painter: "QPainter", option: "QStyleOptionViewItem", index: "QModelIndex"):
+                value = index.model().data(index, Qt.DisplayRole)
+                if index.column() == self.pixmap:
 
-    def init_UI(self):
-        self.setWindowTitle("PDF previewer")
-        self.setWindowModality(Qt.NonModal)
-        self.setModal(False)
-        self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        self.setMinimumWidth(400)
-        self.setMinimumHeight(600)
-        # w_li=[self.leftSide_bookmark,self.bottom_toolsbar,self.center_view]
-        V_layout = QVBoxLayout(self)
-        # self.center_view.setStyleSheet("margin:0px;padding:0px;")
-        # self.bottom_toolsbar.setStyleSheet("margin:0px;padding:0px;")
-        # self.center_view.setStyleSheet("margin:0;")
-        V_layout.addWidget(self.center_view)
-        V_layout.addWidget(self.bottom_toolsbar)
-        H_layout = QHBoxLayout(self)
-        H_layout.addWidget(self.leftSide_bookmark)
-        H_layout.addLayout(V_layout)
-        H_layout.setContentsMargins(0, 0, 0, 0)
-        V_layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(H_layout)
+                    v = min(option.rect.height(), option.rect.width())
+                    pixmap = QPixmap(value).scaledToHeight(v)
+                    middle = int(option.rect.width() / 2 - pixmap.width() / 2)
+                    option.displayAlignment = Qt.AlignRight | Qt.AlignVCenter
+                    painter.drawPixmap(QRect(middle, option.rect.top(), pixmap.width(), pixmap.height()), pixmap)
 
-    def init_show(self):
-        self.add_page()
+                else:
+                    super().paint(painter, option, index)
 
-    def change_page(self, pagenum):
-        """用来换页,和底层的不同的是他同时换两页"""
+            def createEditor(self, Widget: "QWidget", Option: "QStyleOptionViewItem", Index: "QModelIndex"):
+                if Index.column() in [self.pixmap, self.page_at, self.close]:
+                    return None
+                elif Index.column() == self.card_desc:
+                    combox = PDFPrevDialog.CorrectionDialog.Combox(self.table, Index, Widget)
+                    return combox
+                elif Index.column() in [self.to_field, self.comment_to_field]:
+                    spinBox = QSpinBox(Widget)
+                    spinBox.setRange(0, 2000)
+                    return spinBox
+                elif Index.column() == self.comment:
+                    return QTextEdit(Widget)
+                else:
+                    return super().createEditor(Widget, Option, Index)
 
-        self.center_view.api.leftpage.api.change_page(pagenum)
+            def setEditorData(self, editor: QWidget, index: QtCore.QModelIndex) -> None:
+                if index.column() == self.comment:
+                    e: "QTextEdit" = editor
+                    text = index.data(role=Qt.DisplayRole)
+                    e.setPlainText(text)
+                else:
+                    super().setEditorData(editor, index)
 
-        if self.center_view.api.rightpage:
-            self.center_view.api.rightpage.api.change_page(pagenum + 1)
-        pass
+            def setModelData(self, editor: QWidget, model: QtCore.QAbstractItemModel,
+                             index: QtCore.QModelIndex) -> None:
+                if index.column() == self.comment:
+                    e: "QTextEdit" = editor
+                    model.setData(index, e.toPlainText(), role=Qt.DisplayRole)
 
-    def del_page(self):
-        self.center_view.api.delpage()
+                else:
+                    super().setModelData(editor, model, index)
 
-    def add_page(self):
-        self.center_view.api.addpage()
+        class ToolButton(QToolButton):
+            def __init__(self, table: "PDFPrevDialog.CorrectionDialog.Table", idx: "QPersistentModelIndex",
+                         icon: "QIcon", *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.setIcon(icon)
+                self.table = table
+                self.idx = idx
+                self.clicked.connect(self.on_clicked)
 
+            def on_clicked(self):
+                self.table.api.removeRow(self.idx)
+
+        class Table(QTableView):
+            on_combox_addItem = pyqtSignal()
+            pixmap, comment, page_at, card_desc, to_field, comment_to_field, close = 0, 1, 2, 3, 4, 5, 6
+
+            class API:
+                def __init__(self, parent: "PDFPrevDialog.CorrectionDialog.Table"):
+                    self.table = parent
+                    self.imgli = self.table.imgli
+                    self.removeRow = self.table.removeRow
+                    self.mymodel = self.table.mymodel
+                    # self.remove_row=self.table.remove_row
+                    # self.rowli=self.table.rowli
+                    self.on_combox_addItem_handle = self.table.on_combox_addItem_handle
+                    self.clipbox_clear = self.table.clipbox_clear
+
+            def __init__(self, parent, superior: "PDFPrevDialog.CorrectionDialog" = None):
+                super().__init__(parent)
+                self.correctiondialog = superior
+                # self.g_layout = QGridLayout(self)
+                self.mymodel = QStandardItemModel(self)
+                self.headerli = ["选框\nclipbox", "评论\ncomment", "所在PDF页码\nPDF page at", "插入卡片\nto card",
+                                 "插入到字段\nto field", "评论插入字段\ncomment to field", "删除\ndelete"]
+                self.rowli = {}
+                self.imgli = []
+                self.init_UI()
+                self.api = self.API(self)
+                self.all_event = clipper_imports.objs.AllEventAdmin({
+                    # self.clicked:self.on_clicked_handle,
+                    self.doubleClicked: self.on_doubleClicked_handle,
+                }).bind()
+                self.init_data()
+
+            # def on_clicked_handle(self,index:"QModelIndex"):
+            #     if index.column()==self.close:
+            #         print("yea")
+
+            def on_doubleClicked_handle(self, index: "QModelIndex"):
+                # print(index)
+                if index.column() == self.pixmap:
+                    img = index.data(role=Qt.DisplayRole)
+                    pixmap = QPixmap(img)
+                    dialog = QDialog(self.parent())
+                    label = QLabel(dialog)
+                    label.setPixmap(pixmap)
+                    v_layout = QVBoxLayout(dialog)
+                    v_layout.addWidget(label)
+                    dialog.setLayout(v_layout)
+                    dialog.resize(pixmap.size())
+                    dialog.setWindowModality(Qt.NonModal)
+                    dialog.setModal(False)
+                    dialog.show()
+                    self.imgli.append(dialog)
+
+            def on_combox_addItem_handle(self):
+                for i in range(self.mymodel.rowCount()):
+                    item = self.mymodel.item(i, self.card_desc)
+                    data: list = item.data(role=Qt.UserRole)
+                    data.append(PDFPrevDialog.CorrectionDialog.Combox.new_card + f"_{len(data)}")
+                    item.setData(data, role=Qt.UserRole)
+
+            def init_UI(self):
+                self.mymodel.setHorizontalHeaderLabels(self.headerli)
+                self.modelroot = self.mymodel.invisibleRootItem()
+                self.setModel(self.mymodel)
+                h_header = self.horizontalHeader()
+                h_header.setSectionResizeMode(h_header.Interactive)
+                h_header.setSectionResizeMode(0, h_header.Stretch)
+                h_header.setSectionResizeMode(1, h_header.Stretch)
+                h_header.setSectionResizeMode(self.card_desc, h_header.ResizeToContents)
+                self.setSelectionMode(self.NoSelection)
+                v_header: "QHeaderView" = self.verticalHeader()
+                v_header.setSectionResizeMode(v_header.Interactive)
+                d = self.correctiondialog.Delegate(self)
+                self.setItemDelegate(d)
+
+            def init_data(self):
+                for clipbox in self.correctiondialog.data:  # data:list[clipbox]
+                    clipinfo = clipbox.api.self_info_get()
+                    curr_card = PDFPrevDialog.CorrectionDialog.Combox.curr_card
+                    row = [QStandardItem(i) for i in
+                           [clipbox.api.clip_img_save(), "", str(clipinfo["pagenum"]), curr_card, "0", "0", ""]]
+                    row[self.card_desc].setData([], role=Qt.UserRole)  # 用来保存combox能选择的内容
+                    row[self.pixmap].setData(clipbox, role=Qt.UserRole)  # 用来删除指定的clipbox
+                    self.mymodel.appendRow(row)
+                for i in range(self.mymodel.rowCount()):
+                    t = PDFPrevDialog.CorrectionDialog.ToolButton(
+                        self,
+                        QPersistentModelIndex(self.mymodel.item(i, self.close).index()),
+                        QIcon(clipper_imports.objs.SrcAdmin.imgDir.close)
+                    )
+                    # self.mymodel.item(i,0).setData(self.correctiondialog.data[i].self_info_get(),role=Qt.UserRole)
+                    self.setIndexWidget(self.mymodel.item(i, self.close).index(), t)
+                    self.setRowHeight(i, 100)
+
+            def clipbox_clear(self):
+                """清空 model 并返回model中存在的clipbox为列表"""
+                li = []
+                for i in range(self.mymodel.rowCount() - 1, -1, -1):
+                    item = self.mymodel.takeRow(i)
+                    li.append([item[self.pixmap].data(Qt.UserRole), item[self.page_at].text()])
+                return li
+
+            def removeRow(self, idx: "QPersistentModelIndex"):
+                # print(idx.row())
+                self.mymodel.removeRow(idx.row())
+        # class Proxy()
 
 if __name__ == "__main__":
-    UUID = "bfb206da-8d1a-3d9a-84d2-e1753f42577f"
+    UUID = "a39fb46d-3bb4-38ac-96a3-806af296ad10"
     # DB = clipper_imports.objs.SrcAdmin.DB.go()
     # result = DB.select(uuid=UUID).return_all().zip_up()[0]
     # DB.end()
     PDF_JSON = clipper_imports.objs.SrcAdmin.PDF_JSON
     testcase = {
         "pdfname": PDF_JSON[UUID]["pdf_path"], "pdfuuid": UUID, "card_id": "123456789",
-        "pagenum": 0, "pageratio": 1
+        "pagenum": 100, "pageratio": 1
     }
     app = QApplication(sys.argv)
     p = PDFPrevDialog(**testcase)

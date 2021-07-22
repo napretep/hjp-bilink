@@ -43,14 +43,15 @@ class ToolsBar(QWidget):
         self.pagejump_spinbox = QSpinBox()
         self.pagejump = objs.GridHDescUnit(parent=parent, widget=self.pagejump_spinbox)
         self.newPage_button = QToolButton()
-        self.update_button = QToolButton()
+        # self.update_button = QToolButton()
         self.bookmark_button = QToolButton()
 
         self.ratio_value = ratio if ratio is not None else self.config_dict["pagepicker.bottombar_page_ratio"]["value"]
         # print(f"self.ratio_value={self.ratio_value}")
         self.w_l = [self.bookmark_button, self.open, self.pagenum, self.ratio, self.pageoffset, self.pagejump,
-                    self.update_button, self.newPage_button]
-        self.w_order = [0, 1, 2, 5, 4, 3, 6, 7]
+                    # self.update_button, 
+                    self.newPage_button]
+        self.w_order = [0, 1, 2, 5, 4, 3, 6]
         self.g_pos = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)]
         self.init_UI()
         self.mainwin_pageload_worker = None
@@ -68,7 +69,7 @@ class ToolsBar(QWidget):
             self.ratio_DBspinbox.valueChanged: self.on_ratio_DBspinbox_valueChanged_handle,
             self.open_button.clicked: self.on_open_button_clicked_handle,
             self.newPage_button.clicked: self.on_newPage_button_clicked_handle,
-            self.update_button.clicked: self.on_update_button_clicked_handle,
+            # self.update_button.clicked: self.on_update_button_clicked_handle,
             self.bookmark_button.clicked: self.on_bookmark_button_clicked_handle,
             self.pagenum_lineEdit.textChanged: self.on_pagenum_lineEdit_textChanged_handle,
             self.pagejump_spinbox.valueChanged: self.on_pagejump_spinbox_valueChanged_handle,
@@ -80,8 +81,8 @@ class ToolsBar(QWidget):
         }
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
-        if self.frompageitem is None:
-            self.update_button.setDisabled(True)
+        # if self.frompageitem is None:
+        #     self.update_button.setDisabled(True)
         self.pagebutton_state_check()
         # print("update")
 
@@ -129,10 +130,10 @@ class ToolsBar(QWidget):
                                 )
 
     def init_button(self):
-        self.update_button.setIcon(QIcon(objs.SrcAdmin.imgDir.refresh))
+        # self.update_button.setIcon(QIcon(objs.SrcAdmin.imgDir.refresh))
         self.newPage_button.setIcon(QIcon(objs.SrcAdmin.imgDir.download))
         self.bookmark_button.setIcon(QIcon(objs.SrcAdmin.imgDir.bookmark))
-        self.update_button.setToolTip("替换当前的页面/replace the current page")
+        # self.update_button.setToolTip("替换当前的页面/replace the current page")
         self.newPage_button.setToolTip("作为新页面插入/insert to the View as new page")
 
     def init_pageshift(self):
@@ -281,10 +282,10 @@ class ToolsBar(QWidget):
         Edit_1_page = len(self.pagenum_valueSet) == 1
         has_PDFdir = self.pdfDir is not None
 
-        if has_source and has_PDFdir and (_1_page_select or (Edit_isvalide and Edit_1_page)):
-            self.update_button.setDisabled(False)
-        else:
-            self.update_button.setDisabled(True)
+        # if has_source and has_PDFdir and (_1_page_select or (Edit_isvalide and Edit_1_page)):
+        #     self.update_button.setDisabled(False)
+        # else:
+        #     self.update_button.setDisabled(True)
 
         if has_PDFdir and (page_select or Edit_isvalide):
             self.newPage_button.setDisabled(False)
@@ -294,8 +295,8 @@ class ToolsBar(QWidget):
     def on_update_button_clicked_handle(self):
         from ..PageInfo import PageInfo
         pageinfoli = self.packup_pageinfo()
-        pageinfo = PageInfo(self.open.label.toolTip(), pageinfoli[0], self.ratio_value,
-                            )
+        pageinfo = PageInfo(self.open.label.toolTip(), pageinfoli[0], self.ratio_value, )
+
         self.on_pageItem_changePage.emit(
             events.PageItemChangeEvent(pageInfo=pageinfo, pageItem=self.frompageitem,
                                        eventType=events.PageItemChangeEvent.updateType)
@@ -400,7 +401,6 @@ class ToolsBar(QWidget):
     def on_pagepicker_PDFparse_handle(self, event: "events.PDFParseEvent"):
         if event.Type == event.PDFInitParseType:
             self.pdfDir = event.path
-            self.pdfDir
             # if self.pdfDir:
             pagenum = event.pagenum if event.pagenum else str(objs.CONFIG.pagepicker.bottombar_page_num)
             self.pagenum_lineEdit.setText(str(pagenum))

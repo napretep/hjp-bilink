@@ -1,7 +1,7 @@
 from PyQt5.QtCore import pyqtSignal, QObject
 
 
-class ALL(QObject):
+class _ALL(QObject):
     instance = None
     on_data_refresh_all = pyqtSignal()  # 刷新browser和全部的webview
 
@@ -10,6 +10,10 @@ class ALL(QObject):
     on_data_refresh_webview = pyqtSignal()
 
     on_currentEdit_will_show = pyqtSignal(object)
+
+    on_PDFprev_save_clipbox = pyqtSignal(object)  # PDFPrevSaveClipboxEvent
+
+    on_PDFprev_work_progress = pyqtSignal(object)
 
     @classmethod
     def start(cls):
@@ -20,4 +24,4 @@ class ALL(QObject):
         return cls.instance
 
 
-all = ALL.start()
+ALL = _ALL.start()

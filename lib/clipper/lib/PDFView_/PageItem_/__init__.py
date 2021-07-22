@@ -56,11 +56,11 @@ class ClipBox2(QGraphicsRectItem):
     handlerSize = 14
 
     def __init__(self, *args, parent_pos: QPointF = None,
-                 pageview: 'PageView' = None, card_id: str = "0", rect=None,
+                 pageview: 'PageView' = None, card_id: str = "0", rect: 'QRectF' = None, clipbox_dict=None,
                  QA: str = "Q"):
         super().__init__(*args)
         # 规定自身
-        self.uuid = self.init_UUID()  # TODO 需要进行数据库碰撞检查
+        self.uuid = self.init_UUID() if clipbox_dict is None else clipbox_dict["uuid"]
         self.QA = QA
         self.text = ""
         self.textQA = "Q"
@@ -93,7 +93,7 @@ class ClipBox2(QGraphicsRectItem):
         self.card_id = None
         self.version = 0
         self.toolsbar = ClipBox_.ToolsBar(cardlist=ALL.clipper.rightsidebar.cardlist, clipbox=self,
-                                          QA=self.QA)
+                                          QA=self.QA, clipbox_dict=clipbox_dict)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
@@ -554,6 +554,7 @@ class PageView(QGraphicsPixmapItem):
     def __init__(self, pageinfo: 'PageInfo', pageitem: 'PageItem5' = None, ratio=None):
         super().__init__(pageinfo.pagepixmap)
         self.clipBoxList: 'list[ClipBox2]' = []
+        # self.clipBoxDict:"dict[str,ClipBox2]"={}
         self.pageinfo = pageinfo
         self.pageitem = pageitem
         self.setParentItem(pageitem)
@@ -571,7 +572,7 @@ class PageView(QGraphicsPixmapItem):
         if self.ratio != 1:
             self.zoom(self.ratio)
         self.event_dict = {
-            ALL.signals.on_clipbox_closed: self.pageview_clipbox_remove,
+            ALL.signals.on_clipbox_closed: self.on_clipbox_closed_handle,
             ALL.signals.on_pageItem_changePage: self.on_pageItem_changePage_handle,
             ALL.signals.on_pageItem_resize_event: self.on_pageItem_resize_event_handle,
             ALL.signals.on_pageItem_rubberBandRect_send: self.on_pageItem_rubberBandRect_send_handle
@@ -579,6 +580,13 @@ class PageView(QGraphicsPixmapItem):
         self.all_event = objs.AllEventAdmin(self.event_dict)
         self.all_event.bind()
 
+    def on_clipbox_closed_handle(self, event: 'ClipBox_.ToolsBar_.ClipboxEvent'):
+        """这里要做的事情就是从clipBoxList中移除"""
+        self.pageview_clipbox_remove(event.clipBox)
+        # clipbox = event.clipBox
+        # if clipbox in self.clipBoxList:  # 有可能来自其他page的信号
+        #     self.clipBoxList.remove(clipbox)
+        #     print(ALL.clipper.all_clipbox_dict)
 
     def on_pageItem_rubberBandRect_send_handle(self, event: "events.PageItemRubberBandRectSendEvent"):
         if event.sender.uuid == self.pageitem.uuid:
@@ -633,22 +641,22 @@ class PageView(QGraphicsPixmapItem):
             self.isFullscreen = True
             objs.signals.on_pageItem_resize_event.emit(e(pageItem=self.pageitem, eventType=e.fullscreenType))
 
-    def pageview_clipbox_add(self, pos=None, rect=None):
+    def pageview_clipbox_add(self, pos: "QPointF" = None, rect: "QRectF" = None, clipbox_dict=None):
         """顺带解决"""
         QA = ALL.QA
         if pos:
             clipbox = ClipBox2(parent_pos=pos, pageview=self, QA=QA)
         else:
-            clipbox = ClipBox2(rect=rect, pageview=self, QA=QA)
+            clipbox = ClipBox2(rect=rect, pageview=self, QA=QA, clipbox_dict=clipbox_dict)
         uuid = clipbox.toolsbar.cardComboxProxy.desc_item_uuid
         self.clipBoxList.append(clipbox)  # 创建后必须添加到clipboxlist
+        ALL.clipper.all_clipbox_dict[clipbox.uuid] = clipbox
         ALL.signals.on_pageItem_clipbox_added.emit(PageItem_ClipBox_Event(clipbox=clipbox, cardUuid=uuid))
 
-    def pageview_clipbox_remove(self, event: 'ClipBox_.ToolsBar_.ClipboxEvent'):
+    def pageview_clipbox_remove(self, clipBox):
         """这里要做的事情就是从clipBoxList中移除"""
-        clipbox = event.clipBox
-        if clipbox in self.clipBoxList:  # 有可能来自其他page的信号
-            self.clipBoxList.remove(clipbox)
+        if clipBox in self.clipBoxList:  # 有可能来自其他page的信号
+            self.clipBoxList.remove(clipBox)
 
     def wheelEvent(self, event):
         modifiers = QApplication.keyboardModifiers()  # 判断ctrl键是否按下

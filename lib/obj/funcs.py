@@ -4,15 +4,20 @@ funcs 的层级比utils低 ,所以可以引用utils, 但utils 不能引用 funcs
 """
 
 import os
+import tempfile
+from datetime import datetime
 from functools import reduce
 from typing import *
 
 import aqt
 import uuid
-from aqt import mw, dialogs
-from aqt.browser import Browser
+
+from anki import stdmodels, notes
+from aqt import mw, dialogs, browser
+from aqt.browser import Browser, SearchContext
 from aqt.previewer import Previewer, BrowserPreviewer
 from aqt.reviewer import Reviewer
+from aqt.utils import showInfo
 from bs4 import BeautifulSoup, element
 import re, json
 from . import utils
@@ -21,13 +26,133 @@ from . import clipper_imports
 from ..dialogs.DialogCardPrev import SingleCardPreviewerMod
 from ..dialogs.DialogPDFpreviewer import PDFPrevDialog
 
-print, printer = clipper_imports.funcs.logger(__name__)
 from . import all_objs
+
+print, printer = clipper_imports.funcs.logger(__name__)
+
+
+def bookmark_to_tag(bookmark: "list[list[int,str,int]]"):
+    tag_dict = {}
+    if len(bookmark) == 0:
+        return tag_dict
+    level, content, pagenum = bookmark[0][0], bookmark[0][1], bookmark[0][2]
+    tag_dict[pagenum] = re.sub(r"\s|\r|\n", "-", content)
+    level_stack = []
+    level_stack.append([level, content, pagenum])
+    for item in bookmark[1:]:
+        level, content, pagenum = item[0], re.sub(r"\s|\r|\n", "-", item[1]), item[2]
+        if level == 1:
+            tag_dict[pagenum] = content
+        else:
+            while len(level_stack) != 0 and level_stack[-1][0] >= level:
+                level_stack.pop()
+            content = f"{level_stack[-1][1]}::{content}"
+            tag_dict[pagenum] = content
+        level_stack.append([level, content, pagenum])
+    return tag_dict
+
+
+def clipbox_insert_cardField_suite(clipuuid):
+    """用于插入clipbox到指定的卡片字段"""
+    DB = clipper_imports.objs.SrcAdmin.DB.go()
+    clipbox = DB.select(uuid=clipuuid).return_all().zip_up()[0]
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    card_id_li = clipbox["card_id"].split(",")
+    for card_id in card_id_li:
+        pdfname = os.path.basename(clipbox["pdfname"])
+        pdfname_in_tag = re.sub(r"\s|\r|\n", "-", pdfname[0:-4])
+        note = mw.col.getCard(int(card_id)).note()
+        html = reduce(lambda x, y: x + "\n" + y, note.fields)
+        if clipbox["uuid"] not in html:
+            note.fields[clipbox["QA"]] += \
+                f"""<img class="hjp_clipper_clipbox" src="hjp_clipper_{clipbox["uuid"]}_.png">\n"""
+        if clipbox["text_"] != "" and clipbox["uuid"] not in html:
+            note.fields[clipbox["textQA"]] += \
+                f"""<p class="hjp_clipper_clipbox text" id="{clipbox["uuid"]}">{clipbox["text_"]}</p>\n"""
+
+        note.addTag(f"""hjp-bilink::timestamp::{timestamp}""")
+        # print(f"in the loop, timestamp={timestamp}")
+        note.addTag(f"""hjp-bilink::books::{pdfname_in_tag}::page::{clipbox["pagenum"]}""")
+        doc: "clipper_imports.fitz.Document" = clipper_imports.fitz.open(clipbox["pdfname"])
+        toc = doc.get_toc()
+        if len(toc) > 0:
+            # path = objs.SrcAdmin.get
+            jsonfilename = os.path.join(tempfile.gettempdir(), pdfname[0:-3] + "json")
+            if os.path.exists(jsonfilename):
+                bookdict = json.loads(open(jsonfilename, "r", encoding="utf-8").read())
+            else:
+                bookdict = bookmark_to_tag(toc)
+                json.dump(bookdict, open(jsonfilename, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
+            pagelist = sorted(list(bookdict.keys()), key=lambda x: int(x))
+
+            atbookmark = -1
+            for idx in range(len(pagelist)):
+                if int(pagelist[idx]) > clipbox["pagenum"]:
+                    if idx > 0:
+                        atbookmark = pagelist[idx - 1]
+                    break
+            if atbookmark != -1:
+                note.addTag(f"""hjp-bilink::books::{pdfname_in_tag}::bookmark::{bookdict[atbookmark]}""")
+        note.flush()
+
+    DB.end()
+
+
+def clipbox_png_save_to_media(clipuuid):
+    mediafolder = os.path.join(mw.pm.profileFolder(), "collection.media")
+    DB = clipper_imports.objs.SrcAdmin.DB.go()
+    clipbox = DB.select(uuid=clipuuid).return_all().zip_up()[0]
+    doc: "clipper_imports.fitz.Document" = clipper_imports.fitz.open(clipbox["pdfname"])
+    # 0.144295302 0.567695962 0.5033557047 0.1187648456
+    page = doc.load_page(clipbox["pagenum"])
+    pagerect: "clipper_imports.fitz.rect_like" = page.rect
+    x0, y0 = clipbox["x"] * pagerect.width, clipbox["y"] * pagerect.height
+    x1, y1 = x0 + clipbox["w"] * pagerect.width, y0 + clipbox["h"] * pagerect.height
+    pixmap = page.get_pixmap(matrix=clipper_imports.fitz.Matrix(2, 2),
+                             clip=clipper_imports.fitz.Rect(x0, y0, x1, y1))
+    pngdir = os.path.join(mediafolder, f"""hjp_clipper_{clipbox["uuid"]}_.png""")
+    if os.path.exists(pngdir):
+        os.remove(pngdir)
+    pixmap.save(pngdir)
+
+
+def create_card(model_id=None, deck_id=None):
+    if model_id is None:
+        if not "Basic" in mw.col.models.allNames():
+            mw.col.models.add(stdmodels.addBasicModel(mw.col))
+        model = mw.col.models.byName("Basic")
+    else:
+        if mw.col.models.have(model_id):
+            model = mw.col.models.get(model_id)
+        else:
+            raise TypeError(f"modelId don't exist:{model_id}")
+    note = notes.Note(mw.col, model=model)
+    if deck_id is None:
+        deck_id = mw.col.decks.current()["id"]
+    mw.col.add_note(note, deck_id=deck_id)
+    note.flush()
+    return str(note.card_ids()[0])
 
 
 def on_clipper_closed():
     all_objs.mw_win_clipper = None
 
+
+def card_exists(card_id):
+    if isinstance(card_id, utils.Pair):
+        cid = card_id.int_card_id
+    elif isinstance(card_id, str):
+        cid = int(card_id)
+    elif type(card_id) == int:
+        cid = card_id
+    else:
+        raise TypeError("参数类型不支持:" + card_id.__str__())
+    txt = f"cid:{cid}"
+    card_ids = mw.col.find_cards(txt)
+    if len(card_ids) == 1:
+        return True
+    else:
+        return False
 
 def PDFPreviewer_start(pdfuuid, pagenum, FROM=None):
     # print(FROM)
@@ -42,16 +167,18 @@ def PDFPreviewer_start(pdfuuid, pagenum, FROM=None):
     else:
         TypeError("未能找到card_id")
     card_id = str(card_id)
+
     DB = clipper_imports.objs.SrcAdmin.DB.go()
     result = clipper_imports.objs.SrcAdmin.PDF_JSON.read(pdfuuid)
     DB.end()
     pdfname = result["pdf_path"]
-    pdfpageuuid = str(uuid.uuid3(uuid.NAMESPACE_URL, pdfuuid + str(pagenum)))
+    pdfpageuuid = clipper_imports.funcs.uuid_hash_make(pdfname + str(pagenum))
     if card_id not in all_objs.mw_pdf_prev:
         all_objs.mw_pdf_prev[card_id] = {}
     if pdfpageuuid not in all_objs.mw_pdf_prev[card_id]:
         all_objs.mw_pdf_prev[card_id][pdfpageuuid] = None
-    print(f"pagenum={pagenum}")
+    # print(f"pagenum={pagenum}")
+    # print(f"all_objs.mw_pdf_prev[card_id][pdfpageuuid]={all_objs.mw_pdf_prev[card_id][pdfpageuuid]}")
     if isinstance(all_objs.mw_pdf_prev[card_id][pdfpageuuid], PDFPrevDialog):
         all_objs.mw_pdf_prev[card_id][pdfpageuuid].activateWindow()
     else:
@@ -84,6 +211,22 @@ def HTML_txtContent_read(html):
     return text
 
 
+def note_get(card_id):
+    if isinstance(card_id, utils.Pair):
+        cid = card_id.int_card_id
+    elif isinstance(card_id, str):
+        cid = int(card_id)
+    elif type(card_id) == int:
+        cid = card_id
+    else:
+        raise TypeError("参数类型不支持:" + card_id.__str__())
+    if card_exists(cid):
+        note = mw.col.getCard(cid).note()
+    else:
+        showInfo(f"{cid} 卡片不存在/card don't exist")
+        return
+    return note
+
 def desc_extract(card_id=None, fromField=False):
     """读取卡片的描述,需要卡片id"""
     from .linkData_reader import LinkDataReader
@@ -96,7 +239,8 @@ def desc_extract(card_id=None, fromField=False):
     else:
         raise TypeError("参数类型不支持:" + card_id.__str__())
     cfg = utils.BaseInfo().userinfo
-    note = mw.col.getCard(cid).note()
+    note = note_get(cid)
+
     if fromField:  # 分成这两段, 是因为一个循环引用.
         content = reduce(lambda x, y: x + y, note.fields)
         desc = HTML_txtContent_read(content)
@@ -142,33 +286,38 @@ def HTML_clipbox_exists(html, card_id=None):
 def HTML_clipbox_sync_check(card_id, root):
     # 用于保持同步
     assert type(root) == BeautifulSoup
-    assert type(card_id) == str and len(card_id) == 13
+    assert type(card_id) == str
     DB = clipper_imports.objs.SrcAdmin.DB.go()
     clipbox_from_DB_ = DB.select(card_id="card_id", like=f"%{card_id}%").return_all().zip_up()
     clipbox_from_DB = set([clipbox["uuid"] for clipbox in clipbox_from_DB_])
     # 选取 clipbox from field
-    clipbox_from_field = set(HTML_clipbox_uuid_get(root))
+    fields = "\n".join(mw.col.getCard(int(card_id)).note().fields)
+    clipbox_from_field = set(HTML_clipbox_uuid_get(fields))
     # 多退少补,
     DBadd = clipbox_from_field - clipbox_from_DB
     DBdel = clipbox_from_DB - clipbox_from_field
-    print(
-        f"card_id={card_id},clipbox_from_DB={clipbox_from_DB}, clipbox_from_field={clipbox_from_field}, DBADD={DBadd}.  DBdel={DBdel}")
+    # print(
+    #     f"card_id={card_id},clipbox_from_DB={clipbox_from_DB}, clipbox_from_field={clipbox_from_field}, DBADD={DBadd}.  DBdel={DBdel}")
     if len(DBadd) > 0:
-        for uuid in DBadd:
-            record = DB.select(uuid=uuid).return_all().zip_up()[0]
-            if card_id not in record["card_id"]:
-                card_li: "list" = record["card_id"].split(",")
-                card_li.append(card_id)
-                record["card_id"] = ",".join(card_li)
-                DB.update(values=DB.value_maker(**record), where=DB.where_maker(uuid=record["uuid"])).commit(print)
+        DB.add_card_id(DB.where_maker(IN=True, colname="uuid", vals=DBadd), card_id)
+        # for uuid in DBadd:
+        #     # record = DB.select(uuid=uuid).return_all().zip_up()[0]
+        #     if card_id.isdecimal():
+
+        # if card_id not in record["card_id"]:
+        #     card_li: "list" = record["card_id"].split(",")
+        #     card_li.append(card_id)
+        #     record["card_id"] = ",".join(card_li)
+        #     DB.update(values=DB.value_maker(**record), where=DB.where_maker(uuid=record["uuid"])).commit(print)
     if len(DBdel) > 0:
-        for uuid in DBdel:
-            record = DB.select(uuid=uuid).return_all().zip_up(compatible=False)[0]
-            if card_id in record["card_id"]:
-                card_li: "list" = record["card_id"].split(",")
-                card_li.remove(card_id)
-                record["card_id"] = ",".join(card_li)
-                DB.update(values=DB.value_maker(**record), where=DB.where_maker(uuid=record["uuid"])).commit(print)
+        DB.del_card_id(DB.where_maker(IN=True, colname="uuid", vals=DBdel), card_id)
+        # for uuid in DBdel:
+        #     record = DB.select(uuid=uuid).return_all().zip_up(compatible=False)[0]
+        #     if card_id in record["card_id"]:
+        #         card_li: "list" = record["card_id"].split(",")
+        #         card_li.remove(card_id)
+        #         record["card_id"] = ",".join(card_li)
+        #         DB.update(values=DB.value_maker(**record), where=DB.where_maker(uuid=record["uuid"])).commit(print)
     DB.end()
     pass
 
@@ -263,11 +412,8 @@ def webview_refresh():
     browser: Browser = dialogs._dialogs["Browser"][1]
     if browser is not None and browser._previewer is not None:
         prev_refresh(browser._previewer)
-    # if mw.state == "review":  # 这个是有用的,当在其他窗口进行链接的时候,也要刷新这里.
-    #     mw.reviewer.
     if addonName in mw.__dict__ and position in mw.__dict__[addonName]:
         card_window_dict = mw.__dict__[addonName][position]
-        # showInfo(card_window.__str__())
         for k, v in card_window_dict.items():
             if v is not None:
                 prev_refresh(v)
@@ -296,13 +442,24 @@ def PDFprev_close(card_id, pdfpageuuid=None, all=False):
         card_id = str(card_id)
     if card_id not in all_objs.mw_pdf_prev:
         return
+    reviewer_still = mw.reviewer.card is not None and mw.reviewer.card.id == int(card_id)
+    browser = dialogs._dialogs["Browser"][1]
+    previewer_still = browser is not None and browser._previewer is not None \
+                      and browser._previewer.card() is not None and browser._previewer.card().id == int(card_id)
+    card_window_still = card_id in all_objs.mw_card_window and all_objs.mw_card_window[card_id] is not None
+    if reviewer_still or previewer_still or card_window_still:
+        return
     if all:
-        for pdfpageuuid in all_objs.mw_pdf_prev[card_id]:
+        for pdfpageuuid in all_objs.mw_pdf_prev[card_id].keys():
             if isinstance(all_objs.mw_pdf_prev[card_id][pdfpageuuid], PDFPrevDialog):
-                all_objs.mw_pdf_prev[card_id][pdfpageuuid].close()
+                p = all_objs.mw_pdf_prev[card_id][pdfpageuuid]
+                p.close()
+                # all_objs.mw_pdf_prev[card_id][pdfpageuuid]=None
     else:
         if pdfpageuuid in all_objs.mw_pdf_prev[card_id]:
-            all_objs.mw_pdf_prev[card_id][pdfpageuuid].close()
+            p = all_objs.mw_pdf_prev[card_id][pdfpageuuid]
+            p.close()
+            # all_objs.mw_pdf_prev[card_id][pdfpageuuid] = None
 
 
 if __name__ == "__main__":
