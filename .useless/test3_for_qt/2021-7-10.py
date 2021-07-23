@@ -16,14 +16,6 @@ class Table(QWidget):
         # 设置水平方向四个头标签文本内容
         self.model.setHorizontalHeaderLabels(['标题1', '标题2', '标题3', '标题4'])
 
-        # #Todo 优化2 添加数据
-        # self.model.appendRow([
-        #     QStandardItem('row %s,column %s' % (11,11)),
-        #     QStandardItem('row %s,column %s' % (11,11)),
-        #     QStandardItem('row %s,column %s' % (11,11)),
-        #     QStandardItem('row %s,column %s' % (11,11)),
-        # ])
-
         for row in range(4):
             for column in range(4):
                 item = QStandardItem('row %s,column %s' % (row, column))
@@ -36,19 +28,6 @@ class Table(QWidget):
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView.setModel(self.model)
         self.tableView.setAcceptDrops(True)
-
-        # #todo 优化1 表格填满窗口
-        # #水平方向标签拓展剩下的窗口部分，填满表格
-        # self.tableView.horizontalHeader().setStretchLastSection(True)
-        # #水平方向，表格大小拓展到适当的尺寸
-        # self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        #
-        # #TODO 优化3 删除当前选中的数据
-        # indexs=self.tableView.selectionModel().selection().indexes()
-        # print(indexs)
-        # if len(indexs)>0:
-        #     index=indexs[0]
-        #     self.model.removeRows(index.row(),1)
 
         # 设置布局
         layout = QVBoxLayout()

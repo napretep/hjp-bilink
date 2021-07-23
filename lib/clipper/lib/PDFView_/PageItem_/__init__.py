@@ -878,9 +878,6 @@ class ToolsBar2(QGraphicsWidget):
         self.on_pageItem_changePage = ALL.signals.on_pageItem_changePage
         self.on_pageItem_resize_event = ALL.signals.on_pageItem_resize_event
 
-    # def init_events(self):
-    #     self.on_pageItem_changePage.connect(self.on_pageItem_changePage_handle)
-    #     self.on_pageItem_resize_event.connect(self.on_pageItem_resize_event_handle)
 
     def on_button_fullscreen_clicked_handle(self):
         self.on_pageItem_resize_event.emit(

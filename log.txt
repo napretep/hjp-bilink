@@ -42978,3 +42978,1371 @@ run:
 Clipper.py 412
 run:
  self.do=False,not bussy=True,self.doc=None,frame_id=None,
+2021-07-23 15:33:24 DEBUG Dummy-1  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 595
+run:
+ for data in self.datali:1
+2021-07-23 15:33:24 DEBUG Dummy-1  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 595
+run:
+ for data in self.datali:2
+2021-07-23 15:33:24 DEBUG Dummy-1  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 595
+run:
+ for data in self.datali:3
+2021-07-23 15:33:24 DEBUG Dummy-1  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 595
+run:
+ for data in self.datali:4
+2021-07-23 15:35:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_0_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=0, ratio=1.6), progress=25)
+2021-07-23 15:35:32 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=25)
+2021-07-23 15:36:36 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\76409607_e9bf_345f_bd54_f480fbcebbe4_0_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/Polynomials and Polynomial Inequalities.pdf', pagenum=0, ratio=1.6), progress=25)
+2021-07-23 15:36:58 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=25)
+2021-07-23 15:36:58 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_1_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=1, ratio=1.2), progress=50)
+2021-07-23 15:36:58 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_2_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=2, ratio=1.2), progress=75)
+2021-07-23 15:36:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_3_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=3, ratio=1.2), progress=100)
+2021-07-23 15:41:54 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_1_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=1, ratio=1.6), progress=33)
+2021-07-23 15:41:55 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_2_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=2, ratio=1.6), progress=66)
+2021-07-23 15:41:55 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_3_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=3, ratio=1.6), progress=100)
+2021-07-23 15:56:21 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_0_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=0, ratio=1.6), progress=12)
+2021-07-23 15:56:21 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_1_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=1, ratio=1.6), progress=25)
+2021-07-23 15:56:21 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_2_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=2, ratio=1.6), progress=37)
+2021-07-23 15:56:21 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_3_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=3, ratio=1.6), progress=50)
+2021-07-23 15:56:21 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_4_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=4, ratio=1.6), progress=62)
+2021-07-23 15:56:21 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_5_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=5, ratio=1.6), progress=75)
+2021-07-23 15:56:21 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_6_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=6, ratio=1.6), progress=87)
+2021-07-23 15:56:21 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_7_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=7, ratio=1.6), progress=100)
+2021-07-23 15:57:34 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_0_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=0, ratio=1.6), progress=25)
+2021-07-23 16:22:27 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\76409607_e9bf_345f_bd54_f480fbcebbe4_0_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/Polynomials and Polynomial Inequalities.pdf', pagenum=0, ratio=1.6), progress=12)
+2021-07-23 16:22:41 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=12)
+2021-07-23 16:22:41 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_1_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=1, ratio=1.2), progress=25)
+2021-07-23 16:22:41 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_2_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=2, ratio=1.2), progress=37)
+2021-07-23 16:22:41 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_3_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=3, ratio=1.2), progress=50)
+2021-07-23 16:22:41 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_4_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=4, ratio=1.2), progress=62)
+2021-07-23 16:22:41 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_5_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=5, ratio=1.2), progress=75)
+2021-07-23 16:22:41 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_6_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=6, ratio=1.2), progress=87)
+2021-07-23 16:22:41 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_7_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=7, ratio=1.2), progress=100)
+2021-07-23 16:23:30 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_0_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=0, ratio=1.1), progress=25)
+2021-07-23 16:39:10 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=25)
+2021-07-23 16:39:24 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=25)
+2021-07-23 16:39:40 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=25)
+2021-07-23 16:39:40 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_1_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=1, ratio=1.2), progress=50)
+2021-07-23 16:39:40 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_2_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=2, ratio=1.2), progress=75)
+2021-07-23 16:39:40 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_3_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=3, ratio=1.2), progress=100)
+2021-07-23 16:41:25 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_0_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=0, ratio=1.1), progress=6)
+2021-07-23 16:41:25 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_1_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=1, ratio=1.1), progress=12)
+2021-07-23 16:41:25 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_2_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=2, ratio=1.1), progress=18)
+2021-07-23 16:41:25 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_3_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=3, ratio=1.1), progress=25)
+2021-07-23 16:41:25 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_4_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=4, ratio=1.1), progress=31)
+2021-07-23 16:41:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_5_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=5, ratio=1.1), progress=37)
+2021-07-23 16:41:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_6_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=6, ratio=1.1), progress=43)
+2021-07-23 16:41:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_7_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=7, ratio=1.1), progress=50)
+2021-07-23 16:41:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_8_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=8, ratio=1.1), progress=56)
+2021-07-23 16:41:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_9_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=9, ratio=1.1), progress=62)
+2021-07-23 16:41:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_10_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=10, ratio=1.1), progress=68)
+2021-07-23 16:41:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_11_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=11, ratio=1.1), progress=75)
+2021-07-23 16:41:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_12_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=12, ratio=1.1), progress=81)
+2021-07-23 16:41:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_13_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=13, ratio=1.1), progress=87)
+2021-07-23 16:41:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_14_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=14, ratio=1.1), progress=93)
+2021-07-23 16:41:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\24753766_76d6_340f_80ee_dc573fe47184_15_1.1.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密第1卷第2版 [（越）范建熊 著] 2014年版.pdf', pagenum=15, ratio=1.1), progress=100)
+2021-07-23 16:48:06 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_0_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=0, ratio=1.6), progress=6)
+2021-07-23 16:48:06 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_1_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=1, ratio=1.6), progress=12)
+2021-07-23 16:48:06 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_2_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=2, ratio=1.6), progress=18)
+2021-07-23 16:48:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_3_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=3, ratio=1.6), progress=25)
+2021-07-23 16:48:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_4_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=4, ratio=1.6), progress=31)
+2021-07-23 16:48:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_5_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=5, ratio=1.6), progress=37)
+2021-07-23 16:48:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_6_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=6, ratio=1.6), progress=43)
+2021-07-23 16:48:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_7_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=7, ratio=1.6), progress=50)
+2021-07-23 16:48:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_8_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=8, ratio=1.6), progress=56)
+2021-07-23 16:48:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_9_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=9, ratio=1.6), progress=62)
+2021-07-23 16:48:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_10_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=10, ratio=1.6), progress=68)
+2021-07-23 16:48:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_11_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=11, ratio=1.6), progress=75)
+2021-07-23 16:48:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_12_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=12, ratio=1.6), progress=81)
+2021-07-23 16:48:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_13_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=13, ratio=1.6), progress=87)
+2021-07-23 16:48:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_14_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=14, ratio=1.6), progress=93)
+2021-07-23 16:48:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 62
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_15_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=15, ratio=1.6), progress=100)
+2021-07-23 20:58:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 564
+on_widget_button_close_handle:
+ here
+2021-07-23 20:59:02 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 564
+on_widget_button_close_handle:
+ here
+2021-07-23 20:59:04 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 564
+on_widget_button_close_handle:
+ here
+2021-07-23 21:44:01 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 71
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_0_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=0, ratio=1.6), progress=50)
+2021-07-23 21:44:13 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 71
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_0_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=0, ratio=1.6), progress=50)
+2021-07-23 21:45:35 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 71
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_0_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=0, ratio=1.6), progress=25)
+2021-07-23 21:45:35 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 71
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_1_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=1, ratio=1.6), progress=50)
+2021-07-23 21:45:36 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 71
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_2_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=2, ratio=1.6), progress=75)
+2021-07-23 21:45:36 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 71
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\40a86806_1f84_398b_829c_e97c0e919bc4_3_1.6.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/不等式的秘密  第2卷 [（越南）范建熊著；隋振林译][哈尔滨工业大学出版社][2014.01][215页].pdf', pagenum=3, ratio=1.6), progress=100)
+2021-07-23 21:56:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 130
+mousePressEvent:
+ 0
+2021-07-23 21:56:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 130
+mousePressEvent:
+ 0
+2021-07-23 21:56:48 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 130
+mousePressEvent:
+ 0
+2021-07-23 21:58:06 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 130
+mousePressEvent:
+ 0
+2021-07-23 21:58:06 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 131
+mousePressEvent:
+ 0
+2021-07-23 23:24:40 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 630
+on_widget_button_pageinfo_clicked_handle:
+ on_widget_button_pageinfo_clicked_handle
+2021-07-23 23:24:42 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 630
+on_widget_button_pageinfo_clicked_handle:
+ on_widget_button_pageinfo_clicked_handle
+2021-07-24 00:06:42 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 145
+mousePressEvent:
+ 0
+2021-07-24 00:06:42 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 146
+mousePressEvent:
+ 0
+2021-07-24 00:08:58 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=8)
+2021-07-24 00:08:58 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_1_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=1, ratio=1.2), progress=16)
+2021-07-24 00:08:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_2_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=2, ratio=1.2), progress=25)
+2021-07-24 00:08:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_3_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=3, ratio=1.2), progress=33)
+2021-07-24 00:08:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_4_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=4, ratio=1.2), progress=41)
+2021-07-24 00:08:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_5_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=5, ratio=1.2), progress=50)
+2021-07-24 00:08:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_6_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=6, ratio=1.2), progress=58)
+2021-07-24 00:08:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_7_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=7, ratio=1.2), progress=66)
+2021-07-24 00:08:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_8_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=8, ratio=1.2), progress=75)
+2021-07-24 00:08:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_9_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=9, ratio=1.2), progress=83)
+2021-07-24 00:08:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_10_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=10, ratio=1.2), progress=91)
+2021-07-24 00:08:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_11_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=11, ratio=1.2), progress=100)
+2021-07-24 00:12:12 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=12)
+2021-07-24 00:12:12 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_1_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=1, ratio=1.2), progress=25)
+2021-07-24 00:12:13 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_2_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=2, ratio=1.2), progress=37)
+2021-07-24 00:12:13 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_3_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=3, ratio=1.2), progress=50)
+2021-07-24 00:12:13 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_4_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=4, ratio=1.2), progress=62)
+2021-07-24 00:12:13 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_5_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=5, ratio=1.2), progress=75)
+2021-07-24 00:12:13 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_6_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=6, ratio=1.2), progress=87)
+2021-07-24 00:12:13 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_7_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=7, ratio=1.2), progress=100)
+2021-07-24 00:12:37 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=12)
+2021-07-24 00:12:38 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_1_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=1, ratio=1.2), progress=25)
+2021-07-24 00:12:38 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_2_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=2, ratio=1.2), progress=37)
+2021-07-24 00:12:38 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_3_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=3, ratio=1.2), progress=50)
+2021-07-24 00:12:38 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_4_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=4, ratio=1.2), progress=62)
+2021-07-24 00:12:38 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_5_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=5, ratio=1.2), progress=75)
+2021-07-24 00:12:38 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_6_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=6, ratio=1.2), progress=87)
+2021-07-24 00:12:38 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_7_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=7, ratio=1.2), progress=100)
+2021-07-24 00:12:54 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=100)
+2021-07-24 00:13:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=6)
+2021-07-24 00:13:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_1_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=1, ratio=1.2), progress=12)
+2021-07-24 00:13:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_2_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=2, ratio=1.2), progress=18)
+2021-07-24 00:13:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_3_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=3, ratio=1.2), progress=25)
+2021-07-24 00:13:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_4_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=4, ratio=1.2), progress=31)
+2021-07-24 00:13:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_5_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=5, ratio=1.2), progress=37)
+2021-07-24 00:13:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_6_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=6, ratio=1.2), progress=43)
+2021-07-24 00:13:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_7_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=7, ratio=1.2), progress=50)
+2021-07-24 00:13:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_8_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=8, ratio=1.2), progress=56)
+2021-07-24 00:13:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_9_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=9, ratio=1.2), progress=62)
+2021-07-24 00:13:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_10_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=10, ratio=1.2), progress=68)
+2021-07-24 00:13:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_11_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=11, ratio=1.2), progress=75)
+2021-07-24 00:13:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_12_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=12, ratio=1.2), progress=81)
+2021-07-24 00:13:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_13_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=13, ratio=1.2), progress=87)
+2021-07-24 00:13:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_14_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=14, ratio=1.2), progress=93)
+2021-07-24 00:13:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_15_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=15, ratio=1.2), progress=100)
+2021-07-24 00:14:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=6)
+2021-07-24 00:14:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_1_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=1, ratio=1.2), progress=12)
+2021-07-24 00:14:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_2_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=2, ratio=1.2), progress=18)
+2021-07-24 00:14:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_3_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=3, ratio=1.2), progress=25)
+2021-07-24 00:14:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_4_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=4, ratio=1.2), progress=31)
+2021-07-24 00:14:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_5_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=5, ratio=1.2), progress=37)
+2021-07-24 00:14:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_6_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=6, ratio=1.2), progress=43)
+2021-07-24 00:14:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_7_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=7, ratio=1.2), progress=50)
+2021-07-24 00:14:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_8_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=8, ratio=1.2), progress=56)
+2021-07-24 00:14:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_9_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=9, ratio=1.2), progress=62)
+2021-07-24 00:14:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_10_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=10, ratio=1.2), progress=68)
+2021-07-24 00:14:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_11_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=11, ratio=1.2), progress=75)
+2021-07-24 00:14:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_12_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=12, ratio=1.2), progress=81)
+2021-07-24 00:14:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_13_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=13, ratio=1.2), progress=87)
+2021-07-24 00:14:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_14_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=14, ratio=1.2), progress=93)
+2021-07-24 00:14:48 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_15_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=15, ratio=1.2), progress=100)
+2021-07-24 00:15:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=6)
+2021-07-24 00:15:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_1_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=1, ratio=1.2), progress=12)
+2021-07-24 00:15:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_2_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=2, ratio=1.2), progress=18)
+2021-07-24 00:15:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_3_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=3, ratio=1.2), progress=25)
+2021-07-24 00:15:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_4_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=4, ratio=1.2), progress=31)
+2021-07-24 00:15:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_5_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=5, ratio=1.2), progress=37)
+2021-07-24 00:15:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_6_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=6, ratio=1.2), progress=43)
+2021-07-24 00:15:26 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_7_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=7, ratio=1.2), progress=50)
+2021-07-24 00:15:27 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_8_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=8, ratio=1.2), progress=56)
+2021-07-24 00:15:27 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_9_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=9, ratio=1.2), progress=62)
+2021-07-24 00:15:27 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_10_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=10, ratio=1.2), progress=68)
+2021-07-24 00:15:27 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_11_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=11, ratio=1.2), progress=75)
+2021-07-24 00:15:27 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_12_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=12, ratio=1.2), progress=81)
+2021-07-24 00:15:27 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_13_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=13, ratio=1.2), progress=87)
+2021-07-24 00:15:27 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_14_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=14, ratio=1.2), progress=93)
+2021-07-24 00:15:27 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 87
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_15_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=15, ratio=1.2), progress=100)
+2021-07-24 00:53:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=8)
+2021-07-24 00:53:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_1_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=1, ratio=1.2), progress=16)
+2021-07-24 00:53:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_2_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=2, ratio=1.2), progress=25)
+2021-07-24 00:53:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_3_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=3, ratio=1.2), progress=33)
+2021-07-24 00:53:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_4_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=4, ratio=1.2), progress=41)
+2021-07-24 00:53:12 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_5_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=5, ratio=1.2), progress=50)
+2021-07-24 00:53:12 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_6_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=6, ratio=1.2), progress=58)
+2021-07-24 00:53:12 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_7_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=7, ratio=1.2), progress=66)
+2021-07-24 00:53:12 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_8_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=8, ratio=1.2), progress=75)
+2021-07-24 00:53:12 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_9_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=9, ratio=1.2), progress=83)
+2021-07-24 00:53:12 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_10_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=10, ratio=1.2), progress=91)
+2021-07-24 00:53:12 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 91
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_11_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=11, ratio=1.2), progress=100)
+2021-07-24 00:55:18 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 158
+mousePressEvent:
+ 0
+2021-07-24 00:55:18 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 159
+mousePressEvent:
+ 0
+2021-07-24 01:08:54 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 159
+mousePressEvent:
+ 3620
+2021-07-24 01:08:54 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 160
+mousePressEvent:
+ -114
+2021-07-24 01:41:14 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 814
+center_zoom:
+ x=26.915646258503386, dy=41.8559411146162
+2021-07-24 01:41:15 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 814
+center_zoom:
+ x=27.167079207920835, dy=67.3116634799236
+2021-07-24 01:41:19 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 814
+center_zoom:
+ x=27.23059617547807, dy=109.29999999999995
+2021-07-24 01:41:20 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 814
+center_zoom:
+ x=27.25562372188142, dy=121.37786561264829
+2021-07-24 01:41:22 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 814
+center_zoom:
+ x=30.827137546468407, dy=130.71192528735628
+2021-07-24 01:41:24 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 814
+center_zoom:
+ x=31.183431952662716, dy=143.60613977792286
+2021-07-24 02:20:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 372.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 384.0)
+2021-07-24 02:20:12 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 474.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 486.0)
+2021-07-24 02:20:14 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 508.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 520.0)
+2021-07-24 02:20:16 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 558.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 570.0)
+2021-07-24 02:20:20 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 456.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 468.0)
+2021-07-24 02:20:21 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 354.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 366.0)
+2021-07-24 02:20:23 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 456.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 468.0)
+2021-07-24 02:20:25 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 354.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 366.0)
+2021-07-24 02:20:27 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 252.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 264.0)
+2021-07-24 02:20:28 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 237.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 249.0)
+2021-07-24 02:20:29 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 187.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 199.0)
+2021-07-24 02:20:30 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 137.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 149.0)
+2021-07-24 02:20:31 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(203.0, 87.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(694.0, 99.0)
+2021-07-24 02:20:33 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(15.0, 18.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(506.0, 30.0)
+2021-07-24 02:20:34 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(15.0, 120.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(506.0, 132.0)
+2021-07-24 02:20:35 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(15.0, 222.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(506.0, 234.0)
+2021-07-24 02:20:36 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(15.0, 324.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(506.0, 336.0)
+2021-07-24 02:20:37 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(15.0, 426.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(506.0, 438.0)
+2021-07-24 02:20:37 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(15.0, 324.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(506.0, 336.0)
+2021-07-24 02:20:37 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(15.0, 222.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(506.0, 234.0)
+2021-07-24 02:20:38 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(15.0, 120.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(506.0, 132.0)
+2021-07-24 02:20:42 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(5.0, 10.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(496.0, 22.0)
+2021-07-24 02:20:50 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(11.0, 345.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(502.0, 357.0)
+2021-07-24 02:20:51 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(11.0, 243.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(502.0, 255.0)
+2021-07-24 02:20:52 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(11.0, 141.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(502.0, 153.0)
+2021-07-24 02:21:28 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 770
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(1030.0, 1193.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(1030.0, 1193.0)
+2021-07-24 02:21:28 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 770
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(1027.0, 1294.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(1027.0, 1294.0)
+2021-07-24 02:21:28 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 770
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(1026.0, 1393.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(1026.0, 1393.0)
+2021-07-24 02:21:28 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 770
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(1021.0, 1491.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(1021.0, 1491.0)
+2021-07-24 02:21:30 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(666.0, 1403.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(666.0, 1403.0)
+2021-07-24 02:21:31 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(642.0, 1374.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(642.0, 1374.0)
+2021-07-24 02:21:32 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(409.0, 987.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(900.0, 1299.0)
+2021-07-24 02:21:33 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(306.0, 581.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(914.0, 1303.0)
+2021-07-24 02:21:33 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(304.0, 428.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(901.0, 1448.0)
+2021-07-24 02:21:34 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(281.0, 260.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(891.0, 1462.0)
+2021-07-24 02:21:36 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(2.0, 9.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(617.0, 1484.0)
+2021-07-24 02:21:37 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(2.0, 9.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(619.0, 1484.0)
+2021-07-24 02:21:37 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(2.0, 9.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(619.0, 1484.0)
+2021-07-24 02:21:38 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(2.0, 9.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(619.0, 1484.0)
+2021-07-24 02:21:39 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(107.0, 108.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(724.0, 1583.0)
+2021-07-24 02:21:40 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(152.0, 160.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(769.0, 1635.0)
+2021-07-24 02:21:40 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(255.0, 246.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(872.0, 1721.0)
+2021-07-24 02:21:41 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(327.0, 321.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(944.0, 1796.0)
+2021-07-24 02:21:43 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 765
+mousePressEvent:
+ event.pos=PyQt5.QtCore.QPointF(4.0, 4.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(621.0, 1479.0)
+2021-07-24 02:35:27 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(593.0, 406.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(593.0, 406.0)
+2021-07-24 02:35:28 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(715.0, 444.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(715.0, 444.0)
+2021-07-24 02:35:29 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(707.0, 488.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(707.0, 488.0)
+2021-07-24 02:35:29 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(441.0, 584.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(441.0, 584.0)
+2021-07-24 02:35:30 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(485.0, 642.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(485.0, 642.0)
+2021-07-24 02:35:31 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(514.0, 935.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(514.0, 935.0)
+2021-07-24 02:35:31 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(576.0, 1045.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(576.0, 1045.0)
+2021-07-24 02:35:32 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(715.0, 1049.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(715.0, 1049.0)
+2021-07-24 02:35:32 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(650.0, 953.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(650.0, 953.0)
+2021-07-24 02:35:33 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(589.0, 863.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(589.0, 863.0)
+2021-07-24 02:35:33 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(532.0, 779.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(532.0, 779.0)
+2021-07-24 02:35:33 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(480.0, 672.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(480.0, 672.0)
+2021-07-24 02:35:33 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(442.0, 599.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(442.0, 599.0)
+2021-07-24 02:35:34 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(633.0, 226.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(633.0, 226.0)
+2021-07-24 02:35:34 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(703.0, 244.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(703.0, 244.0)
+2021-07-24 02:35:34 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(773.0, 268.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(773.0, 268.0)
+2021-07-24 02:35:34 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(850.0, 294.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(850.0, 294.0)
+2021-07-24 02:35:34 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(772.0, 267.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(772.0, 267.0)
+2021-07-24 02:35:34 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(702.0, 242.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(702.0, 242.0)
+2021-07-24 02:35:34 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(639.0, 220.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(639.0, 220.0)
+2021-07-24 02:35:34 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(582.0, 200.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(582.0, 200.0)
+2021-07-24 02:35:43 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(706.0, 367.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(706.0, 367.0)
+2021-07-24 02:35:44 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 772
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(706.0, 403.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(706.0, 403.0)
+2021-07-24 02:36:54 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 778
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(427.0, 270.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(427.0, 270.0)
+2021-07-24 02:37:03 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 778
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(461.0, 420.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(461.0, 420.0)
+2021-07-24 02:38:41 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(422.0, 263.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(422.0, 263.0)
+2021-07-24 02:38:42 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(185.0, 318.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(185.0, 318.0)
+2021-07-24 02:38:43 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(185.0, 349.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(185.0, 349.0)
+2021-07-24 02:38:43 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(169.0, 317.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(169.0, 317.0)
+2021-07-24 02:38:43 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(154.0, 288.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(154.0, 288.0)
+2021-07-24 02:38:44 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(457.0, 79.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(457.0, 79.0)
+2021-07-24 02:38:44 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(457.0, 86.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(457.0, 86.0)
+2021-07-24 02:38:44 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(534.0, 94.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(534.0, 94.0)
+2021-07-24 02:38:45 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(572.0, 130.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(572.0, 130.0)
+2021-07-24 02:38:45 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(519.0, 124.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(519.0, 124.0)
+2021-07-24 02:38:45 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(472.0, 115.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(472.0, 115.0)
+2021-07-24 02:38:45 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(422.0, 115.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(422.0, 115.0)
+2021-07-24 02:38:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(336.0, 385.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(336.0, 385.0)
+2021-07-24 02:38:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(386.0, 460.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(386.0, 460.0)
+2021-07-24 02:38:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(425.0, 507.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(425.0, 507.0)
+2021-07-24 02:38:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(468.0, 557.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(468.0, 557.0)
+2021-07-24 02:38:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(509.0, 620.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(509.0, 620.0)
+2021-07-24 02:38:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(536.0, 690.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(536.0, 690.0)
+2021-07-24 02:38:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(431.0, 784.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(431.0, 784.0)
+2021-07-24 02:38:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(248.0, 723.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(248.0, 723.0)
+2021-07-24 02:38:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(226.0, 657.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(226.0, 657.0)
+2021-07-24 02:38:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(206.0, 597.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(206.0, 597.0)
+2021-07-24 02:38:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(184.0, 540.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(184.0, 540.0)
+2021-07-24 02:38:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(151.0, 485.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(151.0, 485.0)
+2021-07-24 02:38:47 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(165.0, 532.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(165.0, 532.0)
+2021-07-24 02:38:48 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(182.0, 585.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(182.0, 585.0)
+2021-07-24 02:38:48 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(201.0, 638.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(201.0, 638.0)
+2021-07-24 02:38:48 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(222.0, 698.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(222.0, 698.0)
+2021-07-24 02:38:48 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(244.0, 759.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(244.0, 759.0)
+2021-07-24 02:38:48 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(268.0, 830.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(268.0, 830.0)
+2021-07-24 02:38:48 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(243.0, 754.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(243.0, 754.0)
+2021-07-24 02:38:48 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(218.0, 684.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(218.0, 684.0)
+2021-07-24 02:38:48 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(195.0, 621.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(195.0, 621.0)
+2021-07-24 02:38:49 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(114.0, 350.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(114.0, 350.0)
+2021-07-24 02:38:49 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(124.0, 378.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(124.0, 378.0)
+2021-07-24 02:38:49 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(136.0, 411.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(136.0, 411.0)
+2021-07-24 02:38:49 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(124.0, 373.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(124.0, 373.0)
+2021-07-24 02:38:49 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(113.0, 340.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(113.0, 340.0)
+2021-07-24 02:38:49 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(103.0, 309.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(103.0, 309.0)
+2021-07-24 02:38:49 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(96.0, 279.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(96.0, 279.0)
+2021-07-24 02:38:49 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(88.0, 253.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(88.0, 253.0)
+2021-07-24 02:38:50 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(81.0, 229.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(81.0, 229.0)
+2021-07-24 02:38:58 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(581.0, 305.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(581.0, 305.0)
+2021-07-24 02:38:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(581.0, 203.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(581.0, 203.0)
+2021-07-24 02:38:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(581.0, 170.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(581.0, 170.0)
+2021-07-24 02:38:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(581.0, 272.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(581.0, 272.0)
+2021-07-24 02:38:59 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(583.0, 374.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(583.0, 374.0)
+2021-07-24 02:39:00 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(590.0, 444.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(590.0, 444.0)
+2021-07-24 02:39:00 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(590.0, 342.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(590.0, 342.0)
+2021-07-24 02:39:00 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(590.0, 240.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(590.0, 240.0)
+2021-07-24 02:39:02 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(624.0, 131.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(624.0, 131.0)
+2021-07-24 02:39:03 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(194.0, 534.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(194.0, 534.0)
+2021-07-24 02:39:04 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(748.0, 285.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(748.0, 285.0)
+2021-07-24 02:39:05 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(363.0, 247.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(363.0, 247.0)
+2021-07-24 02:39:06 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(647.0, 281.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(647.0, 281.0)
+2021-07-24 02:39:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(765.0, 312.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(765.0, 312.0)
+2021-07-24 02:39:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(841.0, 344.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(841.0, 344.0)
+2021-07-24 02:39:07 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(621.0, 592.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(621.0, 592.0)
+2021-07-24 02:39:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(732.0, 641.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(732.0, 641.0)
+2021-07-24 02:39:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(666.0, 582.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(666.0, 582.0)
+2021-07-24 02:39:09 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(762.0, 477.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(762.0, 477.0)
+2021-07-24 02:39:09 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(838.0, 524.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(838.0, 524.0)
+2021-07-24 02:39:09 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(921.0, 576.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(921.0, 576.0)
+2021-07-24 02:39:10 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(1023.0, 619.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(1023.0, 619.0)
+2021-07-24 02:39:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(1125.0, 681.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(1125.0, 681.0)
+2021-07-24 02:39:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(1022.0, 618.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(1022.0, 618.0)
+2021-07-24 02:39:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(929.0, 562.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(929.0, 562.0)
+2021-07-24 02:39:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(844.0, 510.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(844.0, 510.0)
+2021-07-24 02:39:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(767.0, 463.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(767.0, 463.0)
+2021-07-24 02:39:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(697.0, 416.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(697.0, 416.0)
+2021-07-24 02:39:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(633.0, 378.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(633.0, 378.0)
+2021-07-24 02:39:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(576.0, 343.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(576.0, 343.0)
+2021-07-24 02:39:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(524.0, 312.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(524.0, 312.0)
+2021-07-24 02:39:11 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(477.0, 284.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(477.0, 284.0)
+2021-07-24 02:39:12 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 783
+wheelEvent:
+ event.pos=PyQt5.QtCore.QPointF(434.0, 259.0),self.mapToScene(event.pos())=PyQt5.QtCore.QPointF(434.0, 259.0)
+2021-07-24 03:56:29 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 161
+mousePressEvent:
+ 887
+2021-07-24 03:56:29 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 162
+mousePressEvent:
+ -392
+2021-07-24 04:29:03 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 98
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_0_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=0, ratio=1.2), progress=12)
+2021-07-24 04:29:03 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 98
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_1_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=1, ratio=1.2), progress=25)
+2021-07-24 04:29:03 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 98
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_2_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=2, ratio=1.2), progress=37)
+2021-07-24 04:29:04 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 98
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_3_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=3, ratio=1.2), progress=50)
+2021-07-24 04:29:04 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 98
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_4_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=4, ratio=1.2), progress=62)
+2021-07-24 04:29:04 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 98
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_5_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=5, ratio=1.2), progress=75)
+2021-07-24 04:29:04 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 98
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_6_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=6, ratio=1.2), progress=87)
+2021-07-24 04:29:04 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\clipper2\lib\Clipper.py
+Clipper.py 98
+on_ScenePageLoader_1_page_load_handle:
+ on_ScenePageLoader_1_page_load_handle,pageloaddata(pixdir='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\bfb206da_8d1a_3d9a_84d2_e1753f42577f_7_1.2.png', pageinfo=PageInfo(pdf_path='D:/备份盘/经常更新/数学书大全/不等式/几何不等式在中国(单墫 主编).pdf', pagenum=7, ratio=1.2), progress=100)

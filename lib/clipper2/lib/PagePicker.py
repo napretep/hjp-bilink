@@ -190,10 +190,14 @@ class PagePicker(QDialog):
             self.toolsbar.unit_li[self.toolsbar.widget_button_open].setDescTooltip("")
 
     def on_pagepicker_PDFparse_handle(self, event: "events.PagePickerPDFParseEvent"):
+        assert (event.pagenum is not None and event.path is not None)
         pdfname = funcs.str_shorten(os.path.basename(event.path))
         self.toolsbar.unit_li[self.toolsbar.widget_button_open].setDescText(pdfname)
         self.toolsbar.unit_li[self.toolsbar.widget_button_open].setDescTooltip(event.path)
         self.E.pagepicker.curr_doc = fitz.Document(event.path)
+        self.E.pagepicker.curr_pdf_path = event.path
+        self.E.pagepicker.curr_pagenum = event.pagenum
+
         self.bookmark.load_bookmark()
         self.toolsbar.widget_lineEdit_pagenum.setText(str(event.pagenum))
         pdfuuid = funcs.uuid_hash_make(event.path)
@@ -203,21 +207,26 @@ class PagePicker(QDialog):
             record = objs.PDFinfoRecord(uuid=pdfuuid, pdf_path=event.path, ratio=ratio, offset=0)
             DB.insert(**(asdict(record))).commit()
         result = objs.PDFinfoRecord(**DB.select(uuid=pdfuuid).return_all().zip_up()[0])
-        self.toolsbar.widget_spinbox_pageoffset.setValue(result.offset)
+        QTimer.singleShot(100, lambda: self.toolsbar.widget_spinbox_pageoffset.setValue(result.offset))
+        self.toolsbar.widget_DBspinbox_ratio.blockSignals(True)
         self.toolsbar.widget_DBspinbox_ratio.setValue(result.ratio)
+        self.toolsbar.widget_DBspinbox_ratio.blockSignals(False)
         count = len(self.E.pagepicker.curr_doc) - 1
         self.toolsbar.widget_spinbox_pagejump.setRange(-count, count)
         self.toolsbar.setBookPageFromPDFpage(event.pagenum)
         self.previewer.page_load()
         e = events.PagePickerBrowserLoadFrameEvent
         self.root.E.signals.on_pagepicker_browser_loadframe.emit(e(type=e.defaultType.initParse, pagenum=event.pagenum))
+        # self.on_widget_DBspinbox_ratio_valueChanged_handle()
 
     def show(self) -> None:
         QTimer.singleShot(100, self.if_no_pdf_path_open_filepicker)
         super().show()
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
-        if os.path.exists(self.E.pagepicker.curr_pdf_path) and os.path.isfile(self.E.pagepicker.curr_pdf_path):
+        if self.E.pagepicker.curr_pdf_path is not None \
+                and os.path.exists(self.E.pagepicker.curr_pdf_path) \
+                and os.path.isfile(self.E.pagepicker.curr_pdf_path):
             self.save_pdf_info()
         self.E.pagepicker.browser.worker.terminate()
         self.allevent.unbind()
@@ -228,6 +237,14 @@ class PagePicker(QDialog):
             # 如果有当前路径的pdf,则加载之.
 
             pass
+        elif self.E.pagepicker.frompageItem:
+            e = events.PagePickerPDFParseEvent
+            from .Clipper import Clipper
+            pageitem: "Clipper.PageItem" = self.E.pagepicker.frompageItem
+            pdf_path = pageitem.pageinfo.pdf_path
+            pagenum = pageitem.pageinfo.pagenum
+            self.E.signals.on_pagepicker_PDFparse.emit(
+                e(type=e.defaultType.PDFInitParse, path=pdf_path, pagenum=pagenum))
         else:
             self.E.pagepicker.curr_pdf_path = self.E.config.pagepicker.bottombar_default_path.replace("\\", "/")
             e = events.PagePickerPDFOpenEvent
@@ -627,10 +644,14 @@ class PagePicker(QDialog):
                 PDFpath = self.root.E.pagepicker.curr_pdf_path
                 pagenum = self.pagenum
                 ratio = self.superior.superior.toolsbar.widget_DBspinbox_ratio.value()
+
                 data = objs.PageInfo(pdf_path=PDFpath, pagenum=pagenum, ratio=ratio)
                 if self.root.E.pagepicker.frompageItem is None:
                     self.signals.on_pageItem_addToScene.emit(e(sender=self, type=e.defaultType.addPage, data=data))
                 else:
+                    pageitem: "Clipper.PageItem" = self.root.E.pagepicker.frompageItem
+                    if self.root.E.config.pagepicker.changepage_ratio_choose == self.root.E.schema.changepage_ratio_choose.old:
+                        data.ratio = pageitem.pageinfo.ratio
                     self.signals.on_pageItem_addToScene.emit(e(sender=self.root.E.pagepicker.frompageItem,
                                                                type=e.defaultType.changePage, data=data))
                 self.superior.superior.close()
@@ -778,6 +799,8 @@ class PagePicker(QDialog):
                 centerpos = QPointF(self.superior.view.size().width() / 2, self.superior.view.size().height() / 2)
                 self.view_center_scene_p = self.superior.view.mapToScene(centerpos.toPoint())
                 p = self.mapFromScene(self.view_center_scene_p)
+                if not (self.boundingRect().width() > 0 and self.boundingRect().height() > 0):
+                    raise ValueError("self.boundingRect().width()=0 or self.boundingRect().height()=0")
                 self.view_center_item_p = [p.x() / self.boundingRect().width(), p.y() / self.boundingRect().height()]
 
             def mouse_center_pos_get(self, pos):
@@ -792,6 +815,9 @@ class PagePicker(QDialog):
                     self.zoomIn()
                 else:
                     self.zoomOut()
+
+            # def boundingRect(self) -> QtCore.QRectF:
+            #     return QRectF(0,0,self.pixmap().rect().width(),self.pixmap().rect().height())
 
             def zoomIn(self):
                 """放大"""

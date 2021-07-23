@@ -1,13 +1,19 @@
 import os
 import sys
-from typing import Union
-
+from typing import Union, Callable
+import typing
 from ..fitz import fitz
 from PyQt5.QtCore import QItemSelection, QThread, pyqtSignal, QSize
 from PyQt5.QtGui import QStandardItemModel, QImage, QPixmap
 import uuid
 import logging
 import tempfile
+
+
+def caller_check(needcallerfunc: "Callable", caller, needclass):
+    curr_caller_func_name = sys._getframe(2).f_code.co_name
+    if not (curr_caller_func_name == needcallerfunc.__name__ and isinstance(caller, needclass)):
+        raise ValueError(f"请使用{needclass.__str__(needclass)} 的 {needcallerfunc.__name__} 调用我!")
 
 
 def uuid_hash_make(s):
@@ -73,7 +79,7 @@ def pdf_page_unique(results):
     return d
 
 
-def uuid_random_unique():
+def clipbox_uuid_random_unique():
     from . import objs
     myid = str(uuid.uuid4())[0:8]
     while objs.SrcAdmin.DB.go().exists_check(myid).return_all()[0][0] > 0:

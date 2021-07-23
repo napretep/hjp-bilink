@@ -9,9 +9,30 @@ class BaseEvent:  # 基础事件
     sender: "Any" = None
     type: "int" = None
 
+@dataclass
+class PageItemResizeEvent(BaseEvent):
+    class _Type:
+        fullscreen = 0
+        fitheight = 1
+        recover = 2
+        custom = 3
+
+    class _centerType:
+        mousecenter = 0
+        viewcenter = 1
+        itemcenter = 2
+        nocenter = 3
+
+    centertype = _centerType()
+    defaultType = _Type()
+    center: "int" = centertype.mousecenter
+    ratio: "float" = None
+    pass
 
 @dataclass
 class PageItemAddToSceneEvent(BaseEvent):
+    """data和datali都是pageinfo"""
+
     class _type:
         changePage = 0
         addPage = 1
@@ -22,9 +43,23 @@ class PageItemAddToSceneEvent(BaseEvent):
     datali: "Any" = None
     callback: "Callable" = None
 
+    def __post_init__(self):
+        from . import objs
+        data: "objs.PageInfo" = None
+        datali: "list[objs.PageInfo]" = None
+
 
 @dataclass
-class PagePickerPreviewerReadPageEvent:
+class PageItemCloseEvent(BaseEvent):
+    pageitem: "Any" = None
+
+    def __post_init__(self):
+        from ..Clipper import Clipper
+        self.pageitem: "Clipper.PageItem" = None
+
+
+@dataclass
+class PagePickerPreviewerReadPageEvent(BaseEvent):
     class _type:
         fromBrowser = 0
         fromBookmark = 1
@@ -33,8 +68,6 @@ class PagePickerPreviewerReadPageEvent:
         loadType = 3
 
     defaultType: "_type" = _type()
-    type: "Any" = None
-    sender: "Any" = None
     pagenum: "Any" = None
     doc: "Any" = None
 
@@ -366,15 +399,7 @@ class PageItemChangeEvent:
         self.pageInfo = pageInfo
 
 
-class PageItemResizeEvent:
-    fullscreenType = 0
-    resetType = 1
 
-    def __init__(self, pageItem=None, eventType=None, screen_width=None):
-        self.pageItem = pageItem
-        self.Type = eventType if eventType is not None else self.fullscreenType
-        self.screen_width = screen_width
-        pass
 
 
 class CardListDataChangedEvent(AllEvent):

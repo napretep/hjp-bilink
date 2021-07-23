@@ -1,14 +1,21 @@
+import os.path
+import sys
 import time
 from dataclasses import dataclass, field
 from collections import namedtuple
-from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QThread
-from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
+from typing import Union
+
+import typing
+from PyQt5 import QtGui, QtCore
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QThread, QPointF, QPoint, QRectF, QPersistentModelIndex, QModelIndex
+from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem, QPixmap, QPen, QColor
 from PyQt5.QtWidgets import QDialog, QWidget, QGraphicsScene, QGraphicsView, QToolButton, QHBoxLayout, QApplication, \
     QVBoxLayout, QGridLayout, QTreeView, QLabel, QHeaderView, QAbstractItemView, QGraphicsItem, QGraphicsRectItem, \
-    QGraphicsWidget, QGraphicsPixmapItem
+    QGraphicsWidget, QGraphicsPixmapItem, QGraphicsSceneMouseEvent, QGraphicsGridLayout, QGraphicsProxyWidget, \
+    QGraphicsSceneWheelEvent, QStyleOptionGraphicsItem, QGraphicsSceneHoverEvent
 from .tools import objs, events, ALL, funcs
 from .Model import Entity
+from .fitz import fitz
 
 print, printer = funcs.logger(__name__)
 
@@ -21,6 +28,7 @@ class Clipper(QDialog):
         self.E = entity
         # self.E.pagepicker.browser.worker=FrameLoadWorker(self.E)
         self.imgDir = objs.SrcAdmin.call().imgDir
+        self.signals = self.E.signals
         self.container0 = QWidget(self)
         self.scene = QGraphicsScene(self)
         self.pdfview = self.PDFView(self.scene, parent=self, superior=self)
@@ -29,8 +37,108 @@ class Clipper(QDialog):
         self.init_UI()
         self.api = self.API(self)
         self.allevent = objs.AllEventAdmin({
-            self.E.signals.on_pagepicker_open: self.on_pagepicker_open_handle
+            self.E.signals.on_pagepicker_open: self.on_pagepicker_open_handle,
+            self.signals.on_pageItem_addToScene: self.on_pageItem_addToScene_handle,
+            self.pdfview.verticalScrollBar().valueChanged: self.on_pdfview_verticalScrollBar_valueChanged_handle,
+            self.pdfview.horizontalScrollBar().valueChanged: self.on_pdfview_horizontalScrollBar_valueChanged_handle,
+            self.signals.on_pageitem_close: self.on_pageitem_close_handle,
+            self.rightsidebar.pagelist.addButton.clicked: self.on_righsidebar_pagelist_addButton_clicked_handle,
+            self.rightsidebar.pagelist.view.clicked: self.on_rightsidebar_pagelist_view_clicked_handle,
+            self.rightsidebar.pagelist.view.doubleClicked: self.on_rightsidebar_pagelist_view_doubleClicked_handle
         }).bind()
+
+    def on_rightsidebar_pagelist_view_doubleClicked_handle(self, index: "QModelIndex"):
+        item: "Clipper.RightSideBar.PageList.PDFItem" = self.rightsidebar.pagelist.model.item(index.row(), 0)
+        e = events.PagePickerOpenEvent
+        self.signals.on_pagepicker_open.emit(e(type=e.defaultType.fromPage, fromPageItem=item.pageitem))
+
+    def on_rightsidebar_pagelist_view_clicked_handle(self, index: "QModelIndex"):
+        item: "Clipper.RightSideBar.PageList.PDFItem" = self.rightsidebar.pagelist.model.item(index.row(), 0)
+        self.pdfview.centerOn(item=item.pageitem)
+
+    def on_pagepicker_open_handle(self, event: "events.PagePickerOpenEvent"):
+        from .PagePicker import PagePicker
+        if event.type == event.defaultType.fromMainWin:
+            pass
+        elif event.type == event.defaultType.fromPage:
+            self.E.pagepicker.frompageItem = event.fromPageItem
+        elif event.type == event.defaultType.fromAddButton:
+            pass
+        # self.E.pagepicker.browser.worker.start()
+        self.E.pagepicker.ins = PagePicker(parent=self, superior=self, root=self)
+        self.E.pagepicker.ins.show()
+
+    def on_righsidebar_pagelist_addButton_clicked_handle(self):
+        self.rightsidebar.pagelist.on_addButton_clicked_handle()
+
+    def on_pageitem_close_handle(self, event: "events.PageItemCloseEvent"):
+        self.delpage(event.pageitem)
+
+    def on_pdfview_horizontalScrollBar_valueChanged_handle(self, value):
+        rect = self.pdfview.sceneRect()
+        if value == self.pdfview.horizontalScrollBar().maximum():
+            rect.setRight(rect.right() + 50)
+        elif value == self.pdfview.horizontalScrollBar().minimum():
+            rect.setLeft(rect.left() - 50)
+        self.pdfview.setSceneRect(rect)
+
+    def on_pdfview_verticalScrollBar_valueChanged_handle(self, value):
+        rect = self.pdfview.sceneRect()
+        if value == self.pdfview.verticalScrollBar().maximum():
+            rect.setBottom(rect.bottom() + 50)
+            # self.pdfview.setSceneRect(rect.x(), rect.y(), rect.width(), rect.height() + 10)
+        elif value <= self.pdfview.verticalScrollBar().minimum() + 1:
+            rect.setTop(rect.top() - 50)
+            # self.pdfview.verticalScrollBar().setMinimum(self.pdfview.verticalScrollBar().value()-50)
+        self.pdfview.setSceneRect(rect)
+
+        # self.pdfview.setSceneRect(rect.x(), rect.y() - 10, rect.width(), rect.height())
+
+    def on_ScenePageLoader_1_page_load_handle(self, data: "pageloaddata"):
+        print(f"on_ScenePageLoader_1_page_load_handle,{data}")
+        # TODO 1 pageitem, 2 pdfview addpage, 3 rightsidebar addpage
+        pageitem = Clipper.PageItem(data.pixdir, data.pageinfo, superior=self.pdfview, root=self)
+        self.addpage(pageitem)
+        self.E.pdfview.progresser.valtxt_set(data.progress)
+        if data.progress >= 100:
+            self.E.pdfview.progresser.close()
+
+        pass
+
+    def on_pageItem_addToScene_handle(self, event: "events.PageItemAddToSceneEvent"):
+        """#分别控制两个地方"""
+        if event.type == event.defaultType.addPage:
+            data: "objs.PageInfo" = event.data
+            png_path = funcs.pixmap_page_load(data.pdf_path, data.pagenum, data.ratio)
+            pageitem = self.PageItem(png_path, data, superior=self.pdfview, root=self)
+            self.addpage(pageitem)
+            pass
+        elif event.type == event.defaultType.addMultiPage:
+            self.E.pdfview.scenepageload_worker = ScenePageLoader(event.datali)
+            self.E.pdfview.scenepageload_worker.on_1_page_load.connect(self.on_ScenePageLoader_1_page_load_handle)
+            self.E.pdfview.progresser = objs.UniversalProgresser(parent=self)
+            self.E.pdfview.progresser.show()
+            self.E.pdfview.scenepageload_worker.start()
+            pass
+        elif event.type == event.defaultType.changePage:
+            pageitem: "Clipper.PageItem" = event.sender
+            data: "objs.PageInfo" = event.data
+            self.changepage(pageitem, data)
+            QTimer.singleShot(100, lambda: self.pdfview.centerOn(item=pageitem))
+            pass
+
+    def addpage(self, pageitem: "Clipper.PageItem"):
+        self.pdfview.addpage(self, pageitem)
+        self.rightsidebar.addpage(self, pageitem)
+
+    def delpage(self, pageitem: "Clipper.PageItem"):
+        self.pdfview.delpage(self, pageitem)
+        self.rightsidebar.delpage(self, pageitem)
+
+    def changepage(self, pageitem: "Clipper.PageItem", data: "objs.PageInfo"):
+        assert isinstance(pageitem, Clipper.PageItem) and isinstance(data, objs.PageInfo)
+        pageitem.changepage(self, data)
+        self.rightsidebar.changepage(self, pageitem)
 
     def init_UI(self):
         self.setWindowIcon(QIcon(self.imgDir.clipper))
@@ -49,6 +157,11 @@ class Clipper(QDialog):
         self.widget_button_show_rightsidebar.move(self.geometry().width() - 20, self.geometry().height() / 2)
         self.widget_button_show_rightsidebar.hide()
 
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        print(self.pdfview.horizontalScrollBar().maximum())
+        print(self.pdfview.horizontalScrollBar().minimum())
+        super().mousePressEvent(event)
+
     def resizeEvent(self, *args):
         self.container0.resize(self.width(), self.height())
         self.widget_button_show_rightsidebar.move(self.geometry().width() - 20, self.geometry().height() / 2)
@@ -56,6 +169,7 @@ class Clipper(QDialog):
         pass
 
     def start(self, pairs_li: "list[objs.Pair]" = None):
+        """用于clipper启动时添加一些特别条件"""
         if pairs_li:
             # 批量添加到cardlist
             # for pair in pairs_li:
@@ -83,15 +197,6 @@ class Clipper(QDialog):
             e = events.PagePickerOpenEvent
             self.E.signals.on_pagepicker_open.emit(e(type=e.defaultType.fromMainWin))
 
-    def on_pagepicker_open_handle(self, event: "events.PagePickerOpenEvent"):
-        from .PagePicker import PagePicker
-        if event.type == event.defaultType.fromMainWin:
-            self.E.pagepicker.ins = PagePicker(parent=self, superior=self, root=self)
-
-        elif event.type == event.defaultType.fromAddButton:
-            self.E.pagepicker.ins = PagePicker(parent=self, superior=self, root=self)
-        # self.E.pagepicker.browser.worker.start()
-        self.E.pagepicker.ins.show()
 
     @dataclass
     class API:
@@ -99,9 +204,6 @@ class Clipper(QDialog):
 
         def __init__(self, superior: "Clipper"):
             self.superior = superior
-
-        def L1_PDFView_size(self):
-            print(self.superior.pdfview.size())
 
         pass
 
@@ -120,6 +222,18 @@ class Clipper(QDialog):
             self.setDragMode(self.ScrollHandDrag)
             self.setCursor(Qt.ArrowCursor)
             self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+
+        def addpage(self, caller: "Clipper", pageitem: "Clipper.PageItem"):
+            funcs.caller_check(Clipper.addpage, caller, Clipper)
+            self.root.E.pdfview.pageitem_container.append_data(self, pageitem)
+            self.pageitem_layout_arrange()  # 先布局后插入
+            self.scene().addItem(pageitem)
+            self.centerOn(item=pageitem)
+
+        def delpage(self, caller: "Clipper", pageitem: "Clipper.PageItem"):
+            funcs.caller_check(Clipper.delpage, caller, Clipper)
+            self.root.E.pdfview.pageitem_container.remove_data(self, pageitem)
+            self.scene().removeItem(pageitem)
 
         def keyReleaseEvent(self, event: QtGui.QKeyEvent) -> None:
             self.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -177,7 +291,89 @@ class Clipper(QDialog):
                 super().wheelEvent(event)
             pass
 
-        pass
+        def pageitem_moveto_oldpage_bottom(self, old_item: 'Clipper.PageItem', new_item: 'Clipper.PageItem'):
+            new_pos = QPointF(old_item.x(), old_item.y() + old_item.boundingRect().height())
+            # print(new_pos)
+            new_item.setPos(new_pos)
+
+        def pageitem_moveto_oldpage_left(self, old_item: 'Clipper.PageItem', new_item: 'Clipper.PageItem'):
+            new_pos = QPointF(old_item.x() + old_item.boundingRect().width(), old_item.y())
+            # print(new_pos)
+            new_item.setPos(new_pos)
+
+        def pageitem_layout_arrange(self):
+            config = self.root.E.config.mainview
+            viewlayoutmode = config.layout_mode
+            pdfview = self.root.E.pdfview
+            pageItemList = list(pdfview.pageitem_container.uuidBased_data.values())
+            newitem: 'Clipper.PageItem' = pageItemList[-1]
+            old_count = len(pageItemList) - 1
+            if old_count == 0:  # 由于每次进来必然加载了一个所以这里可能用不太到
+                newitem.setPos(0, 0)
+                return
+            if viewlayoutmode == pdfview.layoutmode.Horizontal:
+                row = config.layout_row_per_col
+                rem = old_count % row  #
+                if rem != 0:
+                    olditem = pageItemList[-2]
+                    self.pageitem_moveto_oldpage_bottom(olditem, newitem)
+                else:
+                    olditem = pageItemList[-row - 1]
+                    self.pageitem_moveto_oldpage_left(olditem, newitem)
+                pass
+
+            elif viewlayoutmode == pdfview.layoutmode.Vertical:
+                col = config.layout_col_per_row
+                rem = old_count % col
+                if rem != 0:
+                    olditem = pageItemList[-2]
+                    self.pageitem_moveto_oldpage_left(olditem, newitem)
+                else:
+                    olditem = pageItemList[-col - 1]
+                    self.pageitem_moveto_oldpage_bottom(olditem, newitem)
+
+        def centerOn(self, pos: "Union[QPoint]" = None, item: "QGraphicsItem" = None):
+            """居中显示"""
+            assert pos is not None or item is not None
+            if pos is None:
+                x, y, r, b = item.boundingRect().left(), item.boundingRect().top(), item.boundingRect().right(), item.boundingRect().bottom()
+
+                pos = item.mapToScene(int((x + r) / 2), int((y + b) / 2)).toPoint()
+            curr_view_center = self.mapToScene(int(self.viewport().width() / 2),
+                                               int(self.viewport().height() / 2)).toPoint()
+            dp = pos - curr_view_center
+            self.safeScroll(dp.x(), dp.y())
+
+        def safeScroll(self, x, y):
+            """遇到边界会扩大scene"""
+            x_scroll = self.horizontalScrollBar()
+            y_scroll = self.verticalScrollBar()
+            rect = self.sceneRect()
+            if x_scroll.value() + x > x_scroll.maximum():
+                rect.setRight(rect.right() + x)
+                # self.setSceneRect(rect.x(),rect.y(),rect.width()+x,rect.height())
+            if x_scroll.value() + x < x_scroll.minimum():
+                rect.setLeft(rect.left() + x)
+                # self.setSceneRect(rect.x()+x, rect.y(), rect.width() + x, rect.height())
+            if y_scroll.value() + y > y_scroll.maximum():
+                # self.setSceneRect(rect.x(),rect.y(),rect.width(),rect.height()+y)
+                rect.setBottom(rect.bottom() + y)
+            if y_scroll.value() + y < y_scroll.minimum():
+                rect.setTop(rect.top() + y)
+                # self.setSceneRect(rect.x(),rect.y()+y,rect.width(),rect.height())
+            self.setSceneRect(rect)
+            x_scroll.setValue(x_scroll.value() + x)
+            y_scroll.setValue(y_scroll.value() + y)
+
+        # pass
+        # def smoothScroll(self,x,y,times=5,gap=0.1):
+        #     x_scroll = self.horizontalScrollBar()
+        #     y_scroll = self.verticalScrollBar()
+        #     x,y=int(x/times),int(y/times)
+        #     for i in range(times):
+        #         x_scroll.setValue(x_scroll.value() + x)
+        #         y_scroll.setValue(y_scroll.value() + y)
+        #         time.sleep(0.1/times)
 
     class RightSideBar(QWidget):
         def __init__(self, parent=None, superior: "Clipper" = None):
@@ -189,6 +385,27 @@ class Clipper(QDialog):
             self.cardlist = self.CardList(parent=self, superior=self, root=self.root)
             self.buttonPanel = self.ButtonPanel(parent=self, superior=self, root=self.root)
             self.init_UI()
+
+        def addpage(self, caller, pageitem: "Clipper.PageItem"):
+            funcs.caller_check(Clipper.addpage, caller, Clipper)
+            pdfname = funcs.str_shorten(os.path.basename(pageitem.pageinfo.pdf_path))
+            # pagenum = str(pageitem.pageinfo.pagenum)
+            item_pdf = self.PageList.PDFItem(pdfname, pageitem)
+            item_page = self.PageList.PageNumItem(pageitem)
+            self.pagelist.model.appendRow([item_pdf, item_page])
+            pageitem.pagelist_index = QPersistentModelIndex(item_pdf.index())
+
+        def delpage(self, caller, pageitem: "Clipper.PageItem"):
+            funcs.caller_check(Clipper.delpage, caller, Clipper)
+            self.pagelist.model.removeRow(pageitem.pagelist_index.row())
+
+        def changepage(self, caller, pageitem: "Clipper.PageItem"):
+            funcs.caller_check(Clipper.changepage, caller, Clipper)
+            row, col = pageitem.pagelist_index.row(), pageitem.pagelist_index.column()
+            item_pdf: "Clipper.RightSideBar.PageList.PDFItem" = self.pagelist.model.item(row, col)
+            item_page: "Clipper.RightSideBar.PageList.PageNumItem" = self.pagelist.model.item(row, col + 1)
+            item_pdf.update_data(self, pageitem)
+            item_page.update_data(self, pageitem)
 
         def init_UI(self):
             self.V_layout = QVBoxLayout()
@@ -247,8 +464,35 @@ class Clipper(QDialog):
                 self.view.setModel(self.model)
                 self.view.header().setDefaultSectionSize(180)
                 self.view.header().setSectionsMovable(False)
-                self.view.header().setSectionResizeMode((QHeaderView.Stretch))
+                self.view.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+                self.view.header().setSectionResizeMode(0, QHeaderView.Interactive)
+                self.view.header().setSectionResizeMode(1, QHeaderView.Stretch)
                 self.view.setColumnWidth(1, 10)
+
+            class PDFItem(QStandardItem):
+                def __init__(self, PDFName, selfData: "Clipper.PageItem"):
+                    super().__init__(PDFName)
+                    self.setFlags(self.flags() & ~ Qt.ItemIsEditable & ~ Qt.ItemIsDragEnabled)
+                    self.pageitem: "Clipper.PageItem" = selfData
+                    self.setData(selfData, Qt.UserRole)
+                    self.setToolTip(selfData.pageinfo.pdf_path)
+
+                def update_data(self, caller, pageitem: "Clipper.PageItem"):
+                    funcs.caller_check(Clipper.RightSideBar.changepage, caller, Clipper.RightSideBar)
+                    PDFName = funcs.str_shorten(os.path.basename(pageitem.pageinfo.pdf_path))
+                    self.setText(PDFName)
+                    self.setToolTip(pageitem.pageinfo.pdf_path)
+
+            class PageNumItem(QStandardItem):
+                def __init__(self, selfData: "Clipper.PageItem"):
+                    super().__init__(str(selfData.pageinfo.pagenum))
+                    self.setFlags(self.flags() & ~ Qt.ItemIsEditable & ~ Qt.ItemIsDragEnabled)
+                    self.pageitem: "Clipper.PageItem" = selfData
+                    self.setData(selfData, Qt.UserRole)
+
+                def update_data(self, caller, pageitem: "Clipper.PageItem"):
+                    funcs.caller_check(Clipper.RightSideBar.changepage, caller, Clipper.RightSideBar)
+                    self.setText(str(pageitem.pageinfo.pagenum))
 
         class CardList(QWidget):
             def __init__(self, parent=None, superior: "Clipper.RightSideBar" = None, root: "Clipper" = None):
@@ -350,7 +594,7 @@ class Clipper(QDialog):
                                  "视图布局重置\nview relayout"),
                                 (self.widget_button_config, 5, imgDir.config, e.configType, "配置选项\nset configuration"),
                                 (self.widget_button_confirm, 6, imgDir.correct, e.correctType,
-                                 "开始插入clipbox的任务\nBegin the task of inserting Clipbox",)
+                                 "开始插入clipbox的任务\nBegin the task of inserting Clipbox"),
                                 ]
                 self.buttondatali = [self.ButtonData(*data) for data in buttoninfoli]
                 self.init_UI()
@@ -375,11 +619,369 @@ class Clipper(QDialog):
             pass
 
     class PageItem(QGraphicsItem):
+        def __init__(self, png_path: "str", data: "objs.PageInfo", superior: "Clipper.PDFView", root: "Clipper", *args,
+                     **kwargs):
+            super().__init__(*args, **kwargs)
+            self.superior = superior
+            self.root = root
+            self.ratio = 1  # 这个ratio是需要通过1:1恢复的方式去掉的., 所以必须有,不能直接修改pageinfo里的ratio
+
+            self.signals = self.root.signals
+            self.uuid = hash(self).__str__()  # 这个uuid不用做存储,仅在内存中标记唯一性
+            self.png_path = png_path
+            self.pageinfo = data
+            self.pageview = self.PageView(superior=self, root=self.root)
+            self.toolsbar = self.ToolsBar(superior=self, root=self.root)
+            self.pagelist_index: "QPersistentModelIndex" = None
+            self.setAcceptHoverEvents(True)
+            self.setFlag(QGraphicsItem.ItemIsFocusable, True)
+            self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
+            self.events = objs.AllEventAdmin({
+                self.toolsbar.widget_button_close.clicked: self.on_widget_button_close_clicked_handle,
+                self.toolsbar.widget_button_pageinfo.clicked: self.on_widget_button_pageinfo_clicked_handle,
+                self.toolsbar.widget_button_prev.clicked: self.on_widget_button_prev_clicked_handle,
+                self.toolsbar.widget_button_next.clicked: self.on_widget_button_next_clicked_handle,
+                self.toolsbar.widget_button_fullscreen.clicked: self.on_widget_button_fullscreen_clicked_handle,
+                self.toolsbar.widget_button_recover.clicked: self.on_widget_button_recover_clicked_handle,
+                self.signals.on_pageItem_resize_event: self.on_pageItem_resize_event_handle,
+            }).bind()
+
+        def on_pageItem_resize_event_handle(self, event: "events.PageItemResizeEvent"):
+            v_size_width = self.superior.size().width()
+            v_size_height = self.superior.size().height()
+            v_viewport_width = self.superior.viewport().width()
+            v_viewport_height = self.superior.viewport().height()
+            v_framerect_width = self.superior.frameRect().width()
+            v_framerect_height = self.superior.frameRect().height()
+            if event.type == event.defaultType.fullscreen:
+                ratio = v_viewport_width / self.pageview.boundingRect().width()
+                self.pageview.zoom(ratio, center=event.center)
+            elif event.type == event.defaultType.fitheight:
+                ratio = v_viewport_height / self.pageview.boundingRect().height()
+                self.pageview.zoom(ratio, center=event.center)
+            elif event.type == event.defaultType.recover:
+                ratio = 1
+                self.pageview.zoom(ratio, center=event.center)
+
+        def on_widget_button_recover_clicked_handle(self):
+            e = events.PageItemResizeEvent
+            self.signals.on_pageItem_resize_event.emit(e(type=e.defaultType.recover, center=e.centertype.viewcenter))
+            pass
+
+        def on_widget_button_fullscreen_clicked_handle(self):
+            pass
+
+        def on_widget_button_prev_clicked_handle(self):
+            e = events.PageItemAddToSceneEvent
+            if self.pageinfo.pagenum > 0:
+                modifiers = QApplication.keyboardModifiers()
+                if modifiers & Qt.ControlModifier:
+                    self.widget_button_next_prev_clicked(-1, e.defaultType.changePage)
+                else:
+                    self.widget_button_next_prev_clicked(-1, e.defaultType.addPage)
+
+        def on_widget_button_next_clicked_handle(self):
+            e = events.PageItemAddToSceneEvent
+            if self.pageinfo.pagenum < len(fitz.Document(self.pageinfo.pdf_path)):
+                modifiers = QApplication.keyboardModifiers()
+                if modifiers & Qt.ControlModifier:
+                    self.widget_button_next_prev_clicked(1, e.defaultType.changePage)
+                else:
+                    self.widget_button_next_prev_clicked(1, e.defaultType.addPage)
+
+        def widget_button_next_prev_clicked(self, inc, addtype):
+            pageinfo = objs.PageInfo(self.pageinfo.pdf_path, self.pageinfo.pagenum + inc, self.pageinfo.ratio)
+            e = events.PageItemAddToSceneEvent
+            self.signals.on_pageItem_addToScene.emit(e(type=addtype, data=pageinfo, sender=self))
+
+        def on_widget_button_pageinfo_clicked_handle(self):
+            # print("on_widget_button_pageinfo_clicked_handle")
+            e = events.PagePickerOpenEvent
+            self.root.on_pagepicker_open_handle(e(type=e.defaultType.fromPage, fromPageItem=self))
+            # self.root.signals.on_pagepicker_PDFopen.emit(e(type=e.defaultType.fromPage,fromPageItem=self))
+
+        def on_widget_button_close_clicked_handle(self):
+            e = events.PageItemCloseEvent()
+            e.pageitem = self
+            self.signals.on_pageitem_close.emit(e)
+
+        def boundingRect(self) -> QtCore.QRectF:
+            w = self.pageview.boundingRect().width()
+            h = self.pageview.boundingRect().height()
+            rect = QRectF(0, 0, w, h)
+
+            return rect
+
+        def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
+                  widget: typing.Optional[QWidget] = ...) -> None:
+            self.prepareGeometryChange()  # 这个 非常重要. https://www.cnblogs.com/ybqjymy/p/13862382.html
+            painter.setPen(QPen(QColor(127, 127, 127), 2.0, Qt.DashLine))
+            painter.drawRect(self.boundingRect())
+            width1 = self.toolsbar.boundingRect().width()
+
+            width2 = self.pageview.boundingRect().width()
+            height2 = self.pageview.boundingRect().height()
+            self.toolsbar.setPos(width2 - width1, height2)
+            # super().paint(painter,option,widget)
+
+        def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+            modifiers = QApplication.keyboardModifiers()
+            if (modifiers & Qt.ControlModifier):
+                if event.button() == Qt.LeftButton:
+                    self.setFlag(QGraphicsItem.ItemIsMovable, True)
+                    self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+                # if event.button() == Qt.RightButton:
+                #     self.on_pageItem_clicked.emit(
+                #         PageItemClickEvent(pageitem=self, eventType=PageItemClickEvent.ctrl_rightClickType))
+            else:
+                # self.toolsBar.setPos(event.pos())
+
+                if event.buttons() == Qt.MidButton:
+                    pass  # 本来这里有一个全屏功能,删掉了.
+                elif event.button() == Qt.RightButton:  # 了解当前选中的是哪个pageitem,因为我之前已经取消了selectable功能,
+
+                    e = events.PageItemClickEvent
+                    # ALL.signals.on_pageItem_clicked.emit(e(sender=self, pageitem=self, eventType=e.rightClickType))
+                    super().mousePressEvent(event)
+                elif event.button() == Qt.LeftButton:
+                    # self.on_pageItem_clicked.emit(
+                    #     PageItemClickEvent(sender=self, pageitem=self, eventType=PageItemClickEvent.leftClickType))
+                    # self.toolsBar.hide()
+                    self.toolsbar.show()
+                    super().mousePressEvent(event)
+
+            super().mousePressEvent(event)
+
+        def changepage(self, caller, data: "objs.PageInfo"):
+            """事先加载好pixdir"""
+            assert type(data) == objs.PageInfo
+            funcs.caller_check(Clipper.changepage, caller, Clipper)
+            self.png_path = funcs.pixmap_page_load(data.pdf_path, data.pagenum, data.ratio)
+            self.pageview.setPixmap(QPixmap(self.png_path))
+            self.pageinfo = data
+            self.toolsbar.update_from_pageinfo(self)
+
         class PageView(QGraphicsPixmapItem):
+            mousecenter = 0
+            viewcenter = 1
+            itemcenter = 2
+            nocenter = 3
+
+            def __init__(self, superior: "Clipper.PageItem" = None, root: "Clipper" = None, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.superior = superior
+                self.root = root
+                self.setPixmap(QPixmap(self.superior.png_path))
+                self.setParentItem(self.superior)
+                self.is_fullscreen = False
+                self.setAcceptHoverEvents(True)
+                self.mousecenter_pos = None
+                self.mouse_item_percent_p: "objs.Position" = None  # 鼠标在图元中的比例位置
+                self.mouse_item_old_abs_p: "QPointF" = None
+                self.item_center_percent_p: "objs.Position" = None
+                self.item_center_old_abs_p: "QPointF" = None
+                self.view_center_scene_p: "QPoint" = None
+                self.viewcenter_pos = None
+                self.itemcenter_pos = None
+
+            # def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+            #     print(f"event.pos={event.pos()},self.mapToScene(event.pos())={self.mapToScene(event.pos())}")
+            #     super().mousePressEvent(event)
+
+            def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+                e = events.PageItemResizeEvent
+                if not self.is_fullscreen:
+                    self.is_fullscreen = True
+                    self.superior.signals.on_pageItem_resize_event.emit(
+                        e(type=e.defaultType.fullscreen, center=e.centertype.viewcenter))
+                else:
+                    self.is_fullscreen = False
+                    self.superior.signals.on_pageItem_resize_event.emit(e(type=e.defaultType.recover))
+
+            def hoverEnterEvent(self, event: 'QGraphicsSceneHoverEvent') -> None:
+                self.mouse_center_pos_get(event.pos())
+                super().hoverEnterEvent(event)
+
+            def hoverMoveEvent(self, event: 'QGraphicsSceneHoverEvent') -> None:
+                self.mouse_center_pos_get(event.pos())
+                super().hoverMoveEvent(event)
+
+            def wheelEvent(self, event):
+                modifiers = QApplication.keyboardModifiers()  # 判断ctrl键是否按下
+                if modifiers == QtCore.Qt.ControlModifier:
+                    self.mouse_center_pos_get(event.pos())
+                    # print(event.delta().__str__())
+                    if event.delta() > 0:
+                        self.zoomIn()
+                    else:
+                        self.zoomOut()
+                else:
+                    super().wheelEvent(event)
+
+            def zoomIn(self):
+                """放大"""
+                self.zoom(self.superior.ratio * 1.1)
+
+            def zoomOut(self):
+                """缩小"""
+                self.zoom(self.superior.ratio / 1.1)
+
+            def mouse_center_pos_get(self, pos: QPointF):
+                """
+                1 指针所在图元的比例位置
+                2 指针所在图元的绝对位置
+                """
+                self.mouse_item_percent_p = objs.Position(pos.x() / self.boundingRect().width(),
+                                                          pos.y() / self.boundingRect().height())
+                self.mouse_item_old_abs_p = pos
+
+            def item_center_pos_get(self):
+                self.item_center_percent_p = objs.Position(0.5, 0.5)
+                self.item_center_old_abs_p = self.mapToScene(0.5 * self.boundingRect().width(),
+                                                             0.5 * self.boundingRect().height())
+
+            def view_center_pos_get(self):
+                """
+                获取视口中心对应的相对坐标的比例值
+                Returns:
+
+                """
+                view = self.superior.superior
+                view_center = QPoint(int(view.viewport().width() / 2), int(view.viewport().height() / 2))
+                self.view_center_scene_p = view.mapToScene(view_center)
+
+            def center_zoom(self, center=0):
+                if center == self.mousecenter:
+                    new_x = self.mouse_item_percent_p.x * self.boundingRect().width()
+                    new_y = self.mouse_item_percent_p.y * self.boundingRect().height()
+                    new_p = self.mapToScene(new_x, new_y)
+                    dx = new_p.x() - self.mouse_item_old_abs_p.x()
+                    dy = new_p.y() - self.mouse_item_old_abs_p.y()
+                elif center == self.viewcenter:
+                    # 获取放大后的中心坐标
+                    new_x = self.item_center_percent_p.x * self.boundingRect().width()
+                    new_y = self.item_center_percent_p.y * self.boundingRect().height()
+                    # 转为场景坐标
+                    new_p = self.mapToScene(new_x, new_y)
+                    # 当前场景加上dx,dy就能移动到放大后的中心坐标
+                    dx = new_p.x() - self.view_center_scene_p.x()
+                    dy = new_p.y() - self.view_center_scene_p.y()
+                self.superior.superior.safeScroll(dx, dy)
+                pass
+
+            def zoom(self, factor, center=None, needbase=True):
+                if center is None:  # 默认是指针为中心放大
+                    center = self.mousecenter
+                if center == self.viewcenter:  # 视口中心放大,需要获取视口中心坐标
+                    self.view_center_pos_get()
+                    self.item_center_pos_get()
+                if center == self.itemcenter:  # 图元中心放大,需要获取图元的中心
+                    self.item_center_pos_get()
+                """缩放
+                :param factor: 缩放的比例因子
+                """
+                self.prepareGeometryChange()
+                if factor < 0.07 or factor > 100:
+                    # 防止过大过小
+                    return
+                pdf_path, pagenum, baseratio = self.path_page_ratio_get()
+                factor2 = factor * baseratio if needbase else factor
+                p = funcs.pixmap_page_load(pdf_path, pagenum, ratio=factor * baseratio)
+                self.setPixmap(QPixmap(p))
+                if center != self.nocenter:  # 只要不是 nocenter, 都要执行 center_zoom
+                    self.center_zoom(center)
+
+                # self.width = self.pixmap().width()
+                # self.height = self.pixmap().height()
+                # self.keep_clipbox_in_postion()
+
+                self.superior.ratio = factor
+
+            def boundingRect(self) -> QtCore.QRectF:
+                return QtCore.QRectF(0, 0, self.pixmap().width(), self.pixmap().height())
+
+            def path_page_ratio_get(self):
+                pageinfo = self.superior.pageinfo
+                return pageinfo.pdf_path, pageinfo.pagenum, pageinfo.ratio
+
             pass
 
         class ToolsBar(QGraphicsWidget):
+            def __init__(self, superior: "Clipper.PageItem" = None, root: "Clipper" = None, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.superior = superior
+                self.root = root
+                self.imgdir = objs.SrcAdmin.imgDir
+                self.setParentItem(self.superior)
+                self.widget_button_close = QToolButton()
+                self.widget_button_prev = QToolButton()
+                self.widget_button_next = QToolButton()
+                self.widget_button_recover = QToolButton()
+                self.widget_button_fullscreen = QToolButton()
+                self.widget_button_pageinfo = QToolButton()
+
+                self.widgetdata_li = [self.widgetdata(*data) for data in [
+                    (self.widget_button_close, self.imgdir.close, 0, 5, "关闭/close"),
+                    (self.widget_button_next, self.imgdir.next, 0, 1,
+                     "新建下一页/create next page to the view \n ctrl+click=改变当前页到下一页/Change the current page to the next"),
+                    (self.widget_button_prev, self.imgdir.prev, 0, 0,
+                     "新建上一页/create previous page to the view \n ctrl+click=改变当前页到上一页/Change the current page to the previous"),
+                    (self.widget_button_recover, self.imgdir.reset, 0, 2, "重设大小/reset size"),
+                    (self.widget_button_fullscreen, self.imgdir.expand, 0, 3, "全屏/fullscreen"),
+                    (self.widget_button_pageinfo, None, 0, 4, "")
+                ]]
+                g = QGraphicsGridLayout(self)
+                g.setSpacing(0.0)
+                g.setContentsMargins(0.0, 0.0, 0.0, 0.0)
+                self.widget_proxy_dict: "dict[QToolButton,QGraphicsProxyWidget]" = {}
+                for data in self.widgetdata_li:
+                    if data.imgdir:
+                        data.widget.setIcon(QIcon(data.imgdir))
+                    if data.tooltip != "":
+                        data.widget.setToolTip(data.tooltip)
+                    else:
+                        data.widget.setStyleSheet(f"height:{self.widget_button_close.height() - 6}px")
+                        self.update_from_pageinfo(self, needCheck=False)
+
+                    self.widget_proxy_dict[data.widget] = QGraphicsProxyWidget(self)
+                    self.widget_proxy_dict[data.widget].setContentsMargins(0.0, 0.0, 0.0, 0.0)
+                    self.widget_proxy_dict[data.widget].setWidget(data.widget)
+                    g.addItem(self.widget_proxy_dict[data.widget], data.x, data.y)
+                self.setLayout(g)
+
+            def update_from_pageinfo(self, caller, needCheck=True):
+                if needCheck:
+                    funcs.caller_check(Clipper.PageItem.changepage, caller, Clipper.PageItem)
+                pdfname = funcs.str_shorten(os.path.basename(self.superior.pageinfo.pdf_path[:-4]))
+                pdfpage = self.superior.pageinfo.pagenum
+                DB = objs.SrcAdmin.DB.go(objs.SrcAdmin.DB.table_pdfinfo)
+                pdfuuid = funcs.uuid_hash_make(self.superior.pageinfo.pdf_path)
+                if DB.exists(uuid=pdfuuid):
+                    offset = DB.select(uuid=pdfuuid).return_all().zip_up()[0]["offset"]
+                else:
+                    offset = 0
+                bookpage = pdfpage + 1 - offset
+                self.widget_button_pageinfo.setText(f"{pdfname} pdfpage={pdfpage},bookpage={bookpage}")
+                self.widget_button_pageinfo.setToolTip(self.superior.pageinfo.pdf_path)
+
+            def boundingRect(self) -> QtCore.QRectF:
+                x, y = self.x(), self.y()
+                w = 0
+                for k, v in self.widget_proxy_dict.items():
+                    w += v.boundingRect().width()
+                h = self.widget_proxy_dict[self.widget_button_pageinfo].boundingRect().height()
+                return QRectF(x, y, w, h)
+
+            @dataclass
+            class widgetdata:
+                widget: "QToolButton"
+                imgdir: "str"
+                x: "int"
+                y: "int"
+                tooltip: "str"
+
             pass
+
 
         pass
 
@@ -387,87 +989,21 @@ class Clipper(QDialog):
         pass
 
 
-class FrameLoadWorker(QThread):
-    """专供使用"""
-    on_frame_load_begin = pyqtSignal(object)  # {"frame_id","frame_list"}
-    on_stop_load = pyqtSignal(object)  #
-    on_1_page_load = pyqtSignal(object)  # {"frame_id","percent"}
-    on_1_page_loaded = pyqtSignal(object)
-    on_all_page_loaded = pyqtSignal()  #
-    frame_id_default = None
+class ScenePageLoader(QThread):
+    on_1_page_load = pyqtSignal(object)
 
-    def __init__(self, E: "Entity" = None):
+    def __init__(self, datali: "list[objs.PageInfo]"):
         super().__init__()
-        self.E = E
-        self.ws = self.E.pagepicker.browser.workerstate
-        self.w = self.E.pagepicker.browser.worker
-        self.b = self.E.pagepicker.browser
-        self.p = self.E.pagepicker
-        self.all_event = objs.AllEventAdmin({
-            self.on_frame_load_begin: self.on_frame_load_begin_handle,
-            self.on_stop_load: self.on_stop_load_handle,
-            self.on_all_page_loaded: self.on_all_page_loaded_handle,
-            self.on_1_page_loaded: self.on_1_page_loaded_handle,
-        }).bind()
+        self.datali = datali
 
-    def on_1_page_loaded_handle(self, _):
-        self.ws.bussy = False
-        # print("1 page loaded self.bussy = False")
+    def run(self) -> None:
+        total = len(self.datali)
+        count = 0
+        for data in self.datali:
+            count += 1
+            pixdir = funcs.pixmap_page_load(data.pdf_path, data.pagenum, data.ratio)
+            self.on_1_page_load.emit(pageloaddata(pixdir, data, int(count / total * 100)))
+            time.sleep(0.1)
 
-    def on_all_page_loaded_handle(self):
-        self.ws.killself = True
 
-    def on_stop_load_handle(self, _):
-        self.ws.do = False
-        # self.frame_id = self.frame_id_default
-
-    def on_frame_load_begin_handle(self, frame_id):
-        self.ws.do = True
-        self.ws.frame_id = frame_id
-
-    def init_data(self, E: "Entity" = None, frame_list=None, doc=None, unit_size=None, col_per_row=None,
-                  row_per_frame=None):
-        self.E = E
-        self.ws.bussy = False
-
-    def run(self):
-        while 1:
-            if self.ws.killself:
-                break
-            # 从原有变量中提取出来, 因为很有可能在运行中变化.
-            # print(self.bussy)
-            print(
-                f"self.do={self.ws.do},not bussy={not self.ws.bussy},self.doc={self.p.curr_doc},frame_id={self.ws.frame_id},")
-            if self.ws.do and not self.ws.bussy and self.p.curr_doc is not None:
-                print("begin")
-
-                doc = self.p.curr_doc
-                frame_id = self.ws.frame_id
-                frame = self.b.frame_list[frame_id]
-                unit_size = self.b.unit_size
-                col_per_row = self.b.col_per_row
-                row_per_frame = self.b.row_per_frame
-
-                # print(f"frame.effective_len={frame.effective_len()},frame.blocks_full()={frame.blocks_full()}")
-                if not frame.blocks_full():
-                    self.ws.bussy = True
-                    # self.on_1_page_load.emit({1:2})
-                    self.browser_pageinfo_make(doc, frame, frame_id, col_per_row, row_per_frame, unit_size)
-            # time.sleep(self.sleepgap())
-            time.sleep(1)
-
-    def browser_pageinfo_make(self, doc, frame, frame_id, col_per_row, row_per_frame, unit_size):
-        # printer.debug("frame.blocks_full()=False")
-        total = len(frame)
-        frame_item_idx = frame.effective_len()  # 直接就下一个
-        # row_per_frame = int(view_size.height() / unit_size)
-        pagenum = frame_id * row_per_frame * col_per_row + frame_item_idx
-        d = {"frame_idx": frame_id, "frame_item_idx": frame_item_idx,
-             "pagenum": pagenum}
-        X = (frame_item_idx % col_per_row) * unit_size
-        Y = (frame_id * row_per_frame + int(frame_item_idx / col_per_row)) * unit_size
-        d["posx"] = X
-        d["posy"] = Y
-        d["percent"] = (frame_item_idx + 1) / total
-        d["pixmapdir"] = funcs.pixmap_page_load(doc, pagenum)
-        self.on_1_page_load.emit(d)
+pageloaddata = namedtuple("pageloaddata", "pixdir pageinfo progress")

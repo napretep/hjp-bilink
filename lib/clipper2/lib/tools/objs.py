@@ -24,6 +24,13 @@ class CustomSignals(QObject):
 
     on_pagepicker_browser_loadframe = pyqtSignal(object)  # PagePickerBrowserLoadFrameEvent
 
+    on_pageItem_addToScene = pyqtSignal(object)  # PagePickerEvent
+
+    on_pageitem_close = pyqtSignal(object)  # PageItemCloseEvent
+
+    on_pageItem_resize_event = pyqtSignal(object)  # PageItemResizeEvent
+
+    # -----------------------------------------下面的是旧的未经改造的-----------------------------------------------------
     on_anki_card_create = pyqtSignal(object)  # AnkiCardCreateEvent
     on_anki_card_created = pyqtSignal(object)  # AnkiCardCreatedEvent
     on_anki_field_insert = pyqtSignal(object)  # AnkiFieldInsertEvent
@@ -63,9 +70,9 @@ class CustomSignals(QObject):
     on_pageItem_mouse_released = pyqtSignal(object)  # PageItemMouseReleasedEvent
     on_pageItem_clicked = pyqtSignal(object)  # PageItemClickEvent
     on_pageItem_clipbox_added = pyqtSignal(object)
-    on_pageItem_resize_event = pyqtSignal(object)  # PageItemResizeEvent
+
     on_pageItem_changePage = pyqtSignal(object)  # PageItemChangeEvent
-    on_pageItem_addToScene = pyqtSignal(object)  # PagePickerEvent
+
     on_pageItem_removeFromScene = pyqtSignal(object)
     on_pageItem_rubberBandRect_send = pyqtSignal(object)  # PageItemRubberBandRectSendEvent
     on_pageItem_needCenterOn = pyqtSignal(object)  # PageItemNeedCenterOnEvent
@@ -144,6 +151,7 @@ class ConfigDict:
             self.bottombar_page_num = data["pagepicker.bottombar_page_num"]["value"]
             self.bottombar_page_ratio = data["pagepicker.bottombar_page_ratio"]["value"]
             self.browser_layout_col_per_row = data["pagepicker.browser_layout_col_per_row"]["value"]
+            self.changepage_ratio_choose = data["pagepicker.changepage_ratio_choose"]["value"]
 
     class MainView:
         def __init__(self, data):
@@ -189,11 +197,44 @@ class SrcAdmin:
 
 
 class JSONschema:
-    """JSON的数据规范"""
-    type = JSONschema_.DataType()
-    empty = JSONschema_.Empty()
-    viewlayout_mode = JSONschema_.ViewLayout()
-    needratiofix_mode = JSONschema_.NeedRatioFix()
+    """
+    JSON的数据规范
+    访问json的一个数据的constrain,先确定,type和是否为空,
+    然后根据type,选择range的读取方式,
+    1 不限定步伐范围形式, -->直接就可以做,范围显示为左右两个值的限定
+    2 限定步伐范围形式 -->也直接可以做,因为是数字,范围显示为一个数组
+    3 特殊意义数字迭代形式 -->需要结合特殊意义来看
+    """
+
+    class DataType:
+        int = 0
+        float = 1
+        iterobj = 2  # 特殊意义的数字
+        iternum = 3  # 寻常的数字
+        string = 4
+
+    class Empty:
+        notAllow = 0
+        allow = 1
+
+    # 下面这些就是特殊意义的数字
+    class ViewLayout:
+        Horizontal = 0
+        Vertical = 1
+        Freemode = 2
+
+    class NeedRatioFix:
+        no = 0
+        yes = 1
+
+    class ChangePageRatioChoose:
+        old, new = 0, 1
+
+    type = DataType()
+    empty = Empty()
+    changepage_ratio_choose = ChangePageRatioChoose()
+    viewlayout_mode = ViewLayout()
+    needratiofix_mode = NeedRatioFix()
 
 
 class GridHDescUnit(QWidget):
@@ -455,6 +496,12 @@ class PageInfo:
     pdf_path: "str"
     pagenum: "int"
     ratio: "float"
+
+
+@dataclasses.dataclass
+class Position:
+    x: "float"
+    y: "float"
 
 
 CONFIG = ConfigDict()
