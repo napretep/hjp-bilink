@@ -20,11 +20,12 @@ clipper.changepage
     rightsidebar.changepage
 """
 import sys
+from copy import deepcopy
 from dataclasses import dataclass, field
 from collections import OrderedDict, Set
 from typing import Any, Union
 
-from PyQt5.QtCore import pyqtSignal, QObject, QThread, QPointF, QPoint
+from PyQt5.QtCore import pyqtSignal, QObject, QThread, QPointF, QPoint, QRectF
 from PyQt5.QtGui import QStandardItemModel
 from .tools import objs, Worker, funcs
 from .fitz import fitz
@@ -34,18 +35,58 @@ class Entity:
     """所有变量都不可访问,只能通过方法访问"""
 
     def __init__(self):
-        self.signals = objs.CustomSignals().start()
+        from .Clipper import Clipper
 
-        from .Clipper import Clipper, ScenePageLoader
+        self.signals = objs.CustomSignals().start()
+        self.clipbox = self.ClipBox()
         self.rightsidebar: "Entity.RightSideBar" = self.RightSideBar()
         self.pdfview: "Entity.PDFView" = self.PDFView()
-        self.clipbox_container: "OrderedDict[str,Clipper]" = OrderedDict()
-
         self.pagepicker: "Entity.PagePicker" = self.PagePicker()
         self.config = objs.ConfigDict()
         self.schema = objs.JSONschema
+        self.state: "Entity.State" = self.State()
 
+        # 一些零碎的状态属性
+        self.last_rubberBand_rect: "QRectF" = None
+        self.curr_selected_pageitem: "Clipper.PageItem" = None
+        self.clipbox_state_showed = False
+        self.clipbox_insert_card_worker = None
         pass
+
+    def config_reload(self):
+        self.config.load_data()
+
+    @dataclass
+    class State:
+        def __init__(self):
+            from .LittleWidgets import ClipperStateBoard
+            self.board: "ClipperStateBoard" = None
+            self.progresser: "objs.UniversalProgresser" = None
+
+    @dataclass
+    class ClipBox:
+        def __init__(self):
+            from .Clipper import Clipper
+            self._container: "OrderedDict[str,Clipper.ClipBox]" = OrderedDict()
+
+        @property
+        def container(self):
+            return self._container.copy()
+
+        def add_keyValue(self, caller, key, value):
+            from .Clipper import Clipper
+            funcs.caller_check(Clipper.addClipbox, caller, Clipper)
+            self._container[key] = value
+
+        def del_key(self, caller, key):
+            from .Clipper import Clipper
+            funcs.caller_check(Clipper.delClipbox, caller, Clipper)
+            del self._container[key]
+
+        def clear_data(self, caller):
+            from .Clipper import Clipper
+            funcs.caller_check(Clipper.clearView, caller, Clipper)
+            self._container = OrderedDict()
 
     @dataclass
     class PagePicker:
@@ -109,8 +150,47 @@ class Entity:
     class RightSideBar:
         @dataclass
         class CardList:
-            model: "QStandardItemModel" = None
+            def __init__(self):
+
+                self.model: "QStandardItemModel" = None
+                self._dict: "dict[str,Any]" = {}
+                self._card_id_dict: "dict[str,Any]" = {}
+                self.curr_selected_uuid = None
+
+            @property
+            def dict(self):
+                return (self._dict).copy()
+
+            @property
+            def card_id_dict(self):
+                return self._card_id_dict
+
             pass
+
+            def clear_data(self, caller):
+                from .Clipper import Clipper
+                funcs.caller_check(Clipper.clearView, caller, Clipper)
+                self._dict = {}
+                self._card_id_dict = {}
+
+            def dict_add_keyValue(self, caller, key, value, card_id=None):
+                from .Clipper import Clipper
+                funcs.caller_check(Clipper.addCard, caller, Clipper)
+                self._dict[key] = value
+                if card_id is not None:
+                    if card_id in self._card_id_dict:
+                        raise ValueError(f"card_id={card_id},已经存在!")
+                    self._card_id_dict[card_id] = value
+
+            def dict_del_key(self, caller, key, card_id=None):
+                from .Clipper import Clipper
+                funcs.caller_check(Clipper.delCard, caller, Clipper)
+                del self._dict[key]
+                if card_id is not None and card_id != "/":
+                    if card_id in self._card_id_dict:
+                        del self._card_id_dict[card_id]
+                    else:
+                        raise ValueError(f"card_id={card_id},不存在!")
 
         @dataclass
         class PageList:
@@ -130,8 +210,8 @@ class Entity:
         class PageItemContainer:
             def __init__(self):
                 from .Clipper import Clipper
-                def append_data(caller: "Clipper.PDFView", pageitem: "Clipper.PageItem"):
-                    funcs.caller_check(Clipper.PDFView.addpage, caller, Clipper.PDFView)
+                def append_data(caller: "Clipper", pageitem: "Clipper.PageItem"):
+                    funcs.caller_check(Clipper.addpage, caller, Clipper)
 
                     pdfuuid = funcs.uuid_hash_make(pageitem.pageinfo.pdf_path)
                     pagenum = pageitem.pageinfo.pagenum
@@ -141,38 +221,42 @@ class Entity:
                         self._pageBased_data[pdfuuid][pagenum] = []
                     self._pageBased_data[pdfuuid][pagenum].append(pageitem)
                     self._uuidBased_data[pageitem.uuid] = pageitem
-                    # TODO cardBased_data以后再做
 
-                def remove_data(caller: "Clipper.PDFView", pageitem: "Clipper.PageItem"):
-                    funcs.caller_check(Clipper.PDFView.delpage, caller, Clipper.PDFView)
+                def remove_data(caller: "Clipper", pageitem: "Clipper.PageItem"):
+                    funcs.caller_check(Clipper.delpage, caller, Clipper)
                     del self._uuidBased_data[pageitem.uuid]
                     pdfuuid = funcs.uuid_hash_make(pageitem.pageinfo.pdf_path)
                     pagenum = pageitem.pageinfo.pagenum
                     self._pageBased_data[pdfuuid][pagenum].remove(pageitem)
 
-                    # TODO cardBased_data以后再做
+                def clear_data(caller: "Clipper"):
+                    funcs.caller_check(Clipper.clearView, caller, Clipper)
+                    self._pageBased_data = OrderedDict()
+                    self._uuidBased_data = OrderedDict()
 
                 self._uuidBased_data: "OrderedDict[str,Clipper.PageItem]" = OrderedDict()
                 self._pageBased_data = OrderedDict()
-                self._cardBased_data = OrderedDict()
                 self.append_data = append_data
                 self.remove_data = remove_data
+                self.clear_data = clear_data
 
-            # TODO cardbased_data的删除工作
             @property
             def uuidBased_data(self):
                 return self._uuidBased_data
 
             @property
             def pageBased_data(self):
+                """
+
+                Returns: 虽然是pageBased,但key还是pageuuid
+
+                """
                 return self._pageBased_data
 
             @property
             def cardBased_data(self):
                 return self._cardBased_data
 
-        class ClipBoxContainer:
-            pass
 
         layoutmode: "_ViewLayoutMode" = _ViewLayoutMode()
 
@@ -181,7 +265,6 @@ class Entity:
             self.scenepageload_worker: "ScenePageLoader" = None
             self.progresser: "objs.UniversalProgresser" = None
             self.pageitem_container: "Entity.PDFView.PageItemContainer" = self.PageItemContainer()
-            self.clipbox_container: "Entity.PDFView.ClipBoxContainer" = self.ClipBoxContainer()
 
         pass
 

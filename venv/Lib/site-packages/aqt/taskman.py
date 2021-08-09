@@ -3,6 +3,8 @@
 
 """
 Helper for running tasks on background threads.
+
+See QueryOp() and CollectionOp() for higher-level routines.
 """
 
 from __future__ import annotations
@@ -43,12 +45,22 @@ class TaskManager(QObject):
         on_done: Optional[Callable[[Future], None]] = None,
         args: Optional[Dict[str, Any]] = None,
     ) -> Future:
-        """Run task on a background thread.
+        """Use QueryOp()/CollectionOp() in new code.
+
+        Run task on a background thread.
 
         If on_done is provided, it will be called on the main thread with
         the completed future.
 
         Args if provided will be passed on as keyword arguments to the task callable."""
+        # Before we launch a background task, ensure any pending on_done closure are run on
+        # main. Qt's signal/slot system will have posted a notification, but it may
+        # not have been processed yet. The on_done() closures may make small queries
+        # to the database that we want to run first - if we delay them until after the
+        # background task starts, and it takes out a long-running lock on the database,
+        # the UI thread will hang until the end of the op.
+        self._on_closures_pending()
+
         if args is None:
             args = {}
 
@@ -69,6 +81,7 @@ class TaskManager(QObject):
         label: Optional[str] = None,
         immediate: bool = False,
     ) -> None:
+        "Use QueryOp()/CollectionOp() in new code."
         self.mw.progress.start(parent=parent, label=label, immediate=immediate)
 
         def wrapped_done(fut: Future) -> None:

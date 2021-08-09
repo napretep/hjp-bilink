@@ -3,11 +3,109 @@ from dataclasses import dataclass
 
 from typing import Any, Callable
 
+from PyQt5.QtCore import QRectF
+from PyQt5.QtGui import QStandardItem
+
 
 @dataclass
 class BaseEvent:  # 基础事件
     sender: "Any" = None
     type: "int" = None
+
+
+@dataclass
+class AnkiBrowserActivateEvent(BaseEvent):
+    class _type:
+        ClipperTaskFinished = 0
+
+    defaultType: "_type" = _type()
+    timestamp: "str" = None
+
+
+@dataclass
+class AnkiFileCreateEvent(BaseEvent):
+    class _type:
+        ClipperCreatePNG = 0
+
+    worker: "Any" = None
+    clipuuid: "str" = None
+    defaultType: "_type" = _type()
+
+
+@dataclass
+class AnkiFieldInsertEvent(BaseEvent):
+    class _type:
+        clipboxNeed = 0
+
+    worker: "Any" = None
+    clipuuid: "str" = None
+    timestamp: "str" = None
+    defaultType: "_type" = _type()
+
+
+@dataclass
+class AnkiCardCreateEvent(BaseEvent):
+    class _type:
+        clipboxNeed = 0
+
+    worker: "Any" = None
+    carditem: "QStandardItem" = None
+    model_id: "int" = None
+    deck_id: "int" = None
+    defaultType: "_type" = _type()
+
+
+@dataclass
+class ClipperHotkeyPressEvent(BaseEvent):
+    class _type:
+        setQ = 0
+        setA = 1
+        nextcard = 2
+        prevcard = 3
+        runmacro = 4
+        pausemacro = 5
+
+    defaultType: "_type" = _type
+
+
+class RightSideBarButtonGroupEvent(BaseEvent):
+    class _type:
+        resetViewRatio = 0
+        reLayout = 1
+        QAswitch = 2
+        config = 3
+        correct = 4
+        clearView = 5
+        hideRighsidebar = 6
+
+    defaultType = _type()
+
+
+@dataclass
+class ClipboxCardChange(BaseEvent):
+    class _type:
+        delete = 0
+        append = 1
+
+    defaultType = _type()
+    clipboxuuid: "str" = None
+    carduuid: "str" = None
+
+
+@dataclass
+class ClipboxCreateEvent(BaseEvent):
+    class _Type:
+        rubbingType = 0
+        rubbedType = 1
+        NewPageCreateType = 2
+
+    rubberBandRect: "QRectF" = None
+    defaultType: "_Type" = _Type()
+    type: "int" = None
+    # def __init__(self, sender=None, eventType=None, rubberBandRect=None, clipuuid=None):
+    #     super().__init__(sender, eventType)
+    #     self.clipuuid = clipuuid
+
 
 @dataclass
 class PageItemResizeEvent(BaseEvent):
@@ -19,8 +117,8 @@ class PageItemResizeEvent(BaseEvent):
 
     class _centerType:
         mousecenter = 0
-        viewcenter = 1
-        itemcenter = 2
+        item_center = 1
+        view_center = 2
         nocenter = 3
 
     centertype = _centerType()
@@ -179,14 +277,7 @@ class ConfigAnkiDataLoadEndEvent(AllEvent):
         self.ankidata = ankidata
 
 
-class ClipboxCreateEvent(AllEvent):
-    rubbingType = 0
-    rubbedType = 1
-    NewPageCreateType = 2
 
-    def __init__(self, sender=None, eventType=None, rubberBandRect=None, clipuuid=None):
-        super().__init__(sender, eventType)
-        self.clipuuid = clipuuid
 
 
 class PageItemRubberBandRectSendEvent(AllEvent):
@@ -205,40 +296,11 @@ class PagePickerBrowserFrameChangedEvent(AllEvent):
         self.frame_idx = frame_idx
 
 
-class AnkiFileCreateEvent(AllEvent):
-    ClipperCreatePNGType = 0
-    ClipperCreatePNGDoneType = 1
-
-    def __init__(self, sender=None, eventType=None, data=None, clipboxlist=None):
-        super(AnkiFileCreateEvent, self).__init__(sender, eventType)
-        self.data = data
 
 
-class AnkiBrowserActivateEvent(AllEvent):
-    ClipperTaskFinishedType = 0
-
-    def __init__(self, sender=None, eventType=None, data=None):
-        super(AnkiBrowserActivateEvent, self).__init__(sender, eventType)
-        self.data = data
 
 
-class AnkiFieldInsertEvent(AllEvent):
-    ClipBoxBeginType = 0
-    ClipBoxEndType = 1
 
-    def __init__(self, sender=None, eventType=None, data=None):
-        super().__init__(sender, eventType)
-        self.data = data
-
-
-class AnkiCardCreateEvent(AllEvent):
-    ClipBoxType = 0
-
-    def __init__(self, sender=None, eventType=None, data=None, model_id=None, deck_id=None):
-        super().__init__(sender, eventType)
-        self.data = data
-        self.model_id = model_id
-        self.deck_id = deck_id
 
 
 class AnkiCardCreatedEvent(AllEvent):
@@ -446,18 +508,6 @@ class CardListSelectItemEvent(AllEvent):
         self.rowNum = rowNum
 
 
-class RightSideBarButtonGroupEvent:
-    resetViewRatioType = 0
-    reLayoutType = 1
-    QAswitchType = 2
-    configType = 3
-    correctType = 4
-    clearViewType = 5
-    hideRighsidebarType = 6
-
-    def __init__(self, eventType=None):
-        self.Type = eventType
-        pass
 
 
 class PageItemNeedCenterOnEvent:

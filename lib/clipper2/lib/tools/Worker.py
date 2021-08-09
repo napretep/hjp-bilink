@@ -16,7 +16,7 @@ class FrameLoadWorker(QThread):
     on_all_page_loaded = pyqtSignal()  #
     frame_id_default = None
 
-    def __init__(self, E: "Entity" = None):
+    def __init__(self, E=None):
         super().__init__()
         self.E = E
         self.ws = self.E.pagepicker.browser.workerstate
@@ -45,7 +45,7 @@ class FrameLoadWorker(QThread):
         self.ws.do = True
         self.ws.frame_id = frame_id
 
-    def init_data(self, E: "Entity" = None, frame_list=None, doc=None, unit_size=None, col_per_row=None,
+    def init_data(self, E=None, frame_list=None, doc=None, unit_size=None, col_per_row=None,
                   row_per_frame=None):
         self.E = E
         self.ws.bussy = False

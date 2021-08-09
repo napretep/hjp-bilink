@@ -5,6 +5,7 @@ import re
 import sqlite3, uuid
 import queue
 from collections import namedtuple
+from typing import Union
 
 from PyQt5.QtGui import QIcon
 from aqt.utils import showInfo, aqt_data_folder
@@ -65,7 +66,11 @@ class Get:
             return os.path.join(cls.dir_root, cls.dir_user_files, "pdf_info.json")
 
     def img_dir(cls, path):
-        return (os.path.join(cls.dir_clipper, cls.dir_resource, cls.dir_img, path))
+        result = os.path.join(cls.dir_clipper, cls.dir_resource, cls.dir_img, path)
+        if os.path.exists(result):
+            return result
+        else:
+            raise ValueError(f"path={path} don't exist")
 
     def DB_dir(self, DBname=""):
         if DBname == "":
@@ -135,6 +140,7 @@ class IMGDir:
         self.right_direction = Get._().img_dir("icon_direction_right.png")
         self.top_direction = Get._().img_dir("icon_direction_top.png")
         self.bottom_direction = Get._().img_dir("icon_direction_bottom.png")
+        self.ID_card = Get._().img_dir("icon_ID_card.png")
 
 
 class DB(object):
@@ -149,6 +155,8 @@ class DB(object):
     # ]
     table_clipbox = 0
     table_pdfinfo = 1
+    table_linkinfo = 2
+
     sqlstr_TABLE_CREATE = """create table if not exists {tablename} ({fields})"""
 
     sqlstr_TABLE_PRAGMA = """PRAGMA table_info({tablename})"""
@@ -159,6 +167,11 @@ class DB(object):
     sqlstr_RECORD_UPDATE = """update {tablename} set {values} where {where}"""
     sqlstr_RECORD_DELETE = """delete from {tablename} where {where} """
     sqlstr_RECORD_INSERT = """insert into {tablename} ({cols}) values ({vals}) """
+
+    @dataclass
+    class linkinfo_fields:
+        tablename: "str" = "CARD_LINK_INFO"
+        data: "str" = "text not null"
 
     @dataclass
     class pdfinfo_fields:
@@ -194,9 +207,13 @@ class DB(object):
             d.pop("tablename")
             return d
 
+    linkinfo_constrain = {
+        "string": ["card_id", "data"]
+    }
+
     clipbox_constrain = {
-        "number": ["textQA", "QA", "x", "y", "w", "h", "ratio", "pagenum"],
-        "string": ["uuid", "card_id", "text_", "pdfuuid"]
+        "number": ["commentQA", "QA", "x", "y", "w", "h", "ratio", "pagenum"],
+        "string": ["uuid", "card_id", "comment", "pdfuuid"]
     }
 
     pdfinfo_constrain = {
@@ -207,6 +224,7 @@ class DB(object):
     table_swtich = {
         table_clipbox: (clipbox_fields(), clipbox_constrain),
         table_pdfinfo: (pdfinfo_fields(), pdfinfo_constrain),
+        table_linkinfo: (linkinfo_fields(), linkinfo_constrain)
     }
 
     def __init__(self):
@@ -303,6 +321,7 @@ class DB(object):
 
     # 存在性检查
     def exists_check(self, uuid):
+
         s = self.sqlstr_RECORD_EXIST.format(tablename=self.tab_name, key="uuid", value=f""" "{uuid}" """)
         self.excute_queue.append(s)
         return self
@@ -327,7 +346,7 @@ class DB(object):
             where = f""" {colname} like "{vals}" """
         else:
             b = values["BOOL"] if "BOOL" in values else " AND "
-            all_column_names = self.table_swtich[self.curr_tabtype][0].get_dict()
+            all_column_names = self.table_swtich[self.curr_tabtype][0].__dict__
             for k, v in values.items():
                 if v is not None and k in all_column_names:
                     where += f""" {k}={self.valCheck(k, v)} {b}"""
@@ -337,6 +356,7 @@ class DB(object):
         return where
 
     def value_maker(self, **values):
+        """尽管输入 key=value的形式即可"""
         value = ""
         all_column_names = self.table_swtich[self.curr_tabtype][0].get_dict()
         for k, v in values.items():
@@ -348,14 +368,14 @@ class DB(object):
 
     # 查
     def select(self, uuid: "str" = None, card_id: "str" = None, pagenum: "int" = None, pdfuuid: "str" = None,
-               text_: "str" = None, where=None, limit=None, like=None, **kwargs):
+               comment: "str" = None, where=None, limit=None, like=None, **kwargs):
         """# 简单的查询, 支持等于,包含,两种搜索条件,
         如果你想搜所有的记录,那么就输入 true=True
         """
 
         if like is None:
             if where is None:
-                where = self.where_maker(uuid=uuid, card_id=card_id, pagenum=pagenum, pdfuuid=pdfuuid, text_=text_,
+                where = self.where_maker(uuid=uuid, card_id=card_id, pagenum=pagenum, pdfuuid=pdfuuid, comment=comment,
                                          **kwargs)
             s = self.sqlstr_RECORD_SELECT.format(tablename=self.tab_name, where=where)
         else:
@@ -429,27 +449,16 @@ class DBResults(object):
         self.all_column_names = all_column_names
         self.curr_tabletype = curr_tabletype
 
-    def zip_up(self, version=1, use_dataclass=True):
-        from ..objs import ClipboxRecord, PDFinfoRecord
-        switch = {
-            DB.table_clipbox: ClipboxRecord,
-            DB.table_pdfinfo: PDFinfoRecord
-        }
-        factory = switch[self.curr_tabletype]
-        new_results = []
+    def zip_up(self, version=1):
+        """zip只包装成字典, 如果要用dataclass ,请返回后自己包装"""
+        new_results = self.DBdataLi()
 
         for result in self.results:
-            record = {}
+            record = self.DBdata()
             step1 = list(zip(self.all_column_names.keys(), result))
             for col in (step1):
                 record[col[0]] = col[1]
             new_results.append(record)
-        # PDFinfo = PDFJSON().load()
-        # if self.curr_tabletype==DB.table_clipbox:
-        #     db=DB().go(DB.table_pdfinfo)
-        #     for result in new_results:
-        #         pdf_path=db.select(uuid=result["pdfuuid"]).return_all().zip_up()[0]["pdf_path"]
-        #         result["pdfname"] =pdf_path
 
         return new_results
 
@@ -464,6 +473,32 @@ class DBResults(object):
 
     def __iter__(self):
         return self.results.__iter__()
+
+    class DBdata(dict):
+
+        def to_clipbox_data(self):
+            from .. import objs
+            return objs.ClipboxRecord(**self)
+
+        def to_pdfinfo_data(self):
+            from .. import objs
+            return objs.PDFinfoRecord(**self)
+
+        def to_givenformat_data(self, format):
+            return format(self)
+
+    class DBdataLi(list):
+        """给数组附加一些功能"""
+
+        def to_pdfinfo_data(self):
+            from .. import objs
+            li = [objs.PDFinfoRecord(**i) for i in self]
+            return li
+
+        def to_clipbox_data(self):
+            from .. import objs
+            li = [objs.ClipboxRecord(**i) for i in self]
+            return li
 
 
 class PDFJSON(object):

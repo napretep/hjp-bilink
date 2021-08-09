@@ -1,3 +1,6 @@
+# Copyright: Ankitects Pty Ltd and contributors
+# License: GNU AGPL, version 3 or later; http://www.gnu.org/licenses/agpl.html
+
 """
 Basic text to speech support.
 
@@ -41,7 +44,7 @@ from anki.sound import AVTag, TTSTag
 from anki.utils import checksum, isWin, tmpdir
 from aqt import gui_hooks
 from aqt.sound import OnDoneCallback, SimpleProcessPlayer
-from aqt.utils import tooltip
+from aqt.utils import tooltip, tr
 
 
 @dataclass
@@ -569,10 +572,7 @@ if isWin:
             try:
                 ret.result()
             except RuntimeError:
-                # fixme: i18n if this turns out to happen frequently
-                tooltip(
-                    "TTS failed to play. Please check available languages in system settings."
-                )
+                tooltip(tr.errors_windows_tts_runtime_error())
                 return
 
             # inject file into the top of the audio queue

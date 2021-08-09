@@ -3,11 +3,95 @@ import sys
 from typing import Union, Callable
 import typing
 from ..fitz import fitz
-from PyQt5.QtCore import QItemSelection, QThread, pyqtSignal, QSize
+from PyQt5.QtCore import QItemSelection, QThread, pyqtSignal, QSize, QRectF
 from PyQt5.QtGui import QStandardItemModel, QImage, QPixmap
 import uuid
 import logging
 import tempfile
+
+
+def card__pdf_page_clipbox_info__collect(card_id):
+    """
+    collect pdf-page-clipbox by given card_id
+
+    Returns:{pdfuuid:{pagenum:[clipuuid]}}
+
+    """
+    from . import objs
+    DB = objs.SrcAdmin.DB
+    DB.go(DB.table_clipbox)
+    result = DB.select(DB.LIKE("card_id", f"%{card_id}%")).return_all(
+        callback=None).zip_up().to_clipbox_data()
+    DB.end()
+    DB.go(DB.table_pdfinfo)
+    pdf_page_clip_dict: "dict[str,dict[int,list[str]]]" = {}
+    for clip in result:
+        # pdf_path = objs.SrcAdmin.PDF_JSON[clip["pdfuuid"]]["pdf_path"]
+        if clip.pdfuuid not in pdf_page_clip_dict:
+            pdf_page_clip_dict[clip.pdfuuid] = {}
+        if clip.pagenum not in pdf_page_clip_dict[clip.pdfuuid]:
+            pdf_page_clip_dict[clip.pdfuuid][clip.pagenum] = []
+        pdf_page_clip_dict[clip.pdfuuid][clip.pagenum].append(clip.uuid)
+        pass
+    # print(pdf_page_clip_dict)
+    return pdf_page_clip_dict
+
+    pass
+
+
+def pdf_from_card_id_li(card_id_li):
+    """
+
+    Args:
+        card_id_li: ["card_id","card_id",...]
+
+    Returns:{pdfname:{pagenum:ratio}}
+
+    """
+    d: "dict[str,dict[int,int]]" = {}  # {pdfname:{pagenum:ratio}}
+    for card_id in card_id_li:
+        clipbox_li = pdf_from_card_id(card_id)
+        for clipbox in clipbox_li:
+            if clipbox.pdfuuid not in d:
+                d[clipbox.pdfuuid] = {}
+            if clipbox.pagenum not in d[clipbox.pdfuuid]:
+                d[clipbox.pdfuuid][clipbox.pagenum] = clipbox.ratio
+    return d
+
+
+def pdf_from_card_id(card_id):
+    from . import objs
+    DB = objs.SrcAdmin.DB
+    pdfinfo = DB.go(DB.table_clipbox).select(DB.LIKE("card_id", f"%{card_id}%")).return_all().zip_up().to_clipbox_data()
+    # pdfinfo = DB.go(DB.table_clipbox).select(where=DB.where_maker(LIKE=True, colname="card_id", vals=f"%{card_id}%")).return_all().zip_up().to_clipbox_data()
+    DB.end()
+    return pdfinfo
+
+
+def recover_rect_from_ratio(clip, boundingRect: "QRectF"):
+    """
+
+    Args:
+        clip:  record类型
+        boundingRect:
+
+    Returns:
+
+    """
+    return QRectF(clip.x * boundingRect.width(),
+                  clip.y * boundingRect.height(),
+                  clip.w * boundingRect.width(),
+                  clip.h * boundingRect.height())
+
+
+def clip_and_pdf_info(clipuuid):
+    """一次性统一获取一个clipuuid对应的各种数据"""
+    from . import objs
+    DB = objs.SrcAdmin.DB
+    clipbox = DB.go(DB.table_clipbox).select(uuid=clipuuid).return_all().zip_up()[0].to_clipbox_data()
+    pdfinfo = DB.go(DB.table_pdfinfo).select(uuid=clipbox.pdfuuid).return_all().zip_up()[0].to_pdfinfo_data()
+
+    return clipbox, pdfinfo
 
 
 def caller_check(needcallerfunc: "Callable", caller, needclass):
@@ -21,6 +105,14 @@ def uuid_hash_make(s):
 
 
 def Qpixmap_from_fitzpixmap(pix):
+    """
+
+    Args:
+        pix: fitz.pixmap
+
+    Returns: QPixmap
+
+    """
     fmt = QImage.Format_RGBA8888 if pix.alpha else QImage.Format_RGB888
     qtimg = QImage(pix.samples, pix.width, pix.height, pix.stride, fmt)
     pixmap = QPixmap()
@@ -31,6 +123,7 @@ def Qpixmap_from_fitzpixmap(pix):
 def png_pdf_clip(pdfname: "str", pagenum: "int", rect1: "dict" = None, rect2: "dict" = None,
                  ratio=None) -> "fitz.Pixmap":
     """
+    根据 clipbox保存的数据从对应的pdf页面截图并返回fitz.pixmap
 
     Args:
         pdfname:
@@ -82,7 +175,8 @@ def pdf_page_unique(results):
 def clipbox_uuid_random_unique():
     from . import objs
     myid = str(uuid.uuid4())[0:8]
-    while objs.SrcAdmin.DB.go().exists_check(myid).return_all()[0][0] > 0:
+    DB = objs.SrcAdmin.DB
+    while DB.go(DB.table_clipbox).exists(DB.EQ(uuid=myid)):
         myid = str(uuid.uuid4())[0:8]
     return myid
 
@@ -234,7 +328,7 @@ def base64(num):
     return baseN(num, 64)
 
 
-def index_from_row(model: 'QStandardItemModel', row):
+def selection_create_from_row(model: 'QStandardItemModel', row):
     """从模型给定的两个item划定一个index区域,用来模拟select"""
     idx1 = model.indexFromItem(row[0])
     idx2 = model.indexFromItem(row[1])
@@ -300,7 +394,7 @@ def clipbox_delete(clipbox, cardlist, pageview):
     pass
 
 
-def uuidmake():
+def uuid_random_make():
     return str(uuid.uuid4())
 
 

@@ -21,11 +21,5 @@
   "anchorCSSFileName": "",
   "base_deck_name":"",
   "base_tag_name":"",
-  "DEFAULT_regexForDescContent": "((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=\")[\\w\\-\\.]+)",
-  "shortcut_browserTableSelected_link": "Alt+1",
-  "shortcut_browserTableSelected_unlink": "Alt+2",
-  "shortcut_browserTableSelected_insert": "Alt+3",
-  "shortcut_inputFile_clear": "Alt+4",
-  "shortcut_inputDialog_open": "Alt+`",
-  "shortcut_copylink":"Alt+q"
+  "DEFAULT_regexForDescContent": "((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=\")[\\w\\-\\.]+)"
 }

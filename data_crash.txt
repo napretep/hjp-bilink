@@ -1,0 +1,25 @@
+2021-07-31,09:59:48
+C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\objs.py
+__init__ 111
+{'card_id': 1627401415334, 'data': ' 耶稣他'}2021-07-31,10:05:10
+C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\objs.py
+__init__ 111
+{'card_id': 1627401415334, 'data': ' 耶稣他'}2021-07-31,10:05:33
+C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\objs.py
+__init__ 111
+{'card_id': 1627401415334, 'data': ' 耶稣他'}C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\objs.py
+2021-08-01 10:09:55 __init__ 115
+{'card_id': 1627401415334, 'data': ' 耶稣他'}C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\objs.py
+2021-08-01 10:09:57 __init__ 115
+{'card_id': 1627401415334, 'data': ' 耶稣他'}C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\objs.py
+2021-08-01 10:10:03 __init__ 115
+{'card_id': 1627401415334, 'data': ' 耶稣他'}
+C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\objs.py
+2021-08-01 10:46:45 __init__ 115
+{'card_id': 1627401415334, 'data': ' 耶稣他'}
+C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\objs.py
+2021-08-01 10:46:46 __init__ 115
+{'card_id': 1627401415334, 'data': ' 耶稣他'}
+C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\objs.py
+2021-08-01 16:02:19 __init__ 115
+{'card_id': 1627437000208, 'data': ' 耶稣他'}

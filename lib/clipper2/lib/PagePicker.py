@@ -165,7 +165,7 @@ class PagePicker(QDialog):
         path = self.toolsbar.unit_li[self.toolsbar.widget_button_open].label.toolTip()
         if os.path.exists(path):
             path = os.path.dirname(path)
-        elif os.path.exists(self.E.pagepicker.curr_pdf_path):
+        elif self.E.pagepicker.curr_pdf_path is not None and os.path.exists(self.E.pagepicker.curr_pdf_path):
             path = os.path.dirname(self.E.pagepicker.curr_pdf_path)
         else:
             path = self.E.config.pagepicker.bottombar_default_path
@@ -176,7 +176,6 @@ class PagePicker(QDialog):
         fileName_choose, filetype = QFileDialog.getOpenFileName(self, "选取文件", event.pdf_path, "(*.pdf)")
         if fileName_choose:  # 如果存在则进一步解析PDF的目录,缩略图,以及元信息显示
             e = events.PagePickerPDFParseEvent
-
             if os.path.exists(self.E.pagepicker.curr_pdf_path) and os.path.isfile(self.E.pagepicker.curr_pdf_path):
                 self.save_pdf_info()
             self.E.pagepicker.curr_pdf_path = fileName_choose.replace("\\", "/")
@@ -184,10 +183,10 @@ class PagePicker(QDialog):
             self.E.signals.on_pagepicker_PDFparse.emit(
                 e(type=e.defaultType.PDFRead, path=fileName_choose, pagenum=pagenum))
             pass
-        else:  # 如果不存在则保持空白
-            self.E.pagepicker.curr_pdf_path = None
-            self.toolsbar.unit_li[self.toolsbar.widget_button_open].setDescText("")
-            self.toolsbar.unit_li[self.toolsbar.widget_button_open].setDescTooltip("")
+        # else:  # 如果不存在则保持空白
+        # self.E.pagepicker.curr_pdf_path = None
+        # self.toolsbar.unit_li[self.toolsbar.widget_button_open].setDescText("")
+        # self.toolsbar.unit_li[self.toolsbar.widget_button_open].setDescTooltip("")
 
     def on_pagepicker_PDFparse_handle(self, event: "events.PagePickerPDFParseEvent"):
         assert (event.pagenum is not None and event.path is not None)
@@ -202,7 +201,7 @@ class PagePicker(QDialog):
         self.toolsbar.widget_lineEdit_pagenum.setText(str(event.pagenum))
         pdfuuid = funcs.uuid_hash_make(event.path)
         DB = objs.SrcAdmin.DB.go(objs.SrcAdmin.DB.table_pdfinfo)
-        if not DB.exists(pdfuuid):
+        if not DB.exists(DB.EQ(uuid=pdfuuid)):
             ratio = self.E.config.pagepicker.bottombar_page_ratio
             record = objs.PDFinfoRecord(uuid=pdfuuid, pdf_path=event.path, ratio=ratio, offset=0)
             DB.insert(**(asdict(record))).commit()
@@ -232,10 +231,12 @@ class PagePicker(QDialog):
         self.allevent.unbind()
         self.E.pagepicker = Entity.PagePicker()
 
+    def reject(self) -> None:
+        self.close()
+
     def if_no_pdf_path_open_filepicker(self):
         if self.E.pagepicker.curr_pdf_path:
             # 如果有当前路径的pdf,则加载之.
-
             pass
         elif self.E.pagepicker.frompageItem:
             e = events.PagePickerPDFParseEvent
@@ -246,7 +247,11 @@ class PagePicker(QDialog):
             self.E.signals.on_pagepicker_PDFparse.emit(
                 e(type=e.defaultType.PDFInitParse, path=pdf_path, pagenum=pagenum))
         else:
-            self.E.pagepicker.curr_pdf_path = self.E.config.pagepicker.bottombar_default_path.replace("\\", "/")
+            if os.path.exists(self.E.config.pagepicker.bottombar_default_path):
+                self.E.pagepicker.curr_pdf_path = self.E.config.pagepicker.bottombar_default_path.replace("\\", "/")
+            else:
+                self.E.pagepicker.curr_pdf_path = objs.SrcAdmin.get.user_files_dir().replace("\\", "/")
+
             e = events.PagePickerPDFOpenEvent
             self.E.signals.on_pagepicker_PDFopen.emit(e(pdf_path=self.E.pagepicker.curr_pdf_path))
 
@@ -258,8 +263,8 @@ class PagePicker(QDialog):
         print(f"当前pdfpath={self.E.pagepicker.curr_pdf_path}")
         DB = objs.SrcAdmin.DB
         DB.go(DB.table_pdfinfo)
-        if DB.exists(uuid):
-            DB.update(values=DB.value_maker(ratio=ratio, offset=offset), where=DB.where_maker(uuid=uuid)).commit(print)
+        if DB.exists(DB.EQ(uuid=uuid)):
+            DB.update(values=DB.VALUEEQ(ratio=ratio, offset=offset), where=DB.EQ(uuid=uuid)).commit(print)
 
         else:
             DB.insert(uuid=uuid, ratio=ratio, offset=offset, pdf_path=self.E.pagepicker.curr_pdf_path).commit(print)
@@ -510,7 +515,7 @@ class PagePicker(QDialog):
                 self.root = root
                 self.signals = self.root.E.signals
                 self.setScene(self.superior.scene)
-                self.setDragMode(QGraphicsView.RubberBandDrag)
+                self.setDragMode(QGraphicsView.NoDrag)
                 self.init_UI()
 
             def init_UI(self):
@@ -522,6 +527,8 @@ class PagePicker(QDialog):
                 if self.itemAt(event.pos()) is None:
                     e = events.PagePickerBrowserSelectEvent
                     self.signals.on_pagepicker_browser_select.emit(e(type=e.defaultType.multiCancel))
+                if event.buttons() == Qt.RightButton:
+                    self.setDragMode(QGraphicsView.RubberBandDrag)
                 super().mousePressEvent(event)
 
             def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
@@ -586,7 +593,7 @@ class PagePicker(QDialog):
                 self.signals = objs.CustomSignals.start()
                 self.superior = superior
                 self.root = root
-                self.uuid = funcs.uuidmake()  # 仅需要内存级别的唯一性
+                self.uuid = funcs.uuid_random_make()  # 仅需要内存级别的唯一性
                 self._pixmap = pixmap
                 self.is_selected = False
                 self.multi_select = False

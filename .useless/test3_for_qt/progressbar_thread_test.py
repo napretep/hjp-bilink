@@ -17,7 +17,8 @@ class QProgressBarExample(QMainWindow):
     def init_ui(self):
         self.progressbar_obj1 = QProgressBar(self)
         self.progressbar_obj1.setGeometry(30, 40, 200, 25)
-        self.button_obj1 = QPushButton(u'start', self)
+        self.button_obj1 = QPushButton(u'update in main', self)
+        self.button_2 = QPushButton(u"update in thread", self)
         self.button_obj1.move(40, 80)
         self.on_progress.connect(self.progressbar_obj1.setValue)
         self.on_progress_worker.connect(progress_worker)
@@ -43,9 +44,6 @@ class Thread(QThread):
         self.quit()
 
     def run(self):
-        # self.superior.on_progress_worker.emit(self.superior.on_progress)
-        # while 1:
-        #     self.msleep(100)
         progress_worker(self.superior.on_progress)
 
 

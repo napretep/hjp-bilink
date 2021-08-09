@@ -11,7 +11,7 @@ class U:
             print(sys._getframe(0))
             print(sys._getframe(1).f_code.co_name == f.__name__)
             print(f"hello {self.__dict__[X]}")
-
+            print(sys.)
         self.say = say
         print(self.say)
 
