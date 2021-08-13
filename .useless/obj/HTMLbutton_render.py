@@ -154,7 +154,7 @@ class PDFPageButtonMaker(FieldHTMLData):
         """
         assert isinstance(PDF_page_dict, dict)
         PDF_baseinfo_dict = clipper_imports.objs.SrcAdmin.PDF_JSON.load().data
-        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "clipped_PDF_from")
+        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "clipped_from_PDF")
         for pdfuuid, name_page in PDF_page_dict.items():  # {uuid:{pagenum:{},pdfname:""}}
             if pdfuuid in PDF_baseinfo_dict and "page_shift" in PDF_baseinfo_dict[pdfuuid]:
                 page_shift = PDF_baseinfo_dict[pdfuuid]["page_shift"]

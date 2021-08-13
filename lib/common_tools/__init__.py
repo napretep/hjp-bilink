@@ -17,5 +17,7 @@ from . import (objs,
                G,
                language,
                wrappers,
-               widgets
+               widgets,
+                compatible_import,
+                menu,
                )

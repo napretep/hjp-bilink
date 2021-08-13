@@ -37,12 +37,15 @@ class Get:
 
     def config_dict(cls, configname="clipper"):
         if configname == 'clipper':
-            path = "clipper.config.json"
             fullpath = cls.json_dir("clipper")
+            showInfo(fullpath)
             if not os.path.exists(fullpath):
                 default_path = cls.json_dir("clipper.template")
-                default_dict_str = open(default_path, "r", encoding="utf-8").read()
-                cls.save_dict(fullpath, default_dict_str)
+                showInfo(default_path)
+                template_dict = json.load(open(default_path, "r", encoding="utf-8"))
+                # default_dict_str = open(default_path, "r", encoding="utf-8").read()
+                # cls.save_dict(fullpath, default_dict_str)
+                json.dump(template_dict, open(fullpath,"w", encoding="utf-8"), ensure_ascii=False, sort_keys=True, indent=4)
             config = json.loads(open(fullpath, "r", encoding="utf-8").read())
             return config
         elif configname == "clipper.template":
@@ -91,15 +94,16 @@ class Get:
 
 
 class JSONDir:
+    """返回地址罢了, 不必关心是否存在"""
     def __init__(self):
         d = {}
         self.clipper = Get._().json_dir("clipper")
         self.clipper_template = Get._().json_dir("clipper.template")
         self.pdf_info = Get._().json_dir("pdf_info")
-        if not os.path.exists(self.clipper):
-            json.dump(d, open(self.clipper, "w", encoding="utf-8"), ensure_ascii=False, sort_keys=True, indent=4)
-        if not os.path.exists(self.pdf_info):
-            json.dump(d, open(self.pdf_info, "w", encoding="utf-8"), ensure_ascii=False, sort_keys=True, indent=4)
+        # if not os.path.exists(self.clipper):
+        #     json.dump(d, open(self.clipper, "w", encoding="utf-8"), ensure_ascii=False, sort_keys=True, indent=4)
+        # if not os.path.exists(self.pdf_info):
+        #     json.dump(d, open(self.pdf_info, "w", encoding="utf-8"), ensure_ascii=False, sort_keys=True, indent=4)
 
 
 class IMGDir:

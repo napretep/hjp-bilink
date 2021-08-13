@@ -242,6 +242,9 @@ def logger(logname=None, level=None, allhandler=None):
         consolehandle.setFormatter(formatter)
         printer.addHandler(consolehandle)
         printer.addHandler(filehandle)
+
+
+
         return printer.debug, printer
     else:
         return do_nothing, do_nothing

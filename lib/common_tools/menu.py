@@ -21,6 +21,7 @@ class T:
     anchor_selected_context = 4
     linkpool_selected_context = 5
     linkpool_context = 6
+    grapher_node_context = 7
 
 
 def get_pair_li_from_view(view) -> "list[common_tools.objs.LinkDataPair]":
@@ -146,28 +147,36 @@ def make__outtext_link(atype, *args, **kwargs):
 
 
 def make__change_deck(atype, *args, **kwargs):
-    if atype in {T.webview, T.browser_context}:
+    if atype in {T.webview, T.browser_context,T.grapher_node_context}:
         prefix = kwargs["prefix"]
-        view = args[0]
-        pair_li = get_pair_li_from_view(view)
+        if atype in {T.webview, T.browser_context}:
+            view = args[0]
+            pair_li = get_pair_li_from_view(view)
+        elif atype in {T.grapher_node_context}:
+            pair_li = args[0]
+            view = args[2]
         menu: "QMenu" = args[1]
         menu.addAction(prefix + say("改变牌组")).triggered.connect(
-            lambda: common_tools.funcs.Dialogs.open_deck_chooser(pair_li))
+            lambda: common_tools.funcs.Dialogs.open_deck_chooser(pair_li,view))
 
+    # elif atype in {}:
+    #     pair_li = [args[0]]
+    #     menu:"QMenu" =args[1]
     pass
 
 
 def make__tag_operation(atype, *args, **kwargs):
-    if atype in {T.webview, T.browser_context}:
+    if atype in {T.webview, T.browser_context,T.grapher_node_context}:
         prefix = kwargs["prefix"]
-        view = args[0]
-        pair_li = get_pair_li_from_view(view)
+        if atype in {T.webview, T.browser_context}:
+            view = args[0]
+            pair_li = get_pair_li_from_view(view)
+        elif atype in {T.grapher_node_context}:
+            pair_li = args[0]
         menu: "QMenu" = args[1]
         m = menu.addAction(prefix + say("操作标签")).triggered.connect(
             lambda: common_tools.funcs.Dialogs.open_tag_chooser(pair_li))
-        # actli = [("删除", placeholder), ("添加", placeholder)]
-        # for act, func in actli:
-        #     m.addAction(say(act)).triggered.connect(func)
+
     pass
 
 
@@ -219,6 +228,22 @@ def make__open_clipper(atype, *args, **kwargs):
 
         M.addAction(prefix + say(name)).triggered.connect(lambda: funcs.Dialogs.open_clipper(pairs_li))
 
+def make__open_grapher(atype, *args, **kwargs):
+    if atype in {T.browser_context, T.webview}:
+        from . import funcs
+        prefix = kwargs["prefix"]
+        if len(args) > 0:
+            view = args[0]
+            pairs_li = get_pair_li_from_view(view)
+            M: "QMenu" = args[1]
+            name = "在grapher中打开卡片"
+            M.addAction(prefix+name).triggered.connect(lambda:funcs.Dialogs.open_grapher(pairs_li))
+
+def make__current_version(atype, *args, **kwargs):
+    if atype in {T.mainwin}:
+        M:"QMenu" = mw.__dict__[G.src.dialog_name]
+
+        M.addAction(f"hjp_bilink 当前版本：{G.src.config.user.VERSION}")
 
 make_list = [globals()[name] for name in globals() if name.startswith("make__")]
 
@@ -229,8 +254,13 @@ def maker(atype):
             kwargs["needPrefix"] = True
         kwargs["prefix"] = G.src.addon_name + "_" if kwargs["needPrefix"] else ""
 
-        if atype == T.webview and args[0].title == "main webview" and mw.state != "review":
-            return
+
+        if atype == T.webview:
+            focus_on_mw = args[0].title == "main webview"  and mw.state == "review" and mw.isActiveWindow()
+            focus_on_prev = args[0].title == "previewer"
+            if not focus_on_mw and not focus_on_prev :
+                # showInfo("return")
+                return
         for m in make_list:
             m(atype, *args, **kwargs)
 

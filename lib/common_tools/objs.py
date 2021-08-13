@@ -16,6 +16,43 @@ from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QShortcut
 from aqt import mw
 
+@dataclass
+class Date:
+    year:"int"
+    month:"int"
+    day:"int"
+    hour:"int"
+    minute:"int"
+    second:"int"
+    millisecond:"int"
+
+    def __eq__(self, other:"Date"):
+        return other.year==self.year and other.month==self.month and other.day==self.day\
+            and other.hour == self.hour and other.minute == self.minute and other.second == self.second \
+            and other.millisecond == self.millisecond
+
+    def __le__(self, other:"Date"):
+        if other.year>self.year:
+            return True
+        elif other.year==self.year and other.month>self.month:
+            return True
+        elif other.year==self.year and other.month==self.month and other.day>self.day:
+            return True
+        elif other.year==self.year and other.month==self.month and other.day==self.day \
+            and other.hour>self.hour :
+            return True
+        elif other.year==self.year and other.month==self.month and other.day==self.day \
+            and other.hour==self.hour and other.minute>self.minute :
+            return True
+        elif other.year==self.year and other.month==self.month and other.day==self.day \
+            and other.hour==self.hour and other.minute==self.minute and other.second>self.second :
+            return True
+        elif other.year==self.year and other.month==self.month and other.day==self.day \
+            and other.hour==self.hour and other.minute==self.minute and other.second==self.second\
+            and other.millisecond>self.millisecond:
+            return True
+        else:
+            return False
 
 class CascadeStr:
     @dataclass
@@ -204,6 +241,11 @@ class LinkDataJSONInfo:
         self.link_dict = {}
         for pair in self.link_list:
             self.link_dict[pair.card_id] = pair
+            if pair not in self.root:
+                self.root.append(LinkDataNode(card_id=pair.card_id))
+        for pair in self.root:
+            if pair.card_id!="" and pair.card_id not in self.link_dict:
+                self.root.remove(pair)
         self.version = 2
 
     def todict(self):
@@ -306,7 +348,7 @@ class DB_admin(object):
     #     "x","y","w","h","QA","text_","textQA","card_id","pagenum","ratio","pdfname","pageshift"
     # ]
     数据库操作流程: 1 执行go选择一张表,2 执行select或类似的语句,组成SQL,3commit或return_all执行取得结果,
-    其中 组成SQL的时候要插入队列, 再在3中弹出队列执行,
+    其中 2组成SQL的时候会插入队列, 再在3中弹出队列执行,
     执行时会判断你传入的是list还是str, 如果是前者,则认为list的第二个元素是待插入值,第一个元素是字符串,其中的问号是占位符
     """
     table_clipbox = 0

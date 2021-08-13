@@ -1,1 +1,78 @@
-['hjp-bilink::timestamp::20210807151814', 'hjp-bilink::timestamp::20210807151919', 'hjp-bilink::timestamp::20210807151922']
+
+[]
+[]
+[]
+[]
+id=1628597934591,ivl=0
+id=1628597934591,ivl=0
+[]
+[]
+[]
+id=1628597934591,ivl=0
+[]
+[]
+[]
+[]
+[]
+deck_id=1
+deck_id=None
+deck_id=None
+deck_id=None
+[]2021-08-13 18:04:04 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 521
+open_clipper:
+ {}
+2021-08-13 18:04:17 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 521
+open_clipper:
+ <hjp-bilink.lib.clipper2.lib.Clipper.Clipper object at 0x000002356E841670>
+2021-08-13 18:04:52 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 521
+open_clipper:
+ {}
+2021-08-13 18:04:52 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 523
+open_clipper:
+ {}
+2021-08-13 18:05:01 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 521
+open_clipper:
+ None
+2021-08-13 18:05:01 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 523
+open_clipper:
+ None
+2021-08-13 18:05:08 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 521
+open_clipper:
+ <hjp-bilink.lib.clipper2.lib.Clipper.Clipper object at 0x000002AACFD15700>
+2021-08-13 18:05:22 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 521
+open_clipper:
+ <hjp-bilink.lib.clipper2.lib.Clipper.Clipper object at 0x000002AACFD15700>
+2021-08-13 18:05:49 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 521
+open_clipper:
+ None
+2021-08-13 18:05:49 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 523
+open_clipper:
+ None
+2021-08-13 18:05:53 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 521
+open_clipper:
+ <hjp-bilink.lib.clipper2.lib.Clipper.Clipper object at 0x000001B5F2CC35E0>
+2021-08-13 18:06:42 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 521
+open_clipper:
+ None
+2021-08-13 18:06:42 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 523
+open_clipper:
+ None
+2021-08-13 18:06:46 DEBUG MainThread  C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\lib\common_tools\funcs.py
+funcs.py 521
+open_clipper:
+ <hjp-bilink.lib.clipper2.lib.Clipper.Clipper object at 0x000001B5825290D0>
+
+[]

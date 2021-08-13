@@ -395,9 +395,6 @@ class AnchorDialog(QDialog):
             return f"""<{self.text()},{self.chara[self.character]},level={self.level}>"""
 
 
-class PDFPrevDialog(QDialog):
-    pass
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

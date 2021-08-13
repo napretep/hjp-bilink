@@ -10,13 +10,16 @@ import dataclasses
 import json
 import os
 
+from aqt.utils import tooltip
+
 
 class SrcAdmin:
+    ADDON_VERSION="2.0.0"
     addon_name = "hjp_bilink"
     dialog_name = "hjp_bilink_dialog"
 
     @dataclasses.dataclass
-    class _Path:
+    class Path:
         common_tools: "str" = os.path.abspath(os.path.dirname(__file__))
         lib: "str" = os.path.split(common_tools)[0]
         root: "str" = os.path.split(lib)[0]
@@ -32,6 +35,7 @@ class SrcAdmin:
         userconfig: "str" = os.path.join(user, "config.json")
         baseconfig: "str" = os.path.join(root, "baseInfo.json")
         userconfigtemplate: "str" = os.path.join(resource_data, "config.template.json")
+        card_model_template:"str" =os.path.join(resource_data,"model.json")
         linkpool_file: "str" = os.path.join(root, "linkpool.json")
         logtext: "str" = os.path.join(root, "log.txt")
         DB_file: "str" = os.path.join(user, "linkInfo.db")
@@ -107,6 +111,8 @@ class SrcAdmin:
             self.base = self._Base(self, self._root)
             self.template = self._Template(self, self._root)
 
+
+
         class _Base:
             def __init__(self, superior: "SrcAdmin._Config", root: "SrcAdmin"):
                 self.superior = superior
@@ -124,6 +130,8 @@ class SrcAdmin:
             def __init__(self, superior: "SrcAdmin._Config", root: "SrcAdmin"):
                 self.superior = superior
                 self.root = root
+                self.check_user_config_file_exists()
+                self.check_user_config_file_update()
                 self.linkInfoStorageLocation: "str" = self.get_config[
                     "linkInfoStorageLocation"]  # 控制链接的存储地点,默认是0,即sqlite存储
                 self.defaultUnlinkMode: "str" = self.get_config["defaultUnlinkMode"]  # 默认的取消链接模式
@@ -144,6 +152,42 @@ class SrcAdmin:
             def get_config(self) -> dict:
                 data = json.load(open(self.root.path.userconfig, "r", encoding="utf-8"))
                 return data
+
+            def check_user_config_file_update(self):
+                need_update = False
+                # config = json.load(open(self.root.Path.userconfig, "r", encoding="utf-8"))
+                user_config_dir = self.root.Path.userconfig
+                template = json.load(open(self.root.Path.userconfigtemplate, "r", encoding="utf-8"))
+                if os.path.isfile(user_config_dir) and os.path.exists(user_config_dir):
+                    user = json.load(open(self.root.Path.userconfig, "r", encoding="utf-8"))
+                else:
+                    user = {}
+
+                if "VERSION" not in user or self.root.ADDON_VERSION != user["VERSION"]:
+                    need_update = True
+                    user["VERSION"] = self.root.ADDON_VERSION
+                    template["VERSION"] = self.root.ADDON_VERSION
+                    for key, value in template.items():
+                        if key not in user:
+                            user[key] = value
+                    usercopy = user.copy()
+                    for key, value in usercopy.items():
+                        if key not in template:
+                            del user[key]
+                if need_update:
+                    tooltip("用户配置文件已更新")
+                    json.dump(user, open(user_config_dir, "w", encoding="utf-8"), indent=4,
+                              ensure_ascii=False)
+
+            def check_user_config_file_exists(self):
+                user_dir = self.superior.superior.path.user
+                userconfig_dir = self.superior.superior.path.userconfig
+                template_dir = self.superior.superior.path.userconfigtemplate
+                if not os.path.exists(userconfig_dir):
+                    if not os.path.exists(user_dir):
+                        os.mkdir(user_dir)
+                    template_json =json.load(open(template_dir, "r", encoding="utf-8"))
+                    json.dump(template_json,open(userconfig_dir, "w", encoding="utf-8"),indent=4, ensure_ascii=False)
 
             def __repr__(self):
                 return self.get_config.__str__()
@@ -184,7 +228,7 @@ class SrcAdmin:
         # print(cls.instance)
         if cls.instance is None:
             cls.instance = cls()
-            cls.path = cls._Path()
+            cls.path = cls.Path()
             cls.config = cls._Config(cls.instance)
             cls.ImgDir = cls._ImgDir(cls.instance, cls.instance)
         return cls.instance

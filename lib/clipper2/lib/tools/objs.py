@@ -10,6 +10,7 @@ from PyQt5.QtGui import QIcon, QStandardItem
 from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QPushButton, QSpinBox, QFileDialog, QToolButton, \
     QDoubleSpinBox, QComboBox, QVBoxLayout, QFrame, QGridLayout, QWidget, QShortcut, QProgressBar, QStyledItemDelegate, \
     QItemDelegate
+from aqt.utils import showInfo
 
 from . import funcs
 from . import events, JSONschema_, SrcAdmin_
@@ -149,51 +150,64 @@ class ConfigDict:
     """每次想读取的时候都要运行一遍"""
 
     class ClipBox:
-        def __init__(self, data):
-            self.A_map_Field = data["clipbox.A_map_Field"]["value"]
-            self.Q_map_Field = data["clipbox.Q_map_Field"]["value"]
-            self.macro = data["clipbox.macro"]["value"]
-            self.newcard_deck_id = data["clipbox.newcard_deck_id"]["value"]
-            self.newcard_model_id = data["clipbox.newcard_model_id"]["value"]
-            self.comment_A_map_Field = data["clipbox.comment_A_map_Field"]["value"]
-            self.comment_Q_map_Field = data["clipbox.comment_Q_map_Field"]["value"]
+        def __init__(self, superior:"ConfigDict"):
+            self.A_map_Field = superior.data["clipbox.A_map_Field"]["value"]
+            self.Q_map_Field = superior.data["clipbox.Q_map_Field"]["value"]
+            self.macro = superior.data["clipbox.macro"]["value"]
+            self.newcard_deck_id = superior.data["clipbox.newcard_deck_id"]["value"]
+            self.newcard_model_id = superior.data["clipbox.newcard_model_id"]["value"]
+            self.comment_A_map_Field = superior.data["clipbox.comment_A_map_Field"]["value"]
+            self.comment_Q_map_Field = superior.data["clipbox.comment_Q_map_Field"]["value"]
 
     class Output:
-        def __init__(self, data):
-            self.RatioFix = data["output.RatioFix"]["value"]
-            self.needRatioFix = data["output.needRatioFix"]["value"]
-            self.close_clipper_after_insert = data["output.closeClipper"]["value"]
-            self.close_clipbox_after_insert = data["output.closeClipbox"]["value"]
+        def __init__(self, superior:"ConfigDict"):
+            self.RatioFix = superior.data["output.RatioFix"]["value"]
+            self.needRatioFix = superior.data["output.needRatioFix"]["value"]
+            self.close_clipper_after_insert = superior.data["output.closeClipper"]["value"]
+            self.close_clipbox_after_insert = superior.data["output.closeClipbox"]["value"]
 
     class PagePicker:
-        def __init__(self, data):
-            self.bottombar_default_path: "str" = data["pagepicker.bottombar_default_path"]["value"]
-            self.bottombar_page_num = data["pagepicker.bottombar_page_num"]["value"]
-            self.bottombar_page_ratio = data["pagepicker.bottombar_page_ratio"]["value"]
-            self.browser_layout_col_per_row = data["pagepicker.browser_layout_col_per_row"]["value"]
-            self.changepage_ratio_choose = data["pagepicker.changepage_ratio_choose"]["value"]
+        def __init__(self, superior:"ConfigDict"):
+            self.bottombar_default_path: "str" = superior.data["pagepicker.bottombar_default_path"]["value"]
+            self.bottombar_page_num = superior.data["pagepicker.bottombar_page_num"]["value"]
+            self.bottombar_page_ratio = superior.data["pagepicker.bottombar_page_ratio"]["value"]
+            self.browser_layout_col_per_row = superior.data["pagepicker.browser_layout_col_per_row"]["value"]
+            self.changepage_ratio_choose = superior.data["pagepicker.changepage_ratio_choose"]["value"]
 
     class MainView:
-        def __init__(self, data):
-            self.layout_col_per_row = data["mainview.layout_col_per_row"]["value"]
-            self.layout_row_per_col = data["mainview.layout_row_per_col"]["value"]
-            self.layout_mode = data["mainview.layout_mode"]["value"]
+        def __init__(self, superior:"ConfigDict"):
+            self.layout_col_per_row = superior.data["mainview.layout_col_per_row"]["value"]
+            self.layout_row_per_col = superior.data["mainview.layout_row_per_col"]["value"]
+            self.layout_mode = superior.data["mainview.layout_mode"]["value"]
 
     def __init__(self):
-        self.data = SrcAdmin.call().get_config("clipper")
-        self.clipbox = self.ClipBox(self.data)
-        self.pagepicker = self.PagePicker(self.data)
-        self.mainview = self.MainView(self.data)
-        self.output = self.Output(self.data)
+        # self.data = self.load_json()
+        self.clipbox = self.ClipBox(self)
+        self.pagepicker = self.PagePicker(self)
+        self.mainview = self.MainView(self)
+        self.output = self.Output(self)
         CustomSignals.start().on_config_changed.connect(self.load_data)
 
+    def load_json(self):
+        clipper_dir = SrcAdmin.call().jsonDir.clipper
+        if not os.path.exists(clipper_dir):
+            # showInfo("not exists: %s" % clipper_dir)
+            template_dir = SrcAdmin.call().jsonDir.clipper_template
+            template_json = json.load(open(template_dir,"r", encoding="utf-8"))
+            json.dump(template_json,open(clipper_dir,"w", encoding="utf-8"),indent=4, ensure_ascii=False)
+        clipper_json = json.load(open(clipper_dir,"r", encoding="utf-8"))
+        return clipper_json
+
     def load_data(self):
-        print("config_reloaded")
-        self.data = SrcAdmin.call().get_config("clipper")
+        # self.data = self.load_json()
         self.clipbox = self.ClipBox(self.data)
         self.pagepicker = self.PagePicker(self.data)
         self.mainview = self.MainView(self.data)
         self.output = self.Output(self.data)
+
+    @property
+    def data(self):
+        return self.load_json()
 
     def save_data(self, data=None):
         if data is None:
@@ -219,7 +233,7 @@ class SrcAdmin:
 
     # DB = SrcAdmin_.DB()
     DB = common_tools.objs.DB_admin()
-    PDF_JSON = SrcAdmin_.PDFJSON().load()
+    # PDF_JSON = SrcAdmin_.PDFJSON().load()
 
     @classmethod
     def call(cls):

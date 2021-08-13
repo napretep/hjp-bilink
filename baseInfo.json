@@ -1,5 +1,5 @@
 {
-  "VERSION": "0.10.3",
+  "VERSION": "2.0.0",
   "data_version": 1,
   "configFileName": "user_files/config.json",
   "configSchemaFileName": "lib/resource/data/config.schema.json",

@@ -711,8 +711,9 @@ class PDFPrevDialog(QDialog):
             for w in w_li:
                 H_layout.addWidget(w)
             H_layout.setAlignment(Qt.AlignRight)
+            H_layout.setContentsMargins(0, 0, 0, 0)
             V_layout.addLayout(H_layout)
-
+            V_layout.setContentsMargins(0, 0, 0, 0)
             self.setLayout(V_layout)
 
         def init_hide(self):
@@ -1417,6 +1418,7 @@ class PDFPrevDialog(QDialog):
         def init_UI(self):
             self.view.setScene(self.scene)
             V_layout = QVBoxLayout(self)
+            V_layout.setContentsMargins(0,0,0,0)
             V_layout.addWidget(self.view)
             self.setLayout(V_layout)
             self.view.setDragMode(self.view.ScrollHandDrag)
@@ -1700,7 +1702,7 @@ class PDFPrevDialog(QDialog):
                 self.worker_thread = None
 
         class Thread(QThread):
-            on_quit = pyqtSignal()
+            on_quit = pyqtSignal(object)
 
             def __init__(self, superior: "PDFPrevDialog.CorrectionDialog"):
                 super().__init__(superior)

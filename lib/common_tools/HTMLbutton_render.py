@@ -166,7 +166,7 @@ class PDFPageButtonMaker(FieldHTMLData):
         from .objs import PDFinfoRecord
 
         # PDF_baseinfo_dict = clipper_imports.objs.SrcAdmin.PDF_JSON.load().data
-        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "clipped_PDF_from")
+        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "clipped_from_PDF")
         for pdfuuid, page_pdf in PDF_page_dict.items():  # {uuid:{pagenum:{},pdfname:""}}
             pdfinfo: PDFinfoRecord = page_pdf["info"]
             pdfname = funcs.str_shorten(os.path.basename(pdfinfo.pdf_path))

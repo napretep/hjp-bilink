@@ -34,7 +34,6 @@ class Clipper(QDialog):
     def __init__(self, entity: "Entity" = None):
         super().__init__()
         self.E = Entity()
-
         # self.E.pagepicker.browser.worker=FrameLoadWorker(self.E)
         self.imgDir = objs.SrcAdmin.call().imgDir
         self.setAttribute(Qt.WA_DeleteOnClose, on=True)
@@ -126,8 +125,10 @@ class Clipper(QDialog):
                 self.clearView({"clipbox"})
 
         def on_card_create_handle(event: "events.AnkiCardCreateEvent"):
+
             e = events.AnkiCardCreatedEvent
-            card_id = common_tools.funcs.CardOperation.create(event.model_id, event.deck_id)
+            card_id = common_tools.funcs.CardOperation.create(event.model_id, event.deck_id,
+                                                              failed_callback=on_worker_failed)
             event.carditem.setText(card_id)
             event.worker.waitting = False
             pass
@@ -142,6 +143,9 @@ class Clipper(QDialog):
             common_tools.funcs.CardOperation.clipbox_insert_field(event.clipuuid, timestamp=event.timestamp)
             event.worker.waitting = False
             pass
+        def on_worker_failed():
+            self.E.state.progresser.close()
+            self.E.clipbox_insert_card_worker.terminate()
 
         if event.type == event.defaultType.hideRighsidebar:
             self.rightsidebar_hide()
@@ -471,6 +475,7 @@ class Clipper(QDialog):
         self.setModal(False)
         self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
         self.h_layout = QHBoxLayout(self)
+        self.h_layout.setContentsMargins(0,0,0,0)
         self.h_layout.addWidget(self.pdfview)
         self.h_layout.addWidget(self.rightsidebar)
         self.h_layout.setStretch(0, 1)
@@ -1867,8 +1872,6 @@ class Clipper(QDialog):
                 painter.drawRect(self.rect())
                 self.close.show()
                 painter.setPen(QColor(255, 255, 255))
-                # painter.setFont(QFont('SimSun', 20))
-                # font = QFont(pointSize=10,weight=10)
                 painter.setFont(QFont('SimSun', pointSize=15, weight=300))
                 r = self.rect()
                 painter.drawText(self.rect(), Qt.TextWordWrap, self.editableData.comment)
@@ -2132,6 +2135,7 @@ class ClipInsertCardWorker(QThread):
         self.allevent = None
 
     def run(self):
+        from ..imports import common_tools
         gap = 0.05
         data: "OrderedDict[str,Clipper.ClipBox]" = self.superior.E.clipbox.container
         deck_id = self.superior.E.config.clipbox.newcard_deck_id
@@ -2151,8 +2155,10 @@ class ClipInsertCardWorker(QThread):
                 if desc_item.cardItem.newCard:
                     # self.superior.signals.on_anki_card_create.emit(
                     #     e(type=e.defaultType.clipboxNeed,worker=self,carditem=desc_item.cardItem,model_id=model_id,deck_id=deck_id)) #TODO ????
+                    common_tools.funcs.write_to_log_file(f"deck_id={deck_id}")
                     self.on_card_create.emit(
-                        e(type=e.defaultType.clipboxNeed, worker=self, carditem=desc_item.cardItem, model_id=model_id,
+                        e(type=e.defaultType.clipboxNeed, worker=self, carditem=desc_item.cardItem,
+                          model_id=model_id,
                           deck_id=deck_id))  # TODO ????
                     self.waitting = True
                 while self.waitting:

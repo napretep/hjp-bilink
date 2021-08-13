@@ -22,8 +22,11 @@ from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QApplication
 
 from aqt import mw, dialogs
 from aqt.browser import Browser
+from aqt.browser.previewer import Previewer
 from aqt.operations.card import set_card_deck
+from aqt.reviewer import Reviewer
 from aqt.utils import tooltip, showInfo
+from aqt.webview import AnkiWebView
 
 if __name__ == "__main__":
     from lib.common_tools import G
@@ -160,19 +163,34 @@ class SupportDialog(QDialog):
 
 class deck_chooser(QDialog):
 
-    def __init__(self, pair_li: "list[G.objs.LinkDataPair]" = None):
+    def __init__(self, pair_li: "list[G.objs.LinkDataPair]" = None,fromview=None):
         super().__init__()
+        self.fromview = fromview
         self.pair_li = pair_li
         self.view = QTreeView(self)
         self.model = QStandardItemModel(self)
         self.model_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
         self.header = self.Header(self, deckname=self.curr_deck_name)
         self.header.button.clicked.connect(self.on_header_button_clicked_handle)
+        self.header.new_dec_button.clicked.connect(self.on_header_new_dec_button_clicked_handle)
         self.view.clicked.connect(self.on_view_clicked_handle)
         self.view.doubleClicked.connect(self.on_view_doubleclicked_handle)
         self.model.dataChanged.connect(self.on_model_data_changed_handle)
         self.init_UI()
         self.init_model()
+
+    def on_header_new_dec_button_clicked_handle(self):
+        new_item = self.Item(f"""new_deck_{datetime.now().strftime("%Y%m%d%H%M%S")}""")
+        if self.view.selectedIndexes():
+            item:"deck_chooser.Item" = self.model.itemFromIndex(self.view.selectedIndexes()[0])
+            parent_item = item.parent()
+        else:
+            parent_item = self.model.invisibleRootItem()
+        parent_item.appendRow([new_item])
+        self.view.edit(new_item.index())
+        deck = mw.col.decks.add_normal_deck_with_name(self.get_full_deck_name(new_item))
+        new_item.deck_id=deck.id
+
 
     def on_view_doubleclicked_handle(self, index):
         self.on_item_button_clicked_handle(self.model.itemFromIndex(index))
@@ -190,17 +208,27 @@ class deck_chooser(QDialog):
 
     def on_item_button_clicked_handle(self, item: "deck_chooser.Item"):
         from . import funcs
+        # showInfo(self.fromview.__str__())
         DeckId = funcs.Compatible.DeckId()
         CardId = funcs.CardId
         browser: Browser = dialogs._dialogs["Browser"][1]
+
+
         if browser is None:
             dialogs.open("Browser", mw)
             browser = dialogs._dialogs["Browser"][1]
         for pair in self.pair_li:
             set_card_deck(parent=browser, card_ids=[CardId(pair.int_card_id)],
                           deck_id=DeckId(item.deck_id)).run_in_background()
+        browser.showMinimized()
+        from ..bilink.dialogs.linkdata_grapher import Grapher
+        if isinstance(self.fromview,AnkiWebView):
+            parent:"Union[Previewer,Reviewer]" = self.fromview.parent()
+            parent.activateWindow()
+        elif isinstance(self.fromview,Grapher):
+            self.fromview.activateWindow()
         QTimer.singleShot(100, funcs.LinkPoolOperation.both_refresh)
-        QTimer.singleShot(100, lambda: funcs.BrowserOperation.search(f"""deck:{self.get_full_deck_name(item)}"""))
+        # QTimer.singleShot(100, lambda: funcs.BrowserOperation.search(f"""deck:{self.get_full_deck_name(item)}"""))
         self.close()
 
     def on_model_data_changed_handle(self, topLeft, bottomRight, roles):
@@ -270,7 +298,7 @@ class deck_chooser(QDialog):
             return item.text()
         s = ""
         parent = item
-        while parent:
+        while parent!=self.model.invisibleRootItem():
             s = "::" + parent.deck_name + s
             parent = parent.parent()
         s = s[2:]
@@ -301,7 +329,8 @@ class deck_chooser(QDialog):
             ]
                     ]
         else:
-            return [self.Id_deck(deck=i.name, ID=i.id) for i in mw.col.decks.all_names_and_ids()]
+            decks = mw.col.decks
+            return [self.Id_deck(deck=i.name, ID=i.id) for i in decks.all_names_and_ids() if not decks.is_filtered(i.id)]
 
     def init_UI(self):
         self.setWindowTitle("deck_chooser")
@@ -324,8 +353,11 @@ class deck_chooser(QDialog):
             self.button = QToolButton(self)
             self.button.setText(self.deck_tree)
             self.button.setIcon(QIcon(G.src.ImgDir.tree))
+            self.new_dec_button = QToolButton(self)
+            self.new_dec_button.setIcon(QIcon(G.src.ImgDir.item_plus))
             H_layout = QHBoxLayout(self)
             H_layout.addWidget(self.desc)
+            H_layout.addWidget(self.new_dec_button)
             H_layout.addWidget(self.button)
             H_layout.setStretch(0, 1)
             H_layout.setStretch(1, 0)
@@ -341,6 +373,13 @@ class deck_chooser(QDialog):
         @property
         def deck_name(self):
             return self.text()
+
+        def parent(self)->"deck_chooser.Item":
+            parent = super().parent()
+            if parent:
+                return parent
+            else:
+                return self.model().invisibleRootItem()
 
     @dataclass
     class Id_deck:
@@ -741,9 +780,18 @@ class tag_chooser(QDialog):
             new_tag = f"""new_tag_{datetime.now().strftime("%Y%m%d%H%M%S")}"""
             if self.fromView.selectedIndexes():
                 item = self.fromModel.itemFromIndex(self.fromView.selectedIndexes()[0])
-                new_tag = self.superior.get_full_tag_name(item) + "::" + new_tag
-            self.superior.tag_list.add(new_tag)
-            self.superior.init_data_left()
+                item_parent = item.parent()
+                new_full_tag = self.superior.get_full_tag_name(item) + "::" + new_tag
+            else:
+                item_parent = self.fromModel.invisibleRootItem()
+                new_full_tag=new_tag
+            new_item = self.superior.Item(new_tag)
+            new_item.set_tag_name(new_full_tag)
+            item_parent.appendRow([new_item])
+            self.superior.tag_list=self.superior.save()
+            self.fromView.edit(new_item.index())
+            # self.superior.tag_list.add(new_tag)
+            # self.superior.init_data_left()
 
             pass
 

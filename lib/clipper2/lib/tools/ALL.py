@@ -5,7 +5,7 @@ import importlib
 signals = objs.CustomSignals().start()
 ISDEBUG = True
 DEBUG_LEVEL = logging.DEBUG
-CONFIG = objs.CONFIG
+# CONFIG = objs.CONFIG
 connects = {}
 pdfview = None
 clipper = None

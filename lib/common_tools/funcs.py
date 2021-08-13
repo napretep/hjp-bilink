@@ -6,15 +6,16 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/7/30 9:09'
 """
+import logging
 import sys, platform, subprocess
 import tempfile
 import uuid
 from collections import Sequence
 from datetime import datetime
 from math import ceil
-from typing import Union, Optional, NewType
+from typing import Union, Optional, NewType, Callable
 
-from PyQt5.QtCore import pyqtSignal, QThread, QUrl
+from PyQt5.QtCore import pyqtSignal, QThread, QUrl, QTimer
 import json
 import os
 import re
@@ -36,6 +37,41 @@ from bs4 import BeautifulSoup, element
 from . import G
 from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
 
+
+class LinkDataOperation:
+    @staticmethod
+    def read(card_id):
+        from ..bilink.linkdata_admin import read_card_link_info
+        return read_card_link_info(card_id)
+
+    @staticmethod
+    def write(card_id,data):
+        from ..bilink.linkdata_admin import write_card_link_info
+        return write_card_link_info(card_id,data)
+
+    @staticmethod
+    def bind(card_idA,card_idB):
+        from ..bilink import linkdata_admin
+        cardA = linkdata_admin.read_card_link_info(card_idA)
+        cardB = linkdata_admin.read_card_link_info(card_idB)
+        if cardB.self_data not in cardA.link_list:
+            cardA.link_list.append(cardB.self_data)
+            cardA.save_to_DB()
+        if cardA.self_data not in cardB.link_list:
+            cardB.link_list.append(cardA.self_data)
+            cardB.save_to_DB()
+
+    @staticmethod
+    def unbind(card_idA,card_idB):
+        from ..bilink import linkdata_admin
+        cardA = linkdata_admin.read_card_link_info(card_idA)
+        cardB = linkdata_admin.read_card_link_info(card_idB)
+        if cardB.self_data in cardA.link_list:
+            cardA.link_list.remove(cardB.self_data)
+            cardA.save_to_DB()
+        if cardA.self_data in cardB.link_list:
+            cardB.link_list.remove(cardA.self_data)
+            cardB.save_to_DB()
 
 class Compatible:
     @staticmethod
@@ -97,19 +133,35 @@ class BrowserOperation:
 
 class CardOperation:
     @staticmethod
-    def create(model_id=None, deck_id=None):
+    def create(model_id:"int"=None, deck_id:"int"=None,failed_callback:"Callable"=None):
+        if model_id is not None and not (type(model_id)) == int:
+            model_id = int(model_id)
+        if deck_id is not None and not (type(deck_id)) == int:
+            deck_id = int(deck_id)
+
         if model_id is None:
             if not "Basic" in mw.col.models.allNames():
-                mw.col.models.add(stdmodels.addBasicModel(mw.col))
-            model = mw.col.models.byName("Basic")
+                # mw.col.models.add(stdmodels.addBasicModel(mw.col))
+                material = json.load(open(G.src.path.card_model_template,"r",encoding="utf-8"))
+                new_model = mw.col.models.new("Basic")
+                new_model["flds"] = material["flds"]
+                new_model["tmpls"] = material["tmpls"]
+                mw.col.models.add(new_model)
+            model = mw.col.models.by_name("Basic")
         else:
             if mw.col.models.have(model_id):
                 model = mw.col.models.get(model_id)
             else:
-                raise TypeError(f"modelId don't exist:{model_id}")
+                showInfo(f"modelId don't exist:{model_id}")
+                if failed_callback:
+                    failed_callback()
+
         note = notes.Note(mw.col, model=model)
         if deck_id is None:
             deck_id = mw.col.decks.current()["id"]
+        else:
+            if not mw.col.decks.have(deck_id):
+                showInfo(f"deck_id don't exist:{deck_id}")
         mw.col.add_note(note, deck_id=deck_id)
         note.flush()
         return str(note.card_ids()[0])
@@ -213,7 +265,7 @@ class CardOperation:
         for k, v in G.mw_card_window.items():
             if v is not None:
                 prev_refresh(v)
-        tooltip("anki的自动刷新功能还存在问题,如果出现显示空白,请手动重新加载卡片")
+        QTimer.singleShot(2000,lambda:tooltip("anki的自动刷新功能还存在问题,如果出现显示空白,请手动重新加载卡片"))
 
 
 class Media:
@@ -447,9 +499,198 @@ class DeckOperation:
         return data
 
 
+
+class Dialogs:
+    @staticmethod
+    def open_anchor(card_id):
+        card_id = str(card_id)
+        from ..bilink.dialogs.anchor import AnchorDialog
+        from . import G
+        if card_id not in G.mw_anchor_window:
+            G.mw_anchor_window[card_id] = None
+        if G.mw_anchor_window[card_id] is None:
+            G.mw_anchor_window[card_id] = AnchorDialog(card_id)
+            G.mw_anchor_window[card_id].show()
+        else:
+            G.mw_anchor_window[card_id].activateWindow()
+
+    @staticmethod
+    def open_clipper(pairs_li=None, clipboxlist=None, **kwargs):
+        from . import G
+        from ..clipper2.lib.Clipper import Clipper
+        # log.debug(G.mw_win_clipper.__str__())
+        if not isinstance(G.mw_win_clipper, Clipper):
+            G.mw_win_clipper = Clipper()
+            G.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
+            # all_objs.mw_win_clipper.closeEvent=wrappers.func_wrapper(after=[lambda x:funcs.setNone(all_objs.mw_win_clipper)])(all_objs.mw_win_clipper.closeEvent)
+            G.mw_win_clipper.show()
+        else:
+            G.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
+            # all_objs.mw_win_clipper.show()
+            G.mw_win_clipper.activateWindow()
+            # print("just activate")
+
+    @staticmethod
+    def open_linkpool():
+        from . import G
+        from ..bilink.dialogs.linkpool import LinkPoolDialog
+        if G.mw_linkpool_window is None:
+            G.mw_linkpool_window = LinkPoolDialog()
+            G.mw_linkpool_window.show()
+        else:
+            G.mw_linkpool_window.activateWindow()
+        pass
+
+    @staticmethod
+    def open_PDFprev(pdfuuid, pagenum, FROM):
+        from ..clipper2.lib.PDFprev import PDFPrevDialog
+        # print(FROM)
+        if isinstance(FROM, Reviewer):
+            card_id = FROM.card.id
+            pass
+        elif isinstance(FROM, BrowserPreviewer):
+            card_id = FROM.card().id
+            pass
+        elif isinstance(FROM, SingleCardPreviewerMod):
+            card_id = FROM.card().id
+        else:
+            TypeError("未能找到card_id")
+        card_id = str(card_id)
+
+        DB = G.DB
+        result = DB.go(DB.table_pdfinfo).select(uuid=pdfuuid).return_all().zip_up()[0]
+        DB.end()
+        pdfname = result.to_pdfinfo_data().pdf_path
+        pdfpageuuid = UUID.by_hash(pdfname + str(pagenum))
+        if card_id not in G.mw_pdf_prev:
+            G.mw_pdf_prev[card_id] = {}
+        if pdfpageuuid not in G.mw_pdf_prev[card_id]:
+            G.mw_pdf_prev[card_id][pdfpageuuid] = None
+        # print(f"pagenum={pagenum}")
+        # print(f"all_objs.mw_pdf_prev[card_id][pdfpageuuid]={all_objs.mw_pdf_prev[card_id][pdfpageuuid]}")
+        if isinstance(G.mw_pdf_prev[card_id][pdfpageuuid], PDFPrevDialog):
+            G.mw_pdf_prev[card_id][pdfpageuuid].activateWindow()
+        else:
+            ratio = 1
+            G.mw_pdf_prev[card_id][pdfpageuuid] = \
+                PDFPrevDialog(pdfuuid=pdfuuid, pdfname=pdfname, pagenum=pagenum, pageratio=ratio, card_id=card_id)
+            G.mw_pdf_prev[card_id][pdfpageuuid].show()
+
+        pass
+
+    @staticmethod
+    def open_custom_cardwindow(card: Union[Card, str, int]):
+        if isinstance(card, str):
+            card = mw.col.get_card(CardId(int(card)))
+        elif isinstance(card, int):
+            card = mw.col.get_card(CardId(card))
+        from ..bilink.dialogs.custom_cardwindow import external_card_dialog
+        external_card_dialog(card)
+        pass
+
+    @staticmethod
+    def open_support():
+        from .widgets import SupportDialog
+        p = SupportDialog()
+        p.exec()
+
+    @staticmethod
+    def open_contact():
+        QDesktopServices.openUrl(QUrl(G.src.path.groupSite))
+
+    @staticmethod
+    def open_link_storage_folder():
+        open_file(G.src.path.user)
+
+    @staticmethod
+    def open_repository():
+        QDesktopServices.openUrl(QUrl(G.src.path.helpSite))
+
+    @staticmethod
+    def open_version():
+        from ..bilink import dialogs
+        p = dialogs.version.VersionDialog()
+        p.exec()
+
+    @staticmethod
+    def open_tag_chooser(pair_li: "list[G.objs.LinkDataPair]"):
+        # a=[tag for tag in mw.col.tags.rename(old,new) ]
+        # a=mw.col.getCard(CardId(1627994892490)).note().tags
+        # write_to_log_file(a.__str__())
+        from . import widgets
+        p = widgets.tag_chooser(pair_li)
+        p.exec()
+        pass
+
+    @staticmethod
+    def open_deck_chooser(pair_li: "list[G.objs.LinkDataPair]",view=None):
+        from . import widgets
+
+        p = widgets.deck_chooser(pair_li,view)
+        p.exec()
+        tooltip("完成")
+
+        pass
+    @staticmethod
+    def open_grapher(pair_li: "list[G.objs.LinkDataPair]"):
+        from ..bilink.dialogs.linkdata_grapher import Grapher
+        # p = Grapher(pair_li)
+        # p.show()
+        if isinstance(G.mw_grapher,Grapher):
+            G.mw_grapher.load_node(pair_li)
+            G.mw_grapher.activateWindow()
+        else:
+            G.mw_grapher = Grapher(pair_li)
+            G.mw_grapher.show()
+
+class UUID:
+    @staticmethod
+    def by_random(length=8):
+        myid = str(uuid.uuid4())[0:length]
+        return myid
+
+    @staticmethod
+    def by_hash(s):
+        return str(uuid.uuid3(uuid.NAMESPACE_URL, s))
+
+
+
+def logger(logname=None, level=None, allhandler=None):
+
+    if G.ISDEBUG:
+        if logname is None:
+            logname = "hjp_clipper"
+        if level is None:
+            level = logging.DEBUG
+        printer = logging.getLogger(logname)
+        printer.setLevel(level)
+        log_dir = G.src.path.logtext
+
+        fmt = "%(asctime)s %(levelname)s %(threadName)s  %(pathname)s\n%(filename)s " \
+              "%(lineno)d\n%(funcName)s:\n %(message)s"
+        datefmt = "%Y-%m-%d %H:%M:%S"
+        formatter = logging.Formatter(fmt, datefmt)
+
+        filehandle = logging.FileHandler(log_dir)
+        filehandle.setLevel(level)
+        filehandle.setFormatter(formatter)
+
+        consolehandle = logging.StreamHandler()
+        consolehandle.setLevel(level)
+        consolehandle.setFormatter(formatter)
+        printer.addHandler(consolehandle)
+        printer.addHandler(filehandle)
+        return printer
+    else:
+        return do_nothing
+
+
+def do_nothing(*args, **kwargs):
+    pass
+
 def write_to_log_file(s):
-    f = open(G.src.path.logtext, "w", encoding="utf-8")
-    f.write(s)
+    f = open(G.src.path.logtext, "a", encoding="utf-8")
+    f.write("\n"+s)
     f.close()
 
 
@@ -650,150 +891,6 @@ def on_clipper_closed_handle():
     from . import G
     G.mw_win_clipper = None
 
-
-class Dialogs:
-    @staticmethod
-    def open_anchor(card_id):
-        card_id = str(card_id)
-        from ..bilink.dialogs.anchor import AnchorDialog
-        from . import G
-        if card_id not in G.mw_anchor_window:
-            G.mw_anchor_window[card_id] = None
-        if G.mw_anchor_window[card_id] is None:
-            G.mw_anchor_window[card_id] = AnchorDialog(card_id)
-            G.mw_anchor_window[card_id].show()
-        else:
-            G.mw_anchor_window[card_id].activateWindow()
-
-    @staticmethod
-    def open_clipper(pairs_li=None, clipboxlist=None, **kwargs):
-        from . import G
-        from ..clipper2.lib.Clipper import Clipper
-        if not isinstance(G.mw_win_clipper, Clipper):
-            G.mw_win_clipper = Clipper()
-            G.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
-            # all_objs.mw_win_clipper.closeEvent=wrappers.func_wrapper(after=[lambda x:funcs.setNone(all_objs.mw_win_clipper)])(all_objs.mw_win_clipper.closeEvent)
-            G.mw_win_clipper.show()
-            # print("create and show")
-        else:
-            G.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
-            # all_objs.mw_win_clipper.show()
-            G.mw_win_clipper.activateWindow()
-            # print("just activate")
-
-    @staticmethod
-    def open_linkpool():
-        from . import G
-        from ..bilink.dialogs.linkpool import LinkPoolDialog
-        if G.mw_linkpool_window is None:
-            G.mw_linkpool_window = LinkPoolDialog()
-            G.mw_linkpool_window.show()
-        else:
-            G.mw_linkpool_window.activateWindow()
-        pass
-
-    @staticmethod
-    def open_PDFprev(pdfuuid, pagenum, FROM):
-        from ..clipper2.lib.PDFprev import PDFPrevDialog
-        # print(FROM)
-        if isinstance(FROM, Reviewer):
-            card_id = FROM.card.id
-            pass
-        elif isinstance(FROM, BrowserPreviewer):
-            card_id = FROM.card().id
-            pass
-        elif isinstance(FROM, SingleCardPreviewerMod):
-            card_id = FROM.card().id
-        else:
-            TypeError("未能找到card_id")
-        card_id = str(card_id)
-
-        DB = G.DB
-        result = DB.go(DB.table_pdfinfo).select(uuid=pdfuuid).return_all().zip_up()[0]
-        DB.end()
-        pdfname = result.to_pdfinfo_data().pdf_path
-        pdfpageuuid = UUID.by_hash(pdfname + str(pagenum))
-        if card_id not in G.mw_pdf_prev:
-            G.mw_pdf_prev[card_id] = {}
-        if pdfpageuuid not in G.mw_pdf_prev[card_id]:
-            G.mw_pdf_prev[card_id][pdfpageuuid] = None
-        # print(f"pagenum={pagenum}")
-        # print(f"all_objs.mw_pdf_prev[card_id][pdfpageuuid]={all_objs.mw_pdf_prev[card_id][pdfpageuuid]}")
-        if isinstance(G.mw_pdf_prev[card_id][pdfpageuuid], PDFPrevDialog):
-            G.mw_pdf_prev[card_id][pdfpageuuid].activateWindow()
-        else:
-            ratio = 1
-            G.mw_pdf_prev[card_id][pdfpageuuid] = \
-                PDFPrevDialog(pdfuuid=pdfuuid, pdfname=pdfname, pagenum=pagenum, pageratio=ratio, card_id=card_id)
-            G.mw_pdf_prev[card_id][pdfpageuuid].show()
-
-        pass
-
-    @staticmethod
-    def open_custom_cardwindow(card: Union[Card, str, int]):
-        if isinstance(card, str):
-            card = mw.col.get_card(CardId(int(card)))
-        elif isinstance(card, int):
-            card = mw.col.get_card(CardId(card))
-        from ..bilink.dialogs.custom_cardwindow import external_card_dialog
-        external_card_dialog(card)
-        pass
-
-    @staticmethod
-    def open_support():
-        from .widgets import SupportDialog
-        p = SupportDialog()
-        p.exec()
-
-    @staticmethod
-    def open_contact():
-        QDesktopServices.openUrl(QUrl(G.src.path.groupSite))
-
-    @staticmethod
-    def open_link_storage_folder():
-        open_file(G.src.path.user)
-
-    @staticmethod
-    def open_repository():
-        QDesktopServices.openUrl(QUrl(G.src.path.helpSite))
-
-    @staticmethod
-    def open_version():
-        from ..bilink import dialogs
-        p = dialogs.version.VersionDialog()
-        p.exec()
-
-    @staticmethod
-    def open_tag_chooser(pair_li: "list[G.objs.LinkDataPair]"):
-        # a=[tag for tag in mw.col.tags.rename(old,new) ]
-        # a=mw.col.getCard(CardId(1627994892490)).note().tags
-        # write_to_log_file(a.__str__())
-        from . import widgets
-        p = widgets.tag_chooser(pair_li)
-        p.exec()
-        pass
-
-    @staticmethod
-    def open_deck_chooser(pair_li: "list[G.objs.LinkDataPair]"):
-        from . import widgets
-        p = widgets.deck_chooser(pair_li)
-        p.exec()
-        tooltip("完成")
-
-        pass
-
-
-class UUID:
-    @staticmethod
-    def by_random(length=8):
-        myid = str(uuid.uuid4())[0:length]
-        return myid
-
-    @staticmethod
-    def by_hash(s):
-        return str(uuid.uuid3(uuid.NAMESPACE_URL, s))
-
-
 def event_handle_connect(event_dict):
     for event, handle in event_dict.items():
         event.connect(handle)
@@ -843,10 +940,10 @@ def config_check_update():
     else:
         user = {}
 
-    if "VERSION" not in user or config.base.VERSION != user["VERSION"]:
+    if "VERSION" not in user or G.src.ADDON_VERSION != user["VERSION"]:
         need_update = True
-        user["VERSION"] = config.base.VERSION
-        template["VERSION"] = config.base.VERSION
+        user["VERSION"] = G.src.ADDON_VERSION
+        template["VERSION"] = G.src.ADDON_VERSION
         for key, value in template.items():
             if key not in user:
                 user[key] = value
@@ -980,3 +1077,13 @@ def data_crashed_report(data):
 
 
 CardId = Compatible.CardId()
+log = logger(__name__)
+
+
+class LOG:
+    logger = logger(__name__)
+    file_write = write_to_log_file
+    @staticmethod
+    def file_clear():
+        f=open(G.src.path.logtext,"w",encoding="utf-8")
+        f.write("")
