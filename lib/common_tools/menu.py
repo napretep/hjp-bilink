@@ -53,7 +53,7 @@ def get_browser_menu(browser: "Browser"):
 
 
 def get_mainWin_menu():
-    M: "QMenu" = QMenu(G.src.addon_name)
+    M: "QMenu" = QMenu(G.src.addon_name+"_v"+G.src.ADDON_VERSION)
     mw.__dict__[G.src.dialog_name] = M
     mw.menuBar().addMenu(M)
     # showInfo(M.__str__())
@@ -239,11 +239,11 @@ def make__open_grapher(atype, *args, **kwargs):
             name = "在grapher中打开卡片"
             M.addAction(prefix+name).triggered.connect(lambda:funcs.Dialogs.open_grapher(pairs_li))
 
-def make__current_version(atype, *args, **kwargs):
-    if atype in {T.mainwin}:
-        M:"QMenu" = mw.__dict__[G.src.dialog_name]
-
-        M.addAction(f"hjp_bilink 当前版本：{G.src.config.user.VERSION}")
+# def make__current_version(atype, *args, **kwargs):
+#     if atype in {T.mainwin}:
+#         M:"QMenu" = mw.__dict__[G.src.dialog_name]
+#
+#         M.addAction(f"hjp_bilink 当前版本：{G.src.config.user.VERSION}")
 
 make_list = [globals()[name] for name in globals() if name.startswith("make__")]
 
