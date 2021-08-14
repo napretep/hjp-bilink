@@ -395,6 +395,9 @@ class DB_admin(object):
 
     @staticmethod
     def IN(colname, *value):
+        """
+        *value: 多个值
+        """
         Q = ("?," * len(value))[:-1]
         string = colname + f" IN ({Q}) "
         return DB_admin.BOX(string, list(value))

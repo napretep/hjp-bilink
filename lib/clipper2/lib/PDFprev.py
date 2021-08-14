@@ -243,6 +243,7 @@ class PDFPrevDialog(QDialog):
                                        where=DB.EQ(uuid=self.pdfuuid)).commit()
         pdf_path = DB.select(uuid=self.pdfuuid).return_all().zip_up()[0].to_pdfinfo_data().pdf_path
         pdfpageuuid = tools.funcs.uuid_hash_make(pdf_path + str(self.pagenum))
+        self.bottom_toolsbar.close()
         if not __name__ == "__main__":
             common_tools.G.mw_pdf_prev[str(self.card_id)][pdfpageuuid] = None
 

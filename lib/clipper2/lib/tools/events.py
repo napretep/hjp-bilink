@@ -77,6 +77,7 @@ class RightSideBarButtonGroupEvent(BaseEvent):
         correct = 4
         clearView = 5
         hideRighsidebar = 6
+        macro = 7
 
     defaultType = _type()
 

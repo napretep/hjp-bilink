@@ -177,6 +177,10 @@ class Clipper(QDialog):
             self.E.clipbox_insert_card_worker.start()
             pass
 
+        elif event.type == event.defaultType.macro:
+            objs.macro.on_switch.emit()
+            self.rightsidebar.macro_switch()
+
     def on_righsidebar_cardlist_delButton_clicked_handle(self):
         indexli = self.rightsidebar.cardlist.view.selectedIndexes()
         if len(indexli) == 0:
@@ -826,6 +830,11 @@ class Clipper(QDialog):
                 else:
                     self.buttonPanel.widget_button_QA.setText("Q")
                     self.buttonPanel.widget_button_QA.setIcon(QIcon(objs.SrcAdmin.imgDir.question))
+        def macro_switch(self):
+            if objs.macro.state == objs.macro.runningState:
+                self.buttonPanel.widget_button_macro.setIcon(QIcon(objs.SrcAdmin.imgDir.robot_red))
+            else:
+                self.buttonPanel.widget_button_macro.setIcon(QIcon(objs.SrcAdmin.imgDir.robot_black))
 
         def init_UI(self):
             self.V_layout = QVBoxLayout()
@@ -1118,6 +1127,7 @@ class Clipper(QDialog):
                 self.widget_button_config = QToolButton(self)
                 self.widget_button_resetRatio = QToolButton(self)
                 self.widget_button_clearView = QToolButton(self)
+                self.widget_button_macro = QToolButton(self)
                 e = events.RightSideBarButtonGroupEvent
 
                 imgDir = objs.SrcAdmin.imgDir
@@ -1133,8 +1143,10 @@ class Clipper(QDialog):
                                  "视图布局重置\nview relayout"),
                                 (self.widget_button_config, 5, imgDir.config, e.defaultType.config,
                                  "配置选项\nset configuration"),
-                                (self.widget_button_confirm, 6, imgDir.correct, e.defaultType.correct,
+                                (self.widget_button_confirm, 7, imgDir.correct, e.defaultType.correct,
                                  "开始插入clipbox的任务\nBegin the task of inserting Clipbox"),
+                                (self.widget_button_macro,6,imgDir.robot_black,e.defaultType.macro,
+                                 "启动或暂停宏\nstart or stop macro")
                                 ]
                 self.buttondatali = [self.ButtonData(*data) for data in buttoninfoli]
                 self.widget_button_QA.setText("Q")

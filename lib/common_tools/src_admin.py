@@ -93,6 +93,8 @@ class SrcAdmin:
             self.list = os.path.join(self.root.path.resource_icon, "icon_list.png")
             self.box = os.path.join(self.root.path.resource_icon, "icon_box.png")
             self.tag = os.path.join(self.root.path.resource_icon, "icon_tag.png")
+            self.robot_black = os.path.join(self.root.path.resource_icon,"icon_robot_black.png")
+            self.robot_red = os.path.join(self.root.path.resource_icon,"icon_robot_red.png")
 
     @dataclasses.dataclass
     class _ShortCut:

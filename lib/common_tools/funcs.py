@@ -733,9 +733,11 @@ def HTML_clipbox_sync_check(card_id, root):
     # print(
     #     f"card_id={card_id},clipbox_from_DB={clipbox_from_DB}, clipbox_from_field={clipbox_from_field}, DBADD={DBadd}.  DBdel={DBdel}")
     if len(DBadd) > 0:
-        DB.add_card_id(DB.where_maker(IN=True, colname="uuid", vals=DBadd), card_id)
+        # DB.add_card_id(DB.where_maker(IN=True, colname="uuid", vals=DBadd), card_id)
+        DB.add_card_id(DB.IN("uuid",*DBadd),card_id)
     if len(DBdel) > 0:
-        DB.del_card_id(DB.where_maker(IN=True, colname="uuid", vals=DBdel), card_id)
+        # DB.del_card_id(DB.where_maker(IN=True, colname="uuid", vals=DBdel), card_id)
+        DB.del_card_id(DB.IN("uuid",*DBdel),card_id)
     DB.end()
     pass
 
