@@ -17,37 +17,37 @@ def version_cmpkey(path):
     return objs.AddonVersion(v_tuple)
 
 
-def config_check_update():
-    """
-    更新配置文件
-
-    Returns:
-
-    """
-    need_update = False
-    config = src.config
-    user_config_dir = src.path.userconfig
-    template = config.template.get_config
-    if os.path.isfile(user_config_dir) and os.path.exists(user_config_dir):
-        user = config.user.get_config
-    else:
-        user = {}
-
-    if "VERSION" not in user or config.base.VERSION != user["VERSION"]:
-        need_update = True
-        user["VERSION"] = config.base.VERSION
-        template["VERSION"] = config.base.VERSION
-        for key, value in template.items():
-            if key not in user:
-                user[key] = value
-        usercopy = user.copy()
-        for key, value in usercopy.items():
-            if key not in template:
-                user.__deleteitem__(key)
-    if need_update:
-        json.dump(user, open(user_config_dir, "w", encoding="utf-8"), indent=4,
-                  ensure_ascii=False)
-    return need_update
+# def config_check_update():
+#     """
+#     更新配置文件
+#
+#     Returns:
+#
+#     """
+#     need_update = False
+#     config = src.config
+#     user_config_dir = src.path.userconfig
+#     template = config.template.get_config
+#     if os.path.isfile(user_config_dir) and os.path.exists(user_config_dir):
+#         user = config.user.get_config
+#     else:
+#         user = {}
+#
+#     if "VERSION" not in user or config.base.VERSION != user["VERSION"]:
+#         need_update = True
+#         user["VERSION"] = config.base.VERSION
+#         template["VERSION"] = config.base.VERSION
+#         for key, value in template.items():
+#             if key not in user:
+#                 user[key] = value
+#         usercopy = user.copy()
+#         for key, value in usercopy.items():
+#             if key not in template:
+#                 user.__deleteitem__(key)
+#     if need_update:
+#         json.dump(user, open(user_config_dir, "w", encoding="utf-8"), indent=4,
+#                   ensure_ascii=False)
+#     return need_update
 
 
 def note_get(card_id):

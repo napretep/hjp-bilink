@@ -34,7 +34,7 @@ class PagePicker(QDialog):
         self.E.pagepicker.browser.worker.start()
         self.signals = self.E.signals
         self.setUpdatesEnabled(True)
-        self.setFixedWidth(1300)
+        self.setFixedWidth(1000)
         self.setFixedHeight(700)
         self.browser = self.Browser(parent=self, superior=self, root=self.root)
         self.previewer = self.Previewer(parent=self, superior=self, root=self.root)
