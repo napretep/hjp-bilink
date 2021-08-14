@@ -506,6 +506,7 @@ class Clipper(QDialog):
         self.E.rightsidebar.cardlist.curr_selected_uuid = None
         self.clearView()
         self.allevent.unbind()
+        objs.macro.stop()
         from ...common_tools import G
         G.signals.on_clipper_closed.emit()
         # self.signals.on_clipper_closed.emit()

@@ -152,7 +152,7 @@ class CardOperation:
             if mw.col.models.have(model_id):
                 model = mw.col.models.get(model_id)
             else:
-                showInfo(f"modelId don't exist:{model_id}")
+                tooltip(f"modelId don't exist:{model_id}")
                 if failed_callback:
                     failed_callback()
 
@@ -161,7 +161,7 @@ class CardOperation:
             deck_id = mw.col.decks.current()["id"]
         else:
             if not mw.col.decks.have(deck_id):
-                showInfo(f"deck_id don't exist:{deck_id}")
+                tooltip(f"deck_id don't exist:{deck_id}")
         mw.col.add_note(note, deck_id=deck_id)
         note.flush()
         return str(note.card_ids()[0])

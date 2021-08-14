@@ -20,14 +20,6 @@
       [
         1,
         1
-      ],
-      [
-        0,
-        0
-      ],
-      [
-        1,
-        1
       ]
     ]
   },
@@ -59,7 +51,7 @@
     "value": 0
   },
   "pagepicker.bottombar_default_path": {
-    "value": "D:\\备份盘\\经常更新\\数学书大全\\不等式"
+    "value": ""
   },
   "pagepicker.bottombar_page_num": {
     "value": 0

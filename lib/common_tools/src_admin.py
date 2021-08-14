@@ -14,7 +14,7 @@ from aqt.utils import tooltip
 
 
 class SrcAdmin:
-    ADDON_VERSION="2.0.1"
+    ADDON_VERSION="2.0.2"
     addon_name = "hjp_bilink"
     dialog_name = "hjp_bilink_dialog"
 

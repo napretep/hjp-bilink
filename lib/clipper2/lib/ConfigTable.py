@@ -582,6 +582,7 @@ class ConfigTable(QDialog):
                 for k, v in widget.items():
                     d[k]["value"] = v
             self.root.E.config.save_data()
+            self.root.E.signals.on_config_changed.emit()
 
 
 class WestTabBar(QTabBar):
