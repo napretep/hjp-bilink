@@ -210,8 +210,9 @@ class Entity:
         class PageItemContainer:
             def __init__(self):
                 from .Clipper import Clipper
-                def append_data(caller: "Clipper", pageitem: "Clipper.PageItem"):
-                    funcs.caller_check(Clipper.addpage, caller, Clipper)
+                def append_data(caller: "Clipper", pageitem: "Clipper.PageItem",must=True):
+                    if must:
+                        funcs.caller_check(Clipper.addpage, caller, Clipper)
 
                     pdfuuid = funcs.uuid_hash_make(pageitem.pageinfo.pdf_path)
                     pagenum = pageitem.pageinfo.pagenum
@@ -222,8 +223,9 @@ class Entity:
                     self._pageBased_data[pdfuuid][pagenum].append(pageitem)
                     self._uuidBased_data[pageitem.uuid] = pageitem
 
-                def remove_data(caller: "Clipper", pageitem: "Clipper.PageItem"):
-                    funcs.caller_check(Clipper.delpage, caller, Clipper)
+                def remove_data(caller: "Clipper", pageitem: "Clipper.PageItem",must=True):
+                    if must:
+                        funcs.caller_check(Clipper.delpage, caller, Clipper)
                     del self._uuidBased_data[pageitem.uuid]
                     pdfuuid = funcs.uuid_hash_make(pageitem.pageinfo.pdf_path)
                     pagenum = pageitem.pageinfo.pagenum
@@ -234,11 +236,16 @@ class Entity:
                     self._pageBased_data = OrderedDict()
                     self._uuidBased_data = OrderedDict()
 
+                # def change_data(caller: "Clipper", pageitem: "Clipper.PageItem"):
+                #     funcs.caller_check(Clipper.on_pageItem_addToScene_handle, caller, Clipper)
+                #
+
                 self._uuidBased_data: "OrderedDict[str,Clipper.PageItem]" = OrderedDict()
                 self._pageBased_data = OrderedDict()
                 self.append_data = append_data
                 self.remove_data = remove_data
                 self.clear_data = clear_data
+                # self.change_data = change_data
 
             @property
             def uuidBased_data(self):

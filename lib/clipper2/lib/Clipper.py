@@ -13,7 +13,7 @@ from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QThread, QPointF, QPoint, QRectF, QPersistentModelIndex, QModelIndex, \
     QLineF, QItemSelection, QItemSelectionModel
 from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem, QPixmap, QPen, QColor, QBrush, QPainterPathStroker, \
-    QPainterPath, QKeySequence, QFont
+    QPainterPath, QKeySequence, QFont, QPainter
 from PyQt5.QtWidgets import QDialog, QWidget, QGraphicsScene, QGraphicsView, QToolButton, QHBoxLayout, QApplication, \
     QVBoxLayout, QGridLayout, QTreeView, QLabel, QHeaderView, QAbstractItemView, QGraphicsItem, QGraphicsRectItem, \
     QGraphicsWidget, QGraphicsPixmapItem, QGraphicsSceneMouseEvent, QGraphicsGridLayout, QGraphicsProxyWidget, \
@@ -289,8 +289,10 @@ class Clipper(QDialog):
         elif event.type == event.defaultType.changePage:
             pageitem: "Clipper.PageItem" = event.sender
             data: "objs.PageInfo" = event.data
+            self.E.pdfview.pageitem_container.remove_data(self,pageitem,must=False)
             self.changepage(pageitem, data)
-            QTimer.singleShot(100, lambda: self.pdfview.centerOn(item=pageitem))
+            self.E.pdfview.pageitem_container.append_data(self,pageitem,must=False)
+            # QTimer.singleShot(100, lambda: self.pdfview.centerOn(item=pageitem))
             pass
 
     def addpage(self, pageitem: "Clipper.PageItem" = None, pdf_path=None, page_num=None, ratio=None):
@@ -568,11 +570,11 @@ class Clipper(QDialog):
             self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
             self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
             # self.verticalScrollBar().setRange(0,10)
-            # self.setRenderHints(QPainter.Antialiasing |  # 抗锯齿
-            #                     QPainter.HighQualityAntialiasing |  # 高精度抗锯齿
-            #                     QPainter.SmoothPixmapTransform)  # 平滑过渡 渲染设定
+            self.setRenderHints(QPainter.Antialiasing |  # 抗锯齿
+                                QPainter.HighQualityAntialiasing |  # 高精度抗锯齿
+                                QPainter.SmoothPixmapTransform)  # 平滑过渡 渲染设定
             self.setCacheMode(self.CacheBackground)  # 缓存背景图, 这个东西用来优化性能
-            self.setViewportUpdateMode(self.SmartViewportUpdate)  # 智能地更新视口的图
+            self.setViewportUpdateMode(self.FullViewportUpdate)
             self.setDragMode(self.ScrollHandDrag)
             self.setCursor(Qt.ArrowCursor)
             self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
@@ -1248,13 +1250,14 @@ class Clipper(QDialog):
 
         def on_widget_button_recover_clicked_handle(self):
             e = events.PageItemResizeEvent
-            self.signals.on_pageItem_resize_event.emit(e(type=e.defaultType.recover, center=e.centertype.item_center))
+            self.on_pageItem_resize_event_handle(e(type=e.defaultType.recover, center=e.centertype.item_center))
             pass
 
         def on_widget_button_fullscreen_clicked_handle(self):
             e = events.PageItemResizeEvent
-            self.signals.on_pageItem_resize_event.emit(
-                e(type=e.defaultType.fullscreen, center=e.centertype.item_center))
+            # self.signals.on_pageItem_resize_event.emit(
+            #     e(type=e.defaultType.fullscreen, center=e.centertype.item_center))
+            self.on_pageItem_resize_event_handle(e(type=e.defaultType.fullscreen, center=e.centertype.item_center))
             pass
 
         def on_widget_button_prev_clicked_handle(self):
@@ -1319,6 +1322,7 @@ class Clipper(QDialog):
         def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
             self.setFlag(QGraphicsItem.ItemIsMovable, False)
             self.setFlag(QGraphicsItem.ItemIsSelectable, False)
+            super().mouseReleaseEvent(event)
 
         def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
             self.root.E.curr_selected_pageitem = self
@@ -1329,7 +1333,7 @@ class Clipper(QDialog):
                     self.setFlag(QGraphicsItem.ItemIsSelectable, True)
             else:
                 # self.toolsBar.setPos(event.pos())
-                super().mousePressEvent(event)
+
                 # self.setFlag(QGraphicsItem.ItemIsMovable, False)
                 # self.setFlag(QGraphicsItem.ItemIsSelectable, False)
                 if event.buttons() == Qt.MidButton:
@@ -1354,6 +1358,7 @@ class Clipper(QDialog):
             funcs.caller_check(Clipper.changepage, caller, Clipper)
             self.png_path = funcs.pixmap_page_load(data.pdf_path, data.pagenum, data.ratio)
             self.pageview.setPixmap(QPixmap(self.png_path))
+            self.pageview.zoom(self.ratio,center=self.pageview.nocenter)
             self.pageinfo = data
             self.toolsbar.update_from_pageinfo(self)
 
@@ -1395,11 +1400,11 @@ class Clipper(QDialog):
                 e = events.PageItemResizeEvent
                 if not self.is_fullscreen:
                     self.is_fullscreen = True
-                    self.superior.signals.on_pageItem_resize_event.emit(
+                    self.superior.on_pageItem_resize_event_handle(
                         e(type=e.defaultType.fullscreen, center=e.centertype.mousecenter))
                 else:
                     self.is_fullscreen = False
-                    self.superior.signals.on_pageItem_resize_event.emit(e(type=e.defaultType.recover))
+                    self.superior.on_pageItem_resize_event_handle(e(type=e.defaultType.recover))
 
             def hoverEnterEvent(self, event: 'QGraphicsSceneHoverEvent') -> None:
                 self.mouse_center_pos_get(event.pos())
