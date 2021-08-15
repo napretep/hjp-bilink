@@ -168,7 +168,7 @@ class CardOperation:
 
     @staticmethod
     def clipbox_insert_field(clipuuid, timestamp=None):
-        """用于插入clipbox到指定的卡片字段"""
+        """用于插入clipbox到指定的卡片字段,如果这个字段存在这个clipbox则不做操作"""
 
         def bookmark_to_tag(bookmark: "list[list[int,str,int]]"):
             tag_dict = {}
@@ -289,7 +289,9 @@ class Media:
         pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2),
                                  clip=fitz.Rect(x0, y0, x1, y1))
         pngdir = os.path.join(mediafolder, f"""hjp_clipper_{clipbox.uuid}_.png""")
+        write_to_log_file(pngdir+"\n"+f"w={pixmap.width} h={pixmap.height}")
         if os.path.exists(pngdir):
+            # showInfo("截图已更新")
             os.remove(pngdir)
         pixmap.save(pngdir)
 
@@ -725,7 +727,7 @@ def HTML_clipbox_sync_check(card_id, root):
     clipbox_from_DB_ = DB.go(DB.table_clipbox).select(DB.LIKE("card_id", f"%{card_id}%")).return_all().zip_up()
     clipbox_from_DB = set([clipbox["uuid"] for clipbox in clipbox_from_DB_])
     # 选取 clipbox from field
-    fields = "\n".join(mw.col.getCard(int(card_id)).note().fields)
+    fields = "\n".join(mw.col.getCard(CardId(int(card_id))).note().fields)
     clipbox_from_field = set(HTML_clipbox_uuid_get(fields))
     # 多退少补,
     DBadd = clipbox_from_field - clipbox_from_DB

@@ -178,17 +178,18 @@ class Clipper(QDialog):
             pass
 
         elif event.type == event.defaultType.macro:
-            objs.macro.on_switch.emit()
+
             self.rightsidebar.macro_switch()
 
     def on_righsidebar_cardlist_delButton_clicked_handle(self):
         indexli = self.rightsidebar.cardlist.view.selectedIndexes()
         if len(indexli) == 0:
             return
-        else:
-            index = indexli[0]
+        index = indexli[0]
         item: "Clipper.RightSideBar.CardList.DescItem" = self.rightsidebar.cardlist.model.itemFromIndex(index)
         self.delCard(item.uuid)
+        if self.rightsidebar.cardlist.model.rowCount()>0:
+            self.rightsidebar.selectRow(index.row()-1,self.rightsidebar.cardlist.model,self.rightsidebar.cardlist.view)
 
     def on_cardlist_selectionChanged_handle(self, selected: "QItemSelection", deselected: "QItemSelection"):
         # print(selected)
@@ -469,7 +470,7 @@ class Clipper(QDialog):
         objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_Q), self,
                               activated=lambda: signal.emit(e(type=e.defaultType.setQ)))
         objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_M), self,
-                              activated=lambda: signal.emit(e(type=e.defaultType.runmacro)))
+                              activated=self.rightsidebar.macro_switch)
         objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_P), self,
                               activated=lambda: signal.emit(e(type=e.defaultType.pausemacro)))
 
@@ -595,10 +596,19 @@ class Clipper(QDialog):
         def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
 
             if event.buttons() == Qt.RightButton:
+
                 self.setDragMode(QGraphicsView.RubberBandDrag)
                 self.superior.E.state.board.data_update()
                 self.superior.E.state.board.show()
-                # funcs.show_clipbox_state()
+                if self.itemAt(event.pos()):
+                    item = self.itemAt(event.pos())
+                    final_item = item if isinstance(item,Clipper.PageItem) else item.parentItem()
+                    self.root.E.curr_selected_pageitem=final_item
+                else:
+                    self.root.E.curr_selected_pageitem=None
+                    self.root.E.last_rubberBand_rect=None
+                tooltip(self.root.E.curr_selected_pageitem.__str__())
+
             super().mousePressEvent(event)
 
         def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
@@ -616,8 +626,8 @@ class Clipper(QDialog):
 
                 e = events.ClipboxCreateEvent
                 self.root.signals.on_clipbox_create.emit(e(sender=pageitem, rubberBandRect=QRectF(x, y, w, h)))
-                self.root.E.curr_selected_pageitem = None
-                self.root.E.last_rubberBand_rect = None
+            # self.root.E.curr_selected_pageitem = None
+            self.root.E.last_rubberBand_rect = None
 
             super().mouseReleaseEvent(event)
             self.setDragMode(QGraphicsView.ScrollHandDrag)
@@ -831,6 +841,7 @@ class Clipper(QDialog):
                     self.buttonPanel.widget_button_QA.setText("Q")
                     self.buttonPanel.widget_button_QA.setIcon(QIcon(objs.SrcAdmin.imgDir.question))
         def macro_switch(self):
+            objs.macro.on_switch_handle()
             if objs.macro.state == objs.macro.runningState:
                 self.buttonPanel.widget_button_macro.setIcon(QIcon(objs.SrcAdmin.imgDir.robot_red))
             else:
@@ -963,7 +974,7 @@ class Clipper(QDialog):
                 self.view.setDragDropMode(QAbstractItemView.InternalMove)
                 self.view.setDefaultDropAction(Qt.MoveAction)
                 self.view.setAcceptDrops(True)
-                self.view.setSelectionMode(QAbstractItemView.ExtendedSelection)
+                # self.view.setSelectionMode(QAbstractItemView.ExtendedSelection)
                 self.view.dropEvent = self.dropEvent
                 self.V_layout.addLayout(H_layout)
                 self.V_layout.addLayout(V_layout2)
@@ -1305,6 +1316,10 @@ class Clipper(QDialog):
                 self.setZValue(0)
             # super().paint(painter,option,widget)
 
+        def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+            self.setFlag(QGraphicsItem.ItemIsMovable, False)
+            self.setFlag(QGraphicsItem.ItemIsSelectable, False)
+
         def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
             self.root.E.curr_selected_pageitem = self
             modifiers = QApplication.keyboardModifiers()
@@ -1605,7 +1620,7 @@ class Clipper(QDialog):
             self.superior = superior
             self.root = root
 
-            self.uuid = funcs.clipbox_uuid_random_unique()
+            self.uuid = clipuuid if clipuuid else funcs.clipbox_uuid_random_unique()
             self.setParentItem(self.superior)
             # self.comment_label=self.CommentLabel(self)
             self.close = self.Close(self)
@@ -2196,7 +2211,7 @@ class ClipInsertCardWorker(QThread):
             if DB.exists(DB.EQ(uuid=record.uuid)):
                 old_record = DB.select(uuid=record.uuid).return_all().zip_up()[0].to_clipbox_data()
                 record.card_id = ",".join(set(old_record.card_id.split(",")) | set(record.card_id.split(",")))
-                DB.update(values=DB.VALUEEQ(**record.__dict__), where=DB.EQ(uuid=record.uuid))
+                DB.update(values=DB.VALUEEQ(**record.__dict__), where=DB.EQ(uuid=record.uuid)).commit()
             else:
                 DB.insert(**record.__dict__).commit()
             self.on_progress.emit(

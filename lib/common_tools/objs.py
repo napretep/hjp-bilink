@@ -553,24 +553,26 @@ class DB_admin(object):
             self.connection.close()
 
     def del_card_id(self, condition: "DB_admin.BOX", card_id, callback=None):
-        records = self.select(condition).return_all().zip_up()
-        uuidli = [item["uuid"] for item in records]
+        """使用的前提是在table_clipbox表中,目的是删掉对应clipbox已经不支持的卡片"""
+        records = self.select(condition).return_all().zip_up().to_clipbox_data()
+        # uuidli = [item["uuid"] for item in records]
         for r in records:
-            card_idlist: "list[str]" = list(filter(lambda x: x.isdecimal(), r["card_id"].split(",")))
+            card_idlist: "list[str]" = list(filter(lambda x: x.isdecimal(), r.card_id.split(",")))
             if card_id in card_idlist:
                 card_idlist.remove(card_id)
-            r["card_id"] = ",".join(card_idlist)
-            self.update(where=self.EQ(card_id=card_id), values=self.VALUEEQ(**r)).commit(callback=callback)
+            r.card_id = ",".join(card_idlist)
+            self.update(where=self.EQ(uuid=r.uuid), values=self.VALUEEQ(**r.to_dict())).commit(callback=callback)
 
     def add_card_id(self, condition: "DB_admin.BOX", card_id, callback=None):
-        records = self.select(condition).return_all().zip_up()
-        uuidli = [item["uuid"] for item in records]
+        """使用的前提是在table_clipbox表中,目的是增加对应clipbox没有支持的卡片"""
+        records = self.select(condition).return_all().zip_up().to_clipbox_data()
+        # uuidli = [item["uuid"] for item in records]
         for r in records:
-            card_idlist: "list[str]" = list(filter(lambda x: x.isdecimal(), r["card_id"].split(",")))
+            card_idlist: "list[str]" = list(filter(lambda x: x.isdecimal(), r.card_id.split(",")))
             if card_id not in card_idlist:
                 card_idlist.append(card_id)
-            r["card_id"] = ",".join(card_idlist)
-            self.update(where=self.EQ(card_id=card_id), values=self.VALUEEQ(**r)).commit(callback=callback)
+            r.card_id = ",".join(card_idlist)
+            self.update(where=self.EQ(uuid=r.uuid), values=self.VALUEEQ(**r.to_dict())).commit(callback=callback)
 
     # 存在性检查,如果为空则创建
     def table_ifEmpty_create(self):
@@ -851,6 +853,9 @@ class ClipboxRecord:
     pagenum: "int"
     pdfuuid: "str"
     comment: "str" = ""
+
+    def to_dict(self):
+        return self.__dict__.copy()
 
 
 if __name__ == "__main__":

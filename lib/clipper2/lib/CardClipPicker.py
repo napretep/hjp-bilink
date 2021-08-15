@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt, QSize, QRectF, QRect, QModelIndex
 from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem, QPixmap, QPainterPath, QPen, QColor
 from PyQt5.QtWidgets import QDialog, QApplication, QTableView, QGraphicsView, QWidget, QGridLayout, QToolButton, \
     QHBoxLayout, QLabel, QTreeView, QStyledItemDelegate, QStyleOptionViewItem, QStyle
-from aqt.utils import showInfo
+from aqt.utils import showInfo, tooltip
 
 if __name__ == '__main__':
     from lib.clipper2.lib.tools import objs, funcs, events, ALL
@@ -73,7 +73,7 @@ class CardClipboxPicker(QDialog):
         self.setLayout(self.g_layout)
 
     def on_widget_button_correct_clicked_handle(self):
-        """要插入clip,要先找是否存在page,存在则直接插入,不存在则创建page"""
+        """要插入clip,要先找是否存在page,存在则直接插入,不存在则创建page, 对于已经存在的clipbox,要剔除掉"""
         pageitem = None
         indexli = self.center_tree.view.selectedIndexes()
         level1dict = {}
@@ -91,6 +91,8 @@ class CardClipboxPicker(QDialog):
                 # 从这一层开始
                 for clip_idx in clip_idx_li:
                     clipuuid = clip_idx.data(role=Qt.DisplayRole)  # 根据uuid取出page信息
+                    if clipuuid in self.root.E.clipbox.container:
+                        continue
                     clipbox, pdfinfo = funcs.clip_and_pdf_info(clipuuid)
                     pdflist = self.root.E.pdfview.pageitem_container.pageBased_data[clipbox.pdfuuid][clipbox.pagenum]
                     if len(pdflist) == 0:
@@ -105,14 +107,15 @@ class CardClipboxPicker(QDialog):
             for c in clipboxli:
                 rect = funcs.recover_rect_from_ratio(c, pageitem.pageview.boundingRect())
                 self.root.addClipbox(pageitem.pageview, rect, clipuuid=c.uuid)
-        self.root.pdfview.centerOn(item=pageitem)
+
+            self.root.pdfview.centerOn(item=pageitem)
         self.close()
 
     def on_center_tree_view_doubleClicked_handle(self, index: "QModelIndex"):
         if index.data(Qt.UserRole) == self.center_tree.Item.API.clip:
             clipuuid = index.data(Qt.DisplayRole)
             if clipuuid in self.root.E.clipbox.container:
-                showInfo("选框已存在,不可重复添加\n clipbox already exists and cannot be added repeatedly")
+                tooltip("选框已存在,不可重复添加\n clipbox already exists and cannot be added repeatedly")
                 return
             e = events.PageItemAddToSceneEvent
             DB = objs.SrcAdmin.DB
@@ -124,6 +127,7 @@ class CardClipboxPicker(QDialog):
                 self.root.addpage(pdf_path=pdfinfo.pdf_path, page_num=clipbox.pagenum, ratio=clipbox.ratio)
                 pageitem: "Clipper.PageItem" = pageBased_data[clipbox.pdfuuid][clipbox.pagenum][-1]
             rect = funcs.recover_rect_from_ratio(clipbox, pageitem.pageview.boundingRect())
+            # if clipbox.uuid not in self.root.E.clipbox.container
             self.root.addClipbox(pageitem.pageview, rect, clipbox.uuid)
             self.root.pdfview.centerOn(item=pageitem)
             self.close()
