@@ -35,8 +35,7 @@ if __name__ == "__main__":
 else:
     from .fitz import fitz
     from . import tools
-    # from ..obj import tools, funcs, signals, events, all_objs, handles
-    # from ... import clipper2
+
     from ..imports import common_tools
 
     CardId = common_tools.funcs.Compatible.CardId()

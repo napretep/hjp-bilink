@@ -109,7 +109,7 @@ class ConfigTable(QDialog):
             self.tab_output = self.OutPutWidget(self, self.root)
             self.tab_clipbox = self.ClipboxWidget(self, self.root)
             self.tab_map = {
-                self.tab_viewlayout: "主视图/main view",
+                self.tab_viewlayout: "主视口/main viewport",
                 self.tab_pagepicker: "页面选取器/pagepicker",
                 self.tab_output: "输出预设/output preset",
                 self.tab_clipbox: "选框预设/clipbox preset"
@@ -363,7 +363,7 @@ class ConfigTable(QDialog):
                     self.A_widget: ["答案侧对应字段:\nfield that A-side will insert:"],
                     self.comment_Q_widget: ["评论问题侧对应字段:\nfield that comment-Q-side will insert:"],
                     self.comment_A_widget: ["评论答案侧对应字段:\nfield that comment-A-side will insert:"],
-                    self.newcard_deck_id_widget: ["新卡片插入的卡组\ndeck that new card will insert :"],
+                    self.newcard_deck_id_widget: ["新卡片插入的牌组\ndeck that new card will insert :"],
                     self.newcard_model_id_widget: ["新卡片使用的类型\nmodel that used by new card"],
                     self.macro_widget: ["宏\nmacro"]
                 }
@@ -522,6 +522,7 @@ class ConfigTable(QDialog):
 
                 def init_data(self, data):
                     rows = len(data)
+                    self.model.removeRows(0,self.model.rowCount())
                     for row in range(rows):
                         rowitem = [QStandardItem(str(row + 1))] + [QStandardItem(str(i)) for i in data[row]]
                         self.model.appendRow(rowitem)

@@ -11,7 +11,7 @@ from typing import Union
 import typing
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QThread, QPointF, QPoint, QRectF, QPersistentModelIndex, QModelIndex, \
-    QLineF, QItemSelection, QItemSelectionModel
+    QLineF, QItemSelection, QItemSelectionModel, QRect
 from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem, QPixmap, QPen, QColor, QBrush, QPainterPathStroker, \
     QPainterPath, QKeySequence, QFont, QPainter
 from PyQt5.QtWidgets import QDialog, QWidget, QGraphicsScene, QGraphicsView, QToolButton, QHBoxLayout, QApplication, \
@@ -178,8 +178,8 @@ class Clipper(QDialog):
             pass
 
         elif event.type == event.defaultType.macro:
+            objs.macro.on_switch_handle(callback=self.rightsidebar.macro_switch)
 
-            self.rightsidebar.macro_switch()
 
     def on_righsidebar_cardlist_delButton_clicked_handle(self):
         indexli = self.rightsidebar.cardlist.view.selectedIndexes()
@@ -472,9 +472,9 @@ class Clipper(QDialog):
         objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_Q), self,
                               activated=lambda: signal.emit(e(type=e.defaultType.setQ)))
         objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_M), self,
-                              activated=self.rightsidebar.macro_switch)
+                              activated=lambda : objs.macro.on_switch_handle(callback=self.rightsidebar.macro_switch))
         objs.NoRepeatShortcut(QKeySequence(Qt.CTRL + Qt.Key_P), self,
-                              activated=lambda: signal.emit(e(type=e.defaultType.pausemacro)))
+                              activated=lambda : objs.macro.on_pause_handle(callback=self.rightsidebar.macro_switch))
 
     def init_UI(self):
         self.setWindowIcon(QIcon(self.imgDir.clipper))
@@ -576,6 +576,7 @@ class Clipper(QDialog):
             self.setCacheMode(self.CacheBackground)  # 缓存背景图, 这个东西用来优化性能
             self.setViewportUpdateMode(self.FullViewportUpdate)
             self.setDragMode(self.ScrollHandDrag)
+
             self.setCursor(Qt.ArrowCursor)
             self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
 
@@ -611,6 +612,15 @@ class Clipper(QDialog):
                     self.root.E.last_rubberBand_rect=None
                 tooltip(self.root.E.curr_selected_pageitem.__str__())
 
+            # if event.buttons() == Qt.LeftButton:
+            #     if not event.modifiers() == Qt.ControlModifier:
+            #         self.setInteractive(False)
+            #         if self.itemAt(event.pos()):
+            #             item = self.itemAt(event.pos())
+            #             if not isinstance(item,Clipper.PageItem):
+            #                 item = item.parentItem()
+
+
             super().mousePressEvent(event)
 
         def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
@@ -619,6 +629,7 @@ class Clipper(QDialog):
             pass
 
         def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
+            self.setInteractive(True)
             self.superior.E.state.board.hide()
             if self.root.E.curr_selected_pageitem is not None and self.root.E.last_rubberBand_rect is not None:
                 pageitem: "Clipper.PageItem" = self.root.E.curr_selected_pageitem
@@ -843,9 +854,11 @@ class Clipper(QDialog):
                     self.buttonPanel.widget_button_QA.setText("Q")
                     self.buttonPanel.widget_button_QA.setIcon(QIcon(objs.SrcAdmin.imgDir.question))
         def macro_switch(self):
-            objs.macro.on_switch_handle()
+            # objs.macro.on_switch_handle()
             if objs.macro.state == objs.macro.runningState:
                 self.buttonPanel.widget_button_macro.setIcon(QIcon(objs.SrcAdmin.imgDir.robot_red))
+            elif objs.macro.state == objs.macro.pauseState:
+                self.buttonPanel.widget_button_macro.setIcon(QIcon(objs.SrcAdmin.imgDir.robot_green))
             else:
                 self.buttonPanel.widget_button_macro.setIcon(QIcon(objs.SrcAdmin.imgDir.robot_black))
 
@@ -1204,7 +1217,7 @@ class Clipper(QDialog):
             self.pageview = self.PageView(superior=self, root=self.root)
             self.toolsbar = self.ToolsBar(superior=self, root=self.root)
             self.setAcceptHoverEvents(True)
-            self.setFlag(QGraphicsItem.ItemIsSelectable, False)
+            # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
             self.setFlag(QGraphicsItem.ItemIsFocusable, True)
             self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
             self.events = objs.AllEventAdmin({
@@ -1317,11 +1330,10 @@ class Clipper(QDialog):
             else:
                 self.toolsbar.hide()
                 self.setZValue(0)
-            # super().paint(painter,option,widget)
 
         def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
             self.setFlag(QGraphicsItem.ItemIsMovable, False)
-            self.setFlag(QGraphicsItem.ItemIsSelectable, False)
+            # self.setFlag(QGraphicsItem.ItemIsSelectable, False)
             super().mouseReleaseEvent(event)
 
         def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
@@ -1330,12 +1342,8 @@ class Clipper(QDialog):
             if (event.modifiers() & Qt.ControlModifier):
                 if event.button() == Qt.LeftButton:
                     self.setFlag(QGraphicsItem.ItemIsMovable, True)
-                    self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+                    # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
             else:
-                # self.toolsBar.setPos(event.pos())
-
-                # self.setFlag(QGraphicsItem.ItemIsMovable, False)
-                # self.setFlag(QGraphicsItem.ItemIsSelectable, False)
                 if event.buttons() == Qt.MidButton:
                     pass  # 本来这里有一个全屏功能,删掉了.
                 elif event.button() == Qt.RightButton:  # 了解当前选中的是哪个pageitem,因为我之前已经取消了selectable功能,

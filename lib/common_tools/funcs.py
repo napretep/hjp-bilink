@@ -169,7 +169,7 @@ class CardOperation:
     @staticmethod
     def clipbox_insert_field(clipuuid, timestamp=None):
         """用于插入clipbox到指定的卡片字段,如果这个字段存在这个clipbox则不做操作"""
-
+        from ..clipper2.exports import fitz
         def bookmark_to_tag(bookmark: "list[list[int,str,int]]"):
             tag_dict = {}
             if len(bookmark) == 0:
@@ -200,7 +200,7 @@ class CardOperation:
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         card_id_li = clipbox.card_id.split(",")
         for card_id in card_id_li:
-            from ..clipper2.exports import fitz
+
             pdfinfo_ = DB.select(uuid=clipbox.pdfuuid).return_all().zip_up()[0]
             pdfinfo = G.objs.PDFinfoRecord(**pdfinfo_)
             pdfname = os.path.basename(pdfinfo.pdf_path)
@@ -518,8 +518,12 @@ class Dialogs:
 
     @staticmethod
     def open_clipper(pairs_li=None, clipboxlist=None, **kwargs):
-        from . import G
-        from ..clipper2.lib.Clipper import Clipper
+        if platform.system() in {"Darwin", "Linux"}:
+            tooltip("当前系统暂时不支持PDFprev")
+            return
+        else:
+            from . import G
+            from ..clipper2.lib.Clipper import Clipper
         # log.debug(G.mw_win_clipper.__str__())
         if not isinstance(G.mw_win_clipper, Clipper):
             G.mw_win_clipper = Clipper()
@@ -545,7 +549,11 @@ class Dialogs:
 
     @staticmethod
     def open_PDFprev(pdfuuid, pagenum, FROM):
-        from ..clipper2.lib.PDFprev import PDFPrevDialog
+        if platform.system() in {"Darwin","Linux"}:
+            tooltip("当前系统暂时不支持PDFprev")
+            return
+        else:
+            from ..clipper2.lib.PDFprev import PDFPrevDialog
         # print(FROM)
         if isinstance(FROM, Reviewer):
             card_id = FROM.card.id

@@ -435,17 +435,21 @@ class Macro(QObject):
     def pause(self):
         self.state = self.pauseState
 
-    def on_pause_handle(self):
+    def on_pause_handle(self,callback=None):
         if self.state == self.pauseState:
             self.state = self.runningState
         elif self.state == self.runningState:
             self.state = self.pauseState
+        if callback:
+            callback()
 
-    def on_switch_handle(self):
+    def on_switch_handle(self,callback=None):
         if self.state == self.stopState:
             self.start(CONFIG.clipbox.macro)
         elif self.state == self.runningState:
             self.stop()
+        if callback:
+            callback()
 
 
 @dataclasses.dataclass
