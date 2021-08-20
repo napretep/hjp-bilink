@@ -53,14 +53,14 @@ class LinkPoolDialog(QDialog):
         self.fileWatcher = QFileSystemWatcher()
         self.fileWatcher.addPath(common_tools.G.src.path.linkpool_file)
         # .connect(self.model_dataobj_load)
-        self.allevent = common_tools.objs.AllEventAdmin({
-            self.model.dataChanged: self.on_model_data_changed_handle,
-            self.fileWatcher.fileChanged: self.on_file_changed_handle,
-            self.tag.widget.textChanged: self.on_model_data_changed_handle,
-            self.view.doubleClicked: self.on_view_doubleclicked_handle,
-            self.view.clicked: self.on_view_clicked_handle,
-            self.view.customContextMenuRequested: self.on_view_show_context_menu,
-        }).bind()
+        self.allevent = common_tools.objs.AllEventAdmin([
+            [self.model.dataChanged, self.on_model_data_changed_handle],
+            [self.fileWatcher.fileChanged, self.on_file_changed_handle],
+            [self.tag.widget.textChanged, self.on_model_data_changed_handle],
+            [self.view.doubleClicked, self.on_view_doubleclicked_handle],
+            [self.view.clicked, self.on_view_clicked_handle],
+            [self.view.customContextMenuRequested, self.on_view_show_context_menu],
+        ]).bind()
         self.view.dropEvent = self.on_view_drop
 
     def on_view_doubleclicked_handle(self, index):

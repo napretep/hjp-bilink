@@ -41,23 +41,23 @@ class PagePicker(QDialog):
         self.bookmark = self.BookMark(parent=self, superior=self, root=self.root)
         self.toolsbar = self.ToolsBar(parent=self, superior=self, root=self.root)
         self.init_UI()
-        self.allevent = objs.AllEventAdmin({
-            self.E.signals.on_pagepicker_PDFopen: self.on_pagepicker_PDFopen_handle,
-            self.E.signals.on_pagepicker_PDFparse: self.on_pagepicker_PDFparse_handle,
-            self.toolsbar.widget_button_bookmark.clicked: self.on_widget_button_bookmark_clicked_handle,
-            self.toolsbar.widget_button_open.clicked: self.on_widget_button_open_clicked_handle,
-            self.toolsbar.widget_DBspinbox_ratio.valueChanged: self.on_widget_DBspinbox_ratio_valueChanged_handle,
-            self.toolsbar.widget_spinbox_pagejump.valueChanged: self.on_widget_spinbox_pagejump_valueChanged_handle,
-            self.toolsbar.widget_spinbox_pageoffset.valueChanged: self.on_widget_spinbox_pageoffset_valueChanged_handle,
-            self.toolsbar.widget_lineEdit_pagenum.textChanged: self.on_widget_lineEdit_pagenum_textChanged_handle,
-            self.toolsbar.widget_button_newPage.clicked: self.on_widget_button_newPage_clicked_handle,
-            self.E.signals.on_pagepicker_browser_loadframe: self.on_pagepicker_browser_loadframe_handle,
-            self.E.pagepicker.browser.worker.on_1_page_load: self.browser.on_1_page_load_handle,
-            self.E.signals.on_pagepicker_browser_select: self.on_pagepicker_browser_select_handle,
-            self.E.signals.on_pagepicker_preivewer_read_page: self.on_pagepicker_preivewer_read_page_handle,
-            self.bookmark.view.clicked: self.on_bookmark_view_clicked,
-            self.browser.view.verticalScrollBar().valueChanged: self.on_browser_view_verticalScrollBar_valueChanged_handle,
-        }).bind()
+        self.allevent = objs.AllEventAdmin([
+            [self.E.signals.on_pagepicker_PDFopen, self.on_pagepicker_PDFopen_handle],
+            [self.E.signals.on_pagepicker_PDFparse, self.on_pagepicker_PDFparse_handle],
+            [self.toolsbar.widget_button_bookmark.clicked, self.on_widget_button_bookmark_clicked_handle],
+            [self.toolsbar.widget_button_open.clicked, self.on_widget_button_open_clicked_handle],
+            [self.toolsbar.widget_DBspinbox_ratio.valueChanged, self.on_widget_DBspinbox_ratio_valueChanged_handle],
+            [self.toolsbar.widget_spinbox_pagejump.valueChanged, self.on_widget_spinbox_pagejump_valueChanged_handle],
+            [self.toolsbar.widget_spinbox_pageoffset.valueChanged, self.on_widget_spinbox_pageoffset_valueChanged_handle],
+            [self.toolsbar.widget_lineEdit_pagenum.textChanged, self.on_widget_lineEdit_pagenum_textChanged_handle],
+            [self.toolsbar.widget_button_newPage.clicked, self.on_widget_button_newPage_clicked_handle],
+            [self.E.signals.on_pagepicker_browser_loadframe, self.on_pagepicker_browser_loadframe_handle],
+            [self.E.pagepicker.browser.worker.on_1_page_load, self.browser.on_1_page_load_handle],
+            [self.E.signals.on_pagepicker_browser_select, self.on_pagepicker_browser_select_handle],
+            [self.E.signals.on_pagepicker_preivewer_read_page, self.on_pagepicker_preivewer_read_page_handle],
+            [self.bookmark.view.clicked, self.on_bookmark_view_clicked],
+            [self.browser.view.verticalScrollBar().valueChanged, self.on_browser_view_verticalScrollBar_valueChanged_handle],
+        ]).bind()
 
     def on_widget_button_newPage_clicked_handle(self):
         ratio = self.toolsbar.widget_DBspinbox_ratio.value()
@@ -608,10 +608,10 @@ class PagePicker(QDialog):
                 self.setFlag(QGraphicsItem.ItemIsSelectable, True)
                 self.setFlag(QGraphicsItem.ItemIsFocusable, True)
                 self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
-                self.events = {
-                    self.signals.on_pagepicker_browser_select: self.on_pagepicker_browser_select_handle
+                self.events = [
+                    [self.signals.on_pagepicker_browser_select,self.on_pagepicker_browser_select_handle]
 
-                }
+                ]
                 self.all_event = objs.AllEventAdmin(self.events)
                 self.all_event.bind()
 
@@ -1061,12 +1061,12 @@ class FrameLoadWorker(QThread):
         self.w = self.E.pagepicker.browser.worker
         self.b = self.E.pagepicker.browser
         self.p = self.E.pagepicker
-        self.all_event = objs.AllEventAdmin({
-            self.on_frame_load_begin: self.on_frame_load_begin_handle,
-            self.on_stop_load: self.on_stop_load_handle,
-            self.on_all_page_loaded: self.on_all_page_loaded_handle,
-            self.on_1_page_loaded: self.on_1_page_loaded_handle,
-        }).bind()
+        self.all_event = objs.AllEventAdmin([
+            [self.on_frame_load_begin, self.on_frame_load_begin_handle],
+            [self.on_stop_load, self.on_stop_load_handle],
+            [self.on_all_page_loaded, self.on_all_page_loaded_handle],
+            [self.on_1_page_loaded, self.on_1_page_loaded_handle],
+        ]).bind()
 
     def on_1_page_loaded_handle(self, _):
         self.ws.bussy = False

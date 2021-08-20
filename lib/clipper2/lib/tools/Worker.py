@@ -23,12 +23,12 @@ class FrameLoadWorker(QThread):
         self.w = self.E.pagepicker.browser.worker
         self.b = self.E.pagepicker.browser
         self.p = self.E.pagepicker
-        self.all_event = objs.AllEventAdmin({
-            self.on_frame_load_begin: self.on_frame_load_begin_handle,
-            self.on_stop_load: self.on_stop_load_handle,
-            self.on_all_page_loaded: self.on_all_page_loaded_handle,
-            self.on_1_page_loaded: self.on_1_page_loaded_handle,
-        }).bind()
+        self.all_event = objs.AllEventAdmin([
+            [self.on_frame_load_begin, self.on_frame_load_begin_handle],
+            [self.on_stop_load, self.on_stop_load_handle],
+            [self.on_all_page_loaded, self.on_all_page_loaded_handle],
+            [self.on_1_page_loaded, self.on_1_page_loaded_handle],
+        ]).bind()
 
     def on_1_page_loaded_handle(self, _):
         self.ws.bussy = False
@@ -100,12 +100,12 @@ class FrameLoadWorker2(QThread):
         # self.sleepgap = 0.01
         self.do = False
         self.bussy = False
-        self.all_event = objs.AllEventAdmin({
-            self.on_frame_load_begin: self.on_frame_load_begin_handle,
-            self.on_stop_load: self.on_stop_load_handle,
-            self.on_all_page_loaded: self.on_all_page_loaded_handle,
-            self.on_1_page_loaded: self.on_1_page_loaded_handle,
-        }).bind()
+        self.all_event = objs.AllEventAdmin([
+            [self.on_frame_load_begin, self.on_frame_load_begin_handle],
+            [self.on_stop_load, self.on_stop_load_handle],
+            [self.on_all_page_loaded, self.on_all_page_loaded_handle],
+            [self.on_1_page_loaded, self.on_1_page_loaded_handle],
+        ]).bind()
 
     def sleepgap(self):
         gap = 1
@@ -218,7 +218,7 @@ class MainWindowPageLoadWorker(QThread):
             raise ValueError("signal_sequence 的元素必须是 3个数组")
         self.signal_func_dict = signal_func_dict
         self.pdf_page_list = pdf_page_list
-        self.event_dict = {}
+        self.event_dict = []
         for k, v in self.signal_func_dict.items():
             if len(v) != 3:
                 raise ValueError("signal_func_dict 的value必须是长度为3的数组")

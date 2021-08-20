@@ -32,9 +32,9 @@ class CardClipboxPicker(QDialog):
         self.g_layout = QGridLayout(self)
         self.init_UI()
         # self.collect_info()
-        self.all_event = objs.AllEventAdmin({
-            self.center_tree.view.doubleClicked: self.on_center_tree_view_doubleClicked_handle,
-        }).bind()
+        self.all_event = objs.AllEventAdmin([
+            [self.center_tree.view.doubleClicked, self.on_center_tree_view_doubleClicked_handle],
+        ]).bind()
 
     # 先做好基础的数据收集, card_id对应的clipbox卡片和pdfuuid地址
     def collect_info(self):
@@ -291,9 +291,9 @@ class CardClipboxPicker(QDialog):
                                             "Double-click to add directly.\n"
                                             "If to select more, click button to add →", parent=self)
             self.init_UI()
-            self.all_event = objs.AllEventAdmin({
-                self.widget_button_correct.clicked: self.superior.api.on_widget_button_correct_clicked_handle,
-            }).bind()
+            self.all_event = objs.AllEventAdmin([
+                [self.widget_button_correct.clicked, self.superior.api.on_widget_button_correct_clicked_handle],
+            ]).bind()
 
         def init_UI(self):
             h_box = QHBoxLayout(self)

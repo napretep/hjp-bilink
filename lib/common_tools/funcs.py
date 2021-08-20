@@ -169,7 +169,11 @@ class CardOperation:
     @staticmethod
     def clipbox_insert_field(clipuuid, timestamp=None):
         """用于插入clipbox到指定的卡片字段,如果这个字段存在这个clipbox则不做操作"""
-        from ..clipper2.exports import fitz
+        if platform.system() in {"Darwin","Linux"}:
+            tooltip("当前系统暂时不支持该功能")
+            return
+        else:
+            from ..clipper2.exports import fitz
         def bookmark_to_tag(bookmark: "list[list[int,str,int]]"):
             tag_dict = {}
             if len(bookmark) == 0:
@@ -271,7 +275,11 @@ class CardOperation:
 class Media:
     @staticmethod
     def clipbox_png_save(clipuuid):
-        from ..clipper2.exports import fitz
+        if platform.system() in {"Darwin","Linux"}:
+            tooltip("当前系统暂时不支持该功能")
+            return
+        else:
+            from ..clipper2.exports import fitz
         mediafolder = os.path.join(mw.pm.profileFolder(), "collection.media")
         DB = G.DB
         clipbox_ = DB.go(DB.table_clipbox).select(uuid=clipuuid).return_all().zip_up()[0]
@@ -372,10 +380,10 @@ class LinkPoolOperation:
             LinkPoolOperation.insert(pair_li, mode=LinkPoolOperation.M.before_clean, need_show=False)
         G.mw_progresser = widgets.UniversalProgresser()
         G.mw_universal_worker = LinkPoolOperation.LinkWorker(mode=mode)
-        G.mw_universal_worker.allevent = G.objs.AllEventAdmin({
-            G.mw_universal_worker.on_quit: on_quit_handle,
-            G.mw_universal_worker.on_progress: G.mw_progresser.value_set,
-        }).bind()
+        G.mw_universal_worker.allevent = G.objs.AllEventAdmin([
+            [G.mw_universal_worker.on_quit, on_quit_handle],
+            [G.mw_universal_worker.on_progress, G.mw_progresser.value_set],
+        ]).bind()
         G.mw_universal_worker.start()
 
         # LinkPoolOperation.both_refresh()
@@ -904,13 +912,13 @@ def on_clipper_closed_handle():
     G.mw_win_clipper = None
 
 def event_handle_connect(event_dict):
-    for event, handle in event_dict.items():
+    for event, handle in event_dict:
         event.connect(handle)
     return event_dict
 
 
-def event_handle_disconnect(event_dict: "dict[pyqtSignal,callable]"):
-    for event, handle in event_dict.items():
+def event_handle_disconnect(event_dict: "list[list[pyqtSignal,callable]]"):
+    for event, handle in event_dict:
         try:
             # print(event.signal)
             event.disconnect(handle)

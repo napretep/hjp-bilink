@@ -41,12 +41,11 @@ class Grapher(QDialog):
         self.view.setScene(self.scene)
         self.init_UI()
         self.init_graph_item()
-        self.all_event = common_tools.objs.AllEventAdmin({
-            self.scene.selectionChanged:self.on_scene_selectionChanged_handle,
-            self.view.verticalScrollBar().valueChanged: self.on_view_verticalScrollBar_valueChanged_handle,
-            self.view.horizontalScrollBar().valueChanged: self.on_view_horizontalScrollBar_valueChanged_handle,
-
-        }).bind()
+        self.all_event = common_tools.objs.AllEventAdmin([
+            [self.scene.selectionChanged,self.on_scene_selectionChanged_handle],
+            [self.view.verticalScrollBar().valueChanged, self.on_view_verticalScrollBar_valueChanged_handle],
+            [self.view.horizontalScrollBar().valueChanged, self.on_view_horizontalScrollBar_valueChanged_handle],
+        ]).bind()
     # event
 
     def on_view_verticalScrollBar_valueChanged_handle(self,value):

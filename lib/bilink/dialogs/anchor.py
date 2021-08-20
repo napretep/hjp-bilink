@@ -54,15 +54,15 @@ class AnchorDialog(QDialog):
 
         self.init_UI()
         self.init_model()
-        self.allevent = common_tools.objs.AllEventAdmin({
-            self.view.doubleClicked: self.on_view_doubleclicked_handle,
-            self.view.clicked: self.on_view_clicked_handle,
-            self.view.customContextMenuRequested: self.on_view_show_context_menu,
-            common_tools.G.signals.on_bilink_link_operation_end: self.on_bilink_link_operation_end_handle,
-            self.model.dataChanged: self.on_model_data_changed_handle,
+        self.allevent = common_tools.objs.AllEventAdmin([
+            [self.view.doubleClicked, self.on_view_doubleclicked_handle],
+            [self.view.clicked, self.on_view_clicked_handle],
+            [self.view.customContextMenuRequested, self.on_view_show_context_menu],
+            [common_tools.G.signals.on_bilink_link_operation_end, self.on_bilink_link_operation_end_handle],
+            [self.model.dataChanged, self.on_model_data_changed_handle],
             # self.view.dataChanged:self.on_view_data_changed_handle,#没用,还会报错
-            self.self_desc.widget.textChanged: self.on_self_desc_text_changed_handle,
-        }).bind()
+            [self.self_desc.widget.textChanged, self.on_self_desc_text_changed_handle],
+        ]).bind()
         self.view.dropEvent = self.on_view_drop
         self.signup()
 

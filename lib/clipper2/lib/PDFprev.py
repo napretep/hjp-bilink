@@ -171,10 +171,10 @@ class PDFPrevDialog(QDialog):
 
         self.init_UI()
         self.init_show()
-        self._event = {
-            self.on_page_changed: self.on_page_changed_handle,
-            self.widget_button_show.clicked: self.on_widget_button_show_clicked
-        }
+        self._event = [
+            [self.on_page_changed, self.on_page_changed_handle],
+            [self.widget_button_show.clicked, self.on_widget_button_show_clicked]
+        ]
         self.all_event = common_tools.objs.AllEventAdmin(self._event).bind()
 
     def on_widget_button_show_clicked(self):
@@ -273,9 +273,9 @@ class PDFPrevDialog(QDialog):
             self.model = QStandardItemModel()
             self.view.setModel(self.model)
             self.init_UI()
-            self.all_event = tools.objs.AllEventAdmin({
-                self.view.doubleClicked: self.on_view_doubleclicked_handle
-            }).bind()
+            self.all_event = tools.objs.AllEventAdmin([
+                [self.view.doubleClicked, self.on_view_doubleclicked_handle]
+            ]).bind()
 
         def on_view_doubleclicked_handle(self, index: "QModelIndex"):
             card_id = self.model.index(index.row(), 0).data(role=Qt.DisplayRole)
@@ -449,9 +449,9 @@ class PDFPrevDialog(QDialog):
             self.view = QTreeView(self)
             self.init_UI()
             self.init_model()
-            self.event_dict = {
-                self.view.clicked: (self.on_self_clicked_handle)
-            }
+            self.event_dict = [
+                [self.view.clicked, (self.on_self_clicked_handle)]
+            ]
             self.all_event = tools.objs.AllEventAdmin(self.event_dict)
             self.all_event.bind()
             self.hide()
@@ -589,19 +589,19 @@ class PDFPrevDialog(QDialog):
             self.widget_label_pagenum = QLabel(self)
             self.widget_slider_page = self.PageSlider(Qt.Horizontal, parent=self)
             self.api = self.API(parent=self)
-            self._event = {
-                self.widget_button_backlink.clicked: self.on_widget_button_backlink_clicked_handle,
-                self.widget_button_fit_width.clicked: self.on_widget_button_fit_width_clicked_handle,
-                self.widget_button_fit_height.clicked: self.on_widget_button_fit_height_clicked_handle,
-                self.widget_slider_page.valueChanged: self.on_widget_slider_page_valueChanged_handle,
-                self.widget_button_double_page.clicked: self.on_widget_button_double_page_clicked_handle,
-                self.widget_button_bookmark.clicked: self.on_widget_button_bookmark_clicked_handle,
-                self.widget_button_correct.clicked: self.on_widget_button_correct_clicked_handle,
-                self.widget_spinbox_pageshift.valueChanged: self.on_widget_spinbox_pageshift_valueChanged_handle,
-                self.widget_spinbox_page_at.valueChanged: self.on_widget_spinbox_page_at_valueChanged_handle,
-                self.widget_button_hide.clicked: self.on_widget_button_hide_clicked_handle,
-                self.pdfprevdialog.on_page_changed: self.on_pdfprevdialog_page_changed,
-            }
+            self._event = [
+                [self.widget_button_backlink.clicked, self.on_widget_button_backlink_clicked_handle],
+                [self.widget_button_fit_width.clicked, self.on_widget_button_fit_width_clicked_handle],
+                [self.widget_button_fit_height.clicked, self.on_widget_button_fit_height_clicked_handle],
+                [self.widget_slider_page.valueChanged, self.on_widget_slider_page_valueChanged_handle],
+                [self.widget_button_double_page.clicked, self.on_widget_button_double_page_clicked_handle],
+                [self.widget_button_bookmark.clicked, self.on_widget_button_bookmark_clicked_handle],
+                [self.widget_button_correct.clicked, self.on_widget_button_correct_clicked_handle],
+                [self.widget_spinbox_pageshift.valueChanged, self.on_widget_spinbox_pageshift_valueChanged_handle],
+                [self.widget_spinbox_page_at.valueChanged, self.on_widget_spinbox_page_at_valueChanged_handle],
+                [self.widget_button_hide.clicked, self.on_widget_button_hide_clicked_handle],
+                [self.pdfprevdialog.on_page_changed, self.on_pdfprevdialog_page_changed],
+            ]
             self.all_event = tools.objs.AllEventAdmin(self._event)
             self.all_event.bind()
             self.init_UI()
@@ -791,9 +791,9 @@ class PDFPrevDialog(QDialog):
                 self.centerview = parent
                 self.api = self.API(self)
                 self.mouse_pos: "QPoint" = None
-                self._event = {
-                    self.rubberBandChanged: self.on_rubberBandChanged_handle,
-                }
+                self._event = [
+                    [self.rubberBandChanged, self.on_rubberBandChanged_handle],
+                ]
                 self.all_event = tools.objs.AllEventAdmin(self._event)
                 self.all_event.bind()
                 self.curr_rubberBand_rect = None
@@ -864,9 +864,9 @@ class PDFPrevDialog(QDialog):
                 super().__init__(parent)
                 self.setBackgroundBrush(Qt.black)
                 self.centerview = parent
-                self.all_event = tools.objs.AllEventAdmin({
-                    self.centerview.pdfprevdialog.api.on_clipbox_deleted: self.on_clipbox_deleted_handle
-                }).bind()
+                self.all_event = tools.objs.AllEventAdmin([
+                    [self.centerview.pdfprevdialog.api.on_clipbox_deleted, self.on_clipbox_deleted_handle]
+                ]).bind()
 
             def on_clipbox_deleted_handle(self, event: "PDFPrevDialog.ClipboxDeleteEvent"):
                 self.removeItem(event.data)
@@ -1407,10 +1407,9 @@ class PDFPrevDialog(QDialog):
             self.scene = self.Scene(self)
             self.init_UI()
             self.api = self.API(self)
-            self.all_event = tools.objs.AllEventAdmin({
-                self.pdfprevdialog.api.on_clipbox_deleted: self.on_clipbox_deleted_handle,
-
-            }).bind()
+            self.all_event = tools.objs.AllEventAdmin([
+                [self.pdfprevdialog.api.on_clipbox_deleted, self.on_clipbox_deleted_handle],
+            ]).bind()
 
         def on_clipbox_deleted_handle(self, event: "PDFPrevDialog.ClipboxDeleteEvent"):
             self.delClipbox(event.data, event.pagenum)
@@ -1607,10 +1606,10 @@ class PDFPrevDialog(QDialog):
             self.widget_button_correct = QToolButton(self.container)
             self.table = self.Table(self.container, superior=self)
             self.api = self.API(self)
-            self.all_event = tools.objs.AllEventAdmin({
-                self.widget_button_correct.clicked: self.on_widget_button_correct_clicked_handle,
-                self.on_pdfprev_insertClipbox_finished: self.on_pdfprev_insertClipbox_finished_handle
-            }).bind()
+            self.all_event = tools.objs.AllEventAdmin([
+                [self.widget_button_correct.clicked, self.on_widget_button_correct_clicked_handle],
+                [self.on_pdfprev_insertClipbox_finished, self.on_pdfprev_insertClipbox_finished_handle],
+]).bind()
             self.init_UI()
             self.worker_thread: "QThread" = None
 
@@ -1759,9 +1758,7 @@ class PDFPrevDialog(QDialog):
 
             def __init__(self, parent: "PDFPrevDialog.CorrectionDialog"):
                 super().__init__(parent)
-                # self.events = tools.objs.AllEventAdmin({
-                #     signals.ALL.on_PDFprev_work_progress: self.setValue
-                # }).bind()
+
                 self.on_progress.connect(self.setValue)
 
         class Combox(QComboBox):
@@ -1892,10 +1889,10 @@ class PDFPrevDialog(QDialog):
                 self.imgli = []
                 self.init_UI()
                 self.api = self.API(self)
-                self.all_event = tools.objs.AllEventAdmin({
+                self.all_event = tools.objs.AllEventAdmin([
                     # self.clicked:self.on_clicked_handle,
-                    self.doubleClicked: self.on_doubleClicked_handle,
-                }).bind()
+                    [self.doubleClicked, self.on_doubleClicked_handle],
+                ]).bind()
                 self.init_data()
 
             def on_doubleClicked_handle(self, index: "QModelIndex"):

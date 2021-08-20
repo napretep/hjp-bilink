@@ -319,25 +319,7 @@ class ProgressBarBlackFont(QProgressBar):
 
     pass
 
-
-class AllEventAdmin(object):
-    from . import funcs
-
-    def __init__(self, event_dict):
-        self.event_dict = event_dict
-
-    def bind(self):
-        event_dict = self.funcs.event_handle_connect(self.event_dict)
-        AllEvents.update(event_dict)
-        # print(len(AllEvents))
-        return self
-
-    def unbind(self, classname=""):
-        self.funcs.event_handle_disconnect(self.event_dict)
-        if not classname == "":
-            # print(f"{classname} all events unbind")
-            pass
-        return self
+AllEventAdmin=common_tools.objs.AllEventAdmin
 
 
 UniversalProgresser = common_tools.widgets.UniversalProgresser

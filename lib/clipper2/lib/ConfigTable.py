@@ -62,10 +62,10 @@ class ConfigTable(QDialog):
         self.tablayout = self.TabWidget(self, root)
         self.buttonGroup = self.ButtonGroup(self, root)
         self.init_UI()
-        self.allevent = objs.AllEventAdmin({
-            self.buttonGroup.reset_button.clicked: self.on_reset_button_clicked,
-            self.buttonGroup.correct_button.clicked: self.on_correct_button_clicked,
-        }).bind()
+        self.allevent = objs.AllEventAdmin([
+            [self.buttonGroup.reset_button.clicked, self.on_reset_button_clicked],
+            [self.buttonGroup.correct_button.clicked, self.on_correct_button_clicked],
+        ]).bind()
 
     def on_correct_button_clicked(self):
         self.buttonGroup.config_memo_save()
@@ -173,9 +173,9 @@ class ConfigTable(QDialog):
                 ]
                 self.init_UI()
                 self.load_data()
-                self.all_event = objs.AllEventAdmin({
-                    self.layoutModeWidget.currentIndexChanged: self.on_layoutmodewidget_currentIndexChanged_handle,
-                }).bind()
+                self.all_event = objs.AllEventAdmin([
+                    [self.layoutModeWidget.currentIndexChanged,self.on_layoutmodewidget_currentIndexChanged_handle],
+                ]).bind()
 
             def init_UI(self):
                 self.setLayout(self.superior.sub_widget_form_layout_setup(self.widgetLi, self.widget_info_dict))
@@ -239,9 +239,9 @@ class ConfigTable(QDialog):
                 self.schema = self.root.E.schema
                 self.init_UI()
                 self.load_data()
-                self.all_event = objs.AllEventAdmin({
-                    self.defaultPathWidget.textChanged: self.on_defaultPathWidget_textChanged_handle,
-                }).bind()
+                self.all_event = objs.AllEventAdmin([
+                    [self.defaultPathWidget.textChanged, self.on_defaultPathWidget_textChanged_handle],
+                ]).bind()
 
             def init_UI(self):
                 self.setLayout(self.superior.sub_widget_form_layout_setup(self.widgetLi, self.widget_info_dict))
@@ -301,10 +301,10 @@ class ConfigTable(QDialog):
                 }
                 self.init_UI()
                 self.load_data()
-                self.all_event = objs.AllEventAdmin({
-                    self.widget_clipper_close_after_insert.stateChanged: self.on_widget_clipper_close_after_insert_stateChanged_handle,
-                    self.needRatioFixWidget.currentIndexChanged: self.on_needRatioFixWidget_currentIndexChanged_handle,
-                }).bind()
+                self.all_event = objs.AllEventAdmin([
+                    [self.widget_clipper_close_after_insert.stateChanged, self.on_widget_clipper_close_after_insert_stateChanged_handle],
+                    [self.needRatioFixWidget.currentIndexChanged, self.on_needRatioFixWidget_currentIndexChanged_handle],
+                ]).bind()
 
             def init_UI(self):
                 self.setLayout(self.superior.sub_widget_form_layout_setup(self.widgetLi, self.widget_info_dict))
@@ -456,11 +456,11 @@ class ConfigTable(QDialog):
                     self.model = QStandardItemModel()
                     self.init_UI()
                     self.init_model()
-                    self.event_dict = {
-                        self.add_button.clicked: self.on_add_button_clicked_handle,
-                        self.del_button.clicked: self.on_del_button_clicked_handle,
-                        self.model.dataChanged: self.on_model_data_changed_handle
-                    }
+                    self.event_dict = [
+                        [self.add_button.clicked, self.on_add_button_clicked_handle],
+                        [self.del_button.clicked, self.on_del_button_clicked_handle],
+                        [self.model.dataChanged, self.on_model_data_changed_handle],
+                    ]
                     self.all_event = objs.AllEventAdmin(self.event_dict)
                     self.all_event.bind()
                     self.data_changed = False

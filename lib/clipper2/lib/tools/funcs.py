@@ -200,13 +200,13 @@ def clipboxstate_switch_done(show=True):
 
 
 def event_handle_connect(event_dict):
-    for event, handle in event_dict.items():
+    for event, handle in event_dict:
         event.connect(handle)
     return event_dict
 
 
 def event_handle_disconnect(event_dict: "dict[pyqtSignal,callable]"):
-    for event, handle in event_dict.items():
+    for event, handle in event_dict:
         try:
             # print(event.signal)
             event.disconnect(handle)

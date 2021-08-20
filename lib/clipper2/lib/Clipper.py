@@ -49,29 +49,29 @@ class Clipper(QDialog):
         self.init_UI()
         self.init_shortcuts()
         self.api = self.API(self)
-        self.allevent = objs.AllEventAdmin({
-            self.E.signals.on_pagepicker_open: self.on_pagepicker_open_handle,
-            self.signals.on_pageItem_addToScene: self.on_pageItem_addToScene_handle,
-            self.pdfview.verticalScrollBar().valueChanged: self.on_pdfview_verticalScrollBar_valueChanged_handle,
-            self.pdfview.horizontalScrollBar().valueChanged: self.on_pdfview_horizontalScrollBar_valueChanged_handle,
-            self.pdfview.rubberBandChanged: self.on_pdfview_rubberBandChanged_handle,
-            self.signals.on_clipbox_create: self.on_clipbox_create_handle,
-            self.signals.on_pageitem_close: self.on_pageitem_close_handle,
-            self.rightsidebar.pagelist.addButton.clicked: self.on_righsidebar_pagelist_addButton_clicked_handle,
-            self.rightsidebar.pagelist.view.clicked: self.on_rightsidebar_pagelist_view_clicked_handle,
-            self.rightsidebar.pagelist.view.doubleClicked: self.on_rightsidebar_pagelist_view_doubleClicked_handle,
-            self.rightsidebar.cardlist.addButton.clicked: self.on_righsidebar_cardlist_addButton_clicked_handle,
-            self.rightsidebar.cardlist.delButton.clicked: self.on_righsidebar_cardlist_delButton_clicked_handle,
-            self.rightsidebar.cardlist.view.selectionModel().selectionChanged: self.on_cardlist_selectionChanged_handle,
-            self.rightsidebar.cardlist.view.doubleClicked: self.rightsidebar_cardlist_view_doubleClicked_handle,
-            self.widget_button_show_rightsidebar.clicked: self.on_rightsidebar_show,
-            self.signals.on_rightSideBar_buttonGroup_clicked: self.on_rightSideBar_buttonGroup_clicked_handle,
-            self.signals.on_clipper_hotkey_press: self.on_clipper_hotkey_press_handle,
-            self.signals.on_cardlist_selectRow: self.on_cardlist_selectRow_handle,
-            # self.signals.on_anki_file_create:self.on_anki_file_create_handle,
-            # self.signals.on_anki_field_insert:self.on_anki_field_insert_handle,
-            # self.signals.on_anki_card_create:self.on_anki_card_create_handle,
-        }).bind()
+        self.allevent = objs.AllEventAdmin([
+            [self.E.signals.on_pagepicker_open, self.on_pagepicker_open_handle],
+            [self.signals.on_pageItem_addToScene, self.on_pageItem_addToScene_handle],
+            [self.pdfview.verticalScrollBar().valueChanged, self.on_pdfview_verticalScrollBar_valueChanged_handle],
+            [self.pdfview.horizontalScrollBar().valueChanged, self.on_pdfview_horizontalScrollBar_valueChanged_handle],
+            [self.pdfview.rubberBandChanged, self.on_pdfview_rubberBandChanged_handle],
+            [self.signals.on_clipbox_create, self.on_clipbox_create_handle],
+            [self.signals.on_pageitem_close, self.on_pageitem_close_handle],
+            [self.rightsidebar.pagelist.addButton.clicked, self.on_righsidebar_pagelist_addButton_clicked_handle],
+            [self.rightsidebar.pagelist.view.clicked, self.on_rightsidebar_pagelist_view_clicked_handle],
+            [self.rightsidebar.pagelist.view.doubleClicked, self.on_rightsidebar_pagelist_view_doubleClicked_handle],
+            [self.rightsidebar.cardlist.addButton.clicked, self.on_righsidebar_cardlist_addButton_clicked_handle],
+            [self.rightsidebar.cardlist.delButton.clicked, self.on_righsidebar_cardlist_delButton_clicked_handle],
+            [self.rightsidebar.cardlist.view.selectionModel().selectionChanged, self.on_cardlist_selectionChanged_handle],
+            [self.rightsidebar.cardlist.view.doubleClicked, self.rightsidebar_cardlist_view_doubleClicked_handle],
+            [self.widget_button_show_rightsidebar.clicked, self.on_rightsidebar_show],
+            [self.signals.on_rightSideBar_buttonGroup_clicked, self.on_rightSideBar_buttonGroup_clicked_handle],
+            [self.signals.on_clipper_hotkey_press, self.on_clipper_hotkey_press_handle],
+            [self.signals.on_cardlist_selectRow, self.on_cardlist_selectRow_handle],
+            # self.signals.on_anki_file_create,self.on_anki_file_create_handle,
+            # self.signals.on_anki_field_insert,self.on_anki_field_insert_handle,
+            # self.signals.on_anki_card_create,self.on_anki_card_create_handle,
+        ]).bind()
 
     def rightsidebar_cardlist_view_doubleClicked_handle(self, index: "QModelIndex"):
         # print(index)
@@ -165,13 +165,13 @@ class Clipper(QDialog):
         elif event.type == event.defaultType.correct:
             self.E.clipbox_insert_card_worker = ClipInsertCardWorker(self)
             self.E.state.progresser = objs.UniversalProgresser(self)
-            self.E.clipbox_insert_card_worker.allevent = common_tools.objs.AllEventAdmin({
-                self.E.clipbox_insert_card_worker.on_progress: self.E.state.progresser.value_set,
-                self.E.clipbox_insert_card_worker.on_quit: clipbox_insert_card_worker_on_quit,
-                self.E.clipbox_insert_card_worker.on_card_create: on_card_create_handle,
-                self.E.clipbox_insert_card_worker.on_png_create: on_png_create_handle,
-                self.E.clipbox_insert_card_worker.on_field_insert: on_field_insert_handle,
-            }).bind()
+            self.E.clipbox_insert_card_worker.allevent = common_tools.objs.AllEventAdmin([
+                [self.E.clipbox_insert_card_worker.on_progress, self.E.state.progresser.value_set],
+                [self.E.clipbox_insert_card_worker.on_quit, clipbox_insert_card_worker_on_quit],
+                [self.E.clipbox_insert_card_worker.on_card_create, on_card_create_handle],
+                [self.E.clipbox_insert_card_worker.on_png_create, on_png_create_handle],
+                [self.E.clipbox_insert_card_worker.on_field_insert, on_field_insert_handle],
+            ]).bind()
             # self.E.clipbox_insert_card_worker.on_progress.connect(self.E.state.progresser.value_set)
             # self.E.clipbox_insert_card_worker.on_quit.connect(clipbox_insert_card_worker_on_quit)
             self.E.clipbox_insert_card_worker.start()
@@ -1113,9 +1113,7 @@ class Clipper(QDialog):
 
                     self.root = root
                     self.info = self.Info()
-                    # self.allevent=objs.AllEventAdmin({
-                    #     self.root.signals.on_clipbox_card_change:self.on_clipbox_card_change_handle
-                    # }).bind()
+
                     self.uuid = funcs.uuid_random_make()
                     # self.root.E.rightsidebar.cardlist.dict[self.uuid]=self
 
@@ -1220,15 +1218,15 @@ class Clipper(QDialog):
             # self.setFlag(QGraphicsItem.ItemIsSelectable, True)
             self.setFlag(QGraphicsItem.ItemIsFocusable, True)
             self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
-            self.events = objs.AllEventAdmin({
-                self.toolsbar.widget_button_close.clicked: self.on_widget_button_close_clicked_handle,
-                self.toolsbar.widget_button_pageinfo.clicked: self.on_widget_button_pageinfo_clicked_handle,
-                self.toolsbar.widget_button_prev.clicked: self.on_widget_button_prev_clicked_handle,
-                self.toolsbar.widget_button_next.clicked: self.on_widget_button_next_clicked_handle,
-                self.toolsbar.widget_button_fullscreen.clicked: self.on_widget_button_fullscreen_clicked_handle,
-                self.toolsbar.widget_button_recover.clicked: self.on_widget_button_recover_clicked_handle,
-                self.signals.on_pageItem_resize_event: self.on_pageItem_resize_event_handle,
-            }).bind()
+            self.events = objs.AllEventAdmin([
+                [self.toolsbar.widget_button_close.clicked, self.on_widget_button_close_clicked_handle],
+                [self.toolsbar.widget_button_pageinfo.clicked, self.on_widget_button_pageinfo_clicked_handle],
+                [self.toolsbar.widget_button_prev.clicked, self.on_widget_button_prev_clicked_handle],
+                [self.toolsbar.widget_button_next.clicked, self.on_widget_button_next_clicked_handle],
+                [self.toolsbar.widget_button_fullscreen.clicked, self.on_widget_button_fullscreen_clicked_handle],
+                [self.toolsbar.widget_button_recover.clicked, self.on_widget_button_recover_clicked_handle],
+                [self.signals.on_pageItem_resize_event, self.on_pageItem_resize_event_handle],
+            ]).bind()
 
         def clipbox_dict_del_key(self, caller, key):
             funcs.caller_check(Clipper.delClipbox, caller, Clipper)

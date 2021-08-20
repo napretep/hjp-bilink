@@ -318,8 +318,8 @@ class NoRepeatShortcut(QShortcut):
 class AllEventAdmin(object):
     # from . import funcs
 
-    def __init__(self, event_dict):
-        self.event_dict = event_dict
+    def __init__(self, event_list):
+        self.event_dict:"list" = event_list
 
     def bind(self):
         from . import funcs
