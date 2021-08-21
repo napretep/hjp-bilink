@@ -20,7 +20,7 @@ from PyQt5.QtGui import QPainterPath, QPainter, QPen, QColor, QBrush, QIcon
 from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QGraphicsScene, QGraphicsItem, QDialog, QHBoxLayout, \
     QGraphicsLineItem, QMenu, QGraphicsRectItem, QWidget, QGraphicsSceneMouseEvent, QStyleOptionGraphicsItem, \
     QApplication
-from aqt.utils import showInfo
+from aqt.utils import showInfo, tooltip
 
 if __name__ == "__main__":
     from lib import common_tools
@@ -89,7 +89,7 @@ class Grapher(QDialog):
         self.scene.addItem(item)
         return item
 
-    def load_node(self,pair_li:"list[LinkDataPair]",begin_item=None):
+    def load_node(self,pair_li:"list[LinkDataPair]",begin_item=None,selected_as_center=True):
         item_li = []
         last_item = None
         if len(self.data.node_dict)>0:
@@ -103,13 +103,13 @@ class Grapher(QDialog):
             item_li.append(pair.card_id)
             if begin_item:
                 self.arrange_node(item,begin_item)
+            elif selected_as_center:
+                self.arrange_node(item)
             else:
                 self.arrange_node(item,last_item)
                 begin_item = item
             last_item = item
-        self.scene.clearSelection()
         if last_item:
-            last_item.setSelected(True)
             self.view.centerOn(last_item)
         self.load_edges_from_linkdata()
 
@@ -123,8 +123,12 @@ class Grapher(QDialog):
             p = center_p + QPointF(x, y)
             return p
         if center_item is None and len(self.data.node_dict)>0:
-            center_id = list(self.data.node_dict.keys())[0]
-            center_item = self.data.node_dict[center_id].item
+            if self.selected_nodes():
+                center_item = self.selected_nodes()[0]
+                tooltip("center_item = selected nodes")
+            else:
+                center_id = list(self.data.node_dict.keys())[0]
+                center_item = self.data.node_dict[center_id].item
         if new_item == center_item:
             return
         radius = self.data.radius
@@ -142,7 +146,7 @@ class Grapher(QDialog):
 
 
     def hide_selected_node(self):
-        item_li: "list[Grapher.ItemRect]" = [item for item in self.scene.selectedItems() if isinstance(item,Grapher.ItemRect)]
+        item_li: "list[Grapher.ItemRect]" = self.selected_nodes()
         card_id_li = list(self.data.node_dict.keys())
         edges = self.data.edge_dict
         for item in item_li:
@@ -155,6 +159,11 @@ class Grapher(QDialog):
 
         pass
 
+    def selected_nodes(self):
+        item_li: "list[Grapher.ItemRect]" = [item for item in self.scene.selectedItems() if
+                                             isinstance(item, Grapher.ItemRect)]
+
+        return item_li
     # egde
 
     def load_edges_from_linkdata(self,card_li:"list[str]"=None):
@@ -260,7 +269,7 @@ class Grapher(QDialog):
             last_item = item
         self.update_all_edges_posi()
         if last_item:
-            last_item.setSelected(True)
+            # last_item.setSelected(True)
             self.view.centerOn(last_item)
         if not __name__ == "__main__":
             self.load_edges_from_linkdata()

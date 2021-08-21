@@ -11,7 +11,7 @@ from aqt.utils import showInfo
 """
 G.py 就是GLOBAL.py, 存放一些持续不变的常量
 """
-from . import signals, src_admin, objs, widgets
+from . import signals, src_admin, objs, widgets,language
 # from .src_admin import SrcAdmin
 # from .signals import CustomSignals
 # from .objs import DB_admin
@@ -26,6 +26,7 @@ class MW: pass
 if mw is None:
     mw = MW()
 
+say=language.rosetta
 ISDEBUG=True
 DB = objs.DB_admin()  # 这个是通用DB,如果要用linkdata请用linkdata_admin里的DB
 signals = signals.CustomSignals.start()
@@ -51,4 +52,5 @@ mw_VersionDialog = mw_addonName["VersionDialog"]
 mw_progresser = mw.__dict__[addonName]["progresser"]
 mw_universal_worker = None
 mw_grapher = mw.__dict__[addonName]["grapher"]
+mw_addcard_to_grapher_on=False
 browser_addon_menu = None

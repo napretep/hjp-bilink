@@ -81,6 +81,7 @@ class SrcAdmin:
             self.read = os.path.join(self.root.path.resource_icon, "icon_read.png")
             self.link = os.path.join(self.root.path.resource_icon, "icon_link.png")
             self.link2 = os.path.join(self.root.path.resource_icon, "icon_link2.png")
+            self.link2_red = os.path.join(self.root.path.resource_icon, "icon_link2_red.png")
             self.left_direction = os.path.join(self.root.path.resource_icon, "icon_direction_left.png")
             self.right_direction = os.path.join(self.root.path.resource_icon, "icon_direction_right.png")
             self.top_direction = os.path.join(self.root.path.resource_icon, "icon_direction_top.png")

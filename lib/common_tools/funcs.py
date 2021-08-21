@@ -21,8 +21,8 @@ import os
 import re
 from functools import reduce
 
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QDesktopServices, QIcon
+from PyQt5.QtWidgets import QApplication, QToolButton
 from anki import stdmodels, notes
 from anki.cards import Card
 from anki.utils import pointVersion
@@ -115,7 +115,8 @@ class BrowserOperation:
     @staticmethod
     def search(s) -> Browser:
         browser: Browser = dialogs._dialogs["Browser"][1]
-        if browser is None:
+        # if browser is not None:
+        if not isinstance(browser,Browser):
             dialogs.open("Browser", mw)
             browser: Browser = dialogs._dialogs["Browser"][1]
 
@@ -124,7 +125,9 @@ class BrowserOperation:
 
     @staticmethod
     def refresh():
-        if dialogs._dialogs["Browser"][1] is not None:
+        browser: Browser = dialogs._dialogs["Browser"][1]
+        if isinstance(browser, Browser):
+        # if dialogs._dialogs["Browser"][1] is not None:
             browser: Browser = dialogs._dialogs["Browser"][1]
             browser.sidebar.refresh()
             browser.model.reset()
@@ -365,6 +368,10 @@ class LinkPoolOperation:
     def write(d: "dict"):
         json.dump(d, open(G.src.path.linkpool_file, "w", encoding="utf-8"))
         return LinkPoolOperation
+
+    @staticmethod
+    def exists():
+        return os.path.exists(G.src.path.linkpool_file)
 
     @staticmethod
     def link(mode=4, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
@@ -650,13 +657,14 @@ class Dialogs:
 
         pass
     @staticmethod
-    def open_grapher(pair_li: "list[G.objs.LinkDataPair]"):
+    def open_grapher(pair_li: "list[G.objs.LinkDataPair]",need_activate=True,selected_as_center=True):
         from ..bilink.dialogs.linkdata_grapher import Grapher
         # p = Grapher(pair_li)
         # p.show()
         if isinstance(G.mw_grapher,Grapher):
-            G.mw_grapher.load_node(pair_li)
-            G.mw_grapher.activateWindow()
+            G.mw_grapher.load_node(pair_li,selected_as_center=selected_as_center)
+            if need_activate:
+                G.mw_grapher.activateWindow()
         else:
             G.mw_grapher = Grapher(pair_li)
             G.mw_grapher.show()
@@ -672,6 +680,15 @@ class UUID:
         return str(uuid.uuid3(uuid.NAMESPACE_URL, s))
 
 
+def button_icon_clicked_switch(button:QToolButton,old:list,new:list,callback:"callable"=None):
+    if button.text() == old[0]:
+        button.setText(new[0])
+        button.setIcon(QIcon(new[1]))
+    else:
+        button.setText(old[0])
+        button.setIcon(QIcon(old[1]))
+    if callback:
+        callback(button.text())
 
 def logger(logname=None, level=None, allhandler=None):
 
@@ -881,8 +898,12 @@ def copy_intext_links(pairs_li: 'list[G.objs.LinkDataPair]'):
 
 
 def PDFprev_close(card_id, pdfpageuuid=None, all=False):
-    from . import G
-    from ..clipper2.lib.PDFprev import PDFPrevDialog
+    if platform.system() in {"Darwin", "Linux"}:
+        # tooltip("当前系统暂时不支持PDFprev")
+        return
+    else:
+        from . import G
+        from ..clipper2.lib.PDFprev import PDFPrevDialog
     if isinstance(card_id, int):
         card_id = str(card_id)
     if card_id not in G.mw_pdf_prev:
@@ -1107,3 +1128,7 @@ class LOG:
     def file_clear():
         f=open(G.src.path.logtext,"w",encoding="utf-8")
         f.write("")
+
+    @staticmethod
+    def exists():
+        return os.path.exists(G.src.path.logtext)

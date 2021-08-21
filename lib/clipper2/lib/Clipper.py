@@ -110,6 +110,7 @@ class Clipper(QDialog):
         if event.type in event.defaultType.__dict__.values():
             self.E.state.board.data_update()
 
+
     def on_rightSideBar_buttonGroup_clicked_handle(self, event: "events.RightSideBarButtonGroupEvent"):
         from ..imports import common_tools
         def clipbox_insert_card_worker_on_quit(timestamp):

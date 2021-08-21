@@ -64,7 +64,10 @@ def ankiaddon_make():
 
 
 if __name__ == "__main__":
-    status_check()
-    print("no problem, then do zipfile")
-    ankiaddon_make()
-    print("done!")
+    a=input("请输入版本号\n")
+    with open("./__init__.py","r",encoding="utf-8") as f:
+        s = f.read()
+        s = re.sub("""(?<=ADDON_VERSION=")\d+\.\d+\.\d+""",a,s)
+
+    with open("./__init__.py","w",encoding="utf-8") as f:
+        f.write(s)
