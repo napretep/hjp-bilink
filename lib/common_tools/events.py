@@ -13,7 +13,7 @@ from anki.notes import Note
 from aqt import gui_hooks, mw
 from aqt.addcards import AddCards
 from aqt.browser import SidebarItem, SidebarItemType, SidebarTreeView
-from aqt.utils import tooltip
+from aqt.utils import tooltip, showInfo
 from . import objs
 from . import funcs
 say = funcs.G.say

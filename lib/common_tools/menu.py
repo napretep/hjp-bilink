@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from typing import Union, List
 
+from PyQt5.QtGui import QContextMenuEvent
 from PyQt5.QtWidgets import QMenu, QAction
 from aqt import mw
 from aqt.browser import Browser
-from aqt.utils import showInfo
+from aqt.utils import showInfo, tooltip
 from aqt.webview import AnkiWebView
 
 from ..common_tools import G
@@ -22,6 +23,7 @@ class T:
     linkpool_selected_context = 5
     linkpool_context = 6
     grapher_node_context = 7
+    browser_searchbar_context = 8
 
 
 def get_pair_li_from_view(view) -> "list[common_tools.objs.LinkDataPair]":
@@ -79,17 +81,35 @@ def make__open_anchor(atype, *args, **kwargs):
     pass
 
 
-def make__copy_as_intext_link(atype, *args, **kwargs):
+def make__copy_card_as(atype, *args, **kwargs):
     if atype in {T.browser_context, T.webview, T.anchor_selected_context,
                  T.linkpool_selected_context, T.linkpool_context}:
         view: "Union[AnkiWebView,Browser]" = args[0]
         M: "QMenu" = args[1]
+        AnkiLinks=common_tools.funcs.AnkiLinks
         pair_li: "list[common_tools.objs.LinkDataPair]" = kwargs[
             "pair_li"] if "pair_li" in kwargs else get_pair_li_from_view(view)
-
-        act = M.addAction(f"""{kwargs["prefix"]}{say("复制为文内链接")}""")
-        act.triggered.connect(lambda: common_tools.funcs.copy_intext_links(pair_li))
+        act_li =[["文内链接",lambda: common_tools.funcs.copy_intext_links(pair_li)],
+                 ["html链接", lambda:AnkiLinks.copy_card_as(AnkiLinks.Type.html, pair_li)],
+                 ["markdown链接", lambda:AnkiLinks.copy_card_as(AnkiLinks.Type.markdown, pair_li)],
+                 ["orgmode链接", lambda:AnkiLinks.copy_card_as(AnkiLinks.Type.orgmode, pair_li)]
+                 ]
+        M2 = M.addMenu(f"""{kwargs["prefix"]}{say("复制为")}""")
+        list(map(lambda x:M2.addAction(x[0]).triggered.connect(x[1]),act_li))
     pass
+
+
+def make__copy_search_as(atype, *args, **kwargs):
+
+    if atype in {T.browser}:
+        view: "Browser" = args[0]
+        M = get_browser_menu(view)
+        M2=M.addMenu("复制当前搜索栏为")
+        AnkiLinks = common_tools.funcs.AnkiLinks
+        act_li=[["html链接",lambda:AnkiLinks.copy_search_as(AnkiLinks.Type.html,view)],
+                ["markdown链接",lambda:AnkiLinks.copy_search_as(AnkiLinks.Type.markdown,view)],
+                ["orgmode链接",lambda:AnkiLinks.copy_search_as(AnkiLinks.Type.orgmode,view)]]
+        list(map(lambda x:M2.addAction(x[0]).triggered.connect(x[1]),act_li))
 
 
 def make__outtext_link(atype, *args, **kwargs):
@@ -114,9 +134,6 @@ def make__outtext_link(atype, *args, **kwargs):
         clean_pool: "QAction" = out_text_link.addAction(say("清空链接池"))
         clean_pool.triggered.connect(common_tools.funcs.LinkPoolOperation.clear)
         L = common_tools.funcs.LinkPoolOperation
-        # if atype == T.browser_context:
-        #     out_text_link.addAction(say("选中直接绑定")).triggered.connect(lambda :L.link(mode=L.M.group_by_group,pair_li=pair_li))
-        #     out_text_link.addAction(say("选中直接解绑")).triggered.connect(lambda :L.unlink(mode=L.M.unlink_by_node,pair_li=pair_li))
 
         if atype == T.browser_context:
             d = {"选中直接操作": [("完全图绑定", lambda: L.link(mode=L.M.complete_map, pair_li=pair_li)),
@@ -159,9 +176,6 @@ def make__change_deck(atype, *args, **kwargs):
         menu.addAction(prefix + say("改变牌组")).triggered.connect(
             lambda: common_tools.funcs.Dialogs.open_deck_chooser(pair_li,view))
 
-    # elif atype in {}:
-    #     pair_li = [args[0]]
-    #     menu:"QMenu" =args[1]
     pass
 
 
@@ -239,11 +253,6 @@ def make__open_grapher(atype, *args, **kwargs):
             name = "在grapher中打开卡片"
             M.addAction(prefix+name).triggered.connect(lambda:funcs.Dialogs.open_grapher(pairs_li))
 
-# def make__current_version(atype, *args, **kwargs):
-#     if atype in {T.mainwin}:
-#         M:"QMenu" = mw.__dict__[G.src.dialog_name]
-#
-#         M.addAction(f"hjp_bilink 当前版本：{G.src.config.user.VERSION}")
 
 make_list = [globals()[name] for name in globals() if name.startswith("make__")]
 
@@ -253,7 +262,6 @@ def maker(atype):
         if "needPrefix" not in kwargs:
             kwargs["needPrefix"] = True
         kwargs["prefix"] = G.src.addon_name + "_" if kwargs["needPrefix"] else ""
-
 
         if atype == T.webview:
             focus_on_mw = args[0].title == "main webview"  and mw.state == "review" and mw.isActiveWindow()

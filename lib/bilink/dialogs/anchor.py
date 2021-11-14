@@ -345,7 +345,7 @@ class AnchorDialog(QDialog):
         # DB.update(values=DB.VALUEEQ(**d),where=DB.EQ(card_id=self.card_id)).commit(print)
         from .. import linkdata_admin
         linkdata_admin.write_card_link_info(self.card_id, json.dumps(self.data_model_load()))
-        common_tools.funcs.CardOperation.refresh()
+        common_tools.funcs.LinkPoolOperation.both_refresh(0,2)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.signout()

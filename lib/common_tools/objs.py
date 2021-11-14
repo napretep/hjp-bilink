@@ -11,10 +11,23 @@ import re
 import sqlite3
 from dataclasses import dataclass
 from typing import Any, Union
+from urllib.parse import unquote
 
 from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QShortcut
 from aqt import mw
+
+class NONE:
+    @staticmethod
+    def activateWindow()->False:
+        return False
+@dataclass
+class CmdArgs:
+    type:"str"
+    args:"str"
+    def __init__(self,cmdargsli:[str,str]):
+        self.args=unquote(cmdargsli[1])
+        self.type=cmdargsli[0].lower()
 
 @dataclass
 class Date:
@@ -117,6 +130,10 @@ class LinkDataPair:
 
     def todict(self):
         return self.__dict__
+
+    def update_desc(self):
+        from . import funcs
+        self.desc = funcs.desc_extract(self.card_id)
 
     def __eq__(self, other: "LinkDataPair"):
         return self.card_id == other.card_id

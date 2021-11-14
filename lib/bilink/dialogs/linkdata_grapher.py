@@ -15,7 +15,7 @@ import typing
 from typing import Optional
 
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QPointF, QRectF, QLineF
+from PyQt5.QtCore import Qt, QPointF, QRectF, QLineF, pyqtSignal
 from PyQt5.QtGui import QPainterPath, QPainter, QPen, QColor, QBrush, QIcon
 from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QGraphicsScene, QGraphicsItem, QDialog, QHBoxLayout, \
     QGraphicsLineItem, QMenu, QGraphicsRectItem, QWidget, QGraphicsSceneMouseEvent, QStyleOptionGraphicsItem, \
@@ -31,6 +31,7 @@ else:
 LinkDataPair = common_tools.objs.LinkDataPair
 
 class Grapher(QDialog):
+    on_card_updated = pyqtSignal(object)
     def __init__(self,pair_li:"list[LinkDataPair]"=None):
         super().__init__()
         self.setAttribute(Qt.WA_DeleteOnClose, on=True)
@@ -45,8 +46,14 @@ class Grapher(QDialog):
             [self.scene.selectionChanged,self.on_scene_selectionChanged_handle],
             [self.view.verticalScrollBar().valueChanged, self.on_view_verticalScrollBar_valueChanged_handle],
             [self.view.horizontalScrollBar().valueChanged, self.on_view_horizontalScrollBar_valueChanged_handle],
+            [self.on_card_updated,self.on_card_updated_handle],
         ]).bind()
     # event
+
+    def on_card_updated_handle(self,event):
+        for node in self.data.node_dict.values():
+            node.pair.update_desc()
+            node.item.pair.update_desc()
 
     def on_view_verticalScrollBar_valueChanged_handle(self,value):
         rect = self.view.sceneRect()
@@ -115,7 +122,7 @@ class Grapher(QDialog):
 
     def arrange_node(self,new_item:"Grapher.ItemRect",center_item=None):
         def get_random_p(center_item,radius,part):
-            total = radius / self.data.radius * 6
+            total = radius / self.data.default_radius * 6
             a_part = 360/total
             angle = (part*a_part) / 180 * math.pi
             x, y = math.cos(angle) * radius, math.sin(angle) * radius
@@ -125,13 +132,13 @@ class Grapher(QDialog):
         if center_item is None and len(self.data.node_dict)>0:
             if self.selected_nodes():
                 center_item = self.selected_nodes()[0]
-                tooltip("center_item = selected nodes")
+                # tooltip("center_item = selected nodes")
             else:
                 center_id = list(self.data.node_dict.keys())[0]
                 center_item = self.data.node_dict[center_id].item
         if new_item == center_item:
             return
-        radius = self.data.radius
+        radius = self.data.default_radius
         count = 0
         while True:
             new_item.setPos(get_random_p(center_item,radius,count))
@@ -140,8 +147,8 @@ class Grapher(QDialog):
             else:
                 break
             count+=1
-            if count == 6*radius/self.data.radius:
-                radius+=self.data.radius
+            if count == 6*radius/self.data.default_radius:
+                radius+=self.data.default_radius
                 count = 0
 
 
@@ -290,8 +297,8 @@ class Grapher(QDialog):
     # class
 
     class Entity:
-        radius = 180
-        rect = QRectF(0,0,150,100)
+        default_radius = 180
+        default_rect = QRectF(0, 0, 150, 100)
         def __init__(self,superior:"Grapher"):
             self.superior = superior
             self.root=superior
@@ -444,11 +451,12 @@ class Grapher(QDialog):
 
         def __init__(self,superior:"Grapher",pair:"LinkDataPair"):
             super().__init__()
+
             self.superior=superior
             self.pair:"LinkDataPair"=pair
             self.setPen(QPen(QColor(30, 144, 255)))
             self.setBrush(QBrush(QColor(30, 144, 255)))
-            self.setRect(self.superior.data.rect)
+            self.setRect(self.superior.data.default_rect)
             self.setFlag(self.ItemIsMovable, True)
             self.setFlag(self.ItemIsSelectable, True)
             self.setFlag(self.ItemSendsGeometryChanges, True)

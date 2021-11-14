@@ -13,13 +13,12 @@ CardId = funcs.Compatible.CardId()
 def on_js_message(handled, url: str, context):
     if url.startswith("hjp-bilink-cid:"):
         cid: "CardId" = CardId(int(url.split(":")[-1]))
-        # try:
         card = mw.col.getCard(cid)
-        # print(f"card_id={cid}")
-        funcs.Dialogs.open_custom_cardwindow(card)
+        if funcs.CardOperation.exists(card):
+            funcs.Dialogs.open_custom_cardwindow(card).activateWindow()
+        else:
+            showInfo(f"""卡片不存在,id={str(card.id)}""")
         return True, None
-        # except:
-        #     showInfo("卡片不存在")
     elif url.startswith("hjp-bilink-clipuuid:"):
         pdfuuid, pagenum = url.split(":")[-1].split("_")
         # print(f"pagenum={pagenum}")

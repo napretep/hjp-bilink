@@ -1,5 +1,8 @@
+import copy
 import re,zipfile
 import sys,os,json
+from shutil import copy2
+
 THIS_FOLDER = os.path.curdir
 baseconfig = json.load(open("baseInfo.json","r",encoding="utf-8"))
 
@@ -38,7 +41,7 @@ def check_is_debug():
 def pycache_check():
     for root,dirs,files in os.walk(THIS_FOLDER,onerror=lambda x:print("wrong direction")):
         for i in dirs:
-            if r".\lib" in root.__str__() and i == "__pycache__":
+            if r".\lib" in root.__str__() and "__pycache__" in i:
                 raise ValueError("__pycache__ exists in "+root.__str__())
 
 def status_check():
@@ -46,28 +49,34 @@ def status_check():
     check_version()
     pycache_check()
 
-def ankiaddon_make():
-    f = zipfile.ZipFile("hjp_bilink.zip", "w", zipfile.ZIP_DEFLATED)
+def ankiaddon_make(version):
+    repository = os.path.join(r"D:\备份盘\个人创作成果\代码\hjp-bilink历代版本",version)
+    if not os.path.exists(repository):
+        os.mkdir(repository)
+    zip_name = os.path.join(repository,"hjp_bilink.zip")
+    f = zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED)
     for root, dirs, files in os.walk(THIS_FOLDER, onerror=lambda x: print("wrong direction")):
         if r".\lib" in root.__str__():
             for file in files:
                 f.write(os.path.join(root, file))
         if root == os.path.curdir:
-            for file in ["meta.json", "baseInfo.json", "__init__.py", "log.txt", "input.json"]:
+            for file in ["manifest.json", "__init__.py", "log.txt", "linkpool.json","data_crash.txt"]:
                 f.write(os.path.join(root, file))
     f.close()
-    if os.path.exists("hjp-bilink.ankiaddon"):
-        os.remove("hjp-bilink.ankiaddon")
-    os.rename("hjp_bilink.zip", "hjp-bilink.ankiaddon")
+    filename =os.path.join(repository, f"{version}.ankiaddon")
+    if os.path.exists(filename):
+        os.remove(filename)
+    os.rename(zip_name, filename)
     pass
 
 
 
 if __name__ == "__main__":
-    a=input("请输入版本号\n")
+    version=input("请输入版本号\n")
     with open("./__init__.py","r",encoding="utf-8") as f:
         s = f.read()
-        s = re.sub("""(?<=ADDON_VERSION=")\d+\.\d+\.\d+""",a,s)
+        s = re.sub("""(?<=ADDON_VERSION=")\d+\.\d+\.\d+""",version,s)
 
     with open("./__init__.py","w",encoding="utf-8") as f:
         f.write(s)
+    ankiaddon_make(version)

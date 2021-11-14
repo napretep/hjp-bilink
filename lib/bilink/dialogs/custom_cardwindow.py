@@ -1,5 +1,6 @@
 # this code copied from https://ankiweb.net/shared/info/1423933177
 from datetime import time, date, datetime
+from typing import Optional
 
 import aqt
 from PyQt5 import QtGui
@@ -25,8 +26,10 @@ from aqt.editor import Editor
 from aqt.utils import saveGeom, restoreGeom
 from aqt.webview import AnkiWebView
 from anki.collection import Config
+from typing import Union
 
 from ..imports import common_tools
+from ...common_tools import objs
 
 
 class MyEditor(Editor):
@@ -144,6 +147,7 @@ class SingleCardPreviewer(Previewer):
     def _create_gui(self):
         self.setWindowTitle(tr.actions_preview())
         self.close_shortcut = QShortcut(QKeySequence("Ctrl+Shift+P"), self)
+        self.close_shortcut.activated.connect(self.close)
         qconnect(self.close_shortcut.activated, self.close)
         qconnect(self.finished, self._on_finished)
         self.silentlyClose = True
@@ -155,7 +159,7 @@ class SingleCardPreviewer(Previewer):
         restoreGeom(self, "preview")
         self.bottombar = QHBoxLayout()
 
-        self._other_side = QPushButton("Answer")
+        self._other_side = QPushButton("answer/review")
         self._other_side.setAutoDefault(False)
         self._other_side.clicked.connect(self._on_other_side)
 
@@ -236,7 +240,6 @@ class SingleCardPreviewer(Previewer):
             layout.addWidget(self.ease_button[i+1])
         widget.setLayout(layout)
 
-
         # common_tools.funcs.write_to_log_file(self.card().ivl.__str__())
 
         return widget
@@ -280,11 +283,11 @@ class SingleCardPreviewer(Previewer):
 
     def _update_due_info_widget(self):
         today, next_date, last_date = self._fecth_date()
-        self.due_label.setText("已经到期" if today>=next_date else "还未到期")
+        self.due_label.setText("已经到期,可复习" if today>=next_date else "还未到期.可提前")
         self.last_time_label.setText("上次复习:"+last_date.__str__())
         self.next_time_label.setText("下次复习:"+next_date.__str__())
-
         should_review = next_date<=today
+
     def _fecth_date(self):
         mw = common_tools.compatible_import.mw
         result = mw.col.db.execute(
@@ -293,8 +296,12 @@ class SingleCardPreviewer(Previewer):
         if result:
             last,ivl = result[0]
             last_date = datetime.fromtimestamp(last / 1000)  # (Y,M,D,H,M,S,MS)
-            next_date = datetime.fromtimestamp(last / 1000 + ivl * 86400)  # (Y,M,D,H,M,S,MS)
+
             common_tools.funcs.write_to_log_file(f"id={last},ivl={ivl}")
+            if ivl>=0: #ivl 正表示天为单位,负表示秒为单位
+                next_date = datetime.fromtimestamp(last / 1000 + ivl * 86400)  # (Y,M,D,H,M,S,MS)
+            else:
+                next_date = datetime.fromtimestamp(last/1000-ivl)
         else:
             ivl=0
             next_date = datetime.today()  # (Y,M,D,H,M,S,MS)
@@ -311,7 +318,7 @@ class SingleCardPreviewer(Previewer):
         today, next_date, last_date = self._fecth_date()
         self.inAdvance_button =QPushButton("提前学习")
         self.inAdvance_button.clicked.connect(self.switch_to_answer_buttons)
-        self.due_label = QLabel("已经到期" if next_date<=today else "还未到期")
+        self.due_label = QLabel("已经到期,可复习" if next_date<=today else "还未到期.可提前")
         self.last_time_label = QLabel("上次复习:"+last_date.__str__())
         self.next_time_label = QLabel("下次复习:"+next_date.__str__())
         layout.addWidget(self.due_label,0,0,2,1)
@@ -343,12 +350,9 @@ def unregister(card_id, *args, **kwargs):
     common_tools.G.mw_card_window[card_id] = None
 
 
-def external_card_dialog(card):
+def external_card_dialog(card) -> 'Optional[SingleCardPreviewerMod]':
+    """请自己做好卡片存在性检查,这一层不检查"""
     card_id = str(card.id)
-
-    if len(aqt.mw.col.find_cards(f"cid:{card_id}")) == 0:
-        showInfo(f"{card_id} 卡片不存在/card don't exist")
-        return
     if card_id not in common_tools.G.mw_card_window:
         common_tools.G.mw_card_window[card_id] = None
     if common_tools.G.mw_card_window[card_id] is not None:
@@ -357,3 +361,4 @@ def external_card_dialog(card):
         d = SingleCardPreviewerMod(card=card, parent=aqt.mw, mw=aqt.mw, on_close=lambda: unregister(card_id))
         d.open()
         common_tools.G.mw_card_window[card_id] = d
+    return common_tools.G.mw_card_window[card_id]

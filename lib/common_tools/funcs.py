@@ -9,13 +9,15 @@ __time__ = '2021/7/30 9:09'
 import logging
 import sys, platform, subprocess
 import tempfile
+from urllib.parse import quote
+
 import uuid
 from collections import Sequence
 from datetime import datetime
 from math import ceil
 from typing import Union, Optional, NewType, Callable
 
-from PyQt5.QtCore import pyqtSignal, QThread, QUrl, QTimer
+from PyQt5.QtCore import pyqtSignal, QThread, QUrl, QTimer, Qt, QSettings, QMimeData
 import json
 import os
 import re
@@ -25,18 +27,24 @@ from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5.QtWidgets import QApplication, QToolButton
 from anki import stdmodels, notes
 from anki.cards import Card
-from anki.utils import pointVersion
-from aqt import mw, dialogs
+from anki.utils import pointVersion, isWin
+from aqt import mw, dialogs, AnkiQt
 from aqt.browser import Browser
 from aqt.browser.previewer import BrowserPreviewer, Previewer
 from aqt.operations.card import set_card_deck
 from aqt.reviewer import Reviewer, RefreshNeeded
-from aqt.utils import showInfo, tooltip
+from aqt.utils import showInfo, tooltip, tr
 from aqt.webview import AnkiWebView
 from bs4 import BeautifulSoup, element
 from . import G
 from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
 
+class GrapherOperation:
+    @staticmethod
+    def refresh():
+        from ..bilink.dialogs.linkdata_grapher import Grapher
+        if isinstance(G.mw_grapher,Grapher):
+            G.mw_grapher.on_card_updated.emit(None)
 
 class LinkDataOperation:
     @staticmethod
@@ -110,15 +118,14 @@ class Compatible:
             from anki.decks import DeckId
             return DeckId
 
-
 class BrowserOperation:
     @staticmethod
     def search(s) -> Browser:
+        """注意,如果你是自动搜索,需要自己激活窗口"""
         browser: Browser = dialogs._dialogs["Browser"][1]
         # if browser is not None:
         if not isinstance(browser,Browser):
-            dialogs.open("Browser", mw)
-            browser: Browser = dialogs._dialogs["Browser"][1]
+            browser: Browser = dialogs.open("Browser", mw)
 
         browser.search_for(s)
         return browser
@@ -132,6 +139,26 @@ class BrowserOperation:
             browser.sidebar.refresh()
             browser.model.reset()
             browser.editor.setNote(None)
+
+class CustomProtocol:
+    #自定义url协议,其他的都是固定的,需要获取anki的安装路径
+
+    @staticmethod
+    def set():
+        root = QSettings("HKEY_CLASSES_ROOT", QSettings.NativeFormat)
+        root.beginGroup("ankilink")
+        root.setValue("Default", "URL:Ankilink")
+        root.setValue("URL Protocol", "")
+        root.endGroup()
+        command = QSettings(r"HKEY_CLASSES_ROOT\anki.ankiaddon\shell\open\command", QSettings.NativeFormat)
+        shell_open_command = QSettings(r"HKEY_CLASSES_ROOT\ankilink\shell\open\command", QSettings.NativeFormat)
+        shell_open_command.setValue(r"Default", command.value("Default"))
+
+    @staticmethod
+    def exists():
+        setting = QSettings(r"HKEY_CLASSES_ROOT\ankilink", QSettings.NativeFormat)
+        return len(setting.childGroups())>0
+
 
 
 class CardOperation:
@@ -207,7 +234,8 @@ class CardOperation:
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         card_id_li = clipbox.card_id.split(",")
         for card_id in card_id_li:
-
+            if not card_id.isdigit():
+                continue
             pdfinfo_ = DB.select(uuid=clipbox.pdfuuid).return_all().zip_up()[0]
             pdfinfo = G.objs.PDFinfoRecord(**pdfinfo_)
             pdfname = os.path.basename(pdfinfo.pdf_path)
@@ -216,7 +244,7 @@ class CardOperation:
             html = reduce(lambda x, y: x + "\n" + y, note.fields)
             if clipbox.uuid not in html:
                 note.fields[clipbox.QA] += \
-                    f"""<img class="hjp_clipper_clipbox" src="hjp_clipper_{clipbox.uuid}_.png">\n"""
+                    f"""<img class="hjp_clipper_clipbox" src="hjp_clipper_{clipbox.uuid}_.png"><br>\n"""
             if clipbox.comment != "" and clipbox.uuid not in html:
                 note.fields[clipbox.commentQA] += \
                     f"""<p class="hjp_clipper_clipbox text" id="{clipbox.uuid}">{clipbox.comment}</p>\n"""
@@ -274,6 +302,17 @@ class CardOperation:
                 prev_refresh(v)
         QTimer.singleShot(2000,lambda:tooltip("anki的自动刷新功能还存在问题,如果出现显示空白,请手动重新加载卡片"))
 
+    @staticmethod
+    def exists(id):
+        return card_exists(id)
+
+    @staticmethod
+    def note_get(id):
+        return note_get(id)
+
+    @staticmethod
+    def desc_extract(card_id,fromField=False):
+        return desc_extract(card_id,fromField)
 
 class Media:
     @staticmethod
@@ -319,9 +358,14 @@ class LinkPoolOperation:
         unlink_by_node = 6
 
     @staticmethod
-    def both_refresh():
-        CardOperation.refresh()
-        BrowserOperation.refresh()
+    def both_refresh(*args):
+        o=[CardOperation,BrowserOperation,GrapherOperation]
+        if len(args)>0:
+            for i in args:
+                o[i].refresh()
+        else:
+           for Op in o :
+               Op.refresh()
 
     @staticmethod
     def get_template():
@@ -393,7 +437,6 @@ class LinkPoolOperation:
         ]).bind()
         G.mw_universal_worker.start()
 
-        # LinkPoolOperation.both_refresh()
 
     @staticmethod
     def unlink(mode=6, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
@@ -515,8 +558,87 @@ class DeckOperation:
             data.append({"id": i.id, "name": i.name})
         return data
 
+class MonkeyPatch:
+    @staticmethod
+    def onAppMsgWrapper(self:AnkiQt):
+        # self.app.appMsg.connect(self.onAppMsg)
+        def handle_AnkiLink(buf):
+            #buf加了绝对路径,所以要去掉
+            #有时候需要判断一下
 
+            def handle_opencard(id):
+                if CardOperation.exists(id):
+                    Dialogs.open_custom_cardwindow(id).activateWindow()
+                pass
+            def handle_openbrowser(search):
+                BrowserOperation.search(search).activateWindow()
+                pass
+            from .objs import CmdArgs
+            cmd_dict={"opencard_id":handle_opencard,"openbrowser_search":handle_openbrowser}
 
+            if buf.startswith("ankilink://"): #此时说明刚打开就进来了,没有经过包装,格式取buf[11:-1]
+                #showInfo(buf[11:-1])
+                cmd=CmdArgs(buf[11:-1].split("="))
+            else:
+                cmd = CmdArgs(os.path.split(buf)[-1].split("="))
+            if cmd.type in cmd_dict:
+                cmd_dict[cmd.type](cmd.args)
+            else:
+                showInfo("未知指令错误:"+cmd.type)
+            pass
+        def onAppMsg(buf:str):
+            is_addon = self._isAddon(buf)
+            is_link =  "ANKILINK:" in buf.upper()
+            if self.state == "startup":
+                # try again in a second
+                self.progress.timer(
+                    1000, lambda: self.onAppMsg(buf), False, requiresCollection=False
+                )
+                return
+            elif self.state == "profileManager":
+                # can't raise window while in profile manager
+                if buf == "raise":
+                    return None
+                self.pendingImport = buf
+                if is_addon:
+                    msg = tr.qt_misc_addon_will_be_installed_when_a()
+                elif is_link:
+                    msg = "在profile窗口下,ankilink功能无法正常使用"
+                else:
+                    msg = tr.qt_misc_deck_will_be_imported_when_a()
+                tooltip(msg)
+                return
+            if not self.interactiveState() or self.progress.busy():
+                # we can't raise the main window while in profile dialog, syncing, etc
+                if buf != "raise":
+                    showInfo(
+                        tr.qt_misc_please_ensure_a_profile_is_open(),
+                        parent=None,
+                    )
+                return None
+            # raise window
+            if isWin:
+                # on windows we can raise the window by minimizing and restoring
+                self.showMinimized()
+                self.setWindowState(Qt.WindowActive)
+                self.showNormal()
+            else:
+                # on osx we can raise the window. on unity the icon in the tray will just flash.
+                self.activateWindow()
+                self.raise_()
+            if buf == "raise":
+                return None
+
+            # import / add-on installation
+            if is_addon:
+                self.installAddon(buf)
+            elif is_link:
+                handle_AnkiLink(buf)
+            else:
+                self.handleImport(buf)
+
+            return None
+        return onAppMsg
 class Dialogs:
     @staticmethod
     def open_anchor(card_id):
@@ -591,8 +713,6 @@ class Dialogs:
             G.mw_pdf_prev[card_id] = {}
         if pdfpageuuid not in G.mw_pdf_prev[card_id]:
             G.mw_pdf_prev[card_id][pdfpageuuid] = None
-        # print(f"pagenum={pagenum}")
-        # print(f"all_objs.mw_pdf_prev[card_id][pdfpageuuid]={all_objs.mw_pdf_prev[card_id][pdfpageuuid]}")
         if isinstance(G.mw_pdf_prev[card_id][pdfpageuuid], PDFPrevDialog):
             G.mw_pdf_prev[card_id][pdfpageuuid].activateWindow()
         else:
@@ -604,13 +724,12 @@ class Dialogs:
         pass
 
     @staticmethod
-    def open_custom_cardwindow(card: Union[Card, str, int]):
-        if isinstance(card, str):
-            card = mw.col.get_card(CardId(int(card)))
-        elif isinstance(card, int):
-            card = mw.col.get_card(CardId(card))
+    def open_custom_cardwindow(card: Union[Card, str, int])-> 'Optional[SingleCardPreviewerMod]':
+        """请注意需要你自己激活窗口 请自己做好卡片存在性检查,这一层不检查 """
         from ..bilink.dialogs.custom_cardwindow import external_card_dialog
-        external_card_dialog(card)
+        if not isinstance(card, Card):
+            card = mw.col.get_card(CardId(int(card)))
+        return external_card_dialog(card)
         pass
 
     @staticmethod
@@ -845,7 +964,9 @@ def HTML_clipbox_exists(html, card_id=None):
 
 
 def HTML_LeftTopContainer_make(root: "BeautifulSoup"):
-    """传入的是从html文本解析成的beautifulSoup对象
+    """
+    注意在这一层已经完成了,CSS注入
+    传入的是从html文本解析成的beautifulSoup对象
     设计的是webview页面的左上角按钮,包括的内容有:
     anchorname            ->一切的开始
         style             ->样式设计
@@ -879,6 +1000,74 @@ def HTML_LeftTopContainer_make(root: "BeautifulSoup"):
         anchor_el.append(L0)
     return anchor_el  # 已经传入了root,因此不必传出.
 
+class AnkiLinks:
+    class Type:
+        html=0
+        markdown=1
+        orgmode=2
+
+    @staticmethod
+    def copy_card_as(linktype:int, pairs_li: 'list[G.objs.LinkDataPair]'):
+        tooltip(pairs_li.__str__())
+        clipboard = QApplication.clipboard()
+        header = "ankilink://opencard_id="
+        def as_html(pairs_li: 'list[G.objs.LinkDataPair]'):
+            total = ""
+            puretext=""
+            for pair in pairs_li:
+                total+=f"""<a href="{header}{pair.card_id}">{pair.desc}<a><br>"""+"\n"
+                puretext+=f"""{header}{pair.card_id}\n"""
+            mmdata=QMimeData()
+            mmdata.setHtml(total)
+            mmdata.setText(puretext)
+            clipboard.setMimeData(mmdata)
+            # clipboard.setText(total)
+            pass
+        def as_markdown(pairs_li: 'list[G.objs.LinkDataPair]'):
+            total=""
+            for pair in pairs_li:
+                total+=f"""[{pair.desc}]({header}{pair.card_id})\n"""
+            clipboard.setText(total)
+            pass
+        def as_orgmode(pairs_li: 'list[G.objs.LinkDataPair]'):
+            total = ""
+            for pair in pairs_li:
+                total += f"""[[{header}{pair.card_id}][{pair.desc}]]\n"""
+            clipboard.setText(total)
+            pass
+        typ=AnkiLinks.Type
+        func_dict={typ.html:as_html,
+                   typ.orgmode:as_orgmode,
+                   typ.markdown:as_markdown}
+        func_dict[linktype](pairs_li)
+
+    @staticmethod
+    def copy_search_as(linktype:int,browser:"Browser"):
+        searchstring = browser.form.searchEdit.currentText()
+        tooltip(searchstring)
+        clipboard = QApplication.clipboard()
+        header = "ankilink://openbrowser_search="
+        href = header+quote(searchstring)
+        def as_html():
+            total =f"""<a href="{href}">Anki搜索:{searchstring}</a>"""
+            mmdata=QMimeData()
+            mmdata.setHtml(total)
+            clipboard.setMimeData(mmdata)
+            pass
+        def as_markdown():
+            total=f"[Anki搜索:{searchstring}]({href})"
+            clipboard.setText(total)
+            pass
+        def as_orgmode():
+            total = f"[[{href}][Anki搜索:{searchstring}]]"
+            clipboard.setText(total)
+            pass
+        typ = AnkiLinks.Type
+        func_dict = {typ.html: as_html,
+                     typ.orgmode: as_orgmode,
+                     typ.markdown: as_markdown}
+        func_dict[linktype]()
+        pass
 
 def copy_intext_links(pairs_li: 'list[G.objs.LinkDataPair]'):
     from .objs import LinkDataPair
@@ -1061,9 +1250,11 @@ def card_exists(card_id):
         raise TypeError("参数类型不支持:" + card_id.__str__())
     txt = f"cid:{cid}"
     card_ids = mw.col.find_cards(txt)
+
     if len(card_ids) == 1:
         return True
     else:
+        tooltip("卡片不存在:id=" + str(cid))
         return False
 
 
