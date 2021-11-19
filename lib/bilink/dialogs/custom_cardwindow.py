@@ -1,5 +1,6 @@
 # this code copied from https://ankiweb.net/shared/info/1423933177
-from datetime import time, date, datetime
+from datetime import date, datetime
+import time
 from typing import Optional
 
 import aqt
@@ -257,14 +258,17 @@ class SingleCardPreviewer(Previewer):
         say = common_tools.language.rosetta
         mw = common_tools.compatible_import.mw
         sched = common_tools.compatible_import.mw.col.sched
-        try:
-            sched.answerCard(self.card(),ease)
-            self.switch_to_due_info_widget()
-            common_tools.funcs.LinkPoolOperation.both_refresh()
-            mw.col.reset()
-        except:
-            showInfo(say("回答失败,请再试一次"))
+        signals = common_tools.G.signals
+        answer = common_tools.interfaces.AnswerInfoInterface
 
+        if self.card().timer_started is None:
+            self.card().timer_started = time.time() - 60
+        common_tools.funcs.CardOperation.answer_card(self.card(),ease)
+        self.switch_to_due_info_widget()
+        common_tools.funcs.LinkPoolOperation.both_refresh()
+        mw.col.reset()
+        common_tools.G.signals.on_card_answerd.emit(
+            answer(platform=self, card_id=self.card().id, option_num=ease))
 
 
     def switch_to_answer_buttons(self):

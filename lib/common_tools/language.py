@@ -75,9 +75,6 @@ def rosetta(text: str = ""):
         "已按完全图完成链接": "linked, method: complete map",
         "已删除选中卡片": "selected card deleted",
         "input 已清空": "input cleared",
-        "请安装插件1423933177,否则将无法点击链接预览卡片": "please install the addon 1423933177, otherwise you can't click the link and open preivew window",
-        "请安装插件564851917,否则将无法折叠标签,我们每次链接都会产生标签": "please install the addon 1423933177,otherwise you won't have hierarchical tag system, it's useful for collapse/expand the tag produced by hjp-bilink",
-        "config重置成功": "config reseted",
         "重置config": "config reset",
         "打开anchor": "open anchor",
         "多选模式": "in multi-select mode",
@@ -120,23 +117,42 @@ def rosetta(text: str = ""):
         "打开链接信息保存目录": "open storage directory",
         "注意1:当数据从A转移到B，会删除A中的数据记录": "hint1:migrate data from A to B, the data in A will be deleted",
         "注意2:先把想要转移的卡片插入到input": "hint2:put the card you want into the Input before execute",
-        "defaultLinkMode": "default link mode (for shortcut)",
-        "defaultUnlinkMode": "default unlink mode (for shortcut)",
-        "defaultInsertMode": "default insert mode(for shortcut)",
-        "addTagEnable": "auto add tag when linking",
-        "appendNoteFieldPosition": "note field to store data (work in specified mode)",
-        "readDescFieldPosition": "note field to read the description",
-        "linkInfoStorageLocation": "link data storage location",
-        "descMaxLength": "auto read desc max length",
-        "addTagRoot": "the root tag name of auto add tag ",
-        "button_appendTo_AnchorId": "the HTML id of anchor (if you know)",
-        "shortcut_inputDialog_open": "shortcut:open input(global)",
-        "shortcut_browserTableSelected_link": "shortcut:link(browser)",
-        "shortcut_browserTableSelected_unlink": "shortcut:unlink(browser)",
-        "shortcut_browserTableSelected_insert": "shortcut:insert to input(browser)",
-        "shortcut_inputFile_clear": "shortcut:clear input(global)",
-        "anchorCSSFileName": "anchor CSS file name (if you know)",
-        "shortcut_copylink": "shortcut:copy link (browser)"
+        "打开配置表":"open configuration file",
+        "文内链接":"in-text link",
+        "html链接":"html link",
+        "markdown链接":"markdown link",
+        "orgmode链接":"orgmode link",
+        "复制为":"copy card as",
+        "复制当前搜索栏为":"copy current search result as",
+        "文外链接操作":"out-text link operation",
+        "打开链接池":"open link pool",
+        "清空链接池":"clear link pool",
+        "完全图绑定":"complete map binding",
+        "组到组绑定":"group by group binding",
+        "按结点解绑":"unbind by node",
+        "按路径解绑":"unbind by path",
+        "选中直接操作":"operations of selected cards",
+        "卡片插入池":"insert card to the link pool",
+        "池中卡片操作":"operations in the link pool",
+        "改变牌组":"change the deck of the card",
+        "操作标签":"modify the tags of the card",
+        "发现未注册自定义url协议,现已自动注册,若出现反复注册,请以管理员身份运行anki":
+            "detect the url scheme of Anki is not registered, now has been automatically registered\n"
+            "if this information repeated occurs, please run anki in administrator",
+        "打开clipper":"open clipper",
+        "在clipper中打开卡片":"open card in clipper",
+        "在grapher中打开卡片":"open card in grapher",
+        "添加同步复习标签":"add sync review tag",
+        "保存当前搜索条件为自动复习条件":"restore current search for auto review",
+        "保存成功":"successfully restored",
+        "自动复习操作":"auto review operation",
+        "重建数据库":"rebuild auto review database",
+        "配置表操作":"operations for config file",
+        "重置配置表":"reset config file",
+        "保存为视图":"save as view",
+        "视图名":"name of view",
+        "视图名不能为空":"name of view cannot be empty",
+        "视图名必须是JSON合法的字符串":"must be a valid JSON string"
     }
     ZHdict = {
         "defaultLinkMode": "默认链接方式(用于快捷键)",
@@ -165,3 +181,56 @@ def rosetta(text: str = ""):
     }
 
     return translateFuncs[lang](text)
+
+
+# noinspection NonAsciiCharacters
+class Translate:
+    lang = currentLang
+    surrport = ["zh-CN", "zh_TW", "en", "en-GB"]
+    打开配置表:str = rosetta("打开配置表")
+    打开anchor:str  = rosetta("打开anchor")
+    文内链接:str = rosetta("文内链接")
+    html链接:str = rosetta("html链接")
+    markdown链接:str = rosetta("markdown链接")
+    orgmode链接:str = rosetta("orgmode链接")
+    复制为:str=rosetta("复制为")
+    复制当前搜索栏为:str = rosetta("复制当前搜索栏为")
+    文外链接操作:str=rosetta("文外链接操作")
+    打开链接池:str=rosetta("打开链接池")
+    清空链接池:str=rosetta("清空链接池")
+    完全图绑定:str=rosetta("完全图绑定")
+    组到组绑定:str=rosetta("组到组绑定")
+    按结点解绑:str=rosetta("按结点解绑")
+    按路径解绑:str=rosetta("按路径解绑")
+    选中直接操作:str=rosetta("选中直接操作")
+    清空后插入:str=rosetta("清空后插入")
+    直接插入:str=rosetta("直接插入")
+    编组插入:str=rosetta("编组插入")
+    卡片插入池:str=rosetta("卡片插入池")
+    池中卡片操作:str=rosetta("池中卡片操作")
+    改变牌组:str=rosetta("改变牌组")
+    操作标签:str=rosetta("操作标签")
+    其他:str=rosetta("其他")
+    联系作者:str=rosetta("联系作者")
+    支持作者:str=rosetta("支持作者")
+    打开链接数据保存目录:str=rosetta("打开链接数据保存目录")
+    打开代码仓库:str=rosetta("打开代码仓库")
+    查看更新与文档:str=rosetta("查看更新与文档")
+    发现未注册自定义url协议_现已自动注册_若出现反复注册_请以管理员身份运行anki:str=rosetta("发现未注册自定义url协议,现已自动注册,若出现反复注册,请以管理员身份运行anki")
+    打开clipper:str=rosetta("打开clipper")
+    在clipper中打开卡片:str=rosetta("在clipper中打开卡片")
+    在grapher中打开卡片:str=rosetta("在grapher中打开卡片")
+    添加同步复习标签:str=rosetta("添加同步复习标签")
+    保存当前搜索条件为自动复习条件:str=rosetta("保存当前搜索条件为自动复习条件")
+    保存成功:str=rosetta("保存成功")
+    自动复习操作:str=rosetta("自动复习操作")
+    重建数据库:str=rosetta("重建数据库")
+    配置表操作:str=rosetta("配置表操作")
+    重置配置表:str=rosetta("重置配置表")
+    保存为视图:str=rosetta("保存为视图")
+    视图名:str=rosetta("视图名")
+    视图名不能为空:str=rosetta("视图名不能为空")
+    视图名必须是JSON合法的字符串:str=rosetta("视图名必须是JSON合法的字符串")
+
+if __name__ == "__main__":
+    print(Translate.打开配置表)

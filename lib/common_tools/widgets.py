@@ -11,13 +11,14 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Union, Optional
 
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QModelIndex
-from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QDialog, QProgressBar, QTreeView, QToolButton, QHeaderView
+from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QDialog, QProgressBar, QTreeView, QToolButton, QHeaderView, \
+    QMenu
 
 import sys
 
-from PyQt5.QtGui import QPixmap, QIcon, QStandardItemModel, QStandardItem
+from PyQt5.QtGui import QPixmap, QIcon, QStandardItemModel, QStandardItem, QCursor
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QApplication
 
 from aqt import mw, dialogs
@@ -27,6 +28,8 @@ from aqt.operations.card import set_card_deck
 from aqt.reviewer import Reviewer
 from aqt.utils import tooltip, showInfo
 from aqt.webview import AnkiWebView
+
+from .language import Translate
 
 if __name__ == "__main__":
     from lib.common_tools import G
@@ -163,7 +166,7 @@ class SupportDialog(QDialog):
 
 class deck_chooser(QDialog):
 
-    def __init__(self, pair_li: "list[G.objs.LinkDataPair]" = None,fromview=None):
+    def __init__(self, pair_li: "list[G.objs.LinkDataPair]" = None, fromview=None):
         super().__init__()
         self.fromview = fromview
         self.pair_li = pair_li
@@ -182,15 +185,14 @@ class deck_chooser(QDialog):
     def on_header_new_dec_button_clicked_handle(self):
         new_item = self.Item(f"""new_deck_{datetime.now().strftime("%Y%m%d%H%M%S")}""")
         if self.view.selectedIndexes():
-            item:"deck_chooser.Item" = self.model.itemFromIndex(self.view.selectedIndexes()[0])
+            item: "deck_chooser.Item" = self.model.itemFromIndex(self.view.selectedIndexes()[0])
             parent_item = item.parent()
         else:
             parent_item = self.model.invisibleRootItem()
         parent_item.appendRow([new_item])
         self.view.edit(new_item.index())
         deck = mw.col.decks.add_normal_deck_with_name(self.get_full_deck_name(new_item))
-        new_item.deck_id=deck.id
-
+        new_item.deck_id = deck.id
 
     def on_view_doubleclicked_handle(self, index):
         self.on_item_button_clicked_handle(self.model.itemFromIndex(index))
@@ -213,7 +215,6 @@ class deck_chooser(QDialog):
         CardId = funcs.CardId
         browser: Browser = dialogs._dialogs["Browser"][1]
 
-
         if browser is None:
             dialogs.open("Browser", mw)
             browser = dialogs._dialogs["Browser"][1]
@@ -222,10 +223,10 @@ class deck_chooser(QDialog):
                           deck_id=DeckId(item.deck_id)).run_in_background()
         browser.showMinimized()
         from ..bilink.dialogs.linkdata_grapher import Grapher
-        if isinstance(self.fromview,AnkiWebView):
-            parent:"Union[Previewer,Reviewer]" = self.fromview.parent()
+        if isinstance(self.fromview, AnkiWebView):
+            parent: "Union[Previewer,Reviewer]" = self.fromview.parent()
             parent.activateWindow()
-        elif isinstance(self.fromview,Grapher):
+        elif isinstance(self.fromview, Grapher):
             self.fromview.activateWindow()
         QTimer.singleShot(100, funcs.LinkPoolOperation.both_refresh)
         # QTimer.singleShot(100, lambda: funcs.BrowserOperation.search(f"""deck:{self.get_full_deck_name(item)}"""))
@@ -298,7 +299,7 @@ class deck_chooser(QDialog):
             return item.text()
         s = ""
         parent = item
-        while parent!=self.model.invisibleRootItem():
+        while parent != self.model.invisibleRootItem():
             s = "::" + parent.deck_name + s
             parent = parent.parent()
         s = s[2:]
@@ -330,7 +331,8 @@ class deck_chooser(QDialog):
                     ]
         else:
             decks = mw.col.decks
-            return [self.Id_deck(deck=i.name, ID=i.id) for i in decks.all_names_and_ids() if not decks.is_filtered(i.id)]
+            return [self.Id_deck(deck=i.name, ID=i.id) for i in decks.all_names_and_ids() if
+                    not decks.is_filtered(i.id)]
 
     def init_UI(self):
         self.setWindowTitle("deck_chooser")
@@ -374,7 +376,7 @@ class deck_chooser(QDialog):
         def deck_name(self):
             return self.text()
 
-        def parent(self)->"deck_chooser.Item":
+        def parent(self) -> "deck_chooser.Item":
             parent = super().parent()
             if parent:
                 return parent
@@ -395,12 +397,13 @@ class deck_chooser(QDialog):
 #     pass
 
 class tag_chooser(QDialog):
-
+    """添加后需要更新内容, 用 init_data_left方法"""
     def __init__(self, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
         super().__init__()
         self.pair_li = pair_li
         self.view_left = self.View(self)
         self.view_right = self.View(self)
+        self.view_left.setContextMenuPolicy(Qt.CustomContextMenu)
         self.model_left = QStandardItemModel(self)
         self.model_right = QStandardItemModel(self)
         self.model_right_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
@@ -410,9 +413,26 @@ class tag_chooser(QDialog):
         self.right_button_group = self.button_group(self, 1, self.view_right, self.model_right)
         self.init_UI()
         self.init_model()
-        self.model_left.dataChanged.connect(self.on_model_left_datachanged_handle)
-        self.view_right.doubleClicked.connect(self.on_view_right_doubleClicked_handle)
-        # self.model_right.dataChanged.connect(self.on_model_right_datachanged_handle)
+        self.allevent = G.objs.AllEventAdmin([
+            [self.model_left.dataChanged, self.on_model_left_datachanged_handle],
+            [self.view_right.doubleClicked, self.on_view_right_doubleClicked_handle],
+            # [self.view_left.customContextMenuRequested, self.on_view_show_context_menu]
+        ]).bind()
+
+    # def on_view_show_context_menu(self, pos: QtCore.QPoint):
+    #     selected_items: "list[tag_chooser.Item]" = [ self.model_left.itemFromIndex(idx) for idx in  self.view_left.selectedIndexes()]
+    #     selected_item = selected_items[0] if len(selected_items) > 0 else None
+    #
+    #     def add_syncReview_tag(item: 'Optional[tag_chooser.Item]'):
+    #         tag_name = item.tag_name if item is not None else ""
+    #         tag_name = "::".join(tag_name.split("::")[2:]) if  "hjp-bilink" in tag_name.split("::") else tag_name
+    #         new_tag_name = G.src.autoreview_header + tag_name
+    #         self.left_button_group.on_card_tag_new_handle(tag_name=new_tag_name,from_posi=self.model_left)
+    #
+    #     menu = self.view_left.contextMenu = QMenu()
+    #     menu.addAction(Translate.添加同步复习标签).triggered.connect(lambda: add_syncReview_tag(selected_item))
+    #     menu.popup(QCursor.pos())
+    #     menu.show()
 
     def on_view_right_doubleClicked_handle(self, index):
         self.right_button_group.on_collection_tag_add_handle()
@@ -776,23 +796,27 @@ class tag_chooser(QDialog):
                 self.func_button.clicked.connect(self.on_collection_tag_add_handle)
             self.arrange_button.clicked.connect(self.button_text_switch)
 
-        def on_card_tag_new_handle(self):
-            new_tag = f"""new_tag_{datetime.now().strftime("%Y%m%d%H%M%S")}"""
-            if self.fromView.selectedIndexes():
-                item = self.fromModel.itemFromIndex(self.fromView.selectedIndexes()[0])
-                item_parent = item.parent()
-                new_full_tag = self.superior.get_full_tag_name(item) + "::" + new_tag
+        def on_card_tag_new_handle(self, tag_name=None,from_posi=None):
+            if tag_name:
+                new_tag = tag_name
             else:
-                item_parent = self.fromModel.invisibleRootItem()
+                new_tag = f"""new_tag_{datetime.now().strftime("%Y%m%d%H%M%S")}"""
+            if from_posi:
+                item_parent = from_posi
                 new_full_tag=new_tag
+            else:
+                if self.fromView.selectedIndexes():
+                    item = self.fromModel.itemFromIndex(self.fromView.selectedIndexes()[0])
+                    item_parent = item.parent()
+                    new_full_tag = self.superior.get_full_tag_name(item) + "::" + new_tag
+                else:
+                    item_parent = self.fromModel.invisibleRootItem()
+                    new_full_tag = new_tag
             new_item = self.superior.Item(new_tag)
             new_item.set_tag_name(new_full_tag)
             item_parent.appendRow([new_item])
-            self.superior.tag_list=self.superior.save()
+            self.superior.tag_list = self.superior.save()
             self.fromView.edit(new_item.index())
-            # self.superior.tag_list.add(new_tag)
-            # self.superior.init_data_left()
-
             pass
 
         def on_card_tag_del_handle(self):
@@ -846,7 +870,6 @@ class tag_chooser(QDialog):
             item_to: "tag_chooser.Item" = self.model().itemFromIndex(self.indexAt(event.pos()))
             parent_from: "list[tag_chooser.Item]" = [item.parent() for item in item_from]
             parent_to: "tag_chooser.Item" = item_to.parent() if item_to is not None else self.model().invisibleRootItem()
-            # item: "list[tag_chooser.Item]" = parent_from_li.takeRow(item_from.row())
             for i in range(len(parent_from)):
                 item = parent_from[i].takeRow(item_from[i].row())
                 if self.dropIndicatorPosition() == self.OnItem:

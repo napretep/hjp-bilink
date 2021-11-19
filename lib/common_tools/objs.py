@@ -9,13 +9,15 @@ __time__ = '2021/7/30 9:09'
 import json
 import re
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Union
 from urllib.parse import unquote
 
 from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QShortcut
 from aqt import mw
+from aqt.utils import tooltip
+
 
 class NONE:
     @staticmethod
@@ -28,6 +30,7 @@ class CmdArgs:
     def __init__(self,cmdargsli:[str,str]):
         self.args=unquote(cmdargsli[1])
         self.type=cmdargsli[0].lower()
+
 
 @dataclass
 class Date:
@@ -121,15 +124,30 @@ class LinkPoolModel:
 class LinkDataPair:
     """LinkDataJSONInfo 的子部件, 也可以独立使用"""
     card_id: "str"
-    desc: "str" = ""
+    _desc: "str" = "" #由于引入了新的设定, desc的获取不一定是来自数据库,而是实时与卡片内容保持一致, 所以需要一个中间层来处理问题.
     dir: "str" = "→"
+
+    def __init__(self,card_id="",desc="",dir="→"):
+        self.card_id=card_id
+        self._desc=desc
+        self.dir=dir
+
+    @property
+    def desc(self):
+        from . import funcs
+        d = self._desc if funcs.Config.get().desc_sync.value==0 else funcs.CardOperation.desc_extract(self.card_id)
+        return d
+
+    @desc.setter
+    def desc(self,value):
+        self._desc=value
 
     @property
     def int_card_id(self):
         return int(self.card_id)
 
     def todict(self):
-        return self.__dict__
+        return {"card_id":self.card_id, "desc":self.desc,"dir":self.dir}
 
     def update_desc(self):
         from . import funcs
@@ -301,18 +319,18 @@ class LinkDataJSONInfo:
         d = [pair.card_id for pair in self.link_list]
         return item in d
 
-    def append_link(self, pair):
+    def append_link(self, pair:LinkDataPair):
         self.link_list.append(pair)
-        self.root.append(pair)
+        self.root.append(LinkDataNode(card_id=pair.card_id))
 
     def remove_link(self, pair: LinkDataPair):
         if pair in self.link_list:
             self.link_list.remove(pair)
         if pair in self.root:
-            self.root.remove(LinkDataNode(pair.card_id))
+            self.root.remove(LinkDataNode(card_id=pair.card_id))
         for uuid, groupli in self.node.items():
             if pair in groupli.children:
-                groupli.children.remove(LinkDataNode(pair.card_id))
+                groupli.children.remove(LinkDataNode(card_id=pair.card_id))
 
     def add_tag(self, tag):
         from . import funcs
@@ -324,6 +342,8 @@ class LinkDataJSONInfo:
 
     def add_timestamp_tag(self, timestamp):
         self.add_tag(f"""hjp-bilink::timestamp::{timestamp}""")
+
+
 
 
 class NoRepeatShortcut(QShortcut):
@@ -371,6 +391,7 @@ class DB_admin(object):
     table_clipbox = 0
     table_pdfinfo = 1
     table_linkinfo = 2
+    table_Gview=3
 
     sqlstr_TABLE_CREATE = """create table if not exists {tablename} ({fields})"""
 
@@ -383,8 +404,9 @@ class DB_admin(object):
     sqlstr_RECORD_DELETE = """delete from {tablename} where {where} """
     sqlstr_RECORD_INSERT = """insert into {tablename} ({cols}) values ({vals}) """
 
+    ################################下面是查询语句设计########################
     class BOX:
-        """仅用作传输,不作别的处理"""
+        """仅用作传输,不作别的处理, BOX之间可以用 and,or,not,+等运算符 连续拼接字符串, 采用安全的参数输入方法"""
 
         def __init__(self, string, values):
             self.string: str = string
@@ -443,10 +465,10 @@ class DB_admin(object):
     def VALUEEQ(**kwargs):
         """确保插入的都是数据库字段, 不然就等着报错吧!"""
         string = ",".join([k + "=? " for k in list(kwargs.keys())])
-        # string = f"""({string})"""
         value = list(kwargs.values())
         return DB_admin.BOX(string, value)
 
+    ######################## 下面是表结构设计 ##############################
     @dataclass
     class linkinfo_fields:
         tablename: "str" = "CARD_LINK_INFO"
@@ -492,6 +514,19 @@ class DB_admin(object):
             d.pop("tablename")
             return d
 
+    @dataclass
+    class Gview_fields:
+        """grapher的固定视图,G代表graph, 目前想到的串有,uuid,name,member_info_json, 需要根据卡片id反查所属view时,查找"""
+        tablename: "str"="GRAPH_VIEW_TABLE"
+        uuid: "str" = "varchar(8) primary key not null unique"
+        name: "str" = "varchar not null"
+        nodes:"str" = "text"
+        edges:"str" = "text"
+        def get_dict(self):
+            d = self.__dict__.copy()
+            d.pop("tablename")
+            return d
+
     linkinfo_constrain = {
         "string": ["data"],
         "number": ["card_id"]
@@ -507,10 +542,16 @@ class DB_admin(object):
         "number": ["ratio", "offset"]
     }
 
+    Gview_constrain={
+        "string":["uuid","name","nodes","edges"],
+        "number":[]
+    }
+
     table_swtich = {
         table_clipbox: (clipbox_fields(), clipbox_constrain),
         table_pdfinfo: (pdfinfo_fields(), pdfinfo_constrain),
-        table_linkinfo: (linkinfo_fields(), linkinfo_constrain)
+        table_linkinfo: (linkinfo_fields(), linkinfo_constrain),
+        table_Gview:(Gview_fields(),Gview_constrain)
     }
 
     def __init__(self):
@@ -532,9 +573,9 @@ class DB_admin(object):
         pragma = self.pragma().return_all()
         table_fields = set([i[1] for i in pragma])
         compare_fields = set(self.table_swtich[self.curr_tabtype][0].get_dict().keys())
-        if len(compare_fields) > len(table_fields):
+        need_add_fields = list(compare_fields - table_fields)
+        if need_add_fields:
             # print("update table fields")
-            need_add_fields = list(compare_fields - table_fields)
             for field in need_add_fields:
                 self.alter_add_col(field).commit()
 
@@ -552,7 +593,13 @@ class DB_admin(object):
         return self
 
     def go(self, curr_tabtype=None):
-        """go是DB开始的入口,end是结束的标志,必须要调用end结束"""
+        """go是DB开始的入口,end是结束的标志,必须要调用end结束
+        curr_tabtype:
+            table_clipbox = 0
+            table_pdfinfo = 1
+            table_linkinfo = 2
+            table_Gview=3
+        """
         if not curr_tabtype:
             curr_tabtype = self.table_clipbox
         self.excute_queue = []
@@ -569,6 +616,7 @@ class DB_admin(object):
         if self.connection is not None:
             self.connection.close()
 
+    ########################### use for clipbox ########################
     def del_card_id(self, condition: "DB_admin.BOX", card_id, callback=None):
         """使用的前提是在table_clipbox表中,目的是删掉对应clipbox已经不支持的卡片"""
         records = self.select(condition).return_all().zip_up().to_clipbox_data()
@@ -590,6 +638,8 @@ class DB_admin(object):
                 card_idlist.append(card_id)
             r.card_id = ",".join(card_idlist)
             self.update(where=self.EQ(uuid=r.uuid), values=self.VALUEEQ(**r.to_dict())).commit(callback=callback)
+    ########################### use for clipbox ########################
+
 
     # 存在性检查,如果为空则创建
     def table_ifEmpty_create(self):
@@ -660,24 +710,7 @@ class DB_admin(object):
             raise ValueError("values is empty!")
         return DB_admin.BOX(string, val)
 
-    # 查
-    # def select2(self, uuid: "str" = None, card_id: "str" = None, pagenum: "int" = None, pdfuuid: "str" = None,
-    #            comment: "str" = None, where=None, limit=None, like=None, **kwargs):
-    #     """# 简单的查询, 支持等于,包含,两种搜索条件,
-    #     如果你想搜所有的记录,那么就输入 true=True
-    #     """
-    #
-    #     if like is None:
-    #         if where is None:
-    #             where = self.where_maker(uuid=uuid, card_id=card_id, pagenum=pagenum, pdfuuid=pdfuuid, comment=comment,
-    #                                      **kwargs)
-    #         s = self.sqlstr_RECORD_SELECT.format(tablename=self.tab_name, where=where)
-    #     else:
-    #         colname = list(filter(lambda x: x is not None, [pdfuuid, card_id]))[0]
-    #         s = self.sqlstr_RECORD_SELECT.format(tablename=self.tab_name, where=f"{colname} like '{like}'")
-    #     s += (f"limit {limit}" if limit is not None else "")
-    #     self.excute_queue.append(s)
-    #     return self
+
 
     def select(self, box: "DB_admin.BOX" = None, **kwargs):
         assert box is not None or len(kwargs) > 0
@@ -688,13 +721,6 @@ class DB_admin(object):
 
         return self
 
-    # 改
-    # def update2(self, values=None, where=None):
-    #     assert values is not None and where is not None
-    #     """values 和 where 可以用 valuemaker和wheremaker设计， 也可以自己设计"""
-    #     s = self.sqlstr_RECORD_UPDATE.format(tablename=self.tab_name, values=values, where=where)
-    #     self.excute_queue.append(s)
-    #     return self
 
     def update(self, values: "DB_admin.BOX" = None, where: "DB_admin.BOX" = None):
         """values,where 应该是一个字典, k是字段名,v是字段值"""
@@ -707,7 +733,7 @@ class DB_admin(object):
 
     # 增
     def insert(self, **values):
-        """insert 很简单, 不必走 box"""
+        """insert 很简单, 不必走 box, 例子: insert(A=a,B=b,C=c)"""
         cols = ""
         vals = ""
         all_column_names = self.table_swtich[self.curr_tabtype][0].get_dict()
@@ -722,35 +748,16 @@ class DB_admin(object):
         self.excute_queue.append([s, entity])
         return self
 
-    # def insert(self,values:"DB_admin.BOX"):
-    #
-    #     s = self.sqlstr_RECORD_INSERT.format(tablename=self.tab_name, cols=cols[0:-1], vals=placeholder[0:-1])
-    #     self.excute_queue.append([s,vals])
-    #     return self
-    # 删
-    # def delete2(self, uuid: "str" = None, card_id: "str" = None, pagenum: "int" = None, pdfuuid: "str" = None,
-    #            text_: "str" = None):
-    #     where = self.where_maker(uuid=uuid, card_id=card_id, pagenum=pagenum, pdfuuid=pdfuuid, text_=text_)
-    #     s = self.sqlstr_RECORD_DELETE.format(tablename=self.tab_name, where=where)
-    #     self.excute_queue.append(s)
-    #     return self
+
 
     def delete(self, where: "DB_admin.BOX"):
         s = self.sqlstr_RECORD_DELETE.format(tablename=self.tab_name, where=where.string)
         self.excute_queue.append([s, where.values])
         return self
 
-    # def return_all2(self, callback=None):
-    #     s = self.excute_queue.pop(0)
-    #     # print(s)
-    #     if s != "":
-    #         if callback:
-    #             callback(s)
-    #         result = self.cursor.execute(s).fetchall()
-    #         all_column_names = self.table_swtich[self.curr_tabtype][0].get_dict()
-    #         return DBResults(result, all_column_names, self.curr_tabtype)
 
     def return_all(self, callback=None):
+        """select 用这个 """
         s = self.excute_queue.pop(0)
         # print(s)
         if s != "":
@@ -763,15 +770,6 @@ class DB_admin(object):
             all_column_names = self.table_swtich[self.curr_tabtype][0].get_dict()
             return DBResults(result, all_column_names, self.curr_tabtype)
 
-    # def commit2(self, callback=None):
-    #     s = self.excute_queue.pop(0)
-    #     if s != "":
-    #         if callback:
-    #             callback(s)
-    #         result = self.cursor.execute(s)
-    #
-    #         self.connection.commit()
-    #         return result
 
     def commit(self, callback=None):
         s = self.excute_queue.pop(0)
@@ -798,9 +796,9 @@ class DBResults(object):
         """zip只包装成字典, 如果要用dataclass ,请返回后自己包装"""
         new_results = self.DBdataLi()
 
-        for result in self.results:
+        for row in self.results:
             record = self.DBdata()
-            step1 = list(zip(self.all_column_names.keys(), result))
+            step1 = list(zip(self.all_column_names.keys(), row))
             for col in (step1):
                 record[col[0]] = col[1]
             new_results.append(record)
@@ -818,6 +816,8 @@ class DBResults(object):
 
     def __iter__(self):
         return self.results.__iter__()
+
+    #############数据库取回的封装######################
 
     class DBdata(dict):
 
@@ -841,12 +841,21 @@ class DBResults(object):
             li = [ClipboxRecord(**i) for i in self]
             return li
 
+        def to_gview_data(self):
+            return [GviewRecord(**i) for i in self]
+
+
 
 @dataclass
 class Pair:
     card_id: "str" = None
     desc: "str" = None
 
+@dataclass
+class GviewRecord:
+    uuid:str
+    name:str
+    member:dict#{"member:[],other:{}}"
 
 @dataclass
 class PDFinfoRecord:

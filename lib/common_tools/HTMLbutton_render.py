@@ -1,8 +1,11 @@
 import json
 import re
+from typing import Iterator
 
+from anki.cards import CardId
+from aqt import mw
 from bs4 import BeautifulSoup, element
-from aqt.utils import showInfo
+from aqt.utils import showInfo, tooltip
 
 # from .backlink_reader import BackLinkReader
 
@@ -104,6 +107,8 @@ class AnchorButtonMaker(FieldHTMLData):
 
         self.anchor_body_L1.append(details)
 
+
+
     pass
 
 
@@ -183,6 +188,41 @@ class PDFPageButtonMaker(FieldHTMLData):
     pass
 
 
+class AutoReviewButtonMaker(FieldHTMLData):
+    """
+    打开卡片后,首先判断配置开了没有,
+    """
+    def build(self):
+        if int(self.card_id) in G.AutoReview_dict.card_group and funcs.Config.get().auto_review.value==1:
+            self.cascadeDIV_create()
+        return self.html_root.__str__()
+
+    def button_make(self, card_id):
+        h = self.html_root
+        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor button",
+                                       "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
+        b.string = "→" + funcs.CardOperation.desc_extract(card_id)
+        return b
+
+    def cascadeDIV_create(self):
+        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "auto_review_list")
+        searchs = G.AutoReview_dict.card_group[int(self.card_id)]
+        for search in searchs:
+
+            details2,div2=funcs.HTML_LeftTopContainer_detail_el_make(self.html_root,search)
+            details1.append(details2)
+            cids = G.AutoReview_dict.search_group[search]
+            for cid in cids:
+                button = self.button_make(cid)
+                div2.append(button)
+        self.anchor_body_L1.append(details1)
+        pass
+
+    # def get_auto_review_searchs(self):
+    #     note = mw.col.get_card(CardId(int(self.card_id))).note()
+    #     tag_li:Iterator[str] = filter(lambda x: x.startswith(G.src.autoreview_header),note.tags)
+    #     return tag_li
+
 def HTMLbutton_make(htmltext, card):
     html_string = htmltext
     from ..bilink import linkdata_admin
@@ -197,6 +237,7 @@ def HTMLbutton_make(htmltext, card):
         html_string = InTextButtonMaker(html_string).build()
     if funcs.HTML_clipbox_exists(html_string):
         html_string = PDFPageButtonMaker(html_string, card_id=card.id).build()
+    html_string = AutoReviewButtonMaker(html_string, card_id=card.id).build()
     return html_string
 
 

@@ -17,6 +17,7 @@ class SrcAdmin:
     ADDON_VERSION="2.0.3"
     addon_name = "hjp_bilink"
     dialog_name = "hjp_bilink_dialog"
+    autoreview_update_interval = 3000
 
     @dataclasses.dataclass
     class Path:
@@ -111,9 +112,7 @@ class SrcAdmin:
         def __init__(self, superior: "SrcAdmin"):
             self.superior = superior
             self._root = superior
-            self.user = self._User(self, self._root)
             self.base = self._Base(self, self._root)
-            self.template = self._Template(self, self._root)
 
         class _Base:
             def __init__(self, superior: "SrcAdmin._Config", root: "SrcAdmin"):
@@ -126,101 +125,7 @@ class SrcAdmin:
                 data = json.load(open(self.root.path.baseconfig, "r", encoding="utf-8"))
                 return data
 
-        @dataclasses.dataclass
-        class _User:
 
-            def __init__(self, superior: "SrcAdmin._Config", root: "SrcAdmin"):
-                self.superior = superior
-                self.root = root
-                self.check_user_config_file_exists()
-                self.check_user_config_file_update()
-                self.linkInfoStorageLocation: "str" = self.get_config[
-                    "linkInfoStorageLocation"]  # 控制链接的存储地点,默认是0,即sqlite存储
-                self.defaultUnlinkMode: "str" = self.get_config["defaultUnlinkMode"]  # 默认的取消链接模式
-                self.defaultInsertMode: "str" = self.get_config["defaultInsertMode"]  # 默认的插入模式
-                self.defaultLinkMode: "str" = self.get_config["defaultLinkMode"]  # 默认的链接模式
-                self.readDescFieldPosition: "str" = self.get_config["readDescFieldPosition"]  # 默认描述读取的字段位置
-                self.appendNoteFieldPosition: "str" = self.get_config[
-                    "appendNoteFieldPosition"]  # 如果选择存储在field中,则会根据这个参数选择存储在卡片的哪一个field
-                self.descMaxLength: "str" = self.get_config["descMaxLength"]  # 默认描述读取的最大字符长度
-                self.button_appendTo_AnchorId: "str" = self.get_config["button_appendTo_AnchorId"]  # 默认把绿色的悬浮下拉菜单加在什么地方
-                self.anchorCSSFileName: "str" = self.get_config["anchorCSSFileName"]  # 悬浮下拉的菜单的样式文件地址
-                self.VERSION: "str" = self.get_config["VERSION"]  # 版本
-                # 删除文内链接,当我们需要提取描述时.
-                self.delete_intext_link_when_extract_desc: "int" = self.get_config[
-                    "delete_intext_link_when_extract_desc"]
-
-            @property
-            def get_config(self) -> dict:
-                data = json.load(open(self.root.path.userconfig, "r", encoding="utf-8"))
-                return data
-
-            def check_user_config_file_update(self):
-                need_update = False
-                # config = json.load(open(self.root.Path.userconfig, "r", encoding="utf-8"))
-                user_config_dir = self.root.Path.userconfig
-                template = json.load(open(self.root.Path.userconfigtemplate, "r", encoding="utf-8"))
-                if os.path.isfile(user_config_dir) and os.path.exists(user_config_dir):
-                    user = json.load(open(self.root.Path.userconfig, "r", encoding="utf-8"))
-                else:
-                    user = {}
-
-                if "VERSION" not in user or self.root.ADDON_VERSION != user["VERSION"]:
-                    need_update = True
-                    user["VERSION"] = self.root.ADDON_VERSION
-                    template["VERSION"] = self.root.ADDON_VERSION
-                    for key, value in template.items():
-                        if key not in user:
-                            user[key] = value
-                    usercopy = user.copy()
-                    for key, value in usercopy.items():
-                        if key not in template:
-                            del user[key]
-                if need_update:
-                    tooltip("用户配置文件已更新")
-                    json.dump(user, open(user_config_dir, "w", encoding="utf-8"), indent=4,
-                              ensure_ascii=False)
-
-            def check_user_config_file_exists(self):
-                user_dir = self.superior.superior.path.user
-                userconfig_dir = self.superior.superior.path.userconfig
-                template_dir = self.superior.superior.path.userconfigtemplate
-                if not os.path.exists(userconfig_dir):
-                    if not os.path.exists(user_dir):
-                        os.mkdir(user_dir)
-                    template_json =json.load(open(template_dir, "r", encoding="utf-8"))
-                    json.dump(template_json,open(userconfig_dir, "w", encoding="utf-8"),indent=4, ensure_ascii=False)
-
-            def __repr__(self):
-                return self.get_config.__str__()
-
-        class _Template:
-            def __init__(self, superior: "SrcAdmin._Config", root: "SrcAdmin"):
-                self.superior = superior
-                self.root = root
-                self.linkInfoStorageLocation: "str" = self.get_config[
-                    "linkInfoStorageLocation"]  # 控制链接的存储地点,默认是0,即sqlite存储
-                self.defaultUnlinkMode: "str" = self.get_config["defaultUnlinkMode"]  # 默认的取消链接模式
-                self.defaultInsertMode: "str" = self.get_config["defaultInsertMode"]  # 默认的插入模式
-                self.defaultLinkMode: "str" = self.get_config["defaultLinkMode"]  # 默认的链接模式
-                self.readDescFieldPosition: "str" = self.get_config["readDescFieldPosition"]  # 默认描述读取的字段位置
-                self.appendNoteFieldPosition: "str" = self.get_config[
-                    "appendNoteFieldPosition"]  # 如果选择存储在field中,则会根据这个参数选择存储在卡片的哪一个field
-                self.descMaxLength: "str" = self.get_config["descMaxLength"]  # 默认描述读取的最大字符长度
-                self.button_appendTo_AnchorId: "str" = self.get_config["button_appendTo_AnchorId"]  # 默认把绿色的悬浮下拉菜单加在什么地方
-                self.anchorCSSFileName: "str" = self.get_config["anchorCSSFileName"]  # 悬浮下拉的菜单的样式文件地址
-                self.VERSION: "str" = self.get_config["VERSION"]  # 版本
-                # 删除文内链接,当我们需要提取描述时.
-                self.delete_intext_link_when_extract_desc: "int" = self.get_config[
-                    "delete_intext_link_when_extract_desc"]
-
-            @property
-            def get_config(self) -> dict:
-                data = json.load(open(self.root.path.userconfigtemplate, "r", encoding="utf-8"))
-                return data
-
-            def __repr__(self):
-                return self.get_config.__str__()
 
     instance = None
 
@@ -231,7 +136,7 @@ class SrcAdmin:
         if cls.instance is None:
             cls.instance = cls()
             cls.path = cls.Path()
-            cls.config = cls._Config(cls.instance)
+            # cls.config = cls._Config(cls.instance)
             cls.ImgDir = cls._ImgDir(cls.instance, cls.instance)
         return cls.instance
 

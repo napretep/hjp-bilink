@@ -6,6 +6,9 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/7/30 9:47'
 """
+from typing import Optional
+
+from PyQt5.QtCore import QTimer
 from aqt.utils import showInfo
 
 """
@@ -15,7 +18,7 @@ from . import signals, src_admin, objs, widgets,language
 # from .src_admin import SrcAdmin
 # from .signals import CustomSignals
 # from .objs import DB_admin
-
+from .interfaces import AutoReviewDictInterface
 
 from aqt import mw
 
@@ -54,3 +57,6 @@ mw_universal_worker = None
 mw_grapher = mw.__dict__[addonName]["grapher"]
 mw_addcard_to_grapher_on=False
 browser_addon_menu = None
+AutoReview_dict:"Optional[AutoReviewDictInterface]"=None #卡片ID映射到searchString
+AutoReview_tempfile:"set"=set() #只保存卡片id
+AutoReview_timer=QTimer()

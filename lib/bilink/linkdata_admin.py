@@ -60,6 +60,37 @@ from ..common_tools import G
 """
 
 
+class LinkInfoDB(object):
+    @staticmethod
+    def exists(card_id:str)->bool:
+        return card_exists(card_id)
+
+    @staticmethod
+    def get_template(card_id, desc="", version=2) ->dict:
+        return get_template(card_id,desc=desc,version=version)
+
+    @staticmethod
+    def single_write(linkinfo:"LinkDataJSONInfo",autocommit=True,fromDB=None):
+        if fromDB:
+            DB=fromDB
+        DB.go(DB.table_linkinfo)
+        card_id,data=linkinfo.todict()
+        if LinkInfoDB.exists(card_id):
+            DB.update(values=DB.VALUEEQ(data=data), where=DB.EQ(card_id=card_id))
+        else:
+            DB.insert(card_id=card_id, data=data)
+        if autocommit:
+            DB.commit()
+            DB.end()
+
+    @staticmethod
+    def read(card_id: str)->LinkDataJSONInfo:
+        return read_card_link_info(card_id)
+
+
+#------------------------请使用以上接口,以下的废弃------
+
+
 def get_template(card_id, desc="", version=2):
     empty_template = {
         "backlink": [],  # backlink只用储存card_id
@@ -91,13 +122,17 @@ def read_card_link_info(card_id: str) -> LinkDataJSONInfo:
     return result
 
 
-def write_card_link_info(card_id: str, data: str):
+
+def write_card_link_info(card_id: str, data: str, commit=True):
+    """接受两种参数, cid为"""
     DB.go(DB.table_linkinfo)
     if card_exists(card_id):
-        DB.update(values=DB.VALUEEQ(data=data), where=DB.EQ(card_id=card_id)).commit()
+        DB.update(values=DB.VALUEEQ(data=data), where=DB.EQ(card_id=card_id))
     else:
-        DB.insert(card_id=card_id, data=data).commit()
-    DB.end()
+        DB.insert(card_id=card_id, data=data)
+    if commit:
+        DB.commit()
+        DB.end()
 
 
 def card_exists(card_id: "str") -> bool:

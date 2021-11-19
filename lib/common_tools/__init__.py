@@ -20,4 +20,5 @@ from . import (objs,
                widgets,
                 compatible_import,
                 menu,
+                interfaces,
                )

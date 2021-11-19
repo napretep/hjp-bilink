@@ -11,6 +11,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 class CustomSignals(QObject):
     instance = None
+    testsignal = pyqtSignal(object)
 
     on_data_refresh_all = pyqtSignal()  # 刷新browser和全部的webview
 
@@ -23,6 +24,12 @@ class CustomSignals(QObject):
     on_clipper_closed = pyqtSignal()
 
     on_progress_break = pyqtSignal()
+
+    on_card_answerd = pyqtSignal(object)
+
+    on_card_changed = pyqtSignal(object)
+
+    on_auto_review_search_string_changed = pyqtSignal()
 
     @classmethod
     def start(cls):

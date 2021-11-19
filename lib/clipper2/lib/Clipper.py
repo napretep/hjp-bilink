@@ -2193,13 +2193,11 @@ class ClipInsertCardWorker(QThread):
                 desc_item: "Clipper.RightSideBar.CardList.DescItem" = self.superior.E.rightsidebar.cardlist.dict[
                     carduuid]
                 if desc_item.cardItem.newCard:
-                    # self.superior.signals.on_anki_card_create.emit(
-                    #     e(type=e.defaultType.clipboxNeed,worker=self,carditem=desc_item.cardItem,model_id=model_id,deck_id=deck_id)) #TODO ????
                     common_tools.funcs.write_to_log_file(f"deck_id={deck_id}")
                     self.on_card_create.emit(
                         e(type=e.defaultType.clipboxNeed, worker=self, carditem=desc_item.cardItem,
                           model_id=model_id,
-                          deck_id=deck_id))  # TODO ????
+                          deck_id=deck_id))
                     self.waitting = True
                 while self.waitting:
                     time.sleep(gap)

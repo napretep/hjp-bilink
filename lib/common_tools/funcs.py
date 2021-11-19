@@ -6,6 +6,7 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/7/30 9:09'
 """
+import dataclasses
 import logging
 import sys, platform, subprocess
 import tempfile
@@ -14,6 +15,7 @@ from urllib.parse import quote
 import uuid
 from collections import Sequence
 from datetime import datetime
+import time
 from math import ceil
 from typing import Union, Optional, NewType, Callable
 
@@ -27,6 +29,7 @@ from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5.QtWidgets import QApplication, QToolButton
 from anki import stdmodels, notes
 from anki.cards import Card
+from anki.notes import Note
 from anki.utils import pointVersion, isWin
 from aqt import mw, dialogs, AnkiQt
 from aqt.browser import Browser
@@ -36,50 +39,233 @@ from aqt.reviewer import Reviewer, RefreshNeeded
 from aqt.utils import showInfo, tooltip, tr
 from aqt.webview import AnkiWebView
 from bs4 import BeautifulSoup, element
-from . import G
+from . import G, compatible_import
+from .language import Translate
+from .objs import LinkDataPair, LinkDataJSONInfo
 from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
+from .interfaces import ConfigInterface, AnswerInfoInterface,AutoReviewDictInterface,GViewData
+
+class GviewOperation:
+
+    @staticmethod
+    def save(data:GViewData):
+        """"""
+        DB=G.DB
+        DB.go(DB.table_Gview)
+        if DB.exists(DB.EQ(uuid=data.uuid)):
+            showInfo("DB.exists")
+            DB.end()
+            GviewOperation.update(data)
+        else:
+            showInfo("not DB.exists")
+            DB.insert(**(data.to_DB_format())).commit()
+            DB.end()
+        tooltip("保存成功")
+
+    @staticmethod
+    def load(uuid=None):
+        """"""
+        DB=G.DB
+        DB.go(DB.table_Gview)
+        data = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_data()[0]
+        return data
+
+    @staticmethod
+    def find_card_at(card_id:str):
+        """"""
+        DB = G.DB
+        DB.go(DB.table_Gview)
+        datas = DB.select(DB.LIKE("nodes",card_id)).return_all().zip_up().to_gview_data()
+        DB.end()
+        return datas
+
+    @staticmethod
+    def update(data:GViewData):
+        """"""
+        DB = G.DB
+        DB.go(DB.table_Gview)
+        d = data.to_DB_format().pop("uuid")
+        DB.update(values=DB.VALUEEQ(**d),where=DB.EQ(uuid=data.uuid)).commit()
+        DB.end()
+
+    @staticmethod
+    def delete(uuid:str):
+        """"""
+        DB = G.DB
+        DB.go(DB.table_Gview)
+        DB.delete(values=DB.VALUEEQ(uuid=uuid)).commit()
+
+
+class Utils(object):
+    @staticmethod
+    def percent_calc(total,count,begin,ratio):
+        return ceil(count/total*ratio)+begin
+
+    @staticmethod
+    def emptystr(s):
+        return re.search(r"\S",s)
+
+class AutoReview(object):
+    """这是一套性能优化方案, AutoReview由于每次回答都要去数据库查询一遍,因此我们想了一招来更新缓存
+    1,监听卡片的变化,
+    """
+
+    @staticmethod
+    def begin():
+        """入口,要从配置读东西,保存到某地,现在看来保存到G是最合适的,还需要设计数据结构"""
+        if Config.get().auto_review.value==0:
+            return
+        AutoReview.build()
+        G.AutoReview_timer.timeout.connect(AutoReview.update)
+        G.AutoReview_timer.start(G.src.autoreview_update_interval)
+
+    @staticmethod
+    def build():
+        G.AutoReview_dict = AutoReviewDictInterface()
+        searchs:"list[str]" = Config.get().auto_review_search_string.value
+        for search in searchs:
+            if search == "" or not re.search(r"\S",search):
+                continue
+            cids = mw.col.find_cards(search)
+            list(map(lambda cid: G.AutoReview_dict.card_group_insert(cid, search), cids))
+            list(map(lambda cid: G.AutoReview_dict.search_group_insert(cid, search), cids))
+        G.AutoReview_dict.build_union_search()
+
+    @staticmethod
+    def update():
+        """从配置表加载查询条件,然后去搜索,组织,并更新到数据库
+        这个函数需要定期执行,要给一些优化,
+        这里是重点对象, 首先执行一次联合查询, 然后检查原本在的是否消失, 原本不在的是否新增
+        https://blog.csdn.net/qq_34130509/article/details/89473503
+        """
+        if Config.get().auto_review.value==0:
+            return
+        def search_result_not_changed():
+            """在这里,我们检查有没有必要更新"""
+            new_cids = set(mw.col.find_cards(G.AutoReview_dict.union_search))
+            old_cids = G.AutoReview_dict.card_group.keys()
+            need_add_card = new_cids - old_cids
+            need_del_card = old_cids - new_cids
+            return len(need_add_card)==0 and len(need_del_card)==0
+        #临时文件没有变化则退出
+        if len(G.AutoReview_tempfile) == 0:
+            return
+        #临时文件有变化,且临时文件cid不属于集合,则检查原集合是否有改动,无改动则退出
+        not_belong_to_card_group = len(G.AutoReview_tempfile & G.AutoReview_dict.card_group.keys())==0
+        if not_belong_to_card_group and search_result_not_changed():
+            G.AutoReview_tempfile.clear()
+            return
+        #其他的筛选条件太难选了.到这里就直接建立吧
+        AutoReview.build()
+        G.AutoReview_tempfile.clear()
+
+    @staticmethod
+    def modified_card_record(note:Note):
+        """将卡片写到一个全局变量,作为集合"""
+        if Config.get().auto_review.value==0:
+            return
+        G.AutoReview_tempfile|=set(note.card_ids())
+
+
+    @staticmethod
+    def save_search_to_config(browser:Browser):
+        """把搜索栏的内容拷贝下来粘贴到配置表"""
+        c=Config.get()
+
+        curr_string = browser.form.searchEdit.currentText()
+        if curr_string=="" or not re.search(r"\S",curr_string):
+            tooltip("不接受空格与空值<br>null string or empty string is not allowed")
+            return
+        setv = set(c.auto_review_search_string.value)
+        setv.add(curr_string)
+        c.auto_review_search_string.value = list(setv)
+        c.save_to_file(G.src.path.userconfig)
+
+
+
+class HTMLOperation:
+
+    pass
+
+
+class Config:
+
+    @staticmethod
+    def get() -> ConfigInterface:
+        """静态方法,直接调用即可"""
+        try:
+            cfg = ConfigInterface.json_load(G.src.path.userconfig)
+            cfg.save_to_file(G.src.path.userconfig)
+            return cfg
+        except:
+            tooltip("配置文件格式不符合,现已覆盖\n"
+                    "format of config file is not correct, now the file has been overwritten")
+            template = ConfigInterface()
+            Config.save(template)
+            return template
+
+    @staticmethod
+    def save(config: ConfigInterface=None):
+        if config is None:
+            config = ConfigInterface()
+        config.save_to_file(G.src.path.userconfig)
+
 
 class GrapherOperation:
     @staticmethod
     def refresh():
         from ..bilink.dialogs.linkdata_grapher import Grapher
-        if isinstance(G.mw_grapher,Grapher):
+        if isinstance(G.mw_grapher, Grapher):
             G.mw_grapher.on_card_updated.emit(None)
 
+
 class LinkDataOperation:
+    """针对链接数据库的操作,
+    这里的LinkDataOperation.bind/unbind和LinkPoolOperation中的link/unlink是类似但不同,不冲突.
+    因为那是一个link池里的操作,而这不是, 这是一个普通的链接操作
+    """
     @staticmethod
     def read(card_id):
         from ..bilink.linkdata_admin import read_card_link_info
         return read_card_link_info(card_id)
 
     @staticmethod
-    def write(card_id,data):
+    def write(card_id, data):
         from ..bilink.linkdata_admin import write_card_link_info
-        return write_card_link_info(card_id,data)
+        return write_card_link_info(card_id, data)
 
     @staticmethod
-    def bind(card_idA,card_idB):
-        from ..bilink import linkdata_admin
-        cardA = linkdata_admin.read_card_link_info(card_idA)
-        cardB = linkdata_admin.read_card_link_info(card_idB)
+    def bind(card_idA:'Union[str,LinkDataJSONInfo]', card_idB:'Union[str,LinkDataJSONInfo]', needsave=True):
+        """needsave关闭后,需要自己进行save"""
+        if isinstance(card_idA,LinkDataJSONInfo) and isinstance(card_idB,LinkDataJSONInfo):
+            cardA,cardB = card_idA,card_idB
+        else:
+            from ..bilink import linkdata_admin
+            cardA = linkdata_admin.read_card_link_info(card_idA)
+            cardB = linkdata_admin.read_card_link_info(card_idB)
         if cardB.self_data not in cardA.link_list:
-            cardA.link_list.append(cardB.self_data)
-            cardA.save_to_DB()
+            cardA.append_link(cardB.self_data)
+            if needsave: cardA.save_to_DB()
         if cardA.self_data not in cardB.link_list:
-            cardB.link_list.append(cardA.self_data)
-            cardB.save_to_DB()
+            cardB.append_link(cardA.self_data)
+            if needsave: cardB.save_to_DB()
 
     @staticmethod
-    def unbind(card_idA,card_idB):
-        from ..bilink import linkdata_admin
-        cardA = linkdata_admin.read_card_link_info(card_idA)
-        cardB = linkdata_admin.read_card_link_info(card_idB)
+    def unbind(card_idA:'Union[str,LinkDataJSONInfo]', card_idB:'Union[str,LinkDataJSONInfo]', needsave=True):
+        """needsave关闭后,需要自己进行save"""
+        if isinstance(card_idA,LinkDataJSONInfo) and isinstance(card_idB,LinkDataJSONInfo):
+            cardA,cardB = card_idA,card_idB
+        else:
+            from ..bilink import linkdata_admin
+            cardA = linkdata_admin.read_card_link_info(card_idA)
+            cardB = linkdata_admin.read_card_link_info(card_idB)
         if cardB.self_data in cardA.link_list:
-            cardA.link_list.remove(cardB.self_data)
-            cardA.save_to_DB()
+            cardA.remove_link(cardB.self_data)
+            if needsave: cardA.save_to_DB()
         if cardA.self_data in cardB.link_list:
-            cardB.link_list.remove(cardA.self_data)
-            cardB.save_to_DB()
+            cardB.remove_link(cardA.self_data)
+            if needsave: cardB.save_to_DB()
+
 
 class Compatible:
     @staticmethod
@@ -118,13 +304,14 @@ class Compatible:
             from anki.decks import DeckId
             return DeckId
 
+
 class BrowserOperation:
     @staticmethod
     def search(s) -> Browser:
         """注意,如果你是自动搜索,需要自己激活窗口"""
         browser: Browser = dialogs._dialogs["Browser"][1]
         # if browser is not None:
-        if not isinstance(browser,Browser):
+        if not isinstance(browser, Browser):
             browser: Browser = dialogs.open("Browser", mw)
 
         browser.search_for(s)
@@ -134,14 +321,15 @@ class BrowserOperation:
     def refresh():
         browser: Browser = dialogs._dialogs["Browser"][1]
         if isinstance(browser, Browser):
-        # if dialogs._dialogs["Browser"][1] is not None:
+            # if dialogs._dialogs["Browser"][1] is not None:
             browser: Browser = dialogs._dialogs["Browser"][1]
             browser.sidebar.refresh()
             browser.model.reset()
             browser.editor.setNote(None)
 
+
 class CustomProtocol:
-    #自定义url协议,其他的都是固定的,需要获取anki的安装路径
+    # 自定义url协议,其他的都是固定的,需要获取anki的安装路径
 
     @staticmethod
     def set():
@@ -157,13 +345,49 @@ class CustomProtocol:
     @staticmethod
     def exists():
         setting = QSettings(r"HKEY_CLASSES_ROOT\ankilink", QSettings.NativeFormat)
-        return len(setting.childGroups())>0
-
+        return len(setting.childGroups()) > 0
 
 
 class CardOperation:
+
     @staticmethod
-    def create(model_id:"int"=None, deck_id:"int"=None,failed_callback:"Callable"=None):
+    def auto_review(answer:AnswerInfoInterface):
+        """用来同步复习卡片"""
+
+        if Config.get().auto_review.value==0:
+            return
+        searchs = G.AutoReview_dict.card_group[answer.card_id]
+
+        sched = compatible_import.mw.col.sched
+        reportstring = ""
+        for search in searchs:
+            cids = G.AutoReview_dict.search_group[search]
+            for cid in cids:
+                card = mw.col.get_card(CardId(cid))
+                button_num = sched.answerButtons(card)
+                ease = answer.option_num if button_num>=answer.option_num else button_num
+                if card.timer_started is None: card.timer_started = time.time() - 60
+                CardOperation.answer_card(card,ease)
+                reportstring += str(cid) + ":" + CardOperation.desc_extract(cid) + "<br>"
+        mw.col.reset()
+        reportstring+="以上卡片已经同步复习<br>cards above has beend sync reviewed"
+        tooltip(reportstring,period=5000)
+
+
+    @staticmethod
+    def answer_card(card,ease):
+        sched = mw.col.sched
+        while True:
+            try:
+                sched.answerCard(card, ease)
+                break
+            except:
+                time.sleep(0.2)
+                continue
+
+
+    @staticmethod
+    def create(model_id: "int" = None, deck_id: "int" = None, failed_callback: "Callable" = None):
         if model_id is not None and not (type(model_id)) == int:
             model_id = int(model_id)
         if deck_id is not None and not (type(deck_id)) == int:
@@ -172,7 +396,7 @@ class CardOperation:
         if model_id is None:
             if not "Basic" in mw.col.models.allNames():
                 # mw.col.models.add(stdmodels.addBasicModel(mw.col))
-                material = json.load(open(G.src.path.card_model_template,"r",encoding="utf-8"))
+                material = json.load(open(G.src.path.card_model_template, "r", encoding="utf-8"))
                 new_model = mw.col.models.new("Basic")
                 new_model["flds"] = material["flds"]
                 new_model["tmpls"] = material["tmpls"]
@@ -199,11 +423,12 @@ class CardOperation:
     @staticmethod
     def clipbox_insert_field(clipuuid, timestamp=None):
         """用于插入clipbox到指定的卡片字段,如果这个字段存在这个clipbox则不做操作"""
-        if platform.system() in {"Darwin","Linux"}:
-            tooltip("当前系统暂时不支持该功能")
+        if platform.system() in {"Darwin", "Linux"}:
+            tooltip("当前系统暂时不支持该功能\n current os not supports the feature")
             return
         else:
             from ..clipper2.exports import fitz
+
         def bookmark_to_tag(bookmark: "list[list[int,str,int]]"):
             tag_dict = {}
             if len(bookmark) == 0:
@@ -300,7 +525,7 @@ class CardOperation:
         for k, v in G.mw_card_window.items():
             if v is not None:
                 prev_refresh(v)
-        QTimer.singleShot(2000,lambda:tooltip("anki的自动刷新功能还存在问题,如果出现显示空白,请手动重新加载卡片"))
+        QTimer.singleShot(2000, lambda: tooltip("anki的自动刷新功能还存在问题,如果出现显示空白,请手动重新加载卡片"))
 
     @staticmethod
     def exists(id):
@@ -311,13 +536,28 @@ class CardOperation:
         return note_get(id)
 
     @staticmethod
-    def desc_extract(card_id,fromField=False):
-        return desc_extract(card_id,fromField)
+    def desc_extract(card_id, fromField=False):
+        return desc_extract(card_id, fromField)
+
+    @staticmethod
+    def get_correct_id(card_id):
+        from . import objs
+        if isinstance(card_id, objs.LinkDataPair):  # 有可能把pair传进来的
+            cid = card_id.int_card_id
+        elif isinstance(card_id,Card):
+            cid=card_id.id
+        elif isinstance(card_id, str):
+            cid = int(card_id)
+        elif type(card_id) == int:
+            cid = card_id
+        else:
+            raise TypeError("参数类型不支持:" + card_id.__str__())
+        return cid
 
 class Media:
     @staticmethod
     def clipbox_png_save(clipuuid):
-        if platform.system() in {"Darwin","Linux"}:
+        if platform.system() in {"Darwin", "Linux"}:
             tooltip("当前系统暂时不支持该功能")
             return
         else:
@@ -339,7 +579,7 @@ class Media:
         pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2),
                                  clip=fitz.Rect(x0, y0, x1, y1))
         pngdir = os.path.join(mediafolder, f"""hjp_clipper_{clipbox.uuid}_.png""")
-        write_to_log_file(pngdir+"\n"+f"w={pixmap.width} h={pixmap.height}")
+        write_to_log_file(pngdir + "\n" + f"w={pixmap.width} h={pixmap.height}")
         if os.path.exists(pngdir):
             # showInfo("截图已更新")
             os.remove(pngdir)
@@ -347,6 +587,7 @@ class Media:
 
 
 class LinkPoolOperation:
+    """针对链接池设计"""
     class M:
         """各种状态选择"""
         before_clean = 0
@@ -359,13 +600,13 @@ class LinkPoolOperation:
 
     @staticmethod
     def both_refresh(*args):
-        o=[CardOperation,BrowserOperation,GrapherOperation]
-        if len(args)>0:
+        o = [CardOperation, BrowserOperation, GrapherOperation]
+        if len(args) > 0:
             for i in args:
                 o[i].refresh()
         else:
-           for Op in o :
-               Op.refresh()
+            for Op in o:
+                Op.refresh()
 
     @staticmethod
     def get_template():
@@ -420,30 +661,33 @@ class LinkPoolOperation:
     @staticmethod
     def link(mode=4, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
         def on_quit_handle(timestamp):
-            BrowserOperation.search(f"""tag:hjp-bilink::timestamp::{timestamp}""").activateWindow()
+            cfg = Config.get()
+            if cfg.open_browser_after_link.value==1:
+                if cfg.add_link_tag.value==1:
+                    BrowserOperation.search(f"""tag:hjp-bilink::timestamp::{timestamp}""").activateWindow()
+                else:
+                    s=""
+                    for pair in pair_li:
+                        s+=f"cid:{pair.card_id} or "
+                    BrowserOperation.search(s[0:-4]).activateWindow()
             G.mw_progresser.close()
             G.mw_universal_worker.allevent.unbind()
-            # CardOperation.refresh()
             LinkPoolOperation.both_refresh()
 
         from . import widgets
         if pair_li is not None:
             LinkPoolOperation.insert(pair_li, mode=LinkPoolOperation.M.before_clean, need_show=False)
-        G.mw_progresser = widgets.UniversalProgresser()
-        G.mw_universal_worker = LinkPoolOperation.LinkWorker(mode=mode)
-        G.mw_universal_worker.allevent = G.objs.AllEventAdmin([
-            [G.mw_universal_worker.on_quit, on_quit_handle],
-            [G.mw_universal_worker.on_progress, G.mw_progresser.value_set],
+        G.mw_progresser = widgets.UniversalProgresser() #实例化一个进度条
+        G.mw_universal_worker = LinkPoolOperation.LinkWorker(mode=mode) #实例化一个子线程
+        G.mw_universal_worker.allevent = G.objs.AllEventAdmin([ #给子线程的不同情况提供回调函数
+            [G.mw_universal_worker.on_quit, on_quit_handle], #完成时回调
+            [G.mw_universal_worker.on_progress, G.mw_progresser.value_set], #进度回调
         ]).bind()
         G.mw_universal_worker.start()
-
 
     @staticmethod
     def unlink(mode=6, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
         LinkPoolOperation.link(mode=mode, pair_li=pair_li)
-
-    # @staticmethod
-    # def unlink(mode=6):
 
     class LinkWorker(QThread):
         on_progress = pyqtSignal(object)
@@ -460,48 +704,52 @@ class LinkPoolOperation:
 
         def run(self):
             from ..bilink import linkdata_admin
-            from . import objs
             L = LinkPoolOperation
             d = L.read()
-            if self.mode == L.M.complete_map:
-                flatten = d.flatten()
-                total, count = len(flatten), 0
-                for pairA in flatten:
-                    linkinfo = linkdata_admin.read_card_link_info(pairA.card_id)
-                    linkinfo.add_tag(d.addTag)
+            cfg = Config.get()
+            flatten = d.flatten()
+            total,count = len(flatten),0
+            linkinfoLi = []
+            #先加tag
+
+            for pair in flatten:
+                linkinfo = linkdata_admin.read_card_link_info(pair.card_id)
+                linkinfo.add_tag(d.addTag)
+                if cfg.add_link_tag.value == 1:
                     linkinfo.add_timestamp_tag(self.timestamp)
+                linkinfoLi.append(linkinfo)
+                count+=1
+                self.on_progress.emit(Utils.percent_calc(total,count,0,25))
+
+            #根据不同的模式进行不同的操作
+            if self.mode in {L.M.complete_map,L.M.unlink_by_node}:
+                total, count = len(flatten), 0
+                for linkinfoA in linkinfoLi:
                     total2, count2 = len(flatten), 0
-                    for pairB in flatten:
-                        if pairB.card_id != pairA.card_id and pairB.card_id not in linkinfo:
-                            linkinfo.append_link(pairB)
+                    for linkinfoB in linkinfoLi:
+                        if linkinfoB.self_data.card_id!=linkinfoA.self_data.card_id:
+                            if self.mode == L.M.complete_map:
+                                LinkDataOperation.bind(linkinfoA,linkinfoB,needsave=False)
+                            elif self.mode == L.M.unlink_by_node:
+                                LinkDataOperation.unbind(linkinfoA,linkinfoB,needsave=False)
                         count2 += 1
-                        self.on_progress.emit(ceil((count2 / total2 + count) / total * 100))
-                    linkinfo.save_to_DB()
+                        self.on_progress.emit(25+ceil((count2 / total2 + count) / total * 50))
                     count += 1
-                # elif self.mode == L.M.group_by_group:
-                self.on_quit.emit(self.timestamp)
             elif self.mode in (L.M.group_by_group, L.M.unlink_by_path):
                 li = d.IdDescPairs
                 total, count = len(li), 0
                 r = self.reducer(count, total, self, d)
                 reduce(r.reduce_link, li)
-                self.on_quit.emit(self.timestamp)
-            elif self.mode == L.M.unlink_by_node:
-                flatten = d.flatten()
-                total, count = len(flatten), 0
-                for pairA in flatten:
-                    linkinfo = linkdata_admin.read_card_link_info(pairA.card_id)
-                    linkinfo.add_tag(d.addTag)
-                    linkinfo.add_timestamp_tag(self.timestamp)
-                    total2, count2 = len(flatten), 0
-                    for pairB in flatten:
-                        if pairB.card_id in linkinfo:
-                            linkinfo.remove_link(pairB)
-                        count2 += 1
-                        self.on_progress.emit(ceil((count2 / total2 + count) / total * 100))
-                    linkinfo.save_to_DB()
-                    count += 1
-                self.on_quit.emit(self.timestamp)
+
+            total, count,DB = len(flatten), 0,G.DB
+            DB.go(DB.table_linkinfo)
+            for linkinfo in linkinfoLi:
+                linkdata_admin.LinkInfoDB.single_write(linkinfo,autocommit=False,fromDB=DB)
+                count+=1
+                self.on_progress.emit(Utils.percent_calc(total,count,75,25))
+            DB.commit()
+
+            self.on_quit.emit(self.timestamp)
 
         class reducer:
             def __init__(self, count, total, worker: "LinkPoolOperation.LinkWorker", d):
@@ -511,31 +759,18 @@ class LinkPoolOperation:
                 self.worker = worker
                 self.d = d
                 self.linkdata_admin: "" = linkdata_admin
-
             def reduce_link(self, groupA: "list[G.objs.LinkDataPair]", groupB: "list[G.objs.LinkDataPair]"):
                 self.worker.on_progress.emit(ceil(self.count / self.total * 100))
                 L = LinkPoolOperation
-
                 for pairA in groupA:
                     linkinfoA = self.linkdata_admin.read_card_link_info(pairA.card_id)
-                    linkinfoA.add_tag(self.d.addTag)
-                    linkinfoA.add_timestamp_tag(self.worker.timestamp)
                     for pairB in groupB:
-                        if pairB.card_id != pairA.card_id and pairB.card_id not in linkinfoA:
-                            if self.worker.mode == L.M.group_by_group:
-                                linkinfoA.append_link(pairB)
-                            elif self.worker.mode == L.M.unlink_by_path:
-                                linkinfoA.remove_link(pairB)
                         linkinfoB = self.linkdata_admin.read_card_link_info(pairB.card_id)
-                        linkinfoB.add_tag(self.d.addTag)
-                        linkinfoB.add_timestamp_tag(self.worker.timestamp)
-                        if pairB.card_id != pairA.card_id and pairA.card_id not in linkinfoB:
-                            if self.worker.mode == L.M.group_by_group:
-                                linkinfoB.append_link(G.objs.LinkDataPair(pairA.card_id, pairA.desc, "←"))
-                            elif self.worker.mode == L.M.unlink_by_path:
-                                linkinfoB.remove_link(pairA)
-                            linkinfoB.save_to_DB()
-                    linkinfoA.save_to_DB()
+                        if self.worker.mode == L.M.group_by_group:
+                            LinkDataOperation.bind(linkinfoA,linkinfoB,needsave=False)
+                        elif self.worker.mode == L.M.unlink_by_path:
+                            LinkDataOperation.unbind(linkinfoA,linkinfoB,needsave=False)
+
                 return groupB
 
 
@@ -558,37 +793,41 @@ class DeckOperation:
             data.append({"id": i.id, "name": i.name})
         return data
 
+
 class MonkeyPatch:
     @staticmethod
-    def onAppMsgWrapper(self:AnkiQt):
+    def onAppMsgWrapper(self: AnkiQt):
         # self.app.appMsg.connect(self.onAppMsg)
         def handle_AnkiLink(buf):
-            #buf加了绝对路径,所以要去掉
-            #有时候需要判断一下
+            # buf加了绝对路径,所以要去掉
+            # 有时候需要判断一下
 
             def handle_opencard(id):
                 if CardOperation.exists(id):
                     Dialogs.open_custom_cardwindow(id).activateWindow()
                 pass
+
             def handle_openbrowser(search):
                 BrowserOperation.search(search).activateWindow()
                 pass
-            from .objs import CmdArgs
-            cmd_dict={"opencard_id":handle_opencard,"openbrowser_search":handle_openbrowser}
 
-            if buf.startswith("ankilink://"): #此时说明刚打开就进来了,没有经过包装,格式取buf[11:-1]
-                #showInfo(buf[11:-1])
-                cmd=CmdArgs(buf[11:-1].split("="))
+            from .objs import CmdArgs
+            cmd_dict = {"opencard_id": handle_opencard, "openbrowser_search": handle_openbrowser}
+
+            if buf.startswith("ankilink://"):  # 此时说明刚打开就进来了,没有经过包装,格式取buf[11:-1]
+                # showInfo(buf[11:-1])
+                cmd = CmdArgs(buf[11:-1].split("="))
             else:
                 cmd = CmdArgs(os.path.split(buf)[-1].split("="))
             if cmd.type in cmd_dict:
                 cmd_dict[cmd.type](cmd.args)
             else:
-                showInfo("未知指令错误:"+cmd.type)
+                showInfo("未知指令错误/unknown command:" + cmd.type)
             pass
-        def onAppMsg(buf:str):
+
+        def onAppMsg(buf: str):
             is_addon = self._isAddon(buf)
-            is_link =  "ANKILINK:" in buf.upper()
+            is_link = "ANKILINK:" in buf.upper()
             if self.state == "startup":
                 # try again in a second
                 self.progress.timer(
@@ -638,7 +877,10 @@ class MonkeyPatch:
                 self.handleImport(buf)
 
             return None
+
         return onAppMsg
+
+
 class Dialogs:
     @staticmethod
     def open_anchor(card_id):
@@ -686,7 +928,7 @@ class Dialogs:
 
     @staticmethod
     def open_PDFprev(pdfuuid, pagenum, FROM):
-        if platform.system() in {"Darwin","Linux"}:
+        if platform.system() in {"Darwin", "Linux"}:
             tooltip("当前系统暂时不支持PDFprev")
             return
         else:
@@ -724,7 +966,7 @@ class Dialogs:
         pass
 
     @staticmethod
-    def open_custom_cardwindow(card: Union[Card, str, int])-> 'Optional[SingleCardPreviewerMod]':
+    def open_custom_cardwindow(card: Union[Card, str, int]) -> 'Optional[SingleCardPreviewerMod]':
         """请注意需要你自己激活窗口 请自己做好卡片存在性检查,这一层不检查 """
         from ..bilink.dialogs.custom_cardwindow import external_card_dialog
         if not isinstance(card, Card):
@@ -767,26 +1009,28 @@ class Dialogs:
         pass
 
     @staticmethod
-    def open_deck_chooser(pair_li: "list[G.objs.LinkDataPair]",view=None):
+    def open_deck_chooser(pair_li: "list[G.objs.LinkDataPair]", view=None):
         from . import widgets
 
-        p = widgets.deck_chooser(pair_li,view)
+        p = widgets.deck_chooser(pair_li, view)
         p.exec()
         tooltip("完成")
 
         pass
+
     @staticmethod
-    def open_grapher(pair_li: "list[G.objs.LinkDataPair]",need_activate=True,selected_as_center=True):
+    def open_grapher(pair_li: "list[G.objs.LinkDataPair]", need_activate=True, selected_as_center=True):
         from ..bilink.dialogs.linkdata_grapher import Grapher
         # p = Grapher(pair_li)
         # p.show()
-        if isinstance(G.mw_grapher,Grapher):
-            G.mw_grapher.load_node(pair_li,selected_as_center=selected_as_center)
+        if isinstance(G.mw_grapher, Grapher):
+            G.mw_grapher.load_node(pair_li, selected_as_center=selected_as_center)
             if need_activate:
                 G.mw_grapher.activateWindow()
         else:
             G.mw_grapher = Grapher(pair_li)
             G.mw_grapher.show()
+
 
 class UUID:
     @staticmethod
@@ -799,7 +1043,7 @@ class UUID:
         return str(uuid.uuid3(uuid.NAMESPACE_URL, s))
 
 
-def button_icon_clicked_switch(button:QToolButton,old:list,new:list,callback:"callable"=None):
+def button_icon_clicked_switch(button: QToolButton, old: list, new: list, callback: "callable" = None):
     if button.text() == old[0]:
         button.setText(new[0])
         button.setIcon(QIcon(new[1]))
@@ -809,8 +1053,8 @@ def button_icon_clicked_switch(button:QToolButton,old:list,new:list,callback:"ca
     if callback:
         callback(button.text())
 
-def logger(logname=None, level=None, allhandler=None):
 
+def logger(logname=None, level=None, allhandler=None):
     if G.ISDEBUG:
         if logname is None:
             logname = "hjp_clipper"
@@ -842,9 +1086,10 @@ def logger(logname=None, level=None, allhandler=None):
 def do_nothing(*args, **kwargs):
     pass
 
+
 def write_to_log_file(s):
     f = open(G.src.path.logtext, "a", encoding="utf-8")
-    f.write("\n"+s)
+    f.write("\n" + s)
     f.close()
 
 
@@ -888,10 +1133,10 @@ def HTML_clipbox_sync_check(card_id, root):
     #     f"card_id={card_id},clipbox_from_DB={clipbox_from_DB}, clipbox_from_field={clipbox_from_field}, DBADD={DBadd}.  DBdel={DBdel}")
     if len(DBadd) > 0:
         # DB.add_card_id(DB.where_maker(IN=True, colname="uuid", vals=DBadd), card_id)
-        DB.add_card_id(DB.IN("uuid",*DBadd),card_id)
+        DB.add_card_id(DB.IN("uuid", *DBadd), card_id)
     if len(DBdel) > 0:
         # DB.del_card_id(DB.where_maker(IN=True, colname="uuid", vals=DBdel), card_id)
-        DB.del_card_id(DB.IN("uuid",*DBdel),card_id)
+        DB.del_card_id(DB.IN("uuid", *DBdel), card_id)
     DB.end()
     pass
 
@@ -918,7 +1163,7 @@ def HTML_clipbox_PDF_info_dict_read(root):
 
 
 def HTML_LeftTopContainer_detail_el_make(root: "BeautifulSoup", summaryname, attr: "dict" = None):
-    """这是一个公共的步骤,设计一个details
+    """这是一个公共的步骤,设计一个details, root 传进来无所谓的, 不会基于他做操作,只是引用了他的基本功能
     details.hjp_bilink .details
         summary
         div
@@ -1000,74 +1245,84 @@ def HTML_LeftTopContainer_make(root: "BeautifulSoup"):
         anchor_el.append(L0)
     return anchor_el  # 已经传入了root,因此不必传出.
 
+
 class AnkiLinks:
     class Type:
-        html=0
-        markdown=1
-        orgmode=2
+        html = 0
+        markdown = 1
+        orgmode = 2
 
     @staticmethod
-    def copy_card_as(linktype:int, pairs_li: 'list[G.objs.LinkDataPair]'):
+    def copy_card_as(linktype: int, pairs_li: 'list[G.objs.LinkDataPair]'):
         tooltip(pairs_li.__str__())
         clipboard = QApplication.clipboard()
         header = "ankilink://opencard_id="
+
         def as_html(pairs_li: 'list[G.objs.LinkDataPair]'):
             total = ""
-            puretext=""
+            puretext = ""
             for pair in pairs_li:
-                total+=f"""<a href="{header}{pair.card_id}">{pair.desc}<a><br>"""+"\n"
-                puretext+=f"""{header}{pair.card_id}\n"""
-            mmdata=QMimeData()
+                total += f"""<a href="{header}{pair.card_id}">{pair.desc}<a><br>""" + "\n"
+                puretext += f"""{header}{pair.card_id}\n"""
+            mmdata = QMimeData()
             mmdata.setHtml(total)
             mmdata.setText(puretext)
             clipboard.setMimeData(mmdata)
             # clipboard.setText(total)
             pass
+
         def as_markdown(pairs_li: 'list[G.objs.LinkDataPair]'):
-            total=""
+            total = ""
             for pair in pairs_li:
-                total+=f"""[{pair.desc}]({header}{pair.card_id})\n"""
+                total += f"""[{pair.desc}]({header}{pair.card_id})\n"""
             clipboard.setText(total)
             pass
+
         def as_orgmode(pairs_li: 'list[G.objs.LinkDataPair]'):
             total = ""
             for pair in pairs_li:
                 total += f"""[[{header}{pair.card_id}][{pair.desc}]]\n"""
             clipboard.setText(total)
             pass
-        typ=AnkiLinks.Type
-        func_dict={typ.html:as_html,
-                   typ.orgmode:as_orgmode,
-                   typ.markdown:as_markdown}
+
+        typ = AnkiLinks.Type
+        func_dict = {typ.html: as_html,
+                     typ.orgmode: as_orgmode,
+                     typ.markdown: as_markdown}
         func_dict[linktype](pairs_li)
 
     @staticmethod
-    def copy_search_as(linktype:int,browser:"Browser"):
+    def copy_search_as(linktype: int, browser: "Browser"):
         searchstring = browser.form.searchEdit.currentText()
         tooltip(searchstring)
         clipboard = QApplication.clipboard()
         header = "ankilink://openbrowser_search="
-        href = header+quote(searchstring)
+        href = header + quote(searchstring)
+
         def as_html():
-            total =f"""<a href="{href}">Anki搜索:{searchstring}</a>"""
-            mmdata=QMimeData()
+            total = f"""<a href="{href}">Anki搜索:{searchstring}</a>"""
+            mmdata = QMimeData()
             mmdata.setHtml(total)
             clipboard.setMimeData(mmdata)
             pass
+
         def as_markdown():
-            total=f"[Anki搜索:{searchstring}]({href})"
+            total = f"[Anki搜索:{searchstring}]({href})"
             clipboard.setText(total)
             pass
+
         def as_orgmode():
             total = f"[[{href}][Anki搜索:{searchstring}]]"
             clipboard.setText(total)
             pass
+
         typ = AnkiLinks.Type
         func_dict = {typ.html: as_html,
                      typ.orgmode: as_orgmode,
                      typ.markdown: as_markdown}
         func_dict[linktype]()
         pass
+
 
 def copy_intext_links(pairs_li: 'list[G.objs.LinkDataPair]'):
     from .objs import LinkDataPair
@@ -1121,6 +1376,7 @@ def on_clipper_closed_handle():
     from . import G
     G.mw_win_clipper = None
 
+
 def event_handle_connect(event_dict):
     for event, handle in event_dict:
         event.connect(handle)
@@ -1154,49 +1410,9 @@ def version_cmpkey(path):
     return objs.AddonVersion(v_tuple)
 
 
-def config_check_update():
-    """
-    更新配置文件
-
-    Returns:
-
-    """
-    need_update = False
-    config = G.src.config
-    user_config_dir = G.src.path.userconfig
-    template = config.template.get_config
-    if os.path.isfile(user_config_dir) and os.path.exists(user_config_dir):
-        user = config.user.get_config
-    else:
-        user = {}
-
-    if "VERSION" not in user or G.src.ADDON_VERSION != user["VERSION"]:
-        need_update = True
-        user["VERSION"] = G.src.ADDON_VERSION
-        template["VERSION"] = G.src.ADDON_VERSION
-        for key, value in template.items():
-            if key not in user:
-                user[key] = value
-        usercopy = user.copy()
-        for key, value in usercopy.items():
-            if key not in template:
-                user.__deleteitem__(key)
-    if need_update:
-        json.dump(user, open(user_config_dir, "w", encoding="utf-8"), indent=4,
-                  ensure_ascii=False)
-    return need_update
-
-
 def note_get(card_id):
     from . import objs
-    if isinstance(card_id, objs.LinkDataPair):
-        cid = card_id.int_card_id
-    elif isinstance(card_id, str):
-        cid = int(card_id)
-    elif type(card_id) == int:
-        cid = card_id
-    else:
-        raise TypeError("参数类型不支持:" + card_id.__str__())
+    cid = CardOperation.get_correct_id(card_id)
     if card_exists(cid):
         note = mw.col.getCard(cid).note()
     else:
@@ -1206,55 +1422,41 @@ def note_get(card_id):
 
 
 def desc_extract(card_id=None, fromField=False):
-    """读取卡片的描述,需要卡片id, fromField就是为了避免循环递归"""
+    """读取卡片的描述,需要卡片id, fromField就是为了避免循环递归, fromField 意思是从卡片的Field提取描述"""
     from . import objs
     from ..bilink import linkdata_admin
 
-    if isinstance(card_id, objs.LinkDataPair):  # 有可能把pair传进来的
-        cid = card_id.int_card_id
-    elif isinstance(card_id, str):
-        cid = int(card_id)
-    elif type(card_id) == int:
-        cid = card_id
-    else:
-        raise TypeError("参数类型不支持:" + card_id.__str__())
-    cfg = G.src.config.user
+    def get_desc_from_field(_note: Note) -> str:
+        content = reduce(lambda x, y: x + y, _note.fields)
+        _desc = HTML_txtContent_read(content)
+        _desc = re.sub(r"\n+", "", _desc)
+        _desc = _desc if cfg.length_of_desc.value == 0 else _desc[0:min(cfg.length_of_desc.value, len(_desc))]
+        return _desc
+    cid = CardOperation.get_correct_id(card_id)
+    cfg = Config.get()
     note = note_get(cid)
     desc = ""
     if note is not None:
-        if fromField:  # 分成这两段, 是因为一个循环引用.
-            content = reduce(lambda x, y: x + y, note.fields)
-            desc = HTML_txtContent_read(content)
-            desc = re.sub(r"\n+", "", desc)
-            desc = desc[0:cfg.descMaxLength if len(desc) > cfg.descMaxLength != 0 else len(desc)]
+        if fromField or cfg.desc_sync.value == 1:  # 分成这两段, 是因为一个循环引用.
+            desc = get_desc_from_field(note)
         else:
             desc = linkdata_admin.read_card_link_info(str(cid)).self_data.desc
             if desc == "":
-                content = reduce(lambda x, y: x + y, note.fields)
-                desc = HTML_txtContent_read(content)
-                desc = re.sub(r"\n+", "", desc)
-                desc = desc[0:cfg.descMaxLength if len(desc) > cfg.descMaxLength != 0 else len(desc)]
-
+                desc = get_desc_from_field(note)
     return desc
 
 
 def card_exists(card_id):
     from . import objs
-    if isinstance(card_id, objs.LinkDataPair):
-        cid = card_id.int_card_id
-    elif isinstance(card_id, str):
-        cid = int(card_id)
-    elif type(card_id) == int:
-        cid = card_id
-    else:
-        raise TypeError("参数类型不支持:" + card_id.__str__())
+    cid = CardOperation.get_correct_id(card_id)
     txt = f"cid:{cid}"
     card_ids = mw.col.find_cards(txt)
 
     if len(card_ids) == 1:
         return True
     else:
-        tooltip("卡片不存在:id=" + str(cid))
+        tooltip("卡片不存在/card not exists:\n"
+                "id=" + str(cid))
         return False
 
 
@@ -1263,10 +1465,10 @@ def HTML_txtContent_read(html):
 
     from ..bilink.in_text_admin.backlink_reader import BackLinkReader
 
-    cfg = G.src.config.user
+    cfg = ConfigInterface()
     root = BeautifulSoup(html, "html.parser")
     text = root.getText()
-    if cfg.delete_intext_link_when_extract_desc == 1:
+    if cfg.delete_intext_link_when_extract_desc.value == 1:
         newtext = text
         replace_str = ""
         intextlinks = BackLinkReader(html_str=text).backlink_get()
@@ -1315,9 +1517,10 @@ log = logger(__name__)
 class LOG:
     logger = logger(__name__)
     file_write = write_to_log_file
+
     @staticmethod
     def file_clear():
-        f=open(G.src.path.logtext,"w",encoding="utf-8")
+        f = open(G.src.path.logtext, "w", encoding="utf-8")
         f.write("")
 
     @staticmethod

@@ -1,25 +1,115 @@
 {
-    "VERSION": "2.0.3",
-    "linkInfoStorageLocation": 0,
-    "defaultLinkMode": 1,
-    "defaultUnlinkMode": 2,
-    "defaultInsertMode": 4,
-    "appendNoteFieldPosition": 0,
-    "readDescFieldPosition": 1,
-    "descMaxLength": 32,
-    "button_appendTo_AnchorId": "",
-    "anchorCSSFileName": "",
-    "addLinkTo_Field_or_MetaInfo": "Field",
-    "delete_intext_link_when_extract_desc": 1,
-    "regexForDescContent": 0,
-    "regexForDescFromTag": 0,
-    "regexForDescFromDeck": 0,
-    "linkFromSymbol": "←",
-    "linkToSymbol": "→",
-    "linkStyle": "",
-    "addTagEnable": 1,
-    "addTagRoot": "",
-    "base_deck_name": "",
-    "base_tag_name": "",
-    "DEFAULT_regexForDescContent": "((?<=<div>)[\\s\\S]+?(?=</div>)|^[\\w:;\\-\\[\\]{}@#$%^&*().\\|]+|(?<=src=\")[\\w\\-\\.]+)"
+    "auto_review": {
+        "instruction": [
+            "假设某个搜索条件下有多张卡,你复习其中一张卡,那么其余卡片也会用相同的选项自动进行复习,填入0表示关闭,填入1表示开启,",
+            "开启后,在 auto_review_search_string 中输入搜索词(就像你在搜索栏中做的那样),即可对同属于这个搜索结果的卡片执行同步复习",
+            "English Instruction Maybe later"
+        ],
+        "value": 1
+    },
+    "auto_review_search_string": {
+        "instruction": [
+            "比如,'tag:xxx', 'prop:due=0' 之类的语法都可以, 以数组的形式记录, 每一项为一个完整搜索条件",
+            "English Instruction Maybe later"
+        ],
+        "value": [
+            "deck:筛选牌组1"
+        ]
+    },
+    "length_of_desc": {
+        "instruction": [
+            "length_of_desc项控制从卡片正文提取多少字符作为链接的标题,该项仅支持非负数字,0表示不限制",
+            "English Instruction Maybe later"
+        ],
+        "value": 0
+    },
+    "desc_sync": {
+        "instruction": [
+            "desc_sync_enabled项控制是否开启自动绑定卡片内容和链接标题,",
+            "填入1表示开启,则将自动同步卡片内容和链接标题两者的内容,填入0表示关闭,则可打开卡片的anchor,手动修改链接标题",
+            "English Instruction Maybe later"
+        ],
+        "value": 0
+    },
+    "add_link_tag": {
+        "instruction": [
+            "add_link_tag_enabled用来控制链接操作结束后,是否给这组参与链接的卡片添加一个时间戳tag",
+            "这个功能适合作为链接操作的历史记录使用,填入1表示开启,填入0表示关闭",
+            "English Instruction Maybe later"
+        ],
+        "value": 1
+    },
+    "open_browser_after_link": {
+        "instruction": [
+            "open_browser_after_link用来控制链接操作结束后,是否打开浏览窗口,展示链接的项",
+            "填入1表示开启,填入0表示关闭",
+            "English Instruction Maybe later"
+        ],
+        "value": 1
+    },
+    "delete_intext_link_when_extract_desc": {
+        "instruction": [
+            "本项用来控制当执行卡片内容提取时,是否将文内链接也识别为卡片内容一并提取",
+            "填入1表示开开启,此时提取卡片内容之前,会删掉文内链接的信息再提取,填入0表示关闭,则会直接提取",
+            "English Instruction Maybe later"
+        ],
+        "value": 1
+    },
+    "default_link_mode": {
+        "instruction": [
+            "使用快捷键时,默认执行的链接操作,可填0,1两个数字值,0表示完全链接,1表示组到组连接,默认一张卡为一组",
+            "English Instruction Maybe later"
+        ],
+        "value": 0
+    },
+    "default_unlink_mode": {
+        "instruction": [
+            "使用快捷键时,默认执行的取消链接操作,可填0,1两个数字值,0表示按结点取消链接,1表示按路径取消链接",
+            "English Instruction Maybe later"
+        ],
+        "value": 0
+    },
+    "default_insert_mode": {
+        "instruction": [
+            "使用快捷键时,默认执行的插入连接池的操作,可填0,1,2两个数字值,0表示清空后插入,1表示追加插入,2表示编组插入",
+            "English Instruction Maybe later"
+        ],
+        "value": 0
+    },
+    "default_copylink_mode": {
+        "instruction": [
+            "使用快捷键时,默认执行的链接复制操作,可填0,1,2,3,0表示复制为文内链接,1表示复制为html链接",
+            "2表示复制为markdown链接,3表示复制为orgmode链接",
+            "English Instruction Maybe later"
+        ],
+        "value": 0
+    },
+    "shortcut_for_link": {
+        "instruction": [
+            "本项用来控制链接操作的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "English Instruction Maybe later"
+        ],
+        "value": ""
+    },
+    "shortcut_for_unlink": {
+        "instruction": [
+            "本项用来控制取消链接操作的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "English Instruction Maybe later"
+        ],
+        "value": ""
+    },
+    "shortcut_for_insert": {
+        "instruction": [
+            "本项用来控制卡片插入链接池操作的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "English Instruction Maybe later"
+        ],
+        "value": ""
+    },
+    "shortcut_for_copylink": {
+        "instruction": [
+            "本项用来控制复制卡片链接的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "English Instruction Maybe later"
+        ],
+        "value": ""
+    }
 }
