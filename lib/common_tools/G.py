@@ -55,6 +55,7 @@ mw_VersionDialog = mw_addonName["VersionDialog"]
 mw_progresser = mw.__dict__[addonName]["progresser"]
 mw_universal_worker = None
 mw_grapher = mw.__dict__[addonName]["grapher"]
+mw_gview = {}
 mw_addcard_to_grapher_on=False
 browser_addon_menu = None
 AutoReview_dict:"Optional[AutoReviewDictInterface]"=None #卡片ID映射到searchString

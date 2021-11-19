@@ -443,6 +443,7 @@ class DB_admin(object):
 
     @staticmethod
     def LIKE(colname, value):
+        """需要自己加%进行模糊匹配"""
         return DB_admin.BOX(colname + " LIKE (?) ", [value])
 
     @staticmethod
@@ -726,7 +727,6 @@ class DB_admin(object):
         """values,where 应该是一个字典, k是字段名,v是字段值"""
         assert values is not None and where is not None
         entity = values.values + where.values
-
         s = self.sqlstr_RECORD_UPDATE.format(tablename=self.tab_name, values=values.string, where=where.string)
         self.excute_queue.append([s, entity])
         return self
@@ -775,9 +775,9 @@ class DB_admin(object):
         s = self.excute_queue.pop(0)
         if s:
             if callback:
-                callback(s)
+                callback(s.__str__())
             if type(s) == list:
-                result = self.cursor.execute(s[0], s[1])
+                result = self.cursor.execute(s[0], s[1]) #注意update的时候,字符串对象需要多加一个""
             else:
                 result = self.cursor.execute(s)
             self.connection.commit()
@@ -855,7 +855,8 @@ class Pair:
 class GviewRecord:
     uuid:str
     name:str
-    member:dict#{"member:[],other:{}}"
+    nodes:str
+    edges:str
 
 @dataclass
 class PDFinfoRecord:

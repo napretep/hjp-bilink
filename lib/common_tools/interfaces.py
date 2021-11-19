@@ -30,9 +30,12 @@ class GViewData:
         return {
             "uuid":self.uuid,
             "name":self.name,
-            "nodes":json.dumps(self.nodes),
-            "edges":json.dumps(self.edges)
+            "nodes":f"{json.dumps(self.nodes)}",
+            "edges":f"{json.dumps(self.edges)}"
         }
+
+    def __hash__(self):
+        return int(self.uuid,16)
 
 @dataclass
 class GraphMode():

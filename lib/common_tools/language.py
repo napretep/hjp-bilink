@@ -149,10 +149,14 @@ def rosetta(text: str = ""):
         "重建数据库":"rebuild auto review database",
         "配置表操作":"operations for config file",
         "重置配置表":"reset config file",
-        "保存为视图":"save as view",
+        "创建为视图":"create view",
         "视图名":"name of view",
         "视图名不能为空":"name of view cannot be empty",
-        "视图名必须是JSON合法的字符串":"must be a valid JSON string"
+        "视图名必须是JSON合法的字符串":"must be a valid JSON string",
+        "打开于视图:":"open in view of:",
+        "直接打开":"just open",
+        "删除边":"delete edge",
+        "隐藏边":"hide edge"
     }
     ZHdict = {
         "defaultLinkMode": "默认链接方式(用于快捷键)",
@@ -227,10 +231,14 @@ class Translate:
     重建数据库:str=rosetta("重建数据库")
     配置表操作:str=rosetta("配置表操作")
     重置配置表:str=rosetta("重置配置表")
-    保存为视图:str=rosetta("保存为视图")
+    创建为视图:str=rosetta("创建为视图")
     视图名:str=rosetta("视图名")
     视图名不能为空:str=rosetta("视图名不能为空")
     视图名必须是JSON合法的字符串:str=rosetta("视图名必须是JSON合法的字符串")
+    打开于视图:str=rosetta("打开于视图")
+    直接打开:str=rosetta("直接打开")
+    删除边:str=rosetta("删除边")
+    隐藏边:str=rosetta("隐藏边")
 
 if __name__ == "__main__":
     print(Translate.打开配置表)

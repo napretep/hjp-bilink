@@ -98,6 +98,7 @@ class SrcAdmin:
             self.robot_black = os.path.join(self.root.path.resource_icon,"icon_robot_black.png")
             self.robot_red = os.path.join(self.root.path.resource_icon,"icon_robot_red.png")
             self.robot_green = os.path.join(self.root.path.resource_icon,"icon_robot_green.png")
+            self.gview_admin = os.path.join(self.root.path.resource_icon,"icon_gview_admin.png")
 
     @dataclasses.dataclass
     class _ShortCut:

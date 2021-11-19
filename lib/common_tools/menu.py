@@ -13,6 +13,8 @@ from ..common_tools.language import rosetta as say
 from ..common_tools.language import Translate
 from .. import common_tools
 
+GViewData = common_tools.interfaces.GViewData
+GraphMode = common_tools.interfaces.GraphMode
 
 class T:
     # 标记不同的来源
@@ -253,13 +255,23 @@ def make__open_clipper(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
 
 
 def make__open_grapher(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
+    Gop = common_tools.funcs.GviewOperation
+    dlg = common_tools.funcs.Dialogs
     if atype in {T.browser_context, T.webview}:
         from . import funcs
         prefix = kwargs["prefix"]
+        pair_li = pairsli_admin.pairs_li
         if len(args) > 0:
             M: "QMenu" = args[1]
             name = Translate.在grapher中打开卡片
-            M.addAction(prefix + name).triggered.connect(lambda: funcs.Dialogs.open_grapher(pairsli_admin.pairs_li))
+            M2=M.addMenu(prefix + name)
+            M2.addAction(Translate.直接打开).triggered.connect(lambda: funcs.Dialogs.open_grapher(pair_li))
+            viewdata_L=Gop.find_by_card(pair_li)
+            # for viewdata in viewdata_L:
+            #     M2.addAction(Translate.打开于视图+":"+viewdata.name).triggered.connect(
+            #         lambda:dlg.open_grapher(pair_li=pair_li,mode=GraphMode.view_mode,gviewdata=viewdata))
+            list(map(lambda x:func_actionMenuConnector(M2,Translate.打开于视图+":"+x.name,dlg.open_grapher,pair_li=pair_li,
+                mode=GraphMode.view_mode, gviewdata=x),viewdata_L))
 
 
 make_list = [globals()[name] for name in globals() if name.startswith("make__")]

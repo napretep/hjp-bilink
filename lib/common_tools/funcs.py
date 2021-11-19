@@ -17,7 +17,7 @@ from collections import Sequence
 from datetime import datetime
 import time
 from math import ceil
-from typing import Union, Optional, NewType, Callable
+from typing import Union, Optional, NewType, Callable, List
 
 from PyQt5.QtCore import pyqtSignal, QThread, QUrl, QTimer, Qt, QSettings, QMimeData
 import json
@@ -43,7 +43,8 @@ from . import G, compatible_import
 from .language import Translate
 from .objs import LinkDataPair, LinkDataJSONInfo
 from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
-from .interfaces import ConfigInterface, AnswerInfoInterface,AutoReviewDictInterface,GViewData
+from .interfaces import ConfigInterface, AnswerInfoInterface, AutoReviewDictInterface, GViewData, GraphMode
+
 
 class GviewOperation:
 
@@ -53,39 +54,61 @@ class GviewOperation:
         DB=G.DB
         DB.go(DB.table_Gview)
         if DB.exists(DB.EQ(uuid=data.uuid)):
-            showInfo("DB.exists")
             DB.end()
             GviewOperation.update(data)
         else:
-            showInfo("not DB.exists")
             DB.insert(**(data.to_DB_format())).commit()
             DB.end()
         tooltip("保存成功")
 
     @staticmethod
-    def load(uuid=None):
+    def load(uuid=None,gviewdata:"GViewData"=None,pairli=None):
         """"""
-        DB=G.DB
-        DB.go(DB.table_Gview)
-        data = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_data()[0]
-        return data
+        if uuid is not None:
+            DB=G.DB
+            DB.go(DB.table_Gview)
+            data = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_data()[0]
+            return data
 
     @staticmethod
-    def find_card_at(card_id:str):
-        """"""
+    def find_by_card(pairli:'list[LinkDataPair]')->'set[GViewData]':
+        """找到卡片所属的gview记录 """
         DB = G.DB
         DB.go(DB.table_Gview)
-        datas = DB.select(DB.LIKE("nodes",card_id)).return_all().zip_up().to_gview_data()
+
+        def pair_to_gview(pair):
+            card_id = pair.card_id
+            datas = DB.select(DB.LIKE("nodes", f"%\"{card_id}\"%")).return_all().zip_up().to_gview_data()
+            return set(map(
+                lambda data:GViewData(
+                    uuid=data.uuid,name=data.name,nodes=json.loads(data.nodes),edges=json.loads(data.edges)) ,datas))
+        all_records = list(map(lambda x: pair_to_gview(x),pairli))
+        final_givew = reduce(lambda x,y:x&y,all_records) if len(all_records)>0 else set()
         DB.end()
-        return datas
+        return final_givew
+        # for pair in pairli:
+        #     card_id = pair.card_id
+        #     datas = DB.select(DB.LIKE("nodes",f"%\"{card_id}\"%")).return_all().zip_up().to_gview_data()
+        #     for data in datas:
+        #         data = GViewData(uuid=data.uuid,name=data.name,nodes=json.loads(data.nodes),edges=json.loads(data.edges))
+        #         if start==0:
+        #             record.add(data)
+        #         else:
+        #             record&=data
+        #     start+=1
+
+        # tooltip("<br>".join([ r.to_html_repr() for r in record]))
+        # return record
 
     @staticmethod
     def update(data:GViewData):
         """"""
         DB = G.DB
         DB.go(DB.table_Gview)
-        d = data.to_DB_format().pop("uuid")
-        DB.update(values=DB.VALUEEQ(**d),where=DB.EQ(uuid=data.uuid)).commit()
+        d = data.to_DB_format()
+        d.pop("uuid")
+        DB.update(values=DB.VALUEEQ(**d),where=DB.EQ(uuid=data.uuid)).commit(write_to_log_file)
+            # name=d["name"],nodes=d["nodes"],edges=d["edges"]
         DB.end()
 
     @staticmethod
@@ -104,6 +127,12 @@ class Utils(object):
     @staticmethod
     def emptystr(s):
         return re.search(r"\S",s)
+
+    @staticmethod
+    def tooltip(s):
+        if G.ISDEBUG:
+            tooltip(s)
+
 
 class AutoReview(object):
     """这是一套性能优化方案, AutoReview由于每次回答都要去数据库查询一遍,因此我们想了一招来更新缓存
@@ -907,7 +936,6 @@ class Dialogs:
         if not isinstance(G.mw_win_clipper, Clipper):
             G.mw_win_clipper = Clipper()
             G.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
-            # all_objs.mw_win_clipper.closeEvent=wrappers.func_wrapper(after=[lambda x:funcs.setNone(all_objs.mw_win_clipper)])(all_objs.mw_win_clipper.closeEvent)
             G.mw_win_clipper.show()
         else:
             G.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
@@ -1000,9 +1028,6 @@ class Dialogs:
 
     @staticmethod
     def open_tag_chooser(pair_li: "list[G.objs.LinkDataPair]"):
-        # a=[tag for tag in mw.col.tags.rename(old,new) ]
-        # a=mw.col.getCard(CardId(1627994892490)).note().tags
-        # write_to_log_file(a.__str__())
         from . import widgets
         p = widgets.tag_chooser(pair_li)
         p.exec()
@@ -1019,19 +1044,27 @@ class Dialogs:
         pass
 
     @staticmethod
-    def open_grapher(pair_li: "list[G.objs.LinkDataPair]", need_activate=True, selected_as_center=True):
+    def open_grapher(pair_li: "list[G.objs.LinkDataPair]", need_activate=True, gviewdata:"GViewData"=None,
+                     selected_as_center=True,mode=GraphMode.normal, ):
         from ..bilink.dialogs.linkdata_grapher import Grapher
-        # p = Grapher(pair_li)
-        # p.show()
-        if isinstance(G.mw_grapher, Grapher):
-            G.mw_grapher.load_node(pair_li, selected_as_center=selected_as_center)
-            if need_activate:
-                G.mw_grapher.activateWindow()
-        else:
-            G.mw_grapher = Grapher(pair_li)
-            G.mw_grapher.show()
-
-
+        if mode == GraphMode.normal:
+            if isinstance(G.mw_grapher, Grapher):
+                G.mw_grapher.load_node(pair_li, selected_as_center=selected_as_center)
+                if need_activate:
+                    G.mw_grapher.activateWindow()
+            else:
+                G.mw_grapher = Grapher(pair_li)
+                G.mw_grapher.show()
+        elif mode == GraphMode.view_mode:
+            if (gviewdata.uuid not in G.mw_gview) or (not isinstance(G.mw_gview[gviewdata.uuid],Grapher)):
+                G.mw_gview[gviewdata.uuid]=Grapher(pair_li=pair_li,mode=mode,gviewdata=gviewdata)
+                G.mw_gview[gviewdata.uuid].show()
+            else:
+                G.mw_gview[gviewdata.uuid].view_node(pair_li)
+                tooltip(f"here G.mw_gview[{gviewdata.uuid}]")
+                if need_activate:
+                    G.mw_gview[gviewdata.uuid].show()
+                    G.mw_gview[gviewdata.uuid].activateWindow()
 class UUID:
     @staticmethod
     def by_random(length=8):
