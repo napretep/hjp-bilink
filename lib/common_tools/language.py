@@ -156,7 +156,21 @@ def rosetta(text: str = ""):
         "打开于视图:":"open in view of:",
         "直接打开":"just open",
         "删除边":"delete edge",
-        "隐藏边":"hide edge"
+        "隐藏边":"hide edge",
+        "Anki搜索":"Anki_search",
+        "本视图已被删除,确定退出?":"this view has been deleted, continue?",
+        "视图名不能有空白字符,不能有连续4个':',即'::::'非法":"The view name cannot have blank characters, "
+                                          "and there cannot be 4 consecutive':', that is,'::::' is illegal",
+        "视图名已存在":"name exists",
+        "Anki视图":"Anki_view",
+        "打开视图管理器":"open view manager",
+        "自动更新描述":"auto update desc",
+        "上次复习":"last review",
+        "下次复习":"next review",
+        "可复习":"due",
+        "未到期":"not due",
+        "学习":"review",
+        "请选择卡片":"please select card"
     }
     ZHdict = {
         "defaultLinkMode": "默认链接方式(用于快捷键)",
@@ -233,12 +247,27 @@ class Translate:
     重置配置表:str=rosetta("重置配置表")
     创建为视图:str=rosetta("创建为视图")
     视图名:str=rosetta("视图名")
-    视图名不能为空:str=rosetta("视图名不能为空")
+    视图命名规则:str=rosetta("视图名不能有空白字符,不能有连续4个':',即'::::'非法")
     视图名必须是JSON合法的字符串:str=rosetta("视图名必须是JSON合法的字符串")
     打开于视图:str=rosetta("打开于视图")
     直接打开:str=rosetta("直接打开")
     删除边:str=rosetta("删除边")
     隐藏边:str=rosetta("隐藏边")
+    Anki搜索:str=rosetta("Anki搜索")
+    本视图已被删除_确定退出么:str=rosetta("本视图已被删除_确定退出么")
+    视图名已存在:str=rosetta("视图名已存在")
+    视图名不能为空:str=rosetta("视图名不能为空")
+    Anki视图:str=rosetta("Anki视图")
+    打开视图管理器:str=rosetta("打开视图管理器")
+    已复制到剪贴板:str=rosetta("已复制到剪贴板")
+    未选择卡片:str=rosetta("未选择卡片")
+    自动更新描述:str=rosetta("自动更新描述")
+    上次复习:str=rosetta("上次复习")
+    下次复习:str=rosetta("下次复习")
+    可复习:str=rosetta("可复习")
+    未到期:str=rosetta("未到期")
+    学习:str=rosetta("学习")
+    请选择卡片:str=rosetta("请选择卡片")
 
 if __name__ == "__main__":
     print(Translate.打开配置表)

@@ -54,6 +54,8 @@ class AnchorButtonMaker(FieldHTMLData):
         # data = LinkDataReader(self.card_id).read()
         # self.data = data
         self.data = linkdata_admin.read_card_link_info(self.card_id)
+        if not self.data.root:
+            return self.html_root.__str__()
         self.cascadeDIV_create()  # 这个名字其实取得不好,就是反链的设计
         self.backlink_create()  # 这个是文内链接的设计,顺便放着的,因为用的元素基本一样.
         return self.html_root.__str__()
@@ -63,10 +65,11 @@ class AnchorButtonMaker(FieldHTMLData):
         b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor button",
                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
         cardinfo = self.data.link_dict[card_id]
-        b.string = cardinfo.dir + cardinfo.desc
+        b.string = "→"+cardinfo.desc #funcs.CardOperation.desc_extract(card_id)
         return b
 
     def cascadeDIV_create(self):
+
         for item in self.data.root:
             if item.card_id != "":
                 L2 = self.button_make(item.card_id)
@@ -193,7 +196,7 @@ class AutoReviewButtonMaker(FieldHTMLData):
     打开卡片后,首先判断配置开了没有,
     """
     def build(self):
-        if int(self.card_id) in G.AutoReview_dict.card_group and funcs.Config.get().auto_review.value==1:
+        if funcs.Config.get().auto_review.value==1 and int(self.card_id) in G.AutoReview_dict.card_group:
             self.cascadeDIV_create()
         return self.html_root.__str__()
 
@@ -218,10 +221,6 @@ class AutoReviewButtonMaker(FieldHTMLData):
         self.anchor_body_L1.append(details1)
         pass
 
-    # def get_auto_review_searchs(self):
-    #     note = mw.col.get_card(CardId(int(self.card_id))).note()
-    #     tag_li:Iterator[str] = filter(lambda x: x.startswith(G.src.autoreview_header),note.tags)
-    #     return tag_li
 
 def HTMLbutton_make(htmltext, card):
     html_string = htmltext
@@ -237,7 +236,8 @@ def HTMLbutton_make(htmltext, card):
         html_string = InTextButtonMaker(html_string).build()
     if funcs.HTML_clipbox_exists(html_string):
         html_string = PDFPageButtonMaker(html_string, card_id=card.id).build()
-    html_string = AutoReviewButtonMaker(html_string, card_id=card.id).build()
+    if G.AutoReview_dict and card.id in G.AutoReview_dict.card_group:
+        html_string = AutoReviewButtonMaker(html_string, card_id=card.id).build()
     return html_string
 
 

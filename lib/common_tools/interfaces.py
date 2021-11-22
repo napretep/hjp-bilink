@@ -10,7 +10,6 @@ import json
 from dataclasses import dataclass, field
 from enum import unique, Enum
 from typing import List, Any, Union
-
 from aqt.utils import tooltip
 
 @dataclass
@@ -95,11 +94,12 @@ class ConfigInterface:
             "开启后,在 auto_review_search_string 中输入搜索词(就像你在搜索栏中做的那样),即可对同属于这个搜索结果的卡片执行同步复习",
             "English Instruction Maybe later"
         ],
-        value=0
+        value=1
     ))
     auto_review_search_string:ConfigInterfaceItem = field(default_factory=lambda: ConfigInterfaceItem(
         instruction=[
-            "比如,'tag:xxx', 'prop:due=0' 之类的语法都可以, 以数组的形式记录, 每一项为一个完整搜索条件",
+            "这里填自动复习的条件,需要填入字符串,以逗号分割,比如,['tag:xxx', 'prop:due=0'],以数组的形式记录, 每一项为一个完整搜索条件",
+            "如果不会填,有更简单操作,点击browser界面菜单栏->hjp_bilink->自动复习操作->保存当前搜索条件为自动复习条件,即可",
             "English Instruction Maybe later"
         ],
         value=[]
@@ -114,11 +114,19 @@ class ConfigInterface:
     ))
     desc_sync:ConfigInterfaceItem = field(default_factory=lambda:ConfigInterfaceItem(
         instruction=[
-            "desc_sync_enabled项控制是否开启自动绑定卡片内容和链接标题,",
+            "desc_sync项控制是否开启自动同步卡片内容和链接标题",
             "填入1表示开启,则将自动同步卡片内容和链接标题两者的内容,填入0表示关闭,则可打开卡片的anchor,手动修改链接标题",
             "English Instruction Maybe later"
         ],
         value=0
+    ))
+    new_card_default_desc_sync:ConfigInterfaceItem = field(default_factory=lambda:ConfigInterfaceItem(
+        instruction=[
+            "new_card_default_desc_sync是一个开关,控制新卡片的链接数据生成提取卡片内容作为标题时,默认同步还是不同步",
+            "1开启,0关闭",
+            "English Instruction Maybe later"
+        ],
+        value=1
     ))
     add_link_tag: ConfigInterfaceItem = field(default_factory=lambda: ConfigInterfaceItem(
         instruction=[
@@ -148,21 +156,21 @@ class ConfigInterface:
 #------------------ 下面的统一为快捷键设置
     default_link_mode: ConfigInterfaceItem = field(default_factory=lambda: ConfigInterfaceItem(
         instruction=[
-            "使用快捷键时,默认执行的链接操作,可填0,1两个数字值,0表示完全链接,1表示组到组连接,默认一张卡为一组",
+            "使用快捷键时,默认执行的链接操作,可填3,4两个数字值,3表示完全链接,4表示组到组连接,默认一张卡为一组",
             "English Instruction Maybe later"
         ],
-        value=0
+        value=3
     ))
     default_unlink_mode: ConfigInterfaceItem = field(default_factory=lambda: ConfigInterfaceItem(
         instruction=[
-            "使用快捷键时,默认执行的取消链接操作,可填0,1两个数字值,0表示按结点取消链接,1表示按路径取消链接",
+            "使用快捷键时,默认执行的取消链接操作,可填5,6两个数字值,6表示按结点取消链接,5表示按路径取消链接",
             "English Instruction Maybe later"
         ],
-        value=0
+        value=6
     ))
     default_insert_mode: ConfigInterfaceItem = field(default_factory=lambda: ConfigInterfaceItem(
         instruction=[
-            "使用快捷键时,默认执行的插入连接池的操作,可填0,1,2两个数字值,0表示清空后插入,1表示追加插入,2表示编组插入",
+            "使用快捷键时,默认执行的插入连接池的操作,可填0,1,2三个数字值,0表示清空后插入,1表示追加插入,2表示编组插入",
             "English Instruction Maybe later"
         ],
         value=0
@@ -177,31 +185,38 @@ class ConfigInterface:
     ))
     shortcut_for_link: ConfigInterfaceItem = field(default_factory=lambda: ConfigInterfaceItem(
         instruction=[
-            "本项用来控制链接操作的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "本项用来控制链接操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定 ",
             "English Instruction Maybe later"
         ],
-        value=""
+        value="alt+ctrl+1"
     ))
     shortcut_for_unlink: ConfigInterfaceItem = field(default_factory=lambda: ConfigInterfaceItem(
         instruction=[
-            "本项用来控制取消链接操作的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "本项用来控制取消链接操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
             "English Instruction Maybe later"
         ],
-        value=""
+        value="alt+ctrl+2"
     ))
     shortcut_for_insert: ConfigInterfaceItem = field(default_factory=lambda: ConfigInterfaceItem(
         instruction=[
-            "本项用来控制卡片插入链接池操作的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "本项用来控制卡片插入链接池操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
             "English Instruction Maybe later"
         ],
-        value=""
+        value="alt+ctrl+3"
     ))
     shortcut_for_copylink: ConfigInterfaceItem = field(default_factory=lambda: ConfigInterfaceItem(
         instruction=[
-            "本项用来控制复制卡片链接的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "本项用来控制复制卡片链接的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
             "English Instruction Maybe later"
         ],
-        value=""
+        value="alt+ctrl+4"
+    ))
+    shortcut_for_openlinkpool: ConfigInterfaceItem = field(default_factory=lambda: ConfigInterfaceItem(
+        instruction=[
+            "本项用来控制打开链接池的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定 ",
+            "English Instruction Maybe later"
+        ],
+        value="alt+ctrl+`"
     ))
 
 

@@ -135,12 +135,12 @@ class SingleCardPreviewer(Previewer):
         self._card = card
         self._card.start_timer()
         self.ease_button: "dict[int,QPushButton]" = {}
+        self.bottom_layout_rev = QGridLayout()
+        self.bottom_layout_due = QGridLayout()
+        self.bottom_tools_widget=QWidget()
+        self.bottom_tools_widget_layout=QHBoxLayout()
         super().__init__(*args, **kwargs)
         mw = common_tools.compatible_import.mw
-        # last = mw.col.db.all(
-        #     f"select  * from revlog where cid = {self.card().id}"
-        # )
-        # common_tools.funcs.write_to_log_file(last.__str__())
 
     def card(self) -> Card:
         return self._card
@@ -176,15 +176,14 @@ class SingleCardPreviewer(Previewer):
         self.due_info_widget = self._create_due_info_widget()
         self.inAdvance_button.setEnabled(False)
 
-        self.bottombar.addWidget(self.browser_button)
-        self.bottombar.addWidget(self.edit_button)
-        self.bottombar.addWidget(self.answer_buttons)
-        self.bottombar.addWidget(self.due_info_widget)
-        self.bottombar.addWidget(self._other_side)
-        self.bottombar.setStretch(2,1)
-        self.bottombar.setStretch(3,1)
-        # self.bottombar.setSizeConstraint()
-        self.vbox.addLayout(self.bottombar)
+        self.bottom_tools_widget_layout.addWidget(self.browser_button)
+        self.bottom_tools_widget_layout.addWidget(self.edit_button)
+        self.bottom_tools_widget_layout.addWidget(self._other_side)
+        self.bottom_tools_widget.setLayout(self.bottom_tools_widget_layout)
+        self.bottom_layout_rev.addWidget(self.answer_buttons,0,0,1,1)
+        self.bottom_layout_due.addWidget(self.due_info_widget,0,0,1,1)
+        self.bottom_layout_due.addWidget(self.bottom_tools_widget,0,1,1,1)
+        self.vbox.addLayout(self.bottom_layout_due)
 
     def should_review(self):
         today, next_date, last_date = self._fecth_date()
@@ -273,12 +272,21 @@ class SingleCardPreviewer(Previewer):
 
     def switch_to_answer_buttons(self):
         self._update_info()
-        self.answer_buttons.show()
+        # self.bottom_layout_due.removeWidget(self.bottom_tools_widget)
+        self.vbox.removeItem(self.bottom_layout_due)
         self.due_info_widget.hide()
+
+        self.bottom_layout_rev.addWidget(self.bottom_tools_widget,0,1,1,1)
+        self.vbox.addLayout(self.bottom_layout_rev)
+        self.answer_buttons.show()
+
 
     def switch_to_due_info_widget(self):
         self._update_info()
         self.answer_buttons.hide()
+        self.vbox.removeItem(self.bottom_layout_rev)
+        self.bottom_layout_due.addWidget(self.bottom_tools_widget,0,1,1,1)
+        self.vbox.addLayout(self.bottom_layout_due)
         self.due_info_widget.show()
 
     def _update_info(self):
@@ -287,7 +295,7 @@ class SingleCardPreviewer(Previewer):
 
     def _update_due_info_widget(self):
         today, next_date, last_date = self._fecth_date()
-        self.due_label.setText("已经到期,可复习" if today>=next_date else "还未到期.可提前")
+        self.due_label.setText("可复习" if today>=next_date else "未到期")
         self.last_time_label.setText("上次复习:"+last_date.__str__())
         self.next_time_label.setText("下次复习:"+next_date.__str__())
         should_review = next_date<=today
@@ -318,11 +326,12 @@ class SingleCardPreviewer(Previewer):
     def _create_due_info_widget(self):
         widget = QWidget(self)
         layout = QGridLayout(widget)
+        widget.setContentsMargins(0,0,0,0)
         layout.setContentsMargins(0,0,0,0)
         today, next_date, last_date = self._fecth_date()
         self.inAdvance_button =QPushButton("提前学习")
         self.inAdvance_button.clicked.connect(self.switch_to_answer_buttons)
-        self.due_label = QLabel("已经到期,可复习" if next_date<=today else "还未到期.可提前")
+        self.due_label = QLabel("可复习" if next_date<=today else "可提前")
         self.last_time_label = QLabel("上次复习:"+last_date.__str__())
         self.next_time_label = QLabel("下次复习:"+next_date.__str__())
         layout.addWidget(self.due_label,0,0,2,1)

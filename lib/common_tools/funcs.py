@@ -17,23 +17,24 @@ from collections import Sequence
 from datetime import datetime
 import time
 from math import ceil
-from typing import Union, Optional, NewType, Callable, List
+from typing import Union, Optional, NewType, Callable, List, Iterable, Type
 
-from PyQt5.QtCore import pyqtSignal, QThread, QUrl, QTimer, Qt, QSettings, QMimeData
+from PyQt5.QtCore import pyqtSignal, QThread, QUrl, QTimer, Qt, QSettings, QMimeData, QRectF, QRect, QPointF
 import json
 import os
 import re
 from functools import reduce
 
 from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtWidgets import QApplication, QToolButton
+from PyQt5.QtWidgets import QApplication, QToolButton, QLineEdit, QInputDialog, QHBoxLayout, QPushButton, QWidget, \
+    QGridLayout, QLabel
 from anki import stdmodels, notes
 from anki.cards import Card
 from anki.notes import Note
 from anki.utils import pointVersion, isWin
 from aqt import mw, dialogs, AnkiQt
 from aqt.browser import Browser
-from aqt.browser.previewer import BrowserPreviewer, Previewer
+from aqt.browser.previewer import BrowserPreviewer, Previewer, MultiCardPreviewer
 from aqt.operations.card import set_card_deck
 from aqt.reviewer import Reviewer, RefreshNeeded
 from aqt.utils import showInfo, tooltip, tr
@@ -49,26 +50,62 @@ from .interfaces import ConfigInterface, AnswerInfoInterface, AutoReviewDictInte
 class GviewOperation:
 
     @staticmethod
-    def save(data:GViewData):
+    def save(data:GViewData=None,data_li:"Iterable[GViewData]"=None):
         """"""
-        DB=G.DB
-        DB.go(DB.table_Gview)
-        if DB.exists(DB.EQ(uuid=data.uuid)):
+        if data:
+            if GviewOperation.exists(data):
+                GviewOperation.update(data)
+            else:
+                DB = G.DB
+                DB.go(DB.table_Gview)
+                DB.insert(**(data.to_DB_format())).commit()
+                DB.end()
+            return
+        elif data_li:
+            DB = G.DB
+            DB.go(DB.table_Gview)
+            for data in data_li:
+                if DB.exists(DB.EQ(uuid=data.uuid)):
+                    d=data.to_DB_format()
+                    d.pop("uuid")
+                    DB.update(values=DB.VALUEEQ(**d),where=DB.EQ(uuid=data.uuid)).commit()
+                else:
+                    DB.insert(**(data.to_DB_format())).commit()
             DB.end()
-            GviewOperation.update(data)
-        else:
-            DB.insert(**(data.to_DB_format())).commit()
-            DB.end()
-        tooltip("保存成功")
+            return
 
+    @staticmethod
+    def exists(data:GViewData=None,name=None,uuid=None):
+        DB = G.DB
+        DB.go(DB.table_Gview)
+        exists=False
+        if data:
+            exists=DB.exists(DB.EQ(uuid=data.uuid))
+        elif name:
+            exists=DB.exists(DB.EQ(name=name))
+        elif uuid:
+            exists = DB.exists(DB.EQ(uuid=uuid))
+        DB.end()
+        return exists
     @staticmethod
     def load(uuid=None,gviewdata:"GViewData"=None,pairli=None):
         """"""
         if uuid is not None:
             DB=G.DB
             DB.go(DB.table_Gview)
-            data = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_data()[0]
+            data1 = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_data()[0]
+            data  = GViewData(uuid=data1.uuid,name=data1.name,nodes=json.loads(data1.nodes),edges=json.loads(data1.edges))
             return data
+
+    @staticmethod
+    def load_all()->'List[GViewData]':
+        DB=G.DB
+        DB.go(DB.table_Gview)
+        DB.excute_queue.append(DB.sqlstr_RECORD_SELECT_ALL.format(tablename=DB.tab_name))
+        records = DB.return_all().zip_up().to_gview_data()
+        return list(map(lambda data:GViewData(
+                    uuid=data.uuid,name=data.name,nodes=json.loads(data.nodes),edges=json.loads(data.edges)) ,records))
+
 
     @staticmethod
     def find_by_card(pairli:'list[LinkDataPair]')->'set[GViewData]':
@@ -86,19 +123,7 @@ class GviewOperation:
         final_givew = reduce(lambda x,y:x&y,all_records) if len(all_records)>0 else set()
         DB.end()
         return final_givew
-        # for pair in pairli:
-        #     card_id = pair.card_id
-        #     datas = DB.select(DB.LIKE("nodes",f"%\"{card_id}\"%")).return_all().zip_up().to_gview_data()
-        #     for data in datas:
-        #         data = GViewData(uuid=data.uuid,name=data.name,nodes=json.loads(data.nodes),edges=json.loads(data.edges))
-        #         if start==0:
-        #             record.add(data)
-        #         else:
-        #             record&=data
-        #     start+=1
 
-        # tooltip("<br>".join([ r.to_html_repr() for r in record]))
-        # return record
 
     @staticmethod
     def update(data:GViewData):
@@ -112,11 +137,40 @@ class GviewOperation:
         DB.end()
 
     @staticmethod
-    def delete(uuid:str):
+    def delete(uuid:str=None,uuid_li:"Iterable[str]"=None):
         """"""
         DB = G.DB
         DB.go(DB.table_Gview)
-        DB.delete(values=DB.VALUEEQ(uuid=uuid)).commit()
+        if uuid:
+            DB.delete(where=DB.VALUEEQ(uuid=uuid)).commit()
+            DB.end()
+            return
+        elif uuid_li:
+            for uuid in uuid_li:
+                DB.delete(where=DB.VALUEEQ(uuid=uuid)).commit()
+            DB.end()
+            return
+    @staticmethod
+    def get_correct_input(placeholder=""):
+        def view_name_check(name: str,placeholder="") -> bool:
+            if re.search(r"\s", name) or re.search("::::", name):
+                tooltip(Translate.视图命名规则)
+                return False
+            if GviewOperation.exists(name=name):
+                tooltip(Translate.视图名已存在)
+                return False
+            return True
+
+        while True:
+            viewName, submitted = QInputDialog.getText(None, "input", Translate.视图名, QLineEdit.Normal, placeholder)
+            if not submitted:
+                break
+            if viewName == placeholder:
+                submitted=False
+                break
+            if view_name_check(viewName,placeholder):
+                break
+        return (viewName, submitted)
 
 
 class Utils(object):
@@ -126,12 +180,20 @@ class Utils(object):
 
     @staticmethod
     def emptystr(s):
-        return re.search(r"\S",s)
+        return not re.match(r"\S",s)
 
     @staticmethod
     def tooltip(s):
         if G.ISDEBUG:
             tooltip(s)
+    @staticmethod
+    def showInfo(s):
+        if G.ISDEBUG:
+            showInfo(s)
+    @staticmethod
+    def rect_center_pos(rect:'Union[QRectF,QRect]'):
+        return QPointF(rect.x()+rect.width()/2,rect.y()+rect.height()/2)
+
 
 
 class AutoReview(object):
@@ -338,7 +400,7 @@ class BrowserOperation:
     @staticmethod
     def search(s) -> Browser:
         """注意,如果你是自动搜索,需要自己激活窗口"""
-        browser: Browser = dialogs._dialogs["Browser"][1]
+        browser: Browser = BrowserOperation.get_browser()
         # if browser is not None:
         if not isinstance(browser, Browser):
             browser: Browser = dialogs.open("Browser", mw)
@@ -348,14 +410,26 @@ class BrowserOperation:
 
     @staticmethod
     def refresh():
-        browser: Browser = dialogs._dialogs["Browser"][1]
+        browser: Browser = BrowserOperation.get_browser()
         if isinstance(browser, Browser):
             # if dialogs._dialogs["Browser"][1] is not None:
-            browser: Browser = dialogs._dialogs["Browser"][1]
             browser.sidebar.refresh()
             browser.model.reset()
             browser.editor.setNote(None)
 
+    @staticmethod
+    def get_browser(OPEN=False):
+        browser: Browser = dialogs._dialogs["Browser"][1]
+        if not isinstance(browser, Browser) and OPEN:
+            browser = dialogs.open("Browser")
+        return browser
+
+    @staticmethod
+    def get_selected_card():
+        browser = BrowserOperation.get_browser()
+        card_ids = browser.selected_cards()
+        result = [ LinkDataPair(str(card_id),CardOperation.desc_extract(card_id)) for card_id in card_ids ]
+        return result
 
 class CustomProtocol:
     # 自定义url协议,其他的都是固定的,需要获取anki的安装路径
@@ -545,7 +619,7 @@ class CardOperation:
             p._last_state = _last_state
             p._card_changed = _card_changed
 
-        browser: Browser = dialogs._dialogs["Browser"][1]
+        browser: Browser = BrowserOperation.get_browser()
         if browser is not None and browser._previewer is not None:
             prev_refresh(browser._previewer)
         if mw.state == "review":
@@ -566,6 +640,7 @@ class CardOperation:
 
     @staticmethod
     def desc_extract(card_id, fromField=False):
+        """读取逻辑, 默认从数据库读取,除非强制 fromField=True"""
         return desc_extract(card_id, fromField)
 
     @staticmethod
@@ -629,6 +704,7 @@ class LinkPoolOperation:
 
     @staticmethod
     def both_refresh(*args):
+        """0,1,2 可选刷新"""
         o = [CardOperation, BrowserOperation, GrapherOperation]
         if len(args) > 0:
             for i in args:
@@ -649,7 +725,13 @@ class LinkPoolOperation:
         return x
 
     @staticmethod
-    def insert(pair_li: "list[G.objs.LinkDataPair]", mode=1, need_show=True):
+    def insert(pair_li: "list[G.objs.LinkDataPair]"=None, mode=1, need_show=True,FROM=None):
+        if FROM==DataFROM.shortCut:
+            pair_li = BrowserOperation.get_selected_card()
+            if len(pair_li)==0:
+                tooltip(Translate.请选择卡片)
+                return
+            mode = Config.get().default_insert_mode.value
         L = LinkPoolOperation
         if mode == L.M.before_clean:
             L.clear()
@@ -688,7 +770,13 @@ class LinkPoolOperation:
         return os.path.exists(G.src.path.linkpool_file)
 
     @staticmethod
-    def link(mode=4, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
+    def link(mode=4, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None,FROM=None):
+        if FROM==DataFROM.shortCut:
+            pair_li = BrowserOperation.get_selected_card()
+            if len(pair_li)==0:
+                tooltip(Translate.请选择卡片)
+                return
+            mode = Config.get().default_link_mode.value
         def on_quit_handle(timestamp):
             cfg = Config.get()
             if cfg.open_browser_after_link.value==1:
@@ -715,8 +803,15 @@ class LinkPoolOperation:
         G.mw_universal_worker.start()
 
     @staticmethod
-    def unlink(mode=6, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
+    def unlink(mode=6, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None,FROM=None):
+        if FROM==DataFROM.shortCut:
+            pair_li = BrowserOperation.get_selected_card()
+            if len(pair_li)==0:
+                tooltip(Translate.请选择卡片)
+                return
+            mode=Config.get().default_unlink_mode.value
         LinkPoolOperation.link(mode=mode, pair_li=pair_li)
+
 
     class LinkWorker(QThread):
         on_progress = pyqtSignal(object)
@@ -773,10 +868,16 @@ class LinkPoolOperation:
             total, count,DB = len(flatten), 0,G.DB
             DB.go(DB.table_linkinfo)
             for linkinfo in linkinfoLi:
-                linkdata_admin.LinkInfoDB.single_write(linkinfo,autocommit=False,fromDB=DB)
+                temp  = linkinfo.to_DB_record
+                card_id, data = temp["card_id"],temp["data"]
+                if DB.exists(DB.EQ(card_id=card_id)):
+                    DB.update(values=DB.VALUEEQ(data=data),where=DB.EQ(card_id=card_id)).commit(write_to_log_file)
+                else:
+                    DB.insert(card_id=card_id, data=data).commit()
+                # linkdata_admin.LinkInfoDB.single_write(linkinfo,autocommit=False,fromDB=DB)
                 count+=1
                 self.on_progress.emit(Utils.percent_calc(total,count,75,25))
-            DB.commit()
+            DB.end()
 
             self.on_quit.emit(self.timestamp)
 
@@ -824,6 +925,16 @@ class DeckOperation:
 
 
 class MonkeyPatch:
+
+    @staticmethod
+    def BrowserSetupMenus(funcs,after,*args, **kwargs):
+        def setupMenus(self:"Browser"):
+            funcs(self)
+            after(self,*args, **kwargs)
+
+        return setupMenus
+
+
     @staticmethod
     def onAppMsgWrapper(self: AnkiQt):
         # self.app.appMsg.connect(self.onAppMsg)
@@ -834,14 +945,26 @@ class MonkeyPatch:
             def handle_opencard(id):
                 if CardOperation.exists(id):
                     Dialogs.open_custom_cardwindow(id).activateWindow()
+                else:
+                    tooltip("card not found")
                 pass
 
             def handle_openbrowser(search):
                 BrowserOperation.search(search).activateWindow()
                 pass
 
+            def handle_opengview(uuid):
+                if GviewOperation.exists(uuid=uuid):
+                    data = GviewOperation.load(uuid=uuid)
+                    Dialogs.open_grapher(gviewdata=data,mode=GraphMode.view_mode)
+                else:
+                    tooltip("view not found")
             from .objs import CmdArgs
-            cmd_dict = {"opencard_id": handle_opencard, "openbrowser_search": handle_openbrowser}
+            cmd_dict = {
+                "opencard_id": handle_opencard,
+                "openbrowser_search": handle_openbrowser,
+                "opengview_id": handle_opengview,
+            }
 
             if buf.startswith("ankilink://"):  # 此时说明刚打开就进来了,没有经过包装,格式取buf[11:-1]
                 # showInfo(buf[11:-1])
@@ -910,7 +1033,211 @@ class MonkeyPatch:
         return onAppMsg
 
 
+    class BrowserPreviewer(MultiCardPreviewer):
+        _last_card_id = 0
+        _parent: Optional[Browser]
+
+        def __init__(
+                self, parent: Browser, mw: AnkiQt, on_close: Callable[[], None]
+        ) -> None:
+            super().__init__(parent=parent, mw=mw, on_close=on_close)
+            self.ease_button: "dict[int,QPushButton]" = {}
+            self.review_button:"QWidget" = QWidget()
+            self.due_info_widget:"QWidget"=QWidget()
+            self.bottom_layout=QGridLayout()
+            self.bottom_layout_rev = QGridLayout()
+            self.bottom_layout_due = QGridLayout()
+            self.due_label=QLabel()
+            self.last_time_label=QLabel()
+            self.next_time_label=QLabel()
+
+
+        def card(self) -> Optional[Card]:
+            if self._parent.singleCard:
+
+                return self._parent.card
+            else:
+                return None
+        def render_card(self) -> None:
+            super().render_card()
+            self._update_info()
+            self.switch_to_due_info_widget()
+
+        def _create_gui(self):
+            super()._create_gui()
+            self._build_review_buttons()
+            self._create_due_info_widget()
+            self.bottom_layout_due.addWidget(self.due_info_widget,0,0,1,1)
+            self.bottom_layout_rev.addWidget(self.review_button,0,0,1,1)
+            self.review_button.hide()
+            self.vbox.removeWidget(self.bbox)
+            self.bottom_layout_due.addWidget(self.bbox,0,1,1,1)
+            self.vbox.addLayout(self.bottom_layout_due)
+
+        def card_changed(self) -> bool:
+            c = self.card()
+            if not c:
+                return True
+            else:
+                changed = c.id != self._last_card_id
+                self._last_card_id = c.id
+                return changed
+
+        def _on_prev_card(self) -> None:
+            self._parent.onPreviousCard()
+            # self._update_info()
+
+
+        def _on_next_card(self) -> None:
+            self._parent.onNextCard()
+            # self._update_info()
+            # self.switch_to_due_info_widget()
+
+        def _should_enable_prev(self) -> bool:
+            return super()._should_enable_prev() or self._parent.has_previous_card()
+
+        def _should_enable_next(self) -> bool:
+            return super()._should_enable_next() or self._parent.has_next_card()
+
+        def _render_scheduled(self) -> None:
+            super()._render_scheduled()
+            self._updateButtons()
+
+        def _on_prev(self) -> None:
+
+            if self._state == "answer" and not self._show_both_sides:
+                self._state = "question"
+                self.render_card()
+            else:
+                self._on_prev_card()
+
+        def _on_next(self) -> None:
+
+            if self._state == "question":
+                self._state = "answer"
+                self.render_card()
+            else:
+                self._on_next_card()
+            Utils.tooltip(self._state)
+
+
+        def switch_to_answer_buttons(self):
+            self._update_info()
+            self.review_button.show()
+            self.vbox.removeItem(self.bottom_layout_due)
+            self.bottom_layout_rev.addWidget(self.bbox,0,1,1,1)
+            self.vbox.addLayout(self.bottom_layout_rev)
+            self.due_info_widget.hide()
+
+        def switch_to_due_info_widget(self):
+            self._update_info()
+            self.review_button.hide()
+            self.vbox.removeItem(self.bottom_layout_rev)
+            self.bottom_layout_due.addWidget(self.bbox,0,1,1,1)
+            self.vbox.addLayout(self.bottom_layout_due)
+            self.due_info_widget.show()
+
+        def _answerCard(self, ease):
+            mw = compatible_import.mw
+            answer = AnswerInfoInterface
+
+            if self.card().timer_started is None:
+                self.card().timer_started = time.time() - 60
+            CardOperation.answer_card(self.card(), ease)
+            self.switch_to_due_info_widget()
+            LinkPoolOperation.both_refresh()
+            mw.col.reset()
+            G.signals.on_card_answerd.emit(
+                answer(platform=self, card_id=self.card().id, option_num=ease))
+
+        def should_review(self):
+            today, next_date, last_date = self._fecth_date()
+            return next_date <= today
+
+        def _update_info(self):
+            self._update_answer_buttons()
+            self._update_due_info_widget()
+
+        def _create_due_info_widget(self):
+            layout = QGridLayout(self.due_info_widget)
+            layout.setContentsMargins(0, 0, 0, 0)
+            today, next_date, last_date = self._fecth_date()
+            self.inAdvance_button = QPushButton(Translate.学习)
+            self.inAdvance_button.clicked.connect(self.switch_to_answer_buttons)
+            self.due_label.setText(Translate.可复习 if today >= next_date else Translate.未到期)
+            self.last_time_label.setText(Translate.上次复习 + ":" + last_date.__str__())
+            self.next_time_label.setText(Translate.下次复习 + ":" + next_date.__str__())
+            layout.addWidget(self.due_label, 0, 0, 2, 1)
+            layout.addWidget(self.last_time_label, 0, 1, 1, 1)
+            layout.addWidget(self.next_time_label, 1, 1, 1, 1)
+            layout.addWidget(self.inAdvance_button, 0, 2, 2, 1)
+            self.due_info_widget.setLayout(layout)
+
+
+        def _build_review_buttons(self):
+            """生成 again,hard,good,easy 按钮"""
+            enum = ["", "again", "hard", "good", "easy"]
+            layout = QHBoxLayout(self.review_button)
+            layout.setContentsMargins(0, 0, 0, 0)
+            sched = compatible_import.mw.col.sched
+            mw = compatible_import.mw
+            button_num = sched.answerButtons(self.card())
+            for i in range(button_num):
+                ease = enum[i + 1] + ":" + sched.nextIvlStr(self.card(), i + 1)
+                self.ease_button[i + 1] = QPushButton(ease)
+                answer = lambda i: lambda: self._answerCard(i + 1)
+                self.ease_button[i + 1].clicked.connect(answer(i))
+                layout.addWidget(self.ease_button[i + 1])
+            self.review_button.setLayout(layout)
+            self.review_button.setContentsMargins(0,0,0,0)
+
+
+        def _update_due_info_widget(self):
+            today, next_date, last_date = self._fecth_date()
+            self.due_label.setText(Translate.可复习 if today >= next_date else Translate.未到期)
+            self.last_time_label.setText(Translate.上次复习+":" + last_date.__str__())
+            self.next_time_label.setText(Translate.下次复习+":" + next_date.__str__())
+            should_review = next_date <= today
+        def _update_answer_buttons(self):
+            enum = ["", "again", "hard", "good", "easy"]
+            sched = compatible_import.mw.col.sched
+            button_num = sched.answerButtons(self.card())
+            for i in range(button_num):
+                ease = enum[i + 1] + ":" + sched.nextIvlStr(self.card(), i + 1)
+                self.ease_button[i + 1].setText(ease)
+
+        def _fecth_date(self):
+            mw = compatible_import.mw
+            result = mw.col.db.execute(
+                f"select id,ivl from revlog where id = (select  max(id) from revlog where cid = {self.card().id})"
+            )
+            if result:
+                last, ivl = result[0]
+                last_date = datetime.fromtimestamp(last / 1000)  # (Y,M,D,H,M,S,MS)
+
+                write_to_log_file(f"id={last},ivl={ivl}")
+                if ivl >= 0:  # ivl 正表示天为单位,负表示秒为单位
+                    next_date = datetime.fromtimestamp(last / 1000 + ivl * 86400)  # (Y,M,D,H,M,S,MS)
+                else:
+                    next_date = datetime.fromtimestamp(last / 1000 - ivl)
+            else:
+                ivl = 0
+                next_date = datetime.today()  # (Y,M,D,H,M,S,MS)
+                last_date = datetime.today()  # (Y,M,D,H,M,S,MS)
+            today = datetime.today()  # (Y,M,D,H,M,S,MS)
+            return today, next_date, last_date
+
 class Dialogs:
+
+    @staticmethod
+    def open_GviewAdmin():
+        from ..bilink.dialogs.linkdata_grapher import GViewAdmin
+        if isinstance(G.GViewAdmin_window,GViewAdmin):
+            G.GViewAdmin_window.activateWindow()
+        else:
+            G.GViewAdmin_window=GViewAdmin()
+            G.GViewAdmin_window.show()
+
     @staticmethod
     def open_anchor(card_id):
         card_id = str(card_id)
@@ -1044,7 +1371,7 @@ class Dialogs:
         pass
 
     @staticmethod
-    def open_grapher(pair_li: "list[G.objs.LinkDataPair]", need_activate=True, gviewdata:"GViewData"=None,
+    def open_grapher(pair_li: "list[G.objs.LinkDataPair]"=None, need_activate=True, gviewdata:"GViewData"=None,
                      selected_as_center=True,mode=GraphMode.normal, ):
         from ..bilink.dialogs.linkdata_grapher import Grapher
         if mode == GraphMode.normal:
@@ -1144,6 +1471,12 @@ def HTML_injecttoweb(htmltext, card, kind):
         from .HTMLbutton_render import HTMLbutton_make
         html_string = HTMLbutton_make(htmltext, card)
         # console(html_string).log.end()
+
+        # if kind in ["previewQuestion","previewAnswer",]:
+        #     browser:"Browser" = dialogs._dialogs["Browser"][1]
+        #     bp:"BrowserPreviewer"=browser._previewer
+        #     bp._create_gui=MonkeyPatch.BrowserPreviewerWrapper(bp)
+        #     bp._create_gui(bp)
         return html_string
     else:
         return htmltext
@@ -1278,18 +1611,25 @@ def HTML_LeftTopContainer_make(root: "BeautifulSoup"):
         anchor_el.append(L0)
     return anchor_el  # 已经传入了root,因此不必传出.
 
+@dataclasses.dataclass
+class DataFROM:
+    shortCut=0
 
 class AnkiLinks:
     class Type:
         html = 0
         markdown = 1
         orgmode = 2
+        inAnki =3
 
     @staticmethod
-    def copy_card_as(linktype: int, pairs_li: 'list[G.objs.LinkDataPair]'):
+    def copy_card_as(linktype: int=None, pairs_li: 'list[G.objs.LinkDataPair]'=None,FROM=None):
         tooltip(pairs_li.__str__())
         clipboard = QApplication.clipboard()
         header = "ankilink://opencard_id="
+        if FROM==DataFROM.shortCut:
+            pairs_li = BrowserOperation.get_selected_card()
+            linktype = Config.get().default_copylink_mode.value
 
         def as_html(pairs_li: 'list[G.objs.LinkDataPair]'):
             total = ""
@@ -1303,7 +1643,13 @@ class AnkiLinks:
             clipboard.setMimeData(mmdata)
             # clipboard.setText(total)
             pass
-
+        def as_inAnki(pairs_li: 'list[G.objs.LinkDataPair]'):
+            total=""
+            def buttonmaker(p:LinkDataPair):
+                return f"""<div >|<button class="hjp_bilink ankilink button" onclick="javascript:pycmd('{header}{p.card_id}');">{p.desc}</button>|</div>"""
+            for pair in pairs_li:
+                total+=buttonmaker(pair)
+            clipboard.setText(total)
         def as_markdown(pairs_li: 'list[G.objs.LinkDataPair]'):
             total = ""
             for pair in pairs_li:
@@ -1321,8 +1667,13 @@ class AnkiLinks:
         typ = AnkiLinks.Type
         func_dict = {typ.html: as_html,
                      typ.orgmode: as_orgmode,
-                     typ.markdown: as_markdown}
+                     typ.markdown: as_markdown,
+                     typ.inAnki:as_inAnki}
         func_dict[linktype](pairs_li)
+        if len(pairs_li)>0:
+            tooltip(clipboard.text())
+        else:
+            tooltip(Translate.请选择卡片)
 
     @staticmethod
     def copy_search_as(linktype: int, browser: "Browser"):
@@ -1333,19 +1684,20 @@ class AnkiLinks:
         href = header + quote(searchstring)
 
         def as_html():
-            total = f"""<a href="{href}">Anki搜索:{searchstring}</a>"""
+            total = f"""<a href="{href}">{Translate.Anki搜索}:{searchstring}</a>"""
             mmdata = QMimeData()
             mmdata.setHtml(total)
+            mmdata.setText(href)
             clipboard.setMimeData(mmdata)
             pass
 
         def as_markdown():
-            total = f"[Anki搜索:{searchstring}]({href})"
+            total = f"[{Translate.Anki搜索}:{searchstring}]({href})"
             clipboard.setText(total)
             pass
 
         def as_orgmode():
-            total = f"[[{href}][Anki搜索:{searchstring}]]"
+            total = f"[[{href}][{Translate.Anki搜索}:{searchstring}]]"
             clipboard.setText(total)
             pass
 
@@ -1355,7 +1707,46 @@ class AnkiLinks:
                      typ.markdown: as_markdown}
         func_dict[linktype]()
         pass
+    @staticmethod
+    def copy_gview_as(linktype:int,data:"GViewData"):
+        tooltip(data.__str__())
+        clipboard = QApplication.clipboard()
+        header = "ankilink://opengview_id="
+        href = header + quote(data.uuid)
 
+        def as_html():
+            total = f"""<a href="{href}">{Translate.Anki视图}:{data.name}</a>"""
+            mmdata = QMimeData()
+            mmdata.setHtml(total)
+            mmdata.setText(href)
+            clipboard.setMimeData(mmdata)
+            pass
+        def as_inAnki():
+            total = f"""<div >|<button class="hjp_bilink ankilink button" onclick="javascript:pycmd('{href}');">{Translate.Anki视图}:{data.name}</button>|</div>"""
+            mmdata = QMimeData()
+            mmdata.setHtml(total)
+            mmdata.setText(href)
+            # clipboard.setMimeData(mmdata)
+            clipboard.setText(total)
+        def as_markdown():
+            total = f"[{Translate.Anki视图}:{data.name}]({href})"
+            clipboard.setText(total)
+            pass
+
+        def as_orgmode():
+            total = f"[[{href}][{Translate.Anki视图}:{data.name}]]"
+            clipboard.setText(total)
+            pass
+
+
+
+
+        typ = AnkiLinks.Type
+        func_dict = {typ.html: as_html,
+                     typ.orgmode: as_orgmode,
+                     typ.markdown: as_markdown,
+                     typ.inAnki:as_inAnki,}
+        func_dict[linktype]()
 
 def copy_intext_links(pairs_li: 'list[G.objs.LinkDataPair]'):
     from .objs import LinkDataPair
@@ -1366,11 +1757,11 @@ def copy_intext_links(pairs_li: 'list[G.objs.LinkDataPair]'):
     copylinkLi = [linkformat(pair.card_id, pair.desc) for pair in pairs_li]
     clipstring = "\n".join(copylinkLi)
     if clipstring == "":
-        tooltip(f"""{say("未选择卡片")}""")
+        tooltip(f"""{Translate.未选择卡片}""")
     else:
         clipboard = QApplication.clipboard()
         clipboard.setText(clipstring)
-        tooltip(f"""{say("已复制到剪贴板")}：{clipstring}""")
+        tooltip(f"""{Translate.已复制到剪贴板}：{clipstring}""")
     pass
 
 
@@ -1386,7 +1777,7 @@ def PDFprev_close(card_id, pdfpageuuid=None, all=False):
     if card_id not in G.mw_pdf_prev:
         return
     reviewer_still = mw.reviewer.card is not None and mw.reviewer.card.id == int(card_id)
-    browser = dialogs._dialogs["Browser"][1]  # aqt.mw = self
+    browser = BrowserOperation.get_browser()  # aqt.mw = self
     previewer_still = browser is not None and browser._previewer is not None \
                       and browser._previewer.card() is not None and browser._previewer.card().id == int(card_id)
     card_window_still = card_id in G.mw_card_window and G.mw_card_window[card_id] is not None
@@ -1470,7 +1861,7 @@ def desc_extract(card_id=None, fromField=False):
     note = note_get(cid)
     desc = ""
     if note is not None:
-        if fromField or cfg.desc_sync.value == 1:  # 分成这两段, 是因为一个循环引用.
+        if fromField or cfg.desc_sync.value==1:  # 分成这两段, 是因为一个循环引用.
             desc = get_desc_from_field(note)
         else:
             desc = linkdata_admin.read_card_link_info(str(cid)).self_data.desc
@@ -1494,12 +1885,13 @@ def card_exists(card_id):
 
 
 def HTML_txtContent_read(html):
-    """HTML文本内容的读取,如果没有就尝试找img的src文本"""
+    """HTML文本内容的读取,如果没有就尝试找img的src文本,要去掉 intext link内容"""
 
     from ..bilink.in_text_admin.backlink_reader import BackLinkReader
 
     cfg = ConfigInterface()
     root = BeautifulSoup(html, "html.parser")
+    list(map(lambda x: x.extract(), root.select(".hjp_bilink.ankilink.button")))
     text = root.getText()
     if cfg.delete_intext_link_when_extract_desc.value == 1:
         newtext = text

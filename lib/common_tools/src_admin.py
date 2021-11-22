@@ -10,7 +10,7 @@ import dataclasses
 import json
 import os
 
-from aqt.utils import tooltip
+from aqt.utils import tooltip, showInfo
 
 
 class SrcAdmin:
@@ -33,7 +33,7 @@ class SrcAdmin:
         groupSite: "str" = "https://jq.qq.com/?_wv=1027&k=ymObH667"
         introdoc_dir: "str" = os.path.join(resource, "introDoc")
         version_dir: "str" = os.path.join(resource, "versions")
-        userconfig: "str" = os.path.join(user, "config.json")
+        userconfig: "str" = os.path.join(user, "config.txt")
         baseconfig: "str" = os.path.join(root, "baseInfo.json")
         userconfigtemplate: "str" = os.path.join(resource_data, "config.template.json")
         card_model_template:"str" =os.path.join(resource_data,"model.json")
@@ -99,6 +99,9 @@ class SrcAdmin:
             self.robot_red = os.path.join(self.root.path.resource_icon,"icon_robot_red.png")
             self.robot_green = os.path.join(self.root.path.resource_icon,"icon_robot_green.png")
             self.gview_admin = os.path.join(self.root.path.resource_icon,"icon_gview_admin.png")
+            self.rename = os.path.join(self.root.path.resource_icon,"icon_rename.png")
+            self.delete = os.path.join(self.root.path.resource_icon,"icon_delete.png")
+            self.open = os.path.join(self.root.path.resource_icon, "icon_open.png")
 
     @dataclasses.dataclass
     class _ShortCut:
@@ -137,7 +140,9 @@ class SrcAdmin:
         if cls.instance is None:
             cls.instance = cls()
             cls.path = cls.Path()
-            # cls.config = cls._Config(cls.instance)
+            if not os.path.exists(cls.path.user):
+                showInfo("user_files不存在,已建立")
+                os.mkdir(cls.path.user)
             cls.ImgDir = cls._ImgDir(cls.instance, cls.instance)
         return cls.instance
 

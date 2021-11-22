@@ -76,6 +76,11 @@ def func_actionMenuConnector(menu, action_name, action, **kwargs):
 def placeholder(*args, **kwargs):
     return
 
+def make__open_GViewAdmin(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
+    if atype in {T.browser}:
+        view: "Browser" = args[0]
+        M = get_browser_menu(view)
+        M.addAction(Translate.打开视图管理器).triggered.connect(common_tools.funcs.Dialogs.open_GviewAdmin)
 
 def make__auto_review_operation(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
     if atype in {T.browser} and common_tools.funcs.Config.get().auto_review.value==1:
@@ -113,6 +118,7 @@ def make__copy_card_as(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
         pair_li: "list[common_tools.objs.LinkDataPair]" = kwargs[
             "pair_li"] if "pair_li" in kwargs else pairsli_admin.pairs_li
         act_li = [[Translate.文内链接, lambda: common_tools.funcs.copy_intext_links(pair_li)],
+                  [Translate.文内链接+"(new)",lambda: AnkiLinks.copy_card_as(AnkiLinks.Type.inAnki,pair_li)],
                   [Translate.html链接, lambda: AnkiLinks.copy_card_as(AnkiLinks.Type.html, pair_li)],
                   [Translate.markdown链接, lambda: AnkiLinks.copy_card_as(AnkiLinks.Type.markdown, pair_li)],
                   [Translate.orgmode链接, lambda: AnkiLinks.copy_card_as(AnkiLinks.Type.orgmode, pair_li)]
@@ -267,9 +273,6 @@ def make__open_grapher(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
             M2=M.addMenu(prefix + name)
             M2.addAction(Translate.直接打开).triggered.connect(lambda: funcs.Dialogs.open_grapher(pair_li))
             viewdata_L=Gop.find_by_card(pair_li)
-            # for viewdata in viewdata_L:
-            #     M2.addAction(Translate.打开于视图+":"+viewdata.name).triggered.connect(
-            #         lambda:dlg.open_grapher(pair_li=pair_li,mode=GraphMode.view_mode,gviewdata=viewdata))
             list(map(lambda x:func_actionMenuConnector(M2,Translate.打开于视图+":"+x.name,dlg.open_grapher,pair_li=pair_li,
                 mode=GraphMode.view_mode, gviewdata=x),viewdata_L))
 

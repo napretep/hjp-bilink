@@ -5,16 +5,14 @@
             "开启后,在 auto_review_search_string 中输入搜索词(就像你在搜索栏中做的那样),即可对同属于这个搜索结果的卡片执行同步复习",
             "English Instruction Maybe later"
         ],
-        "value": 1
+        "value": 0
     },
     "auto_review_search_string": {
         "instruction": [
             "比如,'tag:xxx', 'prop:due=0' 之类的语法都可以, 以数组的形式记录, 每一项为一个完整搜索条件",
             "English Instruction Maybe later"
         ],
-        "value": [
-            "deck:筛选牌组1"
-        ]
+        "value": []
     },
     "length_of_desc": {
         "instruction": [
@@ -30,6 +28,14 @@
             "English Instruction Maybe later"
         ],
         "value": 0
+    },
+    "new_card_default_desc_sync": {
+        "instruction": [
+            "new_card_default_desc_sync是一个开关,控制新卡片的链接数据生成,提取卡片内容作为标题时,同步还是不同步",
+            "1开启,0关闭",
+            "English Instruction Maybe later"
+        ],
+        "value": 1
     },
     "add_link_tag": {
         "instruction": [
@@ -57,21 +63,21 @@
     },
     "default_link_mode": {
         "instruction": [
-            "使用快捷键时,默认执行的链接操作,可填0,1两个数字值,0表示完全链接,1表示组到组连接,默认一张卡为一组",
+            "使用快捷键时,默认执行的链接操作,可填3,4两个数字值,3表示完全链接,4表示组到组连接,默认一张卡为一组",
             "English Instruction Maybe later"
         ],
-        "value": 0
+        "value": 3
     },
     "default_unlink_mode": {
         "instruction": [
-            "使用快捷键时,默认执行的取消链接操作,可填0,1两个数字值,0表示按结点取消链接,1表示按路径取消链接",
+            "使用快捷键时,默认执行的取消链接操作,可填5,6两个数字值,6表示按结点取消链接,5表示按路径取消链接",
             "English Instruction Maybe later"
         ],
-        "value": 0
+        "value": 6
     },
     "default_insert_mode": {
         "instruction": [
-            "使用快捷键时,默认执行的插入连接池的操作,可填0,1,2两个数字值,0表示清空后插入,1表示追加插入,2表示编组插入",
+            "使用快捷键时,默认执行的插入连接池的操作,可填0,1,2三个数字值,0表示清空后插入,1表示追加插入,2表示编组插入",
             "English Instruction Maybe later"
         ],
         "value": 0
@@ -86,30 +92,37 @@
     },
     "shortcut_for_link": {
         "instruction": [
-            "本项用来控制链接操作的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "本项用来控制链接操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定 ",
             "English Instruction Maybe later"
         ],
-        "value": ""
+        "value": "alt+ctrl+1"
     },
     "shortcut_for_unlink": {
         "instruction": [
-            "本项用来控制取消链接操作的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "本项用来控制取消链接操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
             "English Instruction Maybe later"
         ],
-        "value": ""
+        "value": "alt+ctrl+2"
     },
     "shortcut_for_insert": {
         "instruction": [
-            "本项用来控制卡片插入链接池操作的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "本项用来控制卡片插入链接池操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
             "English Instruction Maybe later"
         ],
-        "value": ""
+        "value": "alt+ctrl+3"
     },
     "shortcut_for_copylink": {
         "instruction": [
-            "本项用来控制复制卡片链接的快捷键,格式为'ctrl+A'的形式,填入不规范或导致报错,会自动重置为空字符串'' ",
+            "本项用来控制复制卡片链接的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
             "English Instruction Maybe later"
         ],
-        "value": ""
+        "value": "alt+ctrl+4"
+    },
+    "shortcut_for_openlinkpool": {
+        "instruction": [
+            "本项用来控制打开链接池的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定 ",
+            "English Instruction Maybe later"
+        ],
+        "value": "alt+ctrl+`"
     }
 }

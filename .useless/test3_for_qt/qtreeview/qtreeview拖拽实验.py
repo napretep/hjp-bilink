@@ -10,6 +10,7 @@ __time__ = '2021/8/7 22:38'
 import sys
 
 from PyQt5 import QtGui
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QMainWindow, QTreeView, QApplication
 
@@ -76,7 +77,8 @@ class DemoTreeView(QMainWindow):
 
     def on_model_data_changed_handle(self, index):
         print("emit")
-
+        data=self.model.invisibleRootItem().child(0,0).data(Qt.UserRole)
+        print(data)
     def initUi(self):
         self.model = QStandardItemModel(self)
         self.model.setHorizontalHeaderLabels(['test'])

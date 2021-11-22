@@ -10,10 +10,10 @@ __time__ = '2021/8/12 10:12'
 import sys, os, math
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QPen, QColor, QBrush, QFont, QPixmap, QPolygonF, QPainterPath
+from PyQt5.QtGui import QPen, QColor, QBrush, QFont, QPixmap, QPolygonF, QPainterPath, QKeySequence
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QGraphicsScene, QGraphicsView,
                              QGraphicsTextItem, QGraphicsEllipseItem, QGraphicsRectItem,
-                             QGraphicsPixmapItem, QGraphicsPolygonItem, QGraphicsPathItem)
+                             QGraphicsPixmapItem, QGraphicsPolygonItem, QGraphicsPathItem, QShortcut)
 
 
 class DemoGraphicsItem(QMainWindow):
@@ -100,6 +100,8 @@ class DemoGraphicsItem(QMainWindow):
         self.view.setScene(scene)
 
         self.setCentralWidget(self.view)
+
+        QShortcut(QKeySequence("bla+c"),self).activated.connect(lambda:print("works!"))
 
 
 if __name__ == '__main__':

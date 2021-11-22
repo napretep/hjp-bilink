@@ -10,13 +10,14 @@ import json
 import re
 import sqlite3
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Union
 from urllib.parse import unquote
 
 from PyQt5.QtGui import QStandardItem
 from PyQt5.QtWidgets import QShortcut
 from aqt import mw
-from aqt.utils import tooltip
+from aqt.utils import tooltip, showInfo
 
 
 class NONE:
@@ -70,11 +71,12 @@ class Date:
         else:
             return False
 
-class CascadeStr:
+class Struct:
     @dataclass
-    class Node:
+    class TreeNode:
+        """这是一个树的标准结点,有自己和孩子两部分数据"""
         item: "QStandardItem"
-        children: "dict[str,CascadeStr.Node]"
+        children: "dict[str,Struct.TreeNode]"
 
 
 class AddonVersion:
@@ -119,6 +121,10 @@ class LinkPoolModel:
                 d.append(pair)
         return d
 
+@dataclass
+class LinkDescFrom:
+    DB:int=0
+    Field:int=1
 
 @dataclass
 class LinkDataPair:
@@ -126,17 +132,23 @@ class LinkDataPair:
     card_id: "str"
     _desc: "str" = "" #由于引入了新的设定, desc的获取不一定是来自数据库,而是实时与卡片内容保持一致, 所以需要一个中间层来处理问题.
     dir: "str" = "→"
+    get_desc_from:int=LinkDescFrom.DB
 
-    def __init__(self,card_id="",desc="",dir="→"):
+    def __init__(self,card_id="",desc="",dir="→",get_desc_from=LinkDescFrom.DB):
         self.card_id=card_id
         self._desc=desc
         self.dir=dir
+        self.get_desc_from=get_desc_from
 
     @property
     def desc(self):
         from . import funcs
-        d = self._desc if funcs.Config.get().desc_sync.value==0 else funcs.CardOperation.desc_extract(self.card_id)
-        return d
+        if funcs.Config.get().desc_sync.value==1:
+            return funcs.CardOperation.desc_extract(self.card_id,fromField=True)
+        if self.get_desc_from==LinkDescFrom.DB:
+            return self._desc
+        else:
+            return funcs.CardOperation.desc_extract(self.card_id,fromField=True)
 
     @desc.setter
     def desc(self,value):
@@ -146,7 +158,10 @@ class LinkDataPair:
     def int_card_id(self):
         return int(self.card_id)
 
-    def todict(self):
+    def to_self_dict(self):
+        return {"card_id":self.card_id, "desc":self.desc,"dir":self.dir,"get_desc_from":self.get_desc_from}
+
+    def todict(self)->'dict[str,str]':
         return {"card_id":self.card_id, "desc":self.desc,"dir":self.dir}
 
     def update_desc(self):
@@ -213,7 +228,8 @@ class LinkDataJSONInfo:
     ],
     "self_data": { #自身的数据
         "card_id": "1333355241734",
-        "desc": ""
+        "desc": "",
+        "get_desc_from":0, #此项为version3 版本添加, 0表示desc取自json,1表示desc取自card,即同步更新,默认不同步
     },
     "root": [ #根节点, 是anchor的第一层
             {"card_id": "1333355241723"},
@@ -226,6 +242,7 @@ class LinkDataJSONInfo:
             }
         }
     }
+
     """
     backlink: "list[str]"
     version: "int"
@@ -233,14 +250,17 @@ class LinkDataJSONInfo:
     self_data: "LinkDataPair"
     root: "list[LinkDataNode]"
     node: "dict[str,LinkDataGroup]"
+    non_root_card:"list[LinkDataNode]"
     link_dict: "dict[str,LinkDataPair]" = None
 
     def __init__(self, record: "dict"):
         """一般只用在DB中读取, DB读取先经过zip_up得到字典,字典的第一个键是card_id,第二个键是data"""
         self._src_data = record
+        self.non_root_card=[]
         if not isinstance(record["data"], dict):
             try:
                 d = json.loads(record["data"])
+                # showInfo("LinkDataJSONInfo.__init__:try"+json.dumps(d))
             except:
                 from ..bilink.linkdata_admin import get_template, write_card_link_info
                 from . import funcs
@@ -267,16 +287,17 @@ class LinkDataJSONInfo:
                                       , nodeuuid=nodename_nodeuuid_map[link["nodename"]] if "nodename" in link else ""
                                       ) for link in d["root"]]
         else:
-            for groupuuid, groupinfo in d["node"].items():
+            for groupuuid, groupinfo in d["node"].items(): #把group结点拿出来赋值
                 self.node[groupuuid] = LinkDataGroup(name=groupinfo["name"],
                                                      children=[LinkDataNode(**node) for node in groupinfo["children"]])
+                self.non_root_card+=list(filter(lambda x:x.card_id!="",self.node[groupuuid].children))
             self.root = [LinkDataNode(**link) for link in d["root"]]
         self.link_list = [LinkDataPair(**link) for link in d["link_list"]]
         self.self_data = LinkDataPair(**d["self_data"])
         self.link_dict = {}
         for pair in self.link_list:
             self.link_dict[pair.card_id] = pair
-            if pair not in self.root:
+            if pair not in self.non_root_card and pair not in self.root:
                 self.root.append(LinkDataNode(card_id=pair.card_id))
         for pair in self.root:
             if pair.card_id!="" and pair.card_id not in self.link_dict:
@@ -291,7 +312,7 @@ class LinkDataJSONInfo:
         d["link_list"]: "list[dict[str,Any]]" = []
         for pair in self.link_list:
             d["link_list"].append(pair.todict())
-        d["self_data"] = self.self_data.todict()
+        d["self_data"] = self.self_data.to_self_dict()
         d["root"] = []
         for node in self.root:
             d["root"].append(node.todict())
@@ -392,6 +413,7 @@ class DB_admin(object):
     table_pdfinfo = 1
     table_linkinfo = 2
     table_Gview=3
+    table_GviewCard=4
 
     sqlstr_TABLE_CREATE = """create table if not exists {tablename} ({fields})"""
 
@@ -400,6 +422,7 @@ class DB_admin(object):
     sqlstr_TABLE_EXIST = """select count(*) from sqlite_master where type="table" and name ="{tablename}" """
     sqlstr_RECORD_EXIST = """select count(*) from {tablename} where {where} """
     sqlstr_RECORD_SELECT = """select * from {tablename} where {where} """
+    sqlstr_RECORD_SELECT_ALL = """select * from {tablename} """
     sqlstr_RECORD_UPDATE = """update {tablename} set {values} where {where}"""
     sqlstr_RECORD_DELETE = """delete from {tablename} where {where} """
     sqlstr_RECORD_INSERT = """insert into {tablename} ({cols}) values ({vals}) """
@@ -464,7 +487,11 @@ class DB_admin(object):
 
     @staticmethod
     def VALUEEQ(**kwargs):
-        """确保插入的都是数据库字段, 不然就等着报错吧!"""
+        """确保插入的都是数据库字段, 不然就等着报错吧!,
+        VALUEEQ与EQ的区别:
+            VALUEEQ得到的形式是string: a=?,b=?,c=?, value:[av,bv,cv], 主要用来赋值
+            EQ的形式是: string: a=av and b=bv ... 主要用来比较
+        """
         string = ",".join([k + "=? " for k in list(kwargs.keys())])
         value = list(kwargs.values())
         return DB_admin.BOX(string, value)
@@ -528,6 +555,13 @@ class DB_admin(object):
             d.pop("tablename")
             return d
 
+    @dataclass
+    class GviewCard_fields:
+        tablename: "str" = "GRAPH_VIEW_CARD_TABLE"
+        card_id: "str" = "varchar primary key not null unique"
+        views: "str" = "text"
+        default_views: "str" = "text"
+
     linkinfo_constrain = {
         "string": ["data"],
         "number": ["card_id"]
@@ -548,11 +582,17 @@ class DB_admin(object):
         "number":[]
     }
 
+    GviewCard_constrain={
+        "string": ["card_id", "views", "default_views",],
+        "number": []
+    }
+
     table_swtich = {
         table_clipbox: (clipbox_fields(), clipbox_constrain),
         table_pdfinfo: (pdfinfo_fields(), pdfinfo_constrain),
         table_linkinfo: (linkinfo_fields(), linkinfo_constrain),
-        table_Gview:(Gview_fields(),Gview_constrain)
+        table_Gview:(Gview_fields(),Gview_constrain),
+        table_GviewCard:(GviewCard_fields(),GviewCard_constrain),
     }
 
     def __init__(self):
@@ -828,6 +868,7 @@ class DBResults(object):
             return PDFinfoRecord(**self)
 
         def to_givenformat_data(self, format):
+            # showInfo("to_givenformat_data="+json.dumps(self))
             return format(self)
 
     class DBdataLi(list):
@@ -857,6 +898,8 @@ class GviewRecord:
     name:str
     nodes:str
     edges:str
+
+
 
 @dataclass
 class PDFinfoRecord:

@@ -18,13 +18,16 @@ from enum import Enum, unique
 from typing import Optional, Union
 
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QPointF, QRectF, QLineF, pyqtSignal, QPoint
-from PyQt5.QtGui import QPainterPath, QPainter, QPen, QColor, QBrush, QIcon
+from PyQt5.QtCore import Qt, QPointF, QRectF, QLineF, pyqtSignal, QPoint, QTimer
+from PyQt5.QtGui import QPainterPath, QPainter, QPen, QColor, QBrush, QIcon, QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QGraphicsScene, QGraphicsItem, QDialog, QHBoxLayout, \
     QGraphicsLineItem, QMenu, QGraphicsRectItem, QWidget, QGraphicsSceneMouseEvent, QStyleOptionGraphicsItem, \
-    QApplication, QInputDialog, QLineEdit, QTableView
+    QApplication, QInputDialog, QLineEdit, QTableView, QVBoxLayout, QToolButton, QGridLayout, QAbstractItemView, \
+    QTreeView, QMessageBox
 from aqt.utils import showInfo, tooltip
 
+
+from ..linkdata_admin import read_card_link_info
 if __name__ == "__main__":
     from lib import common_tools
 
@@ -36,7 +39,9 @@ LinkDataPair = common_tools.objs.LinkDataPair
 GraphMode = common_tools.interfaces.GraphMode
 GViewData = common_tools.interfaces.GViewData
 Translate = common_tools.language.Translate
+Struct = common_tools.objs.Struct
 funcs=common_tools.funcs
+src=common_tools.G.src
 
 class Grapher(QDialog):
     """所有的个性化数据都储存在Entity对象中"""
@@ -56,17 +61,16 @@ class Grapher(QDialog):
         self.scene.setSceneRect(-float(r.width() / 2), -float(r.height() / 2), float(r.width() * 4),
                                 float(r.height() * 4))
         self.init_UI()
-        if self.data.graph_mode == GraphMode.normal:
-            self.init_graph_item()
-        elif self.data.graph_mode == GraphMode.view_mode:
-            self.load_view()
         self.all_event = common_tools.objs.AllEventAdmin([
             [self.scene.selectionChanged, self.on_scene_selectionChanged_handle],
             [self.view.verticalScrollBar().valueChanged, self.on_view_verticalScrollBar_valueChanged_handle],
             [self.view.horizontalScrollBar().valueChanged, self.on_view_horizontalScrollBar_valueChanged_handle],
             [self.on_card_updated, self.on_card_updated_handle],
         ]).bind()
-
+        if self.data.graph_mode == GraphMode.normal:
+            self.init_graph_item()
+        elif self.data.graph_mode == GraphMode.view_mode:
+            self.load_view()
     def on_card_updated_handle(self, event):
         for node in self.data.node_dict.values():
             node.pair.update_desc()
@@ -99,7 +103,13 @@ class Grapher(QDialog):
         elif mode == GraphMode.view_mode:
             node, edge = self.data.node_edge_packup()
             data = GViewData(self.data.gviewdata.uuid,self.data.gviewdata.name,node,edge)
-            funcs.GviewOperation.save(data)
+            if funcs.GviewOperation.exists(data):
+                funcs.GviewOperation.save(data)
+            else:
+                correction = QMessageBox.warning(self,"warning",Translate.本视图已被删除_确定退出么,QMessageBox.Yes|QMessageBox.No)
+                if correction == QMessageBox.No:
+                    a0.ignore()
+                    return
             common_tools.G.mw_gview[self.data.gviewdata.uuid]=None
 
     def reject(self) -> None:
@@ -108,6 +118,50 @@ class Grapher(QDialog):
 
     def on_scene_selectionChanged_handle(self):
         self.switch_edge_highlight()
+
+
+
+    #view
+    def load_view(self, gviewdata=None):
+        """从外部读取布局事先确定好的内容 """
+        LinkDataPair = common_tools.funcs.LinkDataPair
+        CardOperation = common_tools.funcs.CardOperation
+        if gviewdata is None: gviewdata = self.data.gviewdata
+        last_card=""
+        for card_id,posi in gviewdata.nodes.items():
+            if card_id not in self.data.node_dict.keys():
+                pair = LinkDataPair(card_id=card_id,desc=CardOperation.desc_extract(card_id))
+                item = self.add_node(pair)
+            else:
+                item = self.add_node(self.data.node_dict[card_id].pair)
+                item.setSelected(True)
+                last_card=card_id
+            item.setPos(*posi)
+        for cardA,cardB in gviewdata.edges:
+            data = read_card_link_info(cardA)
+            if LinkDataPair(card_id=cardB) in data.link_list:
+                self.add_edge(cardA,cardB)
+        if last_card: self.view.centerOn(item = self.data.node_dict[last_card].item)
+        pass
+
+    def view_node(self,pair_li: "list[LinkDataPair]"):
+        """根据填入的pair 点亮,聚焦到对应的卡片上"""
+        if pair_li is None:
+            return
+        self.scene.clearSelection()
+        list(map(lambda x:self.data.node_dict[x.card_id].item.setSelected(True),pair_li))
+        card_id = pair_li[-1].card_id
+        self.view.centerOn(item=self.data.node_dict[card_id].item)
+
+    def create_view(self):
+        name,submitted = funcs.GviewOperation.get_correct_input()
+        if not submitted:return
+        uuid = funcs.UUID.by_random()
+        node,edge = self.data.node_edge_packup()
+        data = GViewData(uuid,name,node,edge)
+        #去检查一下scene变大时,item的scene坐标是否会改变
+        common_tools.funcs.GviewOperation.save(data)
+
 
     # node
 
@@ -119,56 +173,6 @@ class Grapher(QDialog):
         self.data.node_dict[pair.card_id].item = item
         self.scene.addItem(item)
         return item
-
-    def load_view(self, gviewdata=None):
-        """从外部读取布局事先确定好的内容 """
-        LinkDataPair = common_tools.funcs.LinkDataPair
-        CardOperation = common_tools.funcs.CardOperation
-        if gviewdata is None: gviewdata = self.data.gviewdata
-        for card_id,posi in gviewdata.nodes.items():
-            if card_id not in self.data.node_dict.keys():
-                pair = LinkDataPair(card_id=card_id,desc=CardOperation.desc_extract(card_id))
-                item = self.add_node(pair)
-            else:
-                item = self.add_node(self.data.node_dict[card_id].pair)
-                item.setSelected(True)
-            item.setPos(*posi)
-
-        for cardA,cardB in gviewdata.edges:
-            self.add_edge(cardA,cardB)
-
-        pass
-
-    def view_node(self,pair_li: "list[LinkDataPair]"):
-        self.scene.clearSelection()
-        list(map(lambda x:self.data.node_dict[x.card_id].item.setSelected(True),pair_li))
-
-    def create_view(self):
-        def get_correct_input():
-            def view_name_check(name: str) -> bool:
-                if not re.search(r"\S", name):
-                    tooltip(Translate.视图名不能为空)
-                    return False
-                try:
-                    a = json.dumps({"viewname": [name]})
-                    return True
-                except:
-                    tooltip(Translate.视图名必须是JSON合法的字符串)
-                return True
-            while True:
-                viewName, okPressed = QInputDialog.getText(self, "input", Translate.视图名, QLineEdit.Normal, "")
-                if not okPressed:
-                    break
-                if view_name_check(viewName):
-                    break
-            return (viewName, okPressed)
-        name,submitted = get_correct_input()
-        if not submitted:return
-        uuid = funcs.UUID.by_random()
-        node,edge = self.data.node_edge_packup()
-        data = GViewData(uuid,name,node,edge)
-        #去检查一下scene变大时,item的scene坐标是否会改变
-        common_tools.funcs.GviewOperation.save(data)
 
     def load_node(self, pair_li: "list[LinkDataPair]", begin_item=None, selected_as_center=True):
         """load_node从外部直接读取,add_node比较单纯"""
@@ -192,7 +196,7 @@ class Grapher(QDialog):
                 begin_item = item
             last_item = item
         if last_item:
-            self.view.centerOn(last_item)
+            self.view.centerOn(item=last_item)
         self.load_edges_from_linkdata()
 
     def arrange_node(self, new_item: "Grapher.ItemRect", center_item=None):
@@ -246,6 +250,21 @@ class Grapher(QDialog):
                                              isinstance(item, Grapher.ItemRect)]
 
         return item_li
+
+    def focus(self,item:"Grapher.ItemRect"):
+        get_center = funcs.Utils.rect_center_pos
+        view_local_center = get_center(self.view.rect())
+        item_local_center = get_center(item.rect())
+
+        view_scene_center = self.view.mapToScene(view_local_center.toPoint())
+        item_scene_center = item.mapToScene(item_local_center.toPoint())
+
+        dp = item_scene_center-view_scene_center
+
+        h_scroll = self.view.horizontalScrollBar().value()
+        v_scroll = self.view.verticalScrollBar().value()
+        self.view.horizontalScrollBar().setValue(h_scroll+int(dp.x()))
+        self.view.verticalScrollBar().setValue(v_scroll+int(dp.y()))
 
     # egde
 
@@ -353,7 +372,7 @@ class Grapher(QDialog):
         self.update_all_edges_posi()
         if last_item:
             # last_item.setSelected(True)
-            self.view.centerOn(last_item)
+            self.view.centerOn(item=last_item)
         if not __name__ == "__main__":
             self.load_edges_from_linkdata()
 
@@ -393,6 +412,8 @@ class Grapher(QDialog):
 
         @node_dict.setter
         def node_dict(self, pair_li: "list[LinkDataPair]"):
+            if pair_li is None:
+                return
             for pair in pair_li:
                 self._node_dict[pair.card_id] = self.Node(pair)
 
@@ -457,6 +478,39 @@ class Grapher(QDialog):
             self.clicked_pos: "Optional[QPointF]" = None
             self.draw_line_start_item: "Optional[Grapher.ItemRect]" = None
             self.draw_line_end_item: "Optional[Grapher.ItemRect]" = None
+
+        def centerOn(self, pos: "Union[QPoint]" = None, item: "QGraphicsItem" = None):
+            """居中显示"""
+            assert pos is not None or item is not None
+            if pos is None:
+                x, y, r, b = item.boundingRect().left(), item.boundingRect().top(), item.boundingRect().right(), item.boundingRect().bottom()
+
+                pos = item.mapToScene(int((x + r) / 2), int((y + b) / 2)).toPoint()
+            curr_view_center = self.mapToScene(int(self.viewport().width() / 2),
+                                               int(self.viewport().height() / 2)).toPoint()
+            dp = pos - curr_view_center
+            self.safeScroll(dp.x(), dp.y())
+
+        def safeScroll(self, x, y):
+            """遇到边界会扩大scene"""
+            x_scroll = self.horizontalScrollBar()
+            y_scroll = self.verticalScrollBar()
+            rect = self.sceneRect()
+            if x_scroll.value() + x > x_scroll.maximum():
+                rect.setRight(rect.right() + x)
+                # self.setSceneRect(rect.x(),rect.y(),rect.width()+x,rect.height())
+            if x_scroll.value() + x < x_scroll.minimum():
+                rect.setLeft(rect.left() + x)
+                # self.setSceneRect(rect.x()+x, rect.y(), rect.width() + x, rect.height())
+            if y_scroll.value() + y > y_scroll.maximum():
+                # self.setSceneRect(rect.x(),rect.y(),rect.width(),rect.height()+y)
+                rect.setBottom(rect.bottom() + y)
+            if y_scroll.value() + y < y_scroll.minimum():
+                rect.setTop(rect.top() + y)
+                # self.setSceneRect(rect.x(),rect.y()+y,rect.width(),rect.height())
+            self.setSceneRect(rect)
+            x_scroll.setValue(x_scroll.value() + x)
+            y_scroll.setValue(y_scroll.value() + y)
 
         def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
             self.superior.data.mouse_moved = True
@@ -717,10 +771,232 @@ class Grapher(QDialog):
     #     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem', widget: typing.Optional[QWidget] = ...) -> None:
     #     pass
 
-class GViewAdmin(QGraphicsView):
+class GViewAdmin(QDialog):
     """做一个窗口,实现改名,复制链接,删除,打开"""
 
+    class DisplayState:
+        as_list=0
+        as_tree=1
 
+    def __init__(self):
+        super().__init__()
+        self.view=self.Tree(self)
+        self.bottom=self.Bottom(self)
+        self.model=self.Model(self)
+        self.view.setModel(self.model)
+        self.data:"dict[str,Optional[GViewData]]"={}
+        self.wait_for_delete:"list[str]"=[]
+        self.wait_for_update:"set[GViewData]"=set()
+        self.displaystate=self.DisplayState.as_tree
+        self.allevent=common_tools.objs.AllEventAdmin([
+            [self.bottom.open_button.clicked,self.on_open],
+            [self.bottom.rename_button.clicked,self.on_rename],
+            [self.bottom.delete_button.clicked,self.on_delete],
+            [self.bottom.link_button.clicked,self.on_link],
+            [self.bottom.display_button.clicked,self.on_display_changed],
+            [self.model.itemChanged, self.on_model_item_changed_handle],
+            # [self.view.horizontalHeader().clicked,self.on_horizontal_header_clicked_handle],
+        ]).bind()
+        self.init_UI()
+        self.init_data()
+        self.view.init_UI()
+
+    def on_horizontal_header_clicked_handle(self):
+        print("horizontalHeader clicked")
+
+    def on_model_item_changed_handle(self, item:"GViewAdmin.Item"):
+        data: "GViewData" = item.data(Qt.UserRole)
+        if not re.match(r"\S",item.text()):
+            item.setText(data.name)
+            funcs.Utils.tooltip(Translate.视图命名规则)
+            return
+        data.name = item.text()
+        funcs.GviewOperation.update(data)
+
+        pass
+    def get_item(self)->"GViewAdmin.Item":
+        indxs = self.view.selectedIndexes()
+        if len(indxs) == 0:
+            return False
+        item = self.model.itemFromIndex(indxs[0])
+        return item
+
+    def on_display_changed(self):
+        btn = self.bottom.display_button
+        if self.displaystate==self.DisplayState.as_tree:
+            btn.setIcon(QIcon(src.ImgDir.list))
+            btn.setToolTip("display as list")
+            self.displaystate=self.DisplayState.as_list
+            self.build_list()
+        else:
+            btn.setIcon(QIcon(src.ImgDir.tree))
+            btn.setToolTip("display as tree")
+            self.displaystate=self.DisplayState.as_tree
+            self.build_tree()
+
+    def on_open(self):
+        item=self.get_item()
+        if not item:return
+        data:"GViewData"=item.data(Qt.UserRole)
+        funcs.Dialogs.open_grapher(gviewdata=data,mode=GraphMode.view_mode)
+        pass
+
+    def save(self):
+        """关闭的时候自动保存退出, 不提供任意移动功能"""
+        funcs.GviewOperation.save(data_li=self.wait_for_update)
+        funcs.GviewOperation.delete(uuid_li=self.wait_for_delete)
+
+    def rebuild(self):
+        if self.displaystate==self.DisplayState.as_tree:
+            self.build_tree()
+        else:
+            self.build_list()
+
+    def on_rename(self):
+        """由于有两个不同的display所以需要弹出窗口让同学修改"""
+        item:"GViewAdmin.Item" = self.get_item()
+        if not item : return
+        data :"GViewData" = item.data(Qt.UserRole)
+        newname,submitted = funcs.GviewOperation.get_correct_input(data.name)
+        if not submitted:return
+        data.name = newname
+        self.wait_for_update.add(data)
+        self.rebuild()
+        pass
+
+    def on_link(self):
+        item = self.get_item()
+        if not item: return
+        data:"GViewData" = item.data(Qt.UserRole)
+        AnkiLinks = funcs.AnkiLinks
+        m=QMenu()
+        act = [Translate.文内链接,Translate.html链接,Translate.markdown链接,Translate.orgmode链接]
+        f = [lambda :AnkiLinks.copy_gview_as(AnkiLinks.Type.inAnki,data),
+            lambda :AnkiLinks.copy_gview_as(AnkiLinks.Type.html,data),
+             lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.markdown, data),
+             lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.orgmode, data),]
+        list(map(lambda x:m.addAction(act[x]).triggered.connect(f[x]),range(len(f))))
+        l_b = self.bottom.link_button
+        pos=l_b.mapToGlobal(l_b.pos())
+        m.exec(QPoint(pos.x()-100,pos.y()+l_b.height()))
+        pass
+
+    def on_delete(self):
+        item = self.get_item()
+        if not item : return
+        data:"GViewData" = item.data(Qt.UserRole)
+        self.wait_for_delete.append(data.uuid)
+        self.data[data.uuid]=None
+        self.rebuild()
+        pass
+
+    def init_UI(self):
+        self.model.setHorizontalHeaderLabels(["view name"])
+        self.setWindowTitle("gview manager")
+        self.setContentsMargins(0, 0, 0, 0)
+        self.setWindowIcon(QIcon(src.ImgDir.gview_admin))
+        self.resize(300, 400)
+        g_layout = QGridLayout(self)
+        g_layout.setContentsMargins(0, 0, 0, 0)
+        g_layout.setSpacing(0)
+        g_layout.addWidget(self.view, 0, 0, 1, 5)
+        g_layout.addWidget(self.bottom, 1, 4, 1, 1)
+        self.setLayout(g_layout)
+
+    def init_data(self):
+        datas=funcs.GviewOperation.load_all()
+        list(map(lambda x: self.data.__setitem__(x.uuid,x),datas))
+        self.rebuild()
+
+    def init_model(self):
+        self.model.clear()
+        self.model.setHorizontalHeaderLabels(["view name"])
+
+    def build_tree(self):
+        """
+        把 a::b::c 转换成树结构已经做了两遍了, 但还是不熟练,
+        思路写一下: 设计一个树结点, 先给他添加invisibleRootItem, 然后构造一个栈,深度优先遍历
+        """
+        self.init_model()
+        root = Struct.TreeNode(item=self.model.invisibleRootItem(), children={})
+        for data in self.data.values():
+            if not isinstance(data,GViewData):
+                continue
+            original_name = data.name.split("::")
+            parent = root
+            while original_name:
+                nodename = original_name.pop(0)
+                if nodename not in parent.children:
+                    item = self.Item(nodename,data=None if original_name else data )
+                    parent.item.appendRow([item])
+                    parent.children[nodename] = Struct.TreeNode(item=item,children={})
+                parent = parent.children[nodename]
+        pass
+
+    def build_list(self):
+        self.init_model()
+        for data in self.data.values():
+            if isinstance(data,GViewData):
+                item = self.Item(data.name,data=data)
+                self.model.appendRow([item])
+
+        pass
+
+    def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
+        self.save()
+        funcs.G.GViewAdmin_window=None
+
+    class Model(QStandardItemModel):
+        def addRow(self,data:GViewData):
+            item = GViewAdmin.Item(data)
+            self.appendRow(item)
+
+    class ItemRole:
+        terminal = 0
+        nonterminal = 1
+
+    class Item(QStandardItem):
+        def __init__(self,name,data:GViewData=None):
+            super().__init__(name)
+            self.setFlags(self.flags()&~Qt.ItemIsSelectable&~Qt.ItemIsEditable)
+            if data:
+                self.setData(data,role=Qt.UserRole) #当不设置的时候,返回的是空
+                self.setFlags(self.flags()|Qt.ItemIsSelectable)
+
+    class Tree(QTreeView):
+        def __init__(self,superior:'GViewAdmin'):
+            super().__init__()
+            self.superior=superior
+            self.setParent(superior)
+
+        def init_UI(self):
+            self.setSelectionMode(QAbstractItemView.SingleSelection)
+            self.setDragDropMode(self.NoDragDrop)
+            self.setAcceptDrops(False)
+
+    class Bottom(QWidget):
+        def __init__(self,superior:'GViewAdmin'):
+            super().__init__()
+            self.superior=superior
+            self.setParent(superior)
+            self.rename_button = QToolButton(self)
+            self.delete_button = QToolButton(self)
+            self.link_button = QToolButton(self)
+            self.open_button = QToolButton(self)
+            self.display_button = QToolButton(self)
+            h_layout=QHBoxLayout(self)
+            h_layout.setContentsMargins(0,0,0,0)
+            self.setContentsMargins(0, 0, 0, 0)
+            button_li:"list[QToolButton]" = [self.display_button, self.open_button, self.rename_button, self.delete_button, self.link_button]
+            icon_li = [src.ImgDir.tree,src.ImgDir.open,src.ImgDir.rename,src.ImgDir.delete,src.ImgDir.link]
+            tooltip_li = ["display as tree","open","rename","delete","copy link"]
+            # self.open_button.setToolTip()
+            list(map(lambda x:x.setContentsMargins(0,0,0,0),button_li))
+            list(map(lambda x:h_layout.addWidget(x,alignment=Qt.AlignRight),button_li))
+            list(map(lambda x:x[0].setIcon(QIcon(x[1])),zip(button_li,icon_li)))
+            list(map(lambda x: x[0].setToolTip(x[1]), zip(button_li, tooltip_li)))
+
+            self.setLayout(h_layout)
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     testdata = [LinkDataPair("1627401415334", "1"),

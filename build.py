@@ -35,21 +35,22 @@ def check_version():
         raise ValueError("update_version!=base_version")
 
 def check_is_debug():
-    ISDEBUG = baseconfig["ISDEBUG"]==1
-    if ISDEBUG:
+    f_str = open("./__init__.py","r",encoding="utf-8").read()
+    if re.search(r"ISDEBUG\s*=\s*True",f_str):
         raise ValueError("ISDEBUG=True!")
 def pycache_check():
     for root,dirs,files in os.walk(THIS_FOLDER,onerror=lambda x:print("wrong direction")):
         for i in dirs:
             if r".\lib" in root.__str__() and "__pycache__" in i:
+
                 raise ValueError("__pycache__ exists in "+root.__str__())
 
 def status_check():
     check_is_debug()
-    check_version()
     pycache_check()
 
 def ankiaddon_make(version):
+    status_check()
     repository = os.path.join(r"D:\备份盘\个人创作成果\代码\hjp-bilink历代版本",version)
     if not os.path.exists(repository):
         os.mkdir(repository)
@@ -67,6 +68,7 @@ def ankiaddon_make(version):
     if os.path.exists(filename):
         os.remove(filename)
     os.rename(zip_name, filename)
+    print("构建完成!")
     pass
 
 

@@ -8,16 +8,17 @@ __time__ = '2021/8/1 15:33'
 """
 import os
 import sys
+from typing import Union
 
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import Qt, QPoint, QModelIndex, QPersistentModelIndex
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QCursor
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView, QLineEdit, QVBoxLayout, \
-    QHeaderView, QMenu
+    QHeaderView, QMenu, QWidget, QCheckBox, QRadioButton
 import json
 
-from aqt.utils import showInfo
+from aqt.utils import showInfo, tooltip
 
 if __name__ == "__main__":
     from lib import common_tools
@@ -47,11 +48,12 @@ class AnchorDialog(QDialog):
         self.view = QTreeView(self)
         self.model = QStandardItemModel(self)
         # self.self_desc=QLineEdit(self)
+        self.bottom = AnchorDialog.Bottom()
         self.self_desc = common_tools.widgets.GridHDescUnit(parent=self, labelname="self_describe:",
                                                             tooltip="self_describe是这张卡片的名字\n"
                                                                     "self_describe is the name of the card, ",
-                                                            widget=QLineEdit())
-
+                                                            widget=self.bottom )
+        # self.bottom = QWidget(self)
         self.init_UI()
         self.init_model()
         self.allevent = common_tools.objs.AllEventAdmin([
@@ -61,10 +63,22 @@ class AnchorDialog(QDialog):
             [common_tools.G.signals.on_bilink_link_operation_end, self.on_bilink_link_operation_end_handle],
             [self.model.dataChanged, self.on_model_data_changed_handle],
             # self.view.dataChanged:self.on_view_data_changed_handle,#没用,还会报错
-            [self.self_desc.widget.textChanged, self.on_self_desc_text_changed_handle],
+            [self.bottom.line.textChanged, self.on_self_desc_text_changed_handle],
+            [self.bottom.cbox.clicked,self.on_bottom_cbox_clicked_handle]
         ]).bind()
         self.view.dropEvent = self.on_view_drop
         self.signup()
+
+    def on_bottom_cbox_clicked_handle(self):
+        From = common_tools.objs.LinkDescFrom
+        if self.bottom.cbox.isChecked():
+            self.attr.linkdata.self_data.get_desc_from = From.Field
+            tooltip("sync with Field")
+        else:
+            self.attr.linkdata.self_data.get_desc_from = From.DB
+            tooltip("read from DB")
+
+        self.model_data_save()
 
     def on_view_clicked_handle(self, index):
         item = self.model.itemFromIndex(index)
@@ -127,46 +141,13 @@ class AnchorDialog(QDialog):
 
     def on_self_desc_text_changed_handle(self):
         self.model_data_save()
-        self.setWindowTitle(f"""anchor of [desc={self.self_desc.widget.text()},card_id={self.card_id}]""")
+        self.setWindowTitle(f"""anchor of [desc={self.bottom.line.text()},card_id={self.card_id}]""")
 
     def on_bilink_link_operation_end_handle(self):
         self.model_data_load()
 
-    # def on_view_data_changed_handle(self,*args):
-    #     showInfo("data_changed")
-    #     self.model_data_save()
-
     def on_model_data_changed_handle(self):
         self.model_data_save()
-        # print("model data changed")
-
-    def init_UI(self):
-        self.setAttribute(Qt.WA_DeleteOnClose, on=True)
-        self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.anchor))
-        self.setWindowTitle(f"""anchor of [desc={self.attr.linkdata.self_data.desc},card_id={self.card_id}]""")
-        self.setAcceptDrops(True)
-        self.view.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.view.setDragDropMode(self.view.DragDrop)
-        self.view.setIndentation(8)
-        self.view.header().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.view.setContextMenuPolicy(Qt.CustomContextMenu)
-
-        func_wrapper = common_tools.wrappers.func_wrapper
-        self.view.expandAll = func_wrapper(after=[lambda: self.state.__setattr__("view_is_expanded", True)])(
-            self.view.expandAll)
-        self.view.collapseAll = func_wrapper(after=[lambda: self.state.__setattr__("view_is_expanded", False)])(
-            self.view.collapseAll)
-        v = QVBoxLayout(self)
-        v.addWidget(self.view)
-        v.addWidget(self.self_desc)
-        self.setLayout(v)
-
-        self.resize(600, 400)
-
-    def init_model(self):
-        self.view.setModel(self.model)
-        self.model_data_load()
-        self.view.expandAll()
 
     def on_view_drop(self, event: "QtGui.QDropEvent"):
         def on_view_drop_rowli_selected_insert(self, insert_posi, selected_row_li, item_target: "AnchorDialog.Item"):
@@ -260,7 +241,7 @@ class AnchorDialog(QDialog):
         return parent.takeRow(item[0].row())
 
     def data_model_load(self):
-
+        """model->data"""
         def load_group(self: "AnchorDialog", parent: "AnchorDialog.Item", tempdict, nodeuuid: "str"):
             total_row = parent.rowCount()
             for i in range(total_row):
@@ -275,11 +256,11 @@ class AnchorDialog(QDialog):
                     load_group(self, item0, tempdict, item0.primData)
 
         total_row = self.model.rowCount()
-        tempdict = linkdata_admin.get_template(self.card_id, desc=self.self_desc.widget.text())
+        tempdict = linkdata_admin.get_template(self.card_id, desc=self.bottom.line.text())
         tempdict["backlink"] = self.attr.linkdata.backlink
         tempdict["version"] = self.attr.linkdata.version
-        # tempdict["self_data"] = {"card_id":self.card_id,"desc":self.self_desc.text()}
-        # link_list, root, node{nodeuuid:{name:"",children:""}},
+        tempdict["self_data"] = self.attr.linkdata.self_data.to_self_dict()# {"card_id":self.card_id,"desc":self.self_desc.text()}
+
         for i in range(total_row):
             item0: "AnchorDialog.Item" = self.model.item(i, 0)
             item1: "AnchorDialog.Item" = self.model.item(i, 1)
@@ -294,23 +275,24 @@ class AnchorDialog(QDialog):
         pass
 
     def model_data_load(self):
+        """data->model"""
+        From = common_tools.objs.LinkDescFrom
         self.model.clear()
         self.model.setHorizontalHeaderLabels(["card", "desc"])
         self.model_rootNode = self.model.invisibleRootItem()
         self.model_rootNode.character = -1
         self.model_rootNode.level = -1
         self.model_rootNode.primData = None
-        desc1 = self.attr.linkdata.self_data.desc
-        desc2 = desc1 if desc1 != "" else common_tools.funcs.desc_extract(self.card_id)
-        self.self_desc.widget.setText(desc2)
-
+        desc2 = common_tools.funcs.desc_extract(self.card_id)
+        self.bottom.line.setText(desc2)
+        self.bottom.cbox.setChecked(self.attr.linkdata.self_data.get_desc_from==From.Field)
         def load_group(self, item: "common_tools.objs.LinkDataNode", parent: "AnchorDialog.Item"):
             if item.card_id:
-                desc1 = self.attr.linkdata.link_dict[item.card_id].desc
-                desc2 = desc1 if desc1 != "" else common_tools.funcs.desc_extract(item.card_id)
+                desc2 = common_tools.funcs.desc_extract(item.card_id)
                 descitem = self.Item(desc2, self.Item.desc, parent.level + 1)
                 carditem = self.Item(item.card_id, self.Item.card_id, parent.level + 1)
                 parent.appendRow([carditem, descitem])
+                self.card_mapping(item.card_id,carditem)
             elif item.nodeuuid:
                 groupitem = self.Item(self.attr.linkdata.node[item.nodeuuid].name, self.Item.group, parent.level + 1,
                                       primData=item.nodeuuid)
@@ -321,11 +303,11 @@ class AnchorDialog(QDialog):
 
         for item in self.attr.linkdata.root:
             if item.card_id:
-                desc1 = self.attr.linkdata.link_dict[item.card_id].desc
-                desc2 = desc1 if desc1 != "" else common_tools.funcs.desc_extract(item.card_id)
+                desc2 = common_tools.funcs.desc_extract(item.card_id)
                 descitem = self.Item(desc2, self.Item.desc, 0)
                 carditem = self.Item(item.card_id, self.Item.card_id, 0)
                 self.model.appendRow([carditem, descitem])
+                self.card_mapping(item.card_id,carditem)
             elif item.nodeuuid:
                 groupitem = self.Item(self.attr.linkdata.node[item.nodeuuid].name, self.Item.group, 0,
                                       primData=item.nodeuuid)
@@ -337,14 +319,11 @@ class AnchorDialog(QDialog):
         pass
 
     def model_data_save(self):
-        d = {
-            "card_id": self.card_id,
-            "data": json.dumps(self.data_model_load())
-        }
-        # DB = common_tools.G.DB
-        # DB.update(values=DB.VALUEEQ(**d),where=DB.EQ(card_id=self.card_id)).commit(print)
+        """model->data"""
         from .. import linkdata_admin
-        linkdata_admin.write_card_link_info(self.card_id, json.dumps(self.data_model_load()))
+        data = json.dumps(self.data_model_load())
+        # showInfo(data)
+        linkdata_admin.write_card_link_info(self.card_id, data)
         common_tools.funcs.LinkPoolOperation.both_refresh(0,2)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
@@ -368,9 +347,58 @@ class AnchorDialog(QDialog):
         card_id = self.card_id
         common_tools.G.mw_anchor_window[card_id] = None
 
+    def setupBottom(self):
+        bottom= QWidget()
+
+    def card_mapping(self,card_id,item):
+        self.attr.card_dict[card_id] = item
+
+    def init_UI(self):
+        self.setAttribute(Qt.WA_DeleteOnClose, on=True)
+        self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.anchor))
+        self.setWindowTitle(f"""anchor of [desc={self.attr.linkdata.self_data.desc},card_id={self.card_id}]""")
+        self.setAcceptDrops(True)
+        self.view.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.view.setDragDropMode(self.view.DragDrop)
+        self.view.setIndentation(8)
+        self.view.header().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setContentsMargins(0,0,0,0)
+        func_wrapper = common_tools.wrappers.func_wrapper
+        self.view.expandAll = func_wrapper(after=[lambda: self.state.__setattr__("view_is_expanded", True)])(
+            self.view.expandAll)
+        self.view.collapseAll = func_wrapper(after=[lambda: self.state.__setattr__("view_is_expanded", False)])(
+            self.view.collapseAll)
+        v = QVBoxLayout(self)
+        v.addWidget(self.view)
+        v.addWidget(self.self_desc)
+        self.setLayout(v)
+
+        self.resize(600, 400)
+
+    def init_model(self):
+        self.view.setModel(self.model)
+        self.model_data_load()
+        self.view.expandAll()
+
+    class Bottom(QWidget):
+        def __init__(self):
+            super().__init__()
+            self.line = QLineEdit(self)
+            self.cbox = QRadioButton(common_tools.funcs.Translate.自动更新描述)
+            self.setContentsMargins(0,0,0,0)
+            self.cbox.setContentsMargins(0,0,0,0)
+            self.line.setContentsMargins(0,0,0,0)
+            h_layout = QHBoxLayout(self)
+            h_layout.setContentsMargins(0,0,0,0)
+            h_layout.addWidget(self.line,stretch=29)
+            h_layout.addWidget(self.cbox,stretch=1)
+            self.setLayout(h_layout)
+
     class Attr:
         def __init__(self, card_id, parent):
             self.linkdata = linkdata_admin.read_card_link_info(str(card_id))
+            self.card_dict: "dict[str,Union[AnchorDialog.Item,QStandardItem]]" = {}  # 卡片与对应的结点, 必须是唯一的.这个数据需要更新
             self.parent = parent
 
     class State:

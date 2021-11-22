@@ -73,6 +73,7 @@ class UniversalProgresser(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.progressbar = ProgressBarBlackFont(self)
+        self.intro = QLabel("if crashed, press esc to quit",self)
         self.signal_func_dict: "Optional[dict[str,list[callable,callable,Union[dict,None]]]]" = None  # "signal_name":[signal,funcs,kwargs] 传入的信号与槽函数
         self.signal_sequence: "Optional[list[list[str]]]" = None  # [["signal_name"]] 0,1,2 分别是前,中,后的回调函数.
         self.timer = QTimer()
@@ -131,6 +132,7 @@ class UniversalProgresser(QDialog):
         self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
         glayout = QGridLayout(self)
         glayout.addWidget(self.progressbar, 0, 0, 1, 4)
+        glayout.addWidget(self.intro,1,0,1,1)
         self.setLayout(glayout)
 
 
@@ -213,11 +215,11 @@ class deck_chooser(QDialog):
         # showInfo(self.fromview.__str__())
         DeckId = funcs.Compatible.DeckId()
         CardId = funcs.CardId
-        browser: Browser = dialogs._dialogs["Browser"][1]
+        browser: Browser = funcs.BrowserOperation.get_browser()
 
         if browser is None:
             dialogs.open("Browser", mw)
-            browser = dialogs._dialogs["Browser"][1]
+            browser = funcs.BrowserOperation.get_browser()
         for pair in self.pair_li:
             set_card_deck(parent=browser, card_ids=[CardId(pair.int_card_id)],
                           deck_id=DeckId(item.deck_id)).run_in_background()
@@ -280,7 +282,7 @@ class deck_chooser(QDialog):
 
     def build_deck_tree(self):
         deck_li: "list[deck_chooser.Id_deck]" = self.get_all_decks()
-        deck_dict = G.objs.CascadeStr.Node(self.model_rootNode, {})
+        deck_dict = G.objs.Struct.TreeNode(self.model_rootNode, {})
         for i in deck_li:
             deckname_li = i.deck.split("::")
             parent = deck_dict
@@ -289,7 +291,7 @@ class deck_chooser(QDialog):
                 if deckname not in parent.children:
                     item = self.Item(deckname)
                     parent.item.appendRow([item])
-                    parent.children[deckname] = G.objs.CascadeStr.Node(item, {})
+                    parent.children[deckname] = G.objs.Struct.TreeNode(item, {})
                     if not deckname_li:
                         item.deck_id = i.ID
                 parent = parent.children[deckname]
@@ -670,7 +672,7 @@ class tag_chooser(QDialog):
     def build_tag_tree(self, tag_set: "set[str]", model: "QStandardItemModel", view: "tag_chooser.View",
                        button_group: "tag_chooser.button_group"):
         tag_list = sorted(list(tag_set))
-        tag_dict = G.objs.CascadeStr.Node(model.invisibleRootItem(), {})
+        tag_dict = G.objs.Struct.TreeNode(model.invisibleRootItem(), {})
         total_tag = button_group.L_or_R == button_group.R
         for i in tag_list:
             tagname_li = i.split("::")
@@ -680,7 +682,7 @@ class tag_chooser(QDialog):
                 if tagname not in parent.children:
                     item = self.Item(tagname, total_tag=total_tag)
                     parent.item.appendRow([item])
-                    parent.children[tagname] = G.objs.CascadeStr.Node(item, {})
+                    parent.children[tagname] = G.objs.Struct.TreeNode(item, {})
                     if not tagname_li:
                         item.set_tag_name(i)
                 parent = parent.children[tagname]

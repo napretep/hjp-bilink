@@ -74,7 +74,7 @@ class LinkInfoDB(object):
         if fromDB:
             DB=fromDB
         DB.go(DB.table_linkinfo)
-        card_id,data=linkinfo.todict()
+        card_id,data=linkinfo.to_DB_record
         if LinkInfoDB.exists(card_id):
             DB.update(values=DB.VALUEEQ(data=data), where=DB.EQ(card_id=card_id))
         else:
@@ -99,7 +99,8 @@ def get_template(card_id, desc="", version=2):
         "link_dict": {},
         "self_data": {  # 自身的数据
             "card_id": card_id,
-            "desc": desc if desc else funcs.desc_extract(card_id, fromField=True)  # 如果不 fromField会循环引用报错
+            "desc": desc if desc else funcs.desc_extract(card_id, fromField=True), # 如果不 fromField会循环引用报错
+            "get_desc_from":funcs.Config.get().new_card_default_desc_sync.value,
         },
         "root": [],
         "node": {}
