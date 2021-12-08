@@ -1,128 +1,35 @@
 {
-    "auto_review": {
-        "instruction": [
-            "假设某个搜索条件下有多张卡,你复习其中一张卡,那么其余卡片也会用相同的选项自动进行复习,填入0表示关闭,填入1表示开启,",
-            "开启后,在 auto_review_search_string 中输入搜索词(就像你在搜索栏中做的那样),即可对同属于这个搜索结果的卡片执行同步复习",
-            "English Instruction Maybe later"
-        ],
-        "value": 0
-    },
-    "auto_review_search_string": {
-        "instruction": [
-            "比如,'tag:xxx', 'prop:due=0' 之类的语法都可以, 以数组的形式记录, 每一项为一个完整搜索条件",
-            "English Instruction Maybe later"
-        ],
-        "value": []
-    },
-    "length_of_desc": {
-        "instruction": [
-            "length_of_desc项控制从卡片正文提取多少字符作为链接的标题,该项仅支持非负数字,0表示不限制",
-            "English Instruction Maybe later"
-        ],
-        "value": 0
-    },
-    "desc_sync": {
-        "instruction": [
-            "desc_sync_enabled项控制是否开启自动绑定卡片内容和链接标题,",
-            "填入1表示开启,则将自动同步卡片内容和链接标题两者的内容,填入0表示关闭,则可打开卡片的anchor,手动修改链接标题",
-            "English Instruction Maybe later"
-        ],
-        "value": 0
-    },
-    "new_card_default_desc_sync": {
-        "instruction": [
-            "new_card_default_desc_sync是一个开关,控制新卡片的链接数据生成,提取卡片内容作为标题时,同步还是不同步",
-            "1开启,0关闭",
-            "English Instruction Maybe later"
-        ],
-        "value": 1
-    },
-    "add_link_tag": {
-        "instruction": [
-            "add_link_tag_enabled用来控制链接操作结束后,是否给这组参与链接的卡片添加一个时间戳tag",
-            "这个功能适合作为链接操作的历史记录使用,填入1表示开启,填入0表示关闭",
-            "English Instruction Maybe later"
-        ],
-        "value": 1
-    },
-    "open_browser_after_link": {
-        "instruction": [
-            "open_browser_after_link用来控制链接操作结束后,是否打开浏览窗口,展示链接的项",
-            "填入1表示开启,填入0表示关闭",
-            "English Instruction Maybe later"
-        ],
-        "value": 1
-    },
-    "delete_intext_link_when_extract_desc": {
-        "instruction": [
-            "本项用来控制当执行卡片内容提取时,是否将文内链接也识别为卡片内容一并提取",
-            "填入1表示开开启,此时提取卡片内容之前,会删掉文内链接的信息再提取,填入0表示关闭,则会直接提取",
-            "English Instruction Maybe later"
-        ],
-        "value": 1
-    },
-    "default_link_mode": {
-        "instruction": [
-            "使用快捷键时,默认执行的链接操作,可填3,4两个数字值,3表示完全链接,4表示组到组连接,默认一张卡为一组",
-            "English Instruction Maybe later"
-        ],
-        "value": 3
-    },
-    "default_unlink_mode": {
-        "instruction": [
-            "使用快捷键时,默认执行的取消链接操作,可填5,6两个数字值,6表示按结点取消链接,5表示按路径取消链接",
-            "English Instruction Maybe later"
-        ],
-        "value": 6
-    },
-    "default_insert_mode": {
-        "instruction": [
-            "使用快捷键时,默认执行的插入连接池的操作,可填0,1,2三个数字值,0表示清空后插入,1表示追加插入,2表示编组插入",
-            "English Instruction Maybe later"
-        ],
-        "value": 0
-    },
-    "default_copylink_mode": {
-        "instruction": [
-            "使用快捷键时,默认执行的链接复制操作,可填0,1,2,3,0表示复制为文内链接,1表示复制为html链接",
-            "2表示复制为markdown链接,3表示复制为orgmode链接",
-            "English Instruction Maybe later"
-        ],
-        "value": 0
-    },
-    "shortcut_for_link": {
-        "instruction": [
-            "本项用来控制链接操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定 ",
-            "English Instruction Maybe later"
-        ],
-        "value": "alt+ctrl+1"
-    },
-    "shortcut_for_unlink": {
-        "instruction": [
-            "本项用来控制取消链接操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
-            "English Instruction Maybe later"
-        ],
-        "value": "alt+ctrl+2"
-    },
-    "shortcut_for_insert": {
-        "instruction": [
-            "本项用来控制卡片插入链接池操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
-            "English Instruction Maybe later"
-        ],
-        "value": "alt+ctrl+3"
-    },
-    "shortcut_for_copylink": {
-        "instruction": [
-            "本项用来控制复制卡片链接的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
-            "English Instruction Maybe later"
-        ],
-        "value": "alt+ctrl+4"
-    },
-    "shortcut_for_openlinkpool": {
-        "instruction": [
-            "本项用来控制打开链接池的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定 ",
-            "English Instruction Maybe later"
-        ],
-        "value": "alt+ctrl+`"
-    }
+    "gview_admin_default_display": 0,
+    "freeze_review": false,
+    "freeze_review_interval": 10000,
+    "too_fast_warn": false,
+    "too_fast_warn_interval": 2000,
+    "too_fast_warn_everycard": 3,
+    "auto_review": true,
+    "auto_review_comfirm_dialog": true,
+    "auto_review_just_due_card": true,
+    "auto_review_global_condition": "",
+    "auto_review_search_string": [],
+    "length_of_desc": 0,
+    "desc_sync": false,
+    "new_card_default_desc_sync": true,
+    "add_link_tag": true,
+    "open_browser_after_link": true,
+    "delete_intext_link_when_extract_desc": true,
+    "default_link_mode": 3,
+    "default_unlink_mode": 6,
+    "default_insert_mode": 0,
+    "default_copylink_mode": 0,
+    "shortcut_for_link": "alt+ctrl+1",
+    "shortcut_for_unlink": "alt+ctrl+2",
+    "shortcut_for_insert": "alt+ctrl+3",
+    "shortcut_for_copylink": "alt+ctrl+4",
+    "shortcut_for_openlinkpool": "alt+ctrl+`",
+    "anchor_style_text": "",
+    "anchor_style_file": "",
+    "anchor_style_preset": 0,
+    "auto_backup": true,
+    "auto_backup_interval": 12,
+    "auto_backup_path": "",
+    "last_backup_time": 1638980153.224167
 }
