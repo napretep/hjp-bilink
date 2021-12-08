@@ -74,6 +74,10 @@ class Grapher(QDialog):
         #     self.init_graph_item()
         # elif self.data.graph_mode == GraphMode.view_mode:
         #     self.load_view()
+
+    def card_edit_desc(self,item:"Grapher.ItemRect"):
+        pass
+
     def on_card_updated_handle(self, event):
         for node in self.data.node_dict.values():
             node.pair.update_desc()
@@ -726,9 +730,12 @@ class Grapher(QDialog):
 
             menu.addAction(Translate.删除).triggered.connect(self.superior.del_selected_node)
             # noinspection PyUnresolvedReferences
+            menu.addAction(Translate.修改描述).triggered.connect(lambda:self.superior.card_edit_desc(self))
+
             pair_li: "list[LinkDataPair]" = [item.pair for item in self.scene().selectedItems()]
             common_tools.menu.maker(common_tools.menu.T.grapher_node_context)(pair_li, menu, self.superior,
                                                                               needPrefix=False)
+
             menu.closeEvent = lambda x: self.setSelected(True)
             if self.superior.data.graph_mode == GraphMode.normal:
                 loadlinkcard = menu.addMenu("加载链接卡片")

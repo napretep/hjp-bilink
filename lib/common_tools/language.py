@@ -193,7 +193,8 @@ def rosetta(text: str = ""):
         "插入到已有视图":"insert into existing view",
         "临时视图":"as temporary view",
         "粘贴卡片":"paste cards",
-        "插入到已打开视图":"insert into opened view"
+        "插入到已打开视图":"insert into opened view",
+        "修改描述":"edit card description"
     }
     ZHdict = {
         "gview_admin_default_display":"视图管理器默认显示",
@@ -329,6 +330,7 @@ class Translate:
     插入视图:str=rosetta("插入到已有视图")
     粘贴卡片:str=rosetta("粘贴卡片")
     插入到已打开视图:str=rosetta("插入到已打开视图")
+    修改描述:str=rosetta("修改描述")
 
 if __name__ == "__main__":
     print(Translate.打开配置表)
