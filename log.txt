@@ -1,0 +1,10 @@
+
+20211203143206
+ replace into CARD_LINK_INFO (card_id,data) values (?,?)
+['1625618533887', '{"backlink": [], "version": 2, "link_list": [], "link_dict": {}, "self_data": {"card_id": "1625618533887", "desc": "1234", "dir": "\\u2192", "get_desc_from": 0}, "root": [{"nodeuuid": "611d2b47"}], "node": {"611d2b47": {"name": "new_group", "children": [{"nodeuuid": "89c58a95"}]}, "89c58a95": {"name": "new_group", "children": [{"nodeuuid": "17d78503"}]}, "17d78503": {"name": "new_group", "children": []}}}']
+20211203143209
+ replace into CARD_LINK_INFO (card_id,data) values (?,?)
+['1625618533887', '{"backlink": [], "version": 2, "link_list": [], "link_dict": {}, "self_data": {"card_id": "1625618533887", "desc": "1234", "dir": "\\u2192", "get_desc_from": 0}, "root": [{"nodeuuid": "611d2b47"}], "node": {"611d2b47": {"name": "new_group", "children": [{"nodeuuid": "89c58a95"}]}, "89c58a95": {"name": "new_group", "children": [{"nodeuuid": "17d78503"}]}, "17d78503": {"name": "new_group", "children": []}}}']
+20211203143211
+ replace into CARD_LINK_INFO (card_id,data) values (?,?)
+['1625618533887', '{"backlink": [], "version": 2, "link_list": [], "link_dict": {}, "self_data": {"card_id": "1625618533887", "desc": "1234", "dir": "\\u2192", "get_desc_from": 0}, "root": [{"nodeuuid": "611d2b47"}], "node": {"611d2b47": {"name": "new_group", "children": [{"nodeuuid": "89c58a95"}]}, "89c58a95": {"name": "new_group", "children": [{"nodeuuid": "17d78503"}]}, "17d78503": {"name": "new_group", "children": []}}}']

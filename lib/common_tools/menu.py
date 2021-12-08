@@ -1,5 +1,6 @@
+import time
 from dataclasses import dataclass
-from typing import Union, List
+from typing import Union, List, Optional
 
 from PyQt5.QtGui import QContextMenuEvent
 from PyQt5.QtWidgets import QMenu, QAction
@@ -48,6 +49,7 @@ class PairsLiAdmin(object):
             card_id=card_id, desc=common_tools.funcs.desc_extract(card_id)) for card_id in cardLi]
 
 
+
 def get_browser_menu(browser: "Browser"):
     if G.src.addon_name in browser.__dict__:
         M: "QMenu" = browser.__dict__[G.src.addon_name]
@@ -77,9 +79,8 @@ def placeholder(*args, **kwargs):
     return
 
 def make__open_GViewAdmin(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
-    if atype in {T.browser}:
-        view: "Browser" = args[0]
-        M = get_browser_menu(view)
+    if atype in {T.browser,T.mainwin}:
+        M = get_browser_menu(args[0]) if atype==T.browser else get_mainWin_menu()
         M.addAction(Translate.打开视图管理器).triggered.connect(common_tools.funcs.Dialogs.open_GviewAdmin)
 
 def make__auto_review_operation(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
@@ -87,17 +88,21 @@ def make__auto_review_operation(atype, pairsli_admin: "PairsLiAdmin", *args, **k
         view: "Browser" = args[0]
         M = get_browser_menu(view)
         M2 = M.addMenu(Translate.自动复习操作)
-        M3 = M2.addAction(Translate.保存当前搜索条件为自动复习条件)
-        M3.triggered.connect(lambda :common_tools.funcs.AutoReview.save_search_to_config(view))
-        M4 = M2.addAction(Translate.重建数据库)
-        M4.triggered.connect(common_tools.funcs.AutoReview.build)
+        menus=[Translate.保存当前搜索条件为自动复习条件,Translate.重建数据库,Translate.查看数据库最近更新时间]
+        acts = [
+            lambda: common_tools.funcs.AutoReview.save_search_to_config(view),
+            common_tools.funcs.AutoReview.build,
+            lambda: tooltip(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(G.AutoReview_dict.version)))
+        ]
+        list(map(lambda x:func_actionMenuConnector(M2,menus[x],acts[x]),range(len(menus))))
 
 def make__open_configfile(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
 
     if atype in {T.mainwin,T.browser}:
         M = get_mainWin_menu() if atype ==T.mainwin else get_browser_menu(args[0])
         M2 = M.addMenu(Translate.配置表操作)
-        M2.addAction(Translate.打开配置表).triggered.connect(lambda: common_tools.funcs.open_file(G.src.path.userconfig))
+        # M2.addAction(Translate.打开配置表).triggered.connect(lambda: common_tools.funcs.open_file(G.src.path.userconfig))
+        M2.addAction(Translate.打开配置表).triggered.connect(lambda: common_tools.funcs.Dialogs.open_configuration())
         M2.addAction(Translate.重置配置表).triggered.connect(lambda: common_tools.funcs.Config.save())
 
 def make__open_anchor(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
@@ -194,12 +199,15 @@ def make__outtext_link(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
 def make__change_deck(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
     if atype in {T.webview, T.browser_context, T.grapher_node_context}:
         prefix = kwargs["prefix"]
+        pair_li = None
         if atype in {T.webview, T.browser_context}:
             view = args[0]
             pair_li = pairsli_admin.pairs_li
         elif atype in {T.grapher_node_context}:
             pair_li = args[0]
             view = args[2]
+        if pair_li is None:
+            return
         menu: "QMenu" = args[1]
         menu.addAction(prefix + Translate.改变牌组).triggered.connect(
             lambda: common_tools.funcs.Dialogs.open_deck_chooser(pair_li, view))
@@ -209,12 +217,15 @@ def make__change_deck(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
 
 def make__tag_operation(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
     if atype in {T.webview, T.browser_context, T.grapher_node_context}:
+        pair_li=None
         prefix = kwargs["prefix"]
         if atype in {T.webview, T.browser_context}:
             view = args[0]
             pair_li = pairsli_admin.pairs_li
         elif atype in {T.grapher_node_context}:
             pair_li = args[0]
+        if pair_li is None:
+            return
         menu: "QMenu" = args[1]
         m = menu.addAction(prefix + Translate.操作标签).triggered.connect(
             lambda: common_tools.funcs.Dialogs.open_tag_chooser(pair_li))
@@ -263,19 +274,35 @@ def make__open_clipper(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
 def make__open_grapher(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
     Gop = common_tools.funcs.GviewOperation
     dlg = common_tools.funcs.Dialogs
+
     if atype in {T.browser_context, T.webview}:
+
         from . import funcs
+        from ..bilink.dialogs.linkdata_grapher import Grapher
         prefix = kwargs["prefix"]
         pair_li = pairsli_admin.pairs_li
         if len(args) > 0:
             M: "QMenu" = args[1]
             name = Translate.在grapher中打开卡片
             M2=M.addMenu(prefix + name)
+
             M2.addAction(Translate.直接打开).triggered.connect(lambda: funcs.Dialogs.open_grapher(pair_li))
+
+            M2.addAction(Translate.新建视图).triggered.connect(lambda:funcs.GviewOperation.create_from_pair(pair_li))
+
+            if len(funcs.GviewOperation.load_all())>0:
+                M2.addAction(Translate.插入视图).triggered.connect(lambda: funcs.GviewOperation.insert(pair_li))
             viewdata_L=Gop.find_by_card(pair_li)
+
+            opened_view:"list[str]" = list(filter(lambda x:G.mw_gview.get(x) is not None,list(G.mw_gview.keys())))
+            if len(opened_view)>0:
+                M3=M2.addMenu(Translate.插入到已打开视图)
+                for uuid in opened_view:
+                    data = funcs.GviewOperation.load(uuid=uuid)
+                    M3.addAction(data.name).triggered.connect(lambda :funcs.Dialogs.open_grapher(pair_li=pair_li,gviewdata=data,mode=GraphMode.view_mode))
+
             list(map(lambda x:func_actionMenuConnector(M2,Translate.打开于视图+":"+x.name,dlg.open_grapher,pair_li=pair_li,
                 mode=GraphMode.view_mode, gviewdata=x),viewdata_L))
-
 
 make_list = [globals()[name] for name in globals() if name.startswith("make__")]
 

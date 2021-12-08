@@ -14,7 +14,7 @@ from typing import Union, Optional
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QModelIndex
 from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QDialog, QProgressBar, QTreeView, QToolButton, QHeaderView, \
-    QMenu
+    QMenu, QListWidget
 
 import sys
 
@@ -35,6 +35,13 @@ if __name__ == "__main__":
     from lib.common_tools import G
 else:
     from . import G
+
+
+
+
+class ConfigDialog(QDialog):
+    def __init__(self):
+        super().__init__()
 
 
 class GridHDescUnit(QWidget):

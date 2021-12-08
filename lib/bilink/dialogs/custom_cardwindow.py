@@ -5,6 +5,7 @@ from typing import Optional
 
 import aqt
 from PyQt5 import QtGui
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QAbstractButton, QWidget, QVBoxLayout, QShortcut, QGridLayout, QLabel
 from anki.lang import _
 from anki.stats import CardStats
@@ -275,11 +276,24 @@ class SingleCardPreviewer(Previewer):
         # self.bottom_layout_due.removeWidget(self.bottom_tools_widget)
         self.vbox.removeItem(self.bottom_layout_due)
         self.due_info_widget.hide()
-
         self.bottom_layout_rev.addWidget(self.bottom_tools_widget,0,1,1,1)
         self.vbox.addLayout(self.bottom_layout_rev)
         self.answer_buttons.show()
+        cfg = common_tools.funcs.Config.get()
+        if cfg.freeze_review.value:
+            interval = cfg.freeze_review_interval.value
+            self.freeze_answer_buttons()
+            QTimer.singleShot(interval, lambda: self.recover_answer_buttons())
 
+    def freeze_answer_buttons(self):
+        for button in self.ease_button.values():
+            button.setEnabled(False)
+        tooltip(common_tools.funcs.Translate.已冻结)
+
+    def recover_answer_buttons(self):
+        for button in self.ease_button.values():
+            button.setEnabled(True)
+        tooltip(common_tools.funcs.Translate.已冻结)
 
     def switch_to_due_info_widget(self):
         self._update_info()

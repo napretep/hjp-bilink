@@ -6,9 +6,10 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QShortcut
 from anki.notes import Note
 from anki.utils import isWin
-from aqt import gui_hooks, progress, mw
+from aqt import gui_hooks, progress, mw, webview, reviewer
 from aqt.browser.previewer import MultiCardPreviewer, BrowserPreviewer
 from aqt.editor import Editor
+from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, tooltip
 from . import menu
 from .G import signals
@@ -24,6 +25,8 @@ from aqt import browser
 
 
 def run():
+    if funcs.G.ISDEBUG:
+        funcs.Utils.print("hjp-bilink is debug")
     gui_hooks.webview_will_show_context_menu.append(menu.maker(menu.T.webview))
     gui_hooks.browser_will_show_context_menu.append(menu.maker(menu.T.browser_context))
     gui_hooks.browser_menus_did_init.append(menu.maker(menu.T.browser))
@@ -31,30 +34,43 @@ def run():
     gui_hooks.main_window_did_init.append(menu.maker(menu.T.mainwin))
     gui_hooks.card_will_show.append(funcs.HTML_injecttoweb)
     signals.on_clipper_closed.connect(funcs.on_clipper_closed_handle)
-    signals.on_card_answerd.connect(funcs.CardOperation.auto_review)
     gui_hooks.webview_did_receive_js_message.append(on_js_message)
     gui_hooks.editor_will_munge_html.append(handle_editor_will_munge_html)
     gui_hooks.profile_will_close.append(events.on_profile_will_close_handle)
     gui_hooks.add_cards_did_add_note.append(events.open_grahper_with_newcard)
     gui_hooks.browser_sidebar_will_show_context_menu.append(events.on_browser_sidebar_will_show_context_menu_handle)
+
+    #AutoReview
+    signals.on_card_answerd.connect(funcs.CardOperation.auto_review)
     gui_hooks.reviewer_did_answer_card.append(lambda x, y, z: signals.on_card_answerd.emit(
         AnswerInfoInterface(platform=x, card_id=y.id, option_num=z)
     ))
     signals.on_card_changed.connect(funcs.AutoReview.modified_card_record)
     hooks.note_will_flush.append(lambda x : signals.on_card_changed.emit(x)) #能检查到更改field,tag,deck,只要显示了都会检测到
-    setupAnkiLinkProtocol()
     gui_hooks.collection_did_load.append(lambda x:funcs.AutoReview.begin())
     signals.on_auto_review_search_string_changed.connect(funcs.AutoReview.build)
+
+    #MonkeyPatch
     browser.browser.PreviewDialog = funcs.MonkeyPatch.BrowserPreviewer
     browser.Browser.setupMenus = funcs.MonkeyPatch.BrowserSetupMenus(browser.Browser.setupMenus,setupShortCuts)
-
+    reviewer.Reviewer._showEaseButtons = funcs.MonkeyPatch.Reviewer_showEaseButtons(reviewer.Reviewer._showEaseButtons)
+    reviewer.Reviewer.nextCard = funcs.MonkeyPatch.Reviewer_nextCard(reviewer.Reviewer.nextCard)
+    setupAnkiLinkProtocol()
 
 
 def test(*args, **kwargs):
+    showInfo("hi")
+    # web_content:"webview.WebContent"=args[0]
+    # context= args[1]
+    # if type(context) == reviewer.ReviewerBottomBar:
+    #     funcs.write_to_log_file(str(type(context)), need_timestamp=True)
+    #     funcs.write_to_log_file(web_content.body)
     # n:"browser" = args[0]
-    tooltip("test")
+    # tooltip("test")
     # funcs.write_to_log_file(n.card_ids()[0].__str__())
     # signals.testsignal.blockSignals(True)
+
+
 
 def setupShortCuts(self:"browser.Browser"):
     """"""

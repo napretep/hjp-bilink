@@ -263,11 +263,11 @@ class PagePicker(QDialog):
         print(f"当前pdfpath={self.E.pagepicker.curr_pdf_path}")
         DB = objs.SrcAdmin.DB
         DB.go(DB.table_pdfinfo)
-        if DB.exists(DB.EQ(uuid=uuid)):
-            DB.update(values=DB.VALUEEQ(ratio=ratio, offset=offset), where=DB.EQ(uuid=uuid)).commit(print)
-
-        else:
-            DB.insert(uuid=uuid, ratio=ratio, offset=offset, pdf_path=self.E.pagepicker.curr_pdf_path).commit(print)
+        DB.replace(uuid=uuid, ratio=ratio, offset=offset, pdf_path=self.E.pagepicker.curr_pdf_path).commit(print)
+        # if DB.exists(DB.EQ(uuid=uuid)):
+        #     DB.update(values=DB.VALUEEQ(ratio=ratio, offset=offset), where=DB.EQ(uuid=uuid)).commit(print)
+        # else:
+        #     DB.insert(uuid=uuid, ratio=ratio, offset=offset, pdf_path=self.E.pagepicker.curr_pdf_path).commit(print)
 
     def init_UI(self):
         self.setWindowModality(Qt.ApplicationModal)

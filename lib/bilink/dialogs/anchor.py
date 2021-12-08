@@ -47,7 +47,7 @@ class AnchorDialog(QDialog):
         self.state = self.State()
         self.view = QTreeView(self)
         self.model = QStandardItemModel(self)
-        # self.self_desc=QLineEdit(self)
+        # seself.bottomlf.self_desc=QLineEdit(self)
         self.bottom = AnchorDialog.Bottom()
         self.self_desc = common_tools.widgets.GridHDescUnit(parent=self, labelname="self_describe:",
                                                             tooltip="self_describe是这张卡片的名字\n"
@@ -140,6 +140,8 @@ class AnchorDialog(QDialog):
         pass
 
     def on_self_desc_text_changed_handle(self):
+
+        self.attr.linkdata.self_data.desc=self.bottom.line.text()
         self.model_data_save()
         self.setWindowTitle(f"""anchor of [desc={self.bottom.line.text()},card_id={self.card_id}]""")
 
@@ -322,7 +324,7 @@ class AnchorDialog(QDialog):
         """model->data"""
         from .. import linkdata_admin
         data = json.dumps(self.data_model_load())
-        # showInfo(data)
+        common_tools.funcs.Utils.print(data)
         linkdata_admin.write_card_link_info(self.card_id, data)
         common_tools.funcs.LinkPoolOperation.both_refresh(0,2)
 

@@ -18,7 +18,7 @@ from . import signals, src_admin, objs, widgets,language
 # from .src_admin import SrcAdmin
 # from .signals import CustomSignals
 # from .objs import DB_admin
-from .interfaces import AutoReviewDictInterface
+from .interfaces import AutoReviewDictInterface,ConfigInterface
 
 from aqt import mw
 
@@ -28,13 +28,15 @@ class MW: pass
 
 if mw is None:
     mw = MW()
-
+QTMAXINT=2147483647
+QTMININT=-2147483647
 say=language.rosetta
 ISDEBUG=False
 DB = objs.DB_admin()  # 这个是通用DB,如果要用linkdata请用linkdata_admin里的DB
 signals = signals.CustomSignals.start()
-src = src_admin.SrcAdmin.start()
+src = src_admin.src
 addonName = src.dialog_name
+CONFIG:"ConfigInterface"=None
 mw.__dict__[addonName] = {}
 mw.__dict__[addonName]["progresser"] = None
 mw.__dict__[addonName]["card_window"] = {}
@@ -63,3 +65,5 @@ browser_addon_menu = None
 AutoReview_dict:"Optional[AutoReviewDictInterface]"=None #卡片ID映射到searchString
 AutoReview_tempfile:"set"=set() #只保存卡片id
 AutoReview_timer=QTimer()
+AutoReview_version:"float"=0
+nextCard_interval:"list[int]"=[]#用来记录连续过快复习

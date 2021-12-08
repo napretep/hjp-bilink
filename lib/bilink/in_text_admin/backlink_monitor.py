@@ -44,7 +44,8 @@ def handle_editor_will_munge_html(text, editor: "Editor"):
     if editor.parentWindow.__class__.__name__ == "AddCards":
         return text
     # tooltip(editor.parentWindow.__class__.__name__)
-
+    if editor.currentField is None:
+        return text
     note = editor.note
     self_card_id = editor.note.card_ids()[0]
     last_text = note.fields[editor.currentField]

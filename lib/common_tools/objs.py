@@ -113,6 +113,10 @@ class LinkPoolModel:
         d["addTag"] = self.addTag
         return d
 
+    def tolinkdata(self):
+        from ..bilink import linkdata_admin
+        return [ [ linkdata_admin.read_card_link_info(pair.card_id) for pair in group]for group in self.IdDescPairs]
+
     def flatten(self):
         """降维, 把group去掉, 通常用于complete_map的需要"""
         d = []
@@ -426,7 +430,7 @@ class DB_admin(object):
     sqlstr_RECORD_UPDATE = """update {tablename} set {values} where {where}"""
     sqlstr_RECORD_DELETE = """delete from {tablename} where {where} """
     sqlstr_RECORD_INSERT = """insert into {tablename} ({cols}) values ({vals}) """
-
+    sqlstr_RECORD_REPLACE = """ replace into {tablename} ({cols}) values ({vals})"""
     ################################下面是查询语句设计########################
     class BOX:
         """仅用作传输,不作别的处理, BOX之间可以用 and,or,not,+等运算符 连续拼接字符串, 采用安全的参数输入方法"""
@@ -604,8 +608,8 @@ class DB_admin(object):
             from .src_admin import SrcAdmin
         self.tab_name = None
         self.db_dir = SrcAdmin.start().path.DB_file
-        self.connection = None
-        self.cursor = None
+        self.connection:"sqlite3.Connection" = None
+        self.cursor:"sqlite3.Cursor" = None
         self.sqlstr_isbussy = False
         self.excute_queue = []  # 队列结构
 
@@ -762,6 +766,23 @@ class DB_admin(object):
 
         return self
 
+    def replace(self,**values):
+        cols = ""
+        vals = ""
+        all_column_names = self.table_swtich[self.curr_tabtype][0].get_dict()
+        entity = []
+        for k, v in values.items():
+            if k not in all_column_names:
+                continue
+            cols += k + ","
+            vals += "?,"  # 最后一个逗号要去掉
+            entity.append(v)
+        s = self.sqlstr_RECORD_REPLACE.format(tablename=self.tab_name, cols=cols[0:-1], vals=vals[0:-1])
+        from .funcs import write_to_log_file
+        write_to_log_file(s,need_timestamp=True)
+        write_to_log_file(entity.__str__())
+        self.excute_queue.append([s, entity])
+        return self
 
     def update(self, values: "DB_admin.BOX" = None, where: "DB_admin.BOX" = None):
         """values,where 应该是一个字典, k是字段名,v是字段值"""
@@ -811,7 +832,7 @@ class DB_admin(object):
             return DBResults(result, all_column_names, self.curr_tabtype)
 
 
-    def commit(self, callback=None):
+    def commit(self, callback=None,need_commit=True):
         s = self.excute_queue.pop(0)
         if s:
             if callback:
@@ -820,9 +841,18 @@ class DB_admin(object):
                 result = self.cursor.execute(s[0], s[1]) #注意update的时候,字符串对象需要多加一个""
             else:
                 result = self.cursor.execute(s)
-            self.connection.commit()
+            if need_commit:self.connection.commit()
             return result
 
+    def __enter__(self):
+        self.cursor.execute("begin")
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if len(self.excute_queue)>0:
+            raise ValueError("你有未执行完的sql语句!")
+        self.connection.commit()
+        self.end()
 
 class DBResults(object):
     """这个对象只读不写,是DB返回结果的容器的简单包装"""

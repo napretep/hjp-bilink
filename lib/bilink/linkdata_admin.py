@@ -126,14 +126,16 @@ def read_card_link_info(card_id: str) -> LinkDataJSONInfo:
 
 def write_card_link_info(card_id: str, data: str, commit=True):
     """接受两种参数, cid为"""
-    DB.go(DB.table_linkinfo)
-    if card_exists(card_id):
-        DB.update(values=DB.VALUEEQ(data=data), where=DB.EQ(card_id=card_id))
-    else:
-        DB.insert(card_id=card_id, data=data)
-    if commit:
-        DB.commit()
-        DB.end()
+    with G.DB.go(G.DB.table_linkinfo) as DB:
+        DB.replace(card_id=card_id, data=data).commit(need_commit=False,callback=funcs.Utils.print)
+
+    # if card_exists(card_id):
+    #     DB.update(values=DB.VALUEEQ(data=data), where=DB.EQ(card_id=card_id))
+    # else:
+    #     DB.insert(card_id=card_id, data=data)
+    # if commit:
+    #     DB.commit()
+    #     DB.end()
 
 
 def card_exists(card_id: "str") -> bool:

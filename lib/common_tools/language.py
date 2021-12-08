@@ -170,26 +170,65 @@ def rosetta(text: str = ""):
         "可复习":"due",
         "未到期":"not due",
         "学习":"review",
-        "请选择卡片":"please select card"
+        "请选择卡片":"please select card",
+        "复习相关":"review",
+        "链接相关":"linking",
+        "快捷键":"shortcuts",
+        "同步与备份":"sync & backup",
+        "关于":"about",
+        "已冻结":"review freezed",
+        "已解冻":"review recovered",
+        "你复习得太快了,你确定你记住了吗?":"review too fast, are you sure you really recall the card?",
+        "要开始自动复习了, 你确定吗?":"The automatic review is about to start, please confirm",
+        "查看数据库最近更新时间":"lateset update time",
+        "手风琴式":"accordion style",
+        "直铺式":"straight laying",
+        "请点击叶结点":"please choose the leaf nodes",
+        "重命名":"rename",
+        "删除":"delete",
+        "视图":"graph view",
+        "自动复习视图":"auto_review graph view",
+        "含于视图":"Included in view",
+        "新建视图":"create view",
+        "插入到已有视图":"insert into existing view",
+        "临时视图":"as temporary view",
+        "粘贴卡片":"paste cards",
+        "插入到已打开视图":"insert into opened view"
     }
     ZHdict = {
-        "defaultLinkMode": "默认链接方式(用于快捷键)",
-        "defaultUnlinkMode": "默认取消链接方式(用于快捷键)",
-        "defaultInsertMode": "默认插入input方式(用于快捷键)",
-        "addTagEnable": "开启链接自动加标签的功能",
-        "appendNoteFieldPosition": "数据存于卡片字段的位置（对应模式开启有效）",
-        "readDescFieldPosition": "描述读取于卡片字段的位置",
-        "linkInfoStorageLocation": "链接数据保存的模式",
-        "descMaxLength": "自动读取描述的最大长度",
-        "addTagRoot": "自动加的标签其根部名称",
-        "button_appendTo_AnchorId": "添加按钮锚点的HTML元素 ID（不懂可不管）",
-        "shortcut_inputDialog_open": "打开input的快捷键(全局)",
-        "shortcut_browserTableSelected_link": "链接快捷键(browser下)",
-        "shortcut_browserTableSelected_unlink": "取消链接快捷键(browser下)",
-        "shortcut_browserTableSelected_insert": "插入input快捷键(browser下)",
-        "shortcut_inputFile_clear": "input清空快捷键(全局)",
-        "anchorCSSFileName": "按钮锚点的CSS样式文件（不懂可不管）",
-        "shortcut_copylink": "文内链接快捷键（browser下）"
+        "gview_admin_default_display":"视图管理器默认显示",
+        "gview_popup_when_review":"复习时视图自动弹出",
+        "gview_popup_type":"自动弹出的视图种类",
+        "last_backup_time":"上次备份时间",
+        "auto_review_just_due_card":"仅自动复习到期卡片",
+        "auto_review_global_condition": "自动复习的全局条件",
+        "auto_backup_interval":"自动备份间隔",
+        "auto_backup_path":"自动备份路径",
+        "auto_backup": "自动备份",
+        "auto_sync":"自动同步",
+        "auto_review_search_string":"自动复习的卡片筛选条件",
+        "freeze_review": "开启冻结复习",
+        "freeze_review_interval":"冻结复习的最小间隔",
+        "too_fast_warn_interval":"提示复习过快的最小间隔",
+        "too_fast_warn":"提示复习过快",
+        "too_fast_warn_everycard":"连续几张卡片复习过快才提示",
+        "auto_review":"开启自动复习",
+        "auto_review_comfirm_dialog":"开启自动复习提示框",
+        "length_of_desc":"链接描述自动提取时的限制长度",
+        "desc_sync":"链接描述与卡片内容全局同步",
+        "new_card_default_desc_sync":"新卡片默认启用链接描述同步",
+        "delete_intext_link_when_extract_desc":"提取链接描述时,删去文内链接",
+        "add_link_tag":"链接后加时间戳标签",
+        "open_browser_after_link":"链接后在浏览界面中展示链接卡片",
+        "default_link_mode":"默认链接模式",
+        "default_unlink_mode":"默认取消链接模式",
+        "default_insert_mode":"默认插入链接池的模式",
+        "default_copylink_mode":"默认复制链接的模式",
+        "shortcut_for_link":"链接快捷键",
+        "shortcut_for_unlink":"取消链接快捷键",
+        "shortcut_for_insert":"插入链接池快捷键",
+        "shortcut_for_copylink":"复制链接快捷键",
+        "shortcut_for_openlinkpool":"打开链接池快捷键"
     }
     translateFuncs = {
         "en": En,
@@ -250,7 +289,7 @@ class Translate:
     视图命名规则:str=rosetta("视图名不能有空白字符,不能有连续4个':',即'::::'非法")
     视图名必须是JSON合法的字符串:str=rosetta("视图名必须是JSON合法的字符串")
     打开于视图:str=rosetta("打开于视图")
-    直接打开:str=rosetta("直接打开")
+    直接打开:str=rosetta("临时视图")
     删除边:str=rosetta("删除边")
     隐藏边:str=rosetta("隐藏边")
     Anki搜索:str=rosetta("Anki搜索")
@@ -268,6 +307,28 @@ class Translate:
     未到期:str=rosetta("未到期")
     学习:str=rosetta("学习")
     请选择卡片:str=rosetta("请选择卡片")
+    复习相关:str=rosetta("复习相关")
+    链接相关:str=rosetta("链接相关")
+    快捷键:str=rosetta("快捷键")
+    同步与备份:str=rosetta("同步与备份")
+    关于:str=rosetta("关于")
+    已冻结:str=rosetta("已冻结")
+    已解冻:str=rosetta("已解冻")
+    过快提示:str=rosetta("你复习得太快了,你确定你记住了吗?")
+    自动复习提示:str=rosetta("即将开始自动复习,请确认执行")
+    查看数据库最近更新时间:str=rosetta("查看数据库最近更新时间")
+    手风琴式:str=rosetta("手风琴式")
+    直铺式:str=rosetta("直铺式")
+    请点击叶结点:str=rosetta("请点击叶结点")
+    重命名:str=rosetta("重命名")
+    删除:str=rosetta("删除")
+    视图:str=rosetta("视图")
+    自动复习视图:str=rosetta("自动复习视图")
+    反链视图:str=rosetta("含于视图")
+    新建视图:str=rosetta("新建视图")
+    插入视图:str=rosetta("插入到已有视图")
+    粘贴卡片:str=rosetta("粘贴卡片")
+    插入到已打开视图:str=rosetta("插入到已打开视图")
 
 if __name__ == "__main__":
     print(Translate.打开配置表)

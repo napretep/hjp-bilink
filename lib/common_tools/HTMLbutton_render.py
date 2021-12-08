@@ -62,14 +62,15 @@ class AnchorButtonMaker(FieldHTMLData):
 
     def button_make(self, card_id):
         h = self.html_root
-        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor button",
+        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor backlink button",
                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
         cardinfo = self.data.link_dict[card_id]
         b.string = "→"+cardinfo.desc #funcs.CardOperation.desc_extract(card_id)
         return b
 
     def cascadeDIV_create(self):
-
+        details, div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "backlink",attr={"open": ""})
+        self.anchor_body_L1.append(details)
         for item in self.data.root:
             if item.card_id != "":
                 L2 = self.button_make(item.card_id)
@@ -77,7 +78,7 @@ class AnchorButtonMaker(FieldHTMLData):
                 L2 = self.details_make(item.nodeuuid)
             else:
                 raise ValueError(f"{item}没有值")
-            self.anchor_body_L1.append(L2)
+            div.append(L2)
 
     def details_make(self, nodeuuid):
         node = self.data.node[nodeuuid]
@@ -135,7 +136,7 @@ class InTextButtonMaker(FieldHTMLData):
         card_id = data["card_id"]
         desc = data["desc"]
         h = self.html_root
-        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink intext button",
+        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor intext button",
                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
         b.string = desc
         return b.__str__()
@@ -174,13 +175,13 @@ class PDFPageButtonMaker(FieldHTMLData):
         from .objs import PDFinfoRecord
 
         # PDF_baseinfo_dict = clipper_imports.objs.SrcAdmin.PDF_JSON.load().data
-        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "clipped_from_PDF")
+        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "clipped_from_PDF",attr={"open": ""})
         for pdfuuid, page_pdf in PDF_page_dict.items():  # {uuid:{pagenum:{},pdfname:""}}
             pdfinfo: PDFinfoRecord = page_pdf["info"]
             pdfname = funcs.str_shorten(os.path.basename(pdfinfo.pdf_path))
             pagenumlist = list(page_pdf["pagenum"])
             details2, div2 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, pdfname, attr={"open": ""})
-            details1.append(details2)
+            div1.append(details2)
             for pagenum in pagenumlist:
                 uuid = pdfuuid
                 desc = f""" pdf_page_at: {pagenum}, book_page_at:{pagenum - pdfinfo.offset + 1} """
@@ -202,18 +203,17 @@ class AutoReviewButtonMaker(FieldHTMLData):
 
     def button_make(self, card_id):
         h = self.html_root
-        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor button",
+        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor autoreview button",
                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
         b.string = "→" + funcs.CardOperation.desc_extract(card_id)
         return b
 
     def cascadeDIV_create(self):
-        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "auto_review_list")
+        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "auto_review_list",attr={"open": ""})
         searchs = G.AutoReview_dict.card_group[int(self.card_id)]
         for search in searchs:
-
-            details2,div2=funcs.HTML_LeftTopContainer_detail_el_make(self.html_root,search)
-            details1.append(details2)
+            details2,div2=funcs.HTML_LeftTopContainer_detail_el_make(self.html_root,search,attr={"open": ""})
+            div1.append(details2)
             cids = G.AutoReview_dict.search_group[search]
             for cid in cids:
                 button = self.button_make(cid)
@@ -221,6 +221,28 @@ class AutoReviewButtonMaker(FieldHTMLData):
         self.anchor_body_L1.append(details1)
         pass
 
+class GViewButtonMaker(FieldHTMLData):
+    def build(self,view_li:"set[funcs.GViewData]"=None):
+        if not view_li:view_li = funcs.GviewOperation.find_by_card([funcs.LinkDataPair(self.card_id)])
+        self.cascadeDIV_create(view_li)
+        return self.html_root.__str__()
+
+    def button_make(self,view:"funcs.GViewData"):
+        ankilink = funcs.G.src.ankilink
+        pycmd = f"""{ankilink.protocol}://{ankilink.cmd.opengview}={view.uuid}"""
+        h = self.html_root
+        b = h.new_tag("button",attrs={"view_id":view.uuid,"class": "hjp-bilink anchor view button",
+                                      "onclick": f"""javascript:pycmd('{pycmd}');"""})
+        b.string = view.name
+        return b
+
+    def cascadeDIV_create(self,view_li:"set[funcs.GViewData]"):
+        details,div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root,"related view",attr={"open": ""})
+        for view in view_li:
+            button = self.button_make(view)
+            div.append(button)
+        self.anchor_body_L1.append(details)
+        pass
 
 def HTMLbutton_make(htmltext, card):
     html_string = htmltext
@@ -229,15 +251,23 @@ def HTMLbutton_make(htmltext, card):
     data = linkdata_admin.read_card_link_info(str(card.id))
 
     if len(data.link_list) > 0 or len(data.backlink) > 0:
+        funcs.Utils.print("hasbacklink")
         html_string = AnchorButtonMaker(html_string, card_id=card.id).build()
-        # print(html_string)
     hasInTextButton = len(backlink_reader.BackLinkReader(html_str=htmltext).backlink_get()) > 0
     if hasInTextButton:
+        funcs.Utils.print("hasInTextButton")
         html_string = InTextButtonMaker(html_string).build()
     if funcs.HTML_clipbox_exists(html_string):
+        funcs.Utils.print("clipbox_exists")
         html_string = PDFPageButtonMaker(html_string, card_id=card.id).build()
     if G.AutoReview_dict and card.id in G.AutoReview_dict.card_group:
+        funcs.Utils.print("AutoReview")
         html_string = AutoReviewButtonMaker(html_string, card_id=card.id).build()
+
+    view_li = funcs.GviewOperation.find_by_card([funcs.LinkDataPair(str(card.id))])
+    if len(view_li)>0:
+        funcs.Utils.print("len(view_li)>0:")
+        html_string = GViewButtonMaker(html_string,card_id=card.id).build(view_li=view_li)
     return html_string
 
 

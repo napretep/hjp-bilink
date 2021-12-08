@@ -12,12 +12,30 @@ import os
 
 from aqt.utils import tooltip, showInfo
 
+MAXINT = 2147483647
+MININT = -2147483646
 
 class SrcAdmin:
     ADDON_VERSION="2.0.3"
     addon_name = "hjp_bilink"
     dialog_name = "hjp_bilink_dialog"
     autoreview_update_interval = 3000
+
+    @dataclasses.dataclass
+    class AnkiLink:
+        protocol = "ankilink"
+        cmd:"SrcAdmin.AnkiLink.Cmd" = dataclasses.field(default_factory=lambda :SrcAdmin.AnkiLink.Cmd)
+        @dataclasses.dataclass
+        class Cmd:
+            opengview="opengview_id"
+            openbrowser_search="openbrowser_search"
+            opencard="opencard_id"
+
+        @staticmethod
+        def get(protocol,cmd,value):
+            return f"{protocol}://{cmd}={value}"
+
+
 
     @dataclasses.dataclass
     class Path:
@@ -33,7 +51,7 @@ class SrcAdmin:
         groupSite: "str" = "https://jq.qq.com/?_wv=1027&k=ymObH667"
         introdoc_dir: "str" = os.path.join(resource, "introDoc")
         version_dir: "str" = os.path.join(resource, "versions")
-        userconfig: "str" = os.path.join(user, "config.txt")
+        userconfig: "str" = os.path.join(user, "config.json")
         baseconfig: "str" = os.path.join(root, "baseInfo.json")
         userconfigtemplate: "str" = os.path.join(resource_data, "config.template.json")
         card_model_template:"str" =os.path.join(resource_data,"model.json")
@@ -41,7 +59,9 @@ class SrcAdmin:
         logtext: "str" = os.path.join(root, "log.txt")
         DB_file: "str" = os.path.join(user, "linkInfo.db")
         data_crash_log: "str" = os.path.join(root, "data_crash.txt")
-        anchor_CSS_file: "str" = os.path.join(resource_data, "anchor_CSS_default.css")
+        anchor_CSS_accordion_file: "str" = os.path.join(resource_data, "anchor_CSS_accordion.css")
+        anchor_CSS_straight_file:"str" = os.path.join(resource_data, "anchor_CSS_straight.css")
+        anchor_CSS_file:"list"=dataclasses.field(default_factory=list)
 
     class _ImgDir:
         def __init__(self, superior: "SrcAdmin", root: "SrcAdmin"):
@@ -102,6 +122,7 @@ class SrcAdmin:
             self.rename = os.path.join(self.root.path.resource_icon,"icon_rename.png")
             self.delete = os.path.join(self.root.path.resource_icon,"icon_delete.png")
             self.open = os.path.join(self.root.path.resource_icon, "icon_open.png")
+            self.help = os.path.join(self.root.path.resource_icon,"icon_help.png")
 
     @dataclasses.dataclass
     class _ShortCut:
@@ -140,6 +161,11 @@ class SrcAdmin:
         if cls.instance is None:
             cls.instance = cls()
             cls.path = cls.Path()
+            cls.path.anchor_CSS_file=[
+                cls.path.anchor_CSS_accordion_file,
+                cls.path.anchor_CSS_straight_file
+            ]
+            cls.ankilink = cls.AnkiLink()
             if not os.path.exists(cls.path.user):
                 showInfo("user_files不存在,已建立")
                 os.mkdir(cls.path.user)
@@ -148,6 +174,8 @@ class SrcAdmin:
 
     pass
 
+
+src = SrcAdmin.start()
 
 if __name__ == "__main__":
     a = SrcAdmin.start()
