@@ -49,4 +49,14 @@ def on_js_message(handled, url: str, context):
                                            # [pair] if pair else None)
             else:
                 showInfo(f"""视图不存在,id={uuid}""")
+        elif url.startswith(f"{ankilink.protocol}://{ankilink.cmd.opencard}="):
+            card_id = url[-13:]
+            if funcs.CardOperation.exists(card_id):
+                funcs.Dialogs.open_custom_cardwindow(card_id).activateWindow()
+            else:
+                showInfo(f"""卡片不存在,card_id={card_id}""")
+        elif url.startswith(f"{ankilink.protocol}://{ankilink.cmd.openbrowser_search}="):
+            s_len = len(f"{ankilink.protocol}://{ankilink.cmd.openbrowser_search}=")
+            searchstring =url[s_len+1:]
+            funcs.BrowserOperation.search(searchstring).activateWindow()
     return handled
