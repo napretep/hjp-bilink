@@ -1,5 +1,6 @@
 # Default ignored files
 /.idea/
 debug.json
-/user_files/
+/user_files/*
 /user_files/linkInfo.db
+/user_files/config.json
