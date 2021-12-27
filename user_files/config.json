@@ -27,9 +27,9 @@
     "shortcut_for_openlinkpool": "alt+ctrl+`",
     "anchor_style_text": "",
     "anchor_style_file": "",
-    "anchor_style_preset": 0,
+    "anchor_style_preset": 1,
     "auto_backup": true,
     "auto_backup_interval": 12,
     "auto_backup_path": "",
-    "last_backup_time": 1638980153.224167
+    "last_backup_time": 1640622441.373309
 }
