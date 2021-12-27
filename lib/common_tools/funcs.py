@@ -256,8 +256,9 @@ class Utils(object):
         return QPointF(rect.x()+rect.width()/2,rect.y()+rect.height()/2)
 
     @staticmethod
-    def print(*args, **kwargs):
+    def print(*args,need_timestamp=True, **kwargs):
         if G.ISDEBUG:
+            if need_timestamp: print(datetime.now().strftime("%Y%m%d%H%M%S"))
             print(*args, **kwargs)
 
 class AutoReview(object):

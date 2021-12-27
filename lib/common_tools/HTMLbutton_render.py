@@ -54,9 +54,11 @@ class AnchorButtonMaker(FieldHTMLData):
         # data = LinkDataReader(self.card_id).read()
         # self.data = data
         self.data = linkdata_admin.read_card_link_info(self.card_id)
-        if not self.data.root:
+        if not self.data.root and not self.data.backlink:
+            funcs.Utils.print(f"self.data.root = {self.data.root.__str__()}",need_timestamp=True)
             return self.html_root.__str__()
         self.cascadeDIV_create()  # 这个名字其实取得不好,就是反链的设计
+        funcs.Utils.print("next backlink_create",need_timestamp=True)
         self.backlink_create()  # 这个是文内链接的设计,顺便放着的,因为用的元素基本一样.
         return self.html_root.__str__()
 
@@ -97,7 +99,7 @@ class AnchorButtonMaker(FieldHTMLData):
     def backlink_create(self):
         from ..bilink import linkdata_admin
         h = self.html_root
-
+        funcs.Utils.print("make backlink",need_timestamp=True)
         if len(self.data.backlink) == 0:
             return None
         details, div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "referenced_in_text",
@@ -253,22 +255,22 @@ def HTMLbutton_make(htmltext, card):
     data = linkdata_admin.read_card_link_info(str(card.id))
 
     if len(data.link_list) > 0 or len(data.backlink) > 0:
-        funcs.Utils.print("hasbacklink")
+        funcs.Utils.print(f"{card.id} hasbacklink")
         html_string = AnchorButtonMaker(html_string, card_id=card.id).build()
     hasInTextButton = len(backlink_reader.BackLinkReader(html_str=htmltext).backlink_get()) > 0
     if hasInTextButton:
-        funcs.Utils.print("hasInTextButton")
+        funcs.Utils.print(f"{card.id} hasInTextButton")
         html_string = InTextButtonMaker(html_string).build()
     if funcs.HTML_clipbox_exists(html_string):
-        funcs.Utils.print("clipbox_exists")
+        funcs.Utils.print(f"{card.id} clipbox_exists")
         html_string = PDFPageButtonMaker(html_string, card_id=card.id).build()
     if G.AutoReview_dict and card.id in G.AutoReview_dict.card_group:
-        funcs.Utils.print("AutoReview")
+        funcs.Utils.print(f"{card.id} AutoReview")
         html_string = AutoReviewButtonMaker(html_string, card_id=card.id).build()
 
     view_li = funcs.GviewOperation.find_by_card([funcs.LinkDataPair(str(card.id))])
     if len(view_li)>0:
-        funcs.Utils.print("len(view_li)>0:")
+        funcs.Utils.print(f"{card.id} len(view_li)>0:")
         html_string = GViewButtonMaker(html_string,card_id=card.id).build(view_li=view_li)
     html_string = funcs.AnchorOperation.is_empty_then_remove(html_string)
     return html_string

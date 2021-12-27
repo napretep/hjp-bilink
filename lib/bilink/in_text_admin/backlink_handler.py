@@ -25,8 +25,10 @@ def backlink_append(self_card_id, add):
     appended = False
     if type(self_card_id) != str:
         self_card_id = str(self_card_id)
+    common_tools.funcs.Utils.print(f"need to add = {add.__str__()}")
     for card_id in add:
         data = linkdata_admin.read_card_link_info(card_id)
+        common_tools.funcs.Utils.print(f"backlink of card of need to add ={data.backlink.__str__()}")
         if self_card_id not in data.backlink:
             data.backlink.append(self_card_id)  # 此处并不提供 卡片描述
             linkdata_admin.write_card_link_info(card_id, data.to_DB_record["data"])
