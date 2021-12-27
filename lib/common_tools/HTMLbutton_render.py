@@ -244,6 +244,8 @@ class GViewButtonMaker(FieldHTMLData):
         self.anchor_body_L1.append(details)
         pass
 
+
+
 def HTMLbutton_make(htmltext, card):
     html_string = htmltext
     from ..bilink import linkdata_admin
@@ -268,6 +270,7 @@ def HTMLbutton_make(htmltext, card):
     if len(view_li)>0:
         funcs.Utils.print("len(view_li)>0:")
         html_string = GViewButtonMaker(html_string,card_id=card.id).build(view_li=view_li)
+    html_string = funcs.AnchorOperation.is_empty_then_remove(html_string)
     return html_string
 
 

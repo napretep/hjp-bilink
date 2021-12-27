@@ -1735,6 +1735,21 @@ class Dialogs:
         dialog.closeEvent=lambda x:Config.save(cfg)
         dialog.exec_()
 
+class AnchorOperation:
+    @staticmethod
+    def is_empty_then_remove(html_str:"str"):
+        bs = BeautifulSoup(html_str,"html.parser")
+        roots = bs.select(f"#{G.addonName}")
+        tags = bs.select(f"#{G.addonName} .container_body_L1")
+        if len(roots)>0:
+            root:"BeautifulSoup" = roots[0]
+        else:
+            return bs.__str__()
+        if len(tags)>0 and len(list(tags[0].childGenerator()))==0:
+            root.extract()
+        return bs.__str__()
+
+
 class UUID:
     @staticmethod
     def by_random(length=8):
