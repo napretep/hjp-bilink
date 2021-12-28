@@ -1738,7 +1738,7 @@ class Dialogs:
 
 class AnchorOperation:
     @staticmethod
-    def is_empty_then_remove(html_str:"str"):
+    def if_empty_then_remove(html_str: "str"):
         bs = BeautifulSoup(html_str,"html.parser")
         roots = bs.select(f"#{G.addonName}")
         tags = bs.select(f"#{G.addonName} .container_body_L1")
@@ -1891,7 +1891,9 @@ def HTML_LeftTopContainer_detail_el_make(root: "BeautifulSoup", summaryname, att
     """
     if attr is None:
         attr = {}
-    attrs = {"class": "hjp_bilink details", **(attr.copy())}
+    attrs = attr.copy()
+    if "class" in attrs:attrs["class"]+=" hjp_bilink details"
+    else:attrs["class"]="hjp_bilink details"
     # print(attrs)
     details = root.new_tag("details", attrs=attrs)
     summary = root.new_tag("summary")
@@ -2276,7 +2278,7 @@ def HTML_txtContent_read(html):
             replace_str += re.sub("(\])|(\[)", lambda x: "\]" if x.group(0) == "]" else "\[",
                                   text[span[0]:span[1]]) + "|"
         replace_str = replace_str[0:-1]
-        text = re.sub(replace_str, "", newtext)
+        text = re.sub(replace_str.replace("\\","\\\\"), "", newtext)
     if not re.search("\S", text):
         a = root.find("img")
         if a is not None:

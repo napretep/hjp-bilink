@@ -71,7 +71,7 @@ class AnchorButtonMaker(FieldHTMLData):
         return b
 
     def cascadeDIV_create(self):
-        details, div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "backlink",attr={"open": ""})
+        details, div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "backlink",attr={"open": "","class":"backlink"})
         self.anchor_body_L1.append(details)
         for item in self.data.root:
             if item.card_id != "":
@@ -103,7 +103,7 @@ class AnchorButtonMaker(FieldHTMLData):
         if len(self.data.backlink) == 0:
             return None
         details, div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "referenced_in_text",
-                                                                  attr={"open": ""})
+                                                                  attr={"open": "","class":"referenced_in_text"})
         for card_id in self.data.backlink:
             data: "G.objs.LinkDataJSONInfo" = linkdata_admin.read_card_link_info(card_id)
             L2 = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor button",
@@ -177,7 +177,8 @@ class PDFPageButtonMaker(FieldHTMLData):
         from .objs import PDFinfoRecord
 
         # PDF_baseinfo_dict = clipper_imports.objs.SrcAdmin.PDF_JSON.load().data
-        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "clipped_from_PDF",attr={"open": ""})
+        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "clipped_from_PDF",attr={"open": "",
+                                                                                                             "class":"PDFclipper"})
         for pdfuuid, page_pdf in PDF_page_dict.items():  # {uuid:{pagenum:{},pdfname:""}}
             pdfinfo: PDFinfoRecord = page_pdf["info"]
             pdfname = funcs.str_shorten(os.path.basename(pdfinfo.pdf_path))
@@ -211,7 +212,8 @@ class AutoReviewButtonMaker(FieldHTMLData):
         return b
 
     def cascadeDIV_create(self):
-        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "auto_review_list",attr={"open": ""})
+        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "auto_review_list",attr={"open": "",
+                                                                                                             "class":"autoreview"})
         searchs = G.AutoReview_dict.card_group[int(self.card_id)]
         for search in searchs:
             details2,div2=funcs.HTML_LeftTopContainer_detail_el_make(self.html_root,search,attr={"open": ""})
@@ -239,7 +241,7 @@ class GViewButtonMaker(FieldHTMLData):
         return b
 
     def cascadeDIV_create(self,view_li:"set[funcs.GViewData]"):
-        details,div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root,"related view",attr={"open": ""})
+        details,div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root,"related view",attr={"open": "","class":"gview"})
         for view in view_li:
             button = self.button_make(view)
             div.append(button)
@@ -272,7 +274,7 @@ def HTMLbutton_make(htmltext, card):
     if len(view_li)>0:
         funcs.Utils.print(f"{card.id} len(view_li)>0:")
         html_string = GViewButtonMaker(html_string,card_id=card.id).build(view_li=view_li)
-    html_string = funcs.AnchorOperation.is_empty_then_remove(html_string)
+    html_string = funcs.AnchorOperation.if_empty_then_remove(html_string)
     return html_string
 
 
