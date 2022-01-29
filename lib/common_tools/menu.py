@@ -119,14 +119,14 @@ def make__copy_card_as(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
                  T.linkpool_selected_context, T.linkpool_context}:
         view: "Union[AnkiWebView,Browser]" = args[0]
         M: "QMenu" = args[1]
-        AnkiLinks = common_tools.funcs.AnkiLinks
+        AnkiLinks = common_tools.funcs.AnkiLinksCopy2
         pair_li: "list[common_tools.objs.LinkDataPair]" = kwargs[
             "pair_li"] if "pair_li" in kwargs else pairsli_admin.pairs_li
         act_li = [[Translate.文内链接, lambda: common_tools.funcs.copy_intext_links(pair_li)],
-                  [Translate.文内链接+"(new)",lambda: AnkiLinks.copy_card_as(AnkiLinks.Type.inAnki,pair_li)],
-                  [Translate.html链接, lambda: AnkiLinks.copy_card_as(AnkiLinks.Type.html, pair_li)],
-                  [Translate.markdown链接, lambda: AnkiLinks.copy_card_as(AnkiLinks.Type.markdown, pair_li)],
-                  [Translate.orgmode链接, lambda: AnkiLinks.copy_card_as(AnkiLinks.Type.orgmode, pair_li)]
+                  [Translate.文内链接+"(new)",lambda: AnkiLinks.Open.Card.from_htmlbutton(pair_li)],
+                  [Translate.html链接, lambda: AnkiLinks.Open.Card.from_htmllink(pair_li)],
+                  [Translate.markdown链接, lambda: AnkiLinks.Open.Card.from_markdown(pair_li)],
+                  [Translate.orgmode链接, lambda: AnkiLinks.Open.Card.from_orgmode(pair_li)]
                   ]
         M2 = M.addMenu(f"""{kwargs["prefix"]}{Translate.复制为}""")
         list(map(lambda x: M2.addAction(x[0]).triggered.connect(x[1]), act_li))
@@ -138,10 +138,10 @@ def make__copy_search_as(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
         view: "Browser" = args[0]
         M = get_browser_menu(view)
         M2 = M.addMenu(Translate.复制当前搜索栏为)
-        AnkiLinks = common_tools.funcs.AnkiLinks
-        act_li = [[Translate.html链接, lambda: AnkiLinks.copy_search_as(AnkiLinks.Type.html, view)],
-                  [Translate.markdown链接, lambda: AnkiLinks.copy_search_as(AnkiLinks.Type.markdown, view)],
-                  [Translate.orgmode链接, lambda: AnkiLinks.copy_search_as(AnkiLinks.Type.orgmode, view)]]
+        AnkiLinks = common_tools.funcs.AnkiLinksCopy2
+        act_li = [[Translate.html链接, lambda: AnkiLinks.Open.BrowserSearch.from_htmllink( view)],
+                  [Translate.markdown链接, lambda: AnkiLinks.Open.BrowserSearch.from_md(view)],
+                  [Translate.orgmode链接, lambda: AnkiLinks.Open.BrowserSearch.from_orgmode(view)]]
         list(map(lambda x: M2.addAction(x[0]).triggered.connect(x[1]), act_li))
 
 

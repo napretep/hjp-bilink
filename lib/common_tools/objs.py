@@ -28,9 +28,19 @@ class NONE:
 class CmdArgs:
     type:"str"
     args:"str"
-    def __init__(self,cmdargsli:[str,str]):
+    def __init__(self,cmdargsli:"list[str,str]"):
+        """需要在这里分辨不同版本的参数
+        0版:command=args
+        1版:command?key=args
+        """
         self.args=unquote(cmdargsli[1])
         self.type=cmdargsli[0].lower()
+
+
+    # def check_version(self,cmd:str):
+    #     if "?" in cmd.split("=")[0]:
+    #         return 1
+    #     elif
 
 
 @dataclass

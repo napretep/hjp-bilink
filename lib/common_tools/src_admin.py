@@ -30,7 +30,13 @@ class SrcAdmin:
             opengview="opengview_id"
             openbrowser_search="openbrowser_search"
             opencard="opencard_id"
+            open="open"
 
+        @dataclasses.dataclass
+        class Key:
+            card="card_id"
+            gview="gview_id"
+            browser_search="browser_search"
         @staticmethod
         def get(protocol,cmd,value):
             return f"{protocol}://{cmd}={value}"

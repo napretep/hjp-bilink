@@ -24,8 +24,8 @@ say = funcs.G.say
 def on_profile_will_close_handle():
     if funcs.LinkPoolOperation.exists():
         funcs.LinkPoolOperation.clear()
-    if funcs.LOG.exists():
-        funcs.LOG.file_clear()
+    if funcs.Utils.LOG.exists():
+        funcs.Utils.LOG.file_clear()
     cfg,now = funcs.Config.get(),datetime.now().timestamp()
     if funcs.LinkDataOperation.need_backup(cfg,now):
         funcs.LinkDataOperation.backup(cfg,now)

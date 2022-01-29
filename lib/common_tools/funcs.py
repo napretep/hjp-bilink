@@ -48,16 +48,57 @@ from .objs import LinkDataPair, LinkDataJSONInfo
 from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
 from .interfaces import ConfigInterface, AnswerInfoInterface, AutoReviewDictInterface, GViewData, GraphMode, \
     ConfigInterfaceItem
+def do_nothing(*args, **kwargs):
+    pass
+
+def write_to_log_file(s,need_timestamp=False):
+    if G.ISDEBUG:
+        f = open(G.src.path.logtext, "a", encoding="utf-8")
+        f.write("\n"+((datetime.now().strftime("%Y%m%d%H%M%S")+"\n" )if need_timestamp else "") + s)
+        f.close()
+def logger(logname=None, level=None, allhandler=None):
+    if G.ISDEBUG:
+        if logname is None:
+            logname = "hjp_clipper"
+        if level is None:
+            level = logging.DEBUG
+        printer = logging.getLogger(logname)
+        printer.setLevel(level)
+        log_dir = G.src.path.logtext
+
+        fmt = "%(asctime)s %(levelname)s %(threadName)s  %(pathname)s\n%(filename)s " \
+              "%(lineno)d\n%(funcName)s:\n %(message)s"
+        datefmt = "%Y-%m-%d %H:%M:%S"
+        formatter = logging.Formatter(fmt, datefmt)
+
+        filehandle = logging.FileHandler(log_dir)
+        filehandle.setLevel(level)
+        filehandle.setFormatter(formatter)
+
+        consolehandle = logging.StreamHandler()
+        consolehandle.setLevel(level)
+        consolehandle.setFormatter(formatter)
+        printer.addHandler(consolehandle)
+        printer.addHandler(filehandle)
+        return printer
+    else:
+        return do_nothing
 
 class MenuMaker:
 
     @staticmethod
     def gview_ankilink(menu,data):
         act = [Translate.文内链接, Translate.html链接, Translate.markdown链接, Translate.orgmode链接]
-        f = [lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.inAnki, data),
-             lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.html, data),
-             lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.markdown, data),
-             lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.orgmode, data), ]
+        # f = [lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.inAnki, data),
+        #      lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.html, data),
+        #      lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.markdown, data),
+        #      lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.orgmode, data), ]
+        f = [
+            lambda :AnkiLinksCopy2.Open.Gview.from_htmlbutton(data),
+            lambda :AnkiLinksCopy2.Open.Gview.from_htmllink(data),
+            lambda :AnkiLinksCopy2.Open.Gview.from_md(data),
+            lambda :AnkiLinksCopy2.Open.Gview.from_orgmode(data)
+        ]
         list(map(lambda x: menu.addAction(act[x]).triggered.connect(f[x]), range(len(f))))
         return menu
 
@@ -226,6 +267,19 @@ class Utils(object):
     @dataclasses.dataclass
     class MenuType:
         ankilink=0
+
+    class LOG:
+        logger = logger(__name__)
+        file_write = write_to_log_file
+
+        @staticmethod
+        def file_clear():
+            f = open(G.src.path.logtext, "w", encoding="utf-8")
+            f.write("")
+
+        @staticmethod
+        def exists():
+            return os.path.exists(G.src.path.logtext)
 
     @staticmethod
     def make_backup_file_name(filename,path=""):
@@ -1238,6 +1292,7 @@ class MonkeyPatch:
     @staticmethod
     def onAppMsgWrapper(self: AnkiQt):
         # self.app.appMsg.connect(self.onAppMsg)
+        """"""
         def handle_AnkiLink(buf):
             # buf加了绝对路径,所以要去掉
             # 有时候需要判断一下
@@ -1260,21 +1315,28 @@ class MonkeyPatch:
                 else:
                     tooltip("view not found")
             from .objs import CmdArgs
+            ankilink = G.src.ankilink
+            Utils.LOG.file_write(buf,True)
             cmd_dict = {
-                "opencard_id": handle_opencard,
-                "openbrowser_search": handle_openbrowser,
-                "opengview_id": handle_opengview,
+                #下面的是1版命令格式
+                f"{ankilink.Cmd.opencard}": handle_opencard,
+                f"{ankilink.Cmd.openbrowser_search}": handle_openbrowser,
+                f"{ankilink.Cmd.opengview}": handle_opengview,
+                #下面的是2版命令格式
+                f"{ankilink.Cmd.open}?{ankilink.Key.card}":handle_opencard,
+                f"{ankilink.Cmd.open}?{ankilink.Key.gview}": handle_opengview,
+                f"{ankilink.Cmd.open}?{ankilink.Key.browser_search}": handle_openbrowser,
             }
 
-            if buf.startswith("ankilink://"):  # 此时说明刚打开就进来了,没有经过包装,格式取buf[11:-1]
-                # showInfo(buf[11:-1])
+            if buf.startswith(f"{G.src.ankilink.protocol}://"):  # 此时说明刚打开就进来了,没有经过包装,格式取buf[11:-1]
                 cmd = CmdArgs(buf[11:-1].split("="))
             else:
-                cmd = CmdArgs(os.path.split(buf)[-1].split("="))
+                cmd = CmdArgs(buf.split(f"{G.src.ankilink.protocol}:\\")[-1].replace("\\","").split("="))
+
             if cmd.type in cmd_dict:
                 cmd_dict[cmd.type](cmd.args)
             else:
-                showInfo("未知指令错误/unknown command:" + cmd.type)
+                showInfo("未知指令/unknown command:  <br>" + cmd.type)
             pass
 
         def onAppMsg(buf: str):
@@ -1773,44 +1835,9 @@ def button_icon_clicked_switch(button: QToolButton, old: list, new: list, callba
         callback(button.text())
 
 
-def logger(logname=None, level=None, allhandler=None):
-    if G.ISDEBUG:
-        if logname is None:
-            logname = "hjp_clipper"
-        if level is None:
-            level = logging.DEBUG
-        printer = logging.getLogger(logname)
-        printer.setLevel(level)
-        log_dir = G.src.path.logtext
-
-        fmt = "%(asctime)s %(levelname)s %(threadName)s  %(pathname)s\n%(filename)s " \
-              "%(lineno)d\n%(funcName)s:\n %(message)s"
-        datefmt = "%Y-%m-%d %H:%M:%S"
-        formatter = logging.Formatter(fmt, datefmt)
-
-        filehandle = logging.FileHandler(log_dir)
-        filehandle.setLevel(level)
-        filehandle.setFormatter(formatter)
-
-        consolehandle = logging.StreamHandler()
-        consolehandle.setLevel(level)
-        consolehandle.setFormatter(formatter)
-        printer.addHandler(consolehandle)
-        printer.addHandler(filehandle)
-        return printer
-    else:
-        return do_nothing
 
 
-def do_nothing(*args, **kwargs):
-    pass
 
-
-def write_to_log_file(s,need_timestamp=False):
-    if G.ISDEBUG:
-        f = open(G.src.path.logtext, "a", encoding="utf-8")
-        f.write("\n"+((datetime.now().strftime("%Y%m%d%H%M%S")+"\n" )if need_timestamp else "") + s)
-        f.close()
 
 
 def str_shorten(string, length=30) -> str:
@@ -1978,7 +2005,173 @@ def HTML_LeftTopContainer_make(root: "BeautifulSoup"):
 class DataFROM:
     shortCut=0
 
+class AnkiLinksCopy2:
+    """新版的链接
+    格式f: {ankilink}://command?key=value
+    警告: 这个版本无法正常运行
+    """
+    protocol = f"{G.src.ankilink.protocol}"
+    class Open:
+        command = G.src.ankilink.cmd.open
+        class Card:
+            """"""
+            key=G.src.ankilink.Key.card
+            @staticmethod
+            def from_htmllink(pairs_li: 'list[G.objs.LinkDataPair]'):
+                """"""
+                AnkiLinksCopy2.Open.Card._gen_link(pairs_li, AnkiLinksCopy2.LinkType.htmllink)
+            @staticmethod
+            def from_htmlbutton(pairs_li: 'list[G.objs.LinkDataPair]'):
+                AnkiLinksCopy2.Open.Card._gen_link(pairs_li, AnkiLinksCopy2.LinkType.htmlbutton)
+
+            @staticmethod
+            def from_markdown(pairs_li: 'list[G.objs.LinkDataPair]'):
+                AnkiLinksCopy2.Open.Card._gen_link(pairs_li, AnkiLinksCopy2.LinkType.markdown)
+
+            @staticmethod
+            def from_orgmode(pairs_li: 'list[G.objs.LinkDataPair]'):
+                AnkiLinksCopy2.Open.Card._gen_link(pairs_li, AnkiLinksCopy2.LinkType.orgmode)
+
+            @staticmethod
+            def _gen_link(pairs_li: 'list[G.objs.LinkDataPair]', mode):
+                clipboard = QApplication.clipboard()
+                mmdata = QMimeData()
+                A = AnkiLinksCopy2
+                B = AnkiLinksCopy2.Open
+                C = AnkiLinksCopy2.Open.Card
+                header = f"{A.protocol}://{B.command}?{C.key}="
+                puretext = ""
+                total = ""
+                if mode == A.LinkType.htmllink:
+                    for pair in pairs_li:
+                        total += f"""<a href="{header}{pair.card_id}">{pair.desc}<a><br>""" + "\n"
+                        puretext += f"""{header}{pair.card_id}\n"""
+                    mmdata.setHtml(total)
+                    mmdata.setText(puretext)
+                    clipboard.setMimeData(mmdata)
+                    tooltip(puretext)
+                    return
+                elif mode == A.LinkType.htmlbutton:
+                    def buttonmaker(p: LinkDataPair):
+                        return f"""<div >|<button class="hjp_bilink ankilink button" onclick="javascript:pycmd('{header}{p.card_id}');">{p.desc}</button>|</div>"""
+                    for pair in pairs_li:
+                        total += buttonmaker(pair)
+                    clipboard.setText(total)
+                elif mode == A.LinkType.markdown:
+                    for pair in pairs_li:
+                        total += f"""[{pair.desc}]({header}{pair.card_id})\n"""
+                    clipboard.setText(total)
+                elif mode == A.LinkType.orgmode:
+                    for pair in pairs_li:
+                        total += f"""[[{header}{pair.card_id}][{pair.desc}]]\n"""
+                    clipboard.setText(total)
+                tooltip(total)
+        class BrowserSearch:
+            """"""
+            key=G.src.ankilink.Key.browser_search
+            @staticmethod
+            def from_htmllink(browser: "Browser"):
+                """"""
+                AnkiLinksCopy2.Open.BrowserSearch._gen_link(browser, AnkiLinksCopy2.LinkType.htmllink)
+
+            # @staticmethod
+            # def from_htmlbutton(browser: "Browser"):
+            #     """"""
+            #     AnkiLinksCopy2.Open.BrowserSearch.gen_link(browser, AnkiLinksCopy2.LinkType.htmlbutton)
+
+            @staticmethod
+            def from_md(browser: "Browser"):
+                """"""
+                AnkiLinksCopy2.Open.BrowserSearch._gen_link(browser, AnkiLinksCopy2.LinkType.markdown)
+
+            @staticmethod
+            def from_orgmode(browser: "Browser"):
+                """"""
+                AnkiLinksCopy2.Open.BrowserSearch._gen_link(browser, AnkiLinksCopy2.LinkType.orgmode)
+
+            @staticmethod
+            def _gen_link(browser: "Browser",mode):
+                """"""
+                mmdata = QMimeData()
+                clipboard = QApplication.clipboard()
+                A = AnkiLinksCopy2
+                B = AnkiLinksCopy2.Open
+                C = AnkiLinksCopy2.Open.BrowserSearch
+                searchstring = browser.form.searchEdit.currentText()
+                tooltip(searchstring)
+                header = f"{A.protocol}://{B.command}?{C.key}="
+                href = header + quote(searchstring)
+
+                func_dict = {
+                    A.LinkType.htmllink:lambda :f"""<a href="{href}">{Translate.Anki搜索}:{searchstring}</a>""",
+
+                    A.LinkType.orgmode:lambda :f"[[{href}][{Translate.Anki搜索}:{searchstring}]]",
+                    A.LinkType.markdown:lambda :f"[{Translate.Anki搜索}:{searchstring}]({href})",
+                }
+                if mode == A.LinkType.htmllink:
+                    mmdata.setText(href)
+                    mmdata.setHtml(func_dict[mode]())
+                    clipboard.setMimeData(mmdata)
+                else:
+                    clipboard.setText(func_dict[mode]())
+                tooltip(href)
+
+        class Gview:
+            """"""
+            key=G.src.ankilink.Key.gview
+            @staticmethod
+            def from_htmllink(data:"GViewData"):
+                """"""
+                AnkiLinksCopy2.Open.Gview._gen_link(data, AnkiLinksCopy2.LinkType.htmllink)
+            @staticmethod
+            def from_htmlbutton(data:"GViewData"):
+                """"""
+                AnkiLinksCopy2.Open.Gview._gen_link(data, AnkiLinksCopy2.LinkType.htmlbutton)
+            @staticmethod
+            def from_md(data:"GViewData"):
+                """"""
+                AnkiLinksCopy2.Open.Gview._gen_link(data, AnkiLinksCopy2.LinkType.markdown)
+            @staticmethod
+            def from_orgmode(data:"GViewData"):
+                """"""
+                AnkiLinksCopy2.Open.Gview._gen_link(data, AnkiLinksCopy2.LinkType.orgmode)
+
+            @staticmethod
+            def _gen_link(data: "GViewData", mode):
+                mmdata = QMimeData()
+                clipboard = QApplication.clipboard()
+                A = AnkiLinksCopy2
+                B = AnkiLinksCopy2.Open
+                C = AnkiLinksCopy2.Open.Gview
+                header = f"{A.protocol}://{B.command}?{C.key}="
+                href = header + quote(data.uuid)
+
+                func_dict = {
+                    A.LinkType.htmllink: lambda: f"""<a href="{href}">{Translate.Anki搜索}:{data.name}</a>""",
+                    A.LinkType.orgmode: lambda: f"[[{href}][{Translate.Anki搜索}:{data.name}]]",
+                    A.LinkType.markdown: lambda: f"[{Translate.Anki搜索}:{data.name}]({href})",
+                    A.LinkType.htmlbutton:lambda : f"""<div >|<button class="hjp_bilink ankilink button" onclick="javascript:pycmd('{href}');">{Translate.Anki视图}:{data.name}</button>|</div>"""
+                }
+                if mode == A.LinkType.htmllink:
+                    mmdata.setText(href)
+                    mmdata.setHtml(func_dict[mode]())
+                    clipboard.setMimeData(mmdata)
+                else:
+                    clipboard.setText(func_dict[mode]())
+                tooltip(href)
+
+    class LinkType:
+        inAnki =0
+        htmlbutton = 1
+        htmllink = 2
+        markdown = 3
+        orgmode = 4
+
+
 class AnkiLinks:
+    """这个版本已经废弃,仅用来兼容
+    AnkiLinksCopy2存在无法运行的问题
+    """
     class Type:
         html = 0
         markdown = 1
@@ -1989,7 +2182,7 @@ class AnkiLinks:
     def copy_card_as(linktype: int=None, pairs_li: 'list[G.objs.LinkDataPair]'=None,FROM=None):
         tooltip(pairs_li.__str__())
         clipboard = QApplication.clipboard()
-        header = "ankilink://opencard_id="
+        header = f"{G.src.ankilink.protocol}://opencard_id="
         if FROM==DataFROM.shortCut:
             pairs_li = BrowserOperation.get_selected_card()
             linktype = Config.get().default_copylink_mode.value
@@ -2043,7 +2236,7 @@ class AnkiLinks:
         searchstring = browser.form.searchEdit.currentText()
         tooltip(searchstring)
         clipboard = QApplication.clipboard()
-        header = "ankilink://openbrowser_search="
+        header = f"{G.src.ankilink.protocol}://openbrowser_search="
         href = header + quote(searchstring)
 
         def as_html():
@@ -2074,7 +2267,7 @@ class AnkiLinks:
     def copy_gview_as(linktype:int,data:"GViewData"):
         tooltip(data.__str__())
         clipboard = QApplication.clipboard()
-        header = "ankilink://opengview_id="
+        header = f"{G.src.ankilink.protocol}://opengview_id="
         href = header + quote(data.uuid)
 
         def as_html():
@@ -2101,9 +2294,6 @@ class AnkiLinks:
             clipboard.setText(total)
             pass
 
-
-
-
         typ = AnkiLinks.Type
         func_dict = {typ.html: as_html,
                      typ.orgmode: as_orgmode,
@@ -2116,7 +2306,7 @@ class AnkiLinks:
         from ..bilink.linkdata_admin import read_card_link_info
         clipboard = QApplication.clipboard()
         cliptext = clipboard.text()
-        reg_str=r"(?:ankilink://opencard_id=|\[\[link:)(\d+)"
+        reg_str=fr"(?:{G.src.ankilink.protocol}://opencard_id=|\[\[link:)(\d+)"
         pair_li = [read_card_link_info(card_id).self_data for card_id in re.findall(reg_str,cliptext)]
         return pair_li
 
@@ -2315,15 +2505,3 @@ CardId = Compatible.CardId()
 log = logger(__name__)
 
 
-class LOG:
-    logger = logger(__name__)
-    file_write = write_to_log_file
-
-    @staticmethod
-    def file_clear():
-        f = open(G.src.path.logtext, "w", encoding="utf-8")
-        f.write("")
-
-    @staticmethod
-    def exists():
-        return os.path.exists(G.src.path.logtext)

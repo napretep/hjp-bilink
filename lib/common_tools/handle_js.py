@@ -1,3 +1,5 @@
+from urllib.parse import quote, unquote
+
 from aqt import mw
 # from ..dialogs.DialogCardPrev import external_card_dialog
 from aqt.browser.previewer import BrowserPreviewer
@@ -22,13 +24,15 @@ def find_card_from_context(context):
         return context.card().id
     return None
 def on_js_message(handled, url: str, context):
+    """onAppMsgWrapper 这个函数也控制一些读取, 这里搞不懂的去那看看"""
     if url.startswith("hjp-bilink-cid:"):
         cid: "CardId" = CardId(int(url.split(":")[-1]))
-        card = mw.col.getCard(cid)
-        if funcs.CardOperation.exists(card):
+
+        if funcs.CardOperation.exists(cid):
+            card = mw.col.getCard(cid)
             funcs.Dialogs.open_custom_cardwindow(card).activateWindow()
         else:
-            showInfo(f"""卡片不存在,id={str(card.id)}""")
+            showInfo(f"""卡片不存在,id={str(cid)}""")
         return True, None
     elif url.startswith("hjp-bilink-clipuuid:"):
         pdfuuid, pagenum = url.split(":")[-1].split("_")
@@ -57,6 +61,23 @@ def on_js_message(handled, url: str, context):
                 showInfo(f"""卡片不存在,card_id={card_id}""")
         elif url.startswith(f"{ankilink.protocol}://{ankilink.cmd.openbrowser_search}="):
             s_len = len(f"{ankilink.protocol}://{ankilink.cmd.openbrowser_search}=")
-            searchstring =url[s_len+1:]
+            searchstring =unquote(url[s_len+1:])
             funcs.BrowserOperation.search(searchstring).activateWindow()
+        elif url.startswith(f"{ankilink.protocol}://{ankilink.Cmd.open}?{ankilink.Key.card}="):
+            card_id = url[-13:]
+            if funcs.CardOperation.exists(card_id):
+                funcs.Dialogs.open_custom_cardwindow(card_id).activateWindow()
+            else:
+                showInfo(f"""卡片不存在,card_id={card_id}""")
+        elif url.startswith(f"{ankilink.protocol}://{ankilink.Cmd.open}?{ankilink.Key.gview}="):
+            gview_id = url[-8:]
+            if funcs.GviewOperation.exists(uuid=gview_id):
+                data = funcs.GviewOperation.load(uuid=gview_id)
+                funcs.Dialogs.open_grapher(gviewdata=data,mode=funcs.GraphMode.view_mode)
+        elif url.startswith(f"{ankilink.protocol}://{ankilink.Cmd.open}?{ankilink.Key.browser_search}="):
+            searchstring = unquote(url.split("=")[-1])
+            funcs.BrowserOperation.search(searchstring).activateWindow()
+        else:
+            showInfo("未知指令/unknown command:<br>"+url)
     return handled
+

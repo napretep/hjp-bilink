@@ -78,8 +78,17 @@ def setupShortCuts(self:"browser.Browser"):
     copylink,link,unlink,insert,linkpool = cfg.shortcut_for_copylink.value,cfg.shortcut_for_link.value,\
                                   cfg.shortcut_for_unlink.value,cfg.shortcut_for_insert.value,\
                                   cfg.shortcut_for_openlinkpool.value
+    typ = funcs.AnkiLinksCopy2.LinkType
+    cmd = funcs.AnkiLinksCopy2.Open.Card
+    funcs_dict = {
+        typ.inAnki:funcs.copy_intext_links,
+        typ.htmlbutton:cmd.from_htmlbutton,
+        typ.htmllink:cmd.from_htmllink,
+        typ.markdown:cmd.from_markdown,
+        typ.orgmode:cmd.from_orgmode,
+    }
     QShortcut(QKeySequence(copylink),self).activated.connect(
-        lambda:funcs.AnkiLinks.copy_card_as(FROM=funcs.DataFROM.shortCut))
+        lambda:funcs_dict[cfg.default_copylink_mode.value](funcs.BrowserOperation.get_selected_card()))
     QShortcut(QKeySequence(link), self).activated.connect(
         lambda:funcs.LinkPoolOperation.link(FROM=funcs.DataFROM.shortCut))
     QShortcut(QKeySequence(unlink), self).activated.connect(
