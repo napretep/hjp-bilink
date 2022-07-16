@@ -1,0 +1,38 @@
+div.container_L0 {
+    text-align: left!important;
+    border: 1px solid green;
+}
+
+.container_header_L1 {
+    z-index: 99999;
+    margin: 0 !important;
+    color: #fff;
+    background-color: green;
+    border: none;
+    border-radius: 1px;
+    max-width: 150px;
+    font-size: 15px;
+    display: inline-block;
+}
+
+.container_body_L1 {
+    z-index: 99999;
+    margin: 0 !important;
+    border: none;
+    border-radius: 1px;
+    font-size: 15px;
+    display: block;
+}
+
+div.container_body_L1>details details.hjp_bilink div,
+summary {
+    display: inline-block;
+}
+
+details.hjp_bilink details.hjp_bilink {
+    margin-left: 15px;
+}
+
+div.container_body_L1>details {
+    display: block;
+}
