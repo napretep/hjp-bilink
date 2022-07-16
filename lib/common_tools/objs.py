@@ -13,9 +13,13 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Union
 from urllib.parse import unquote
-
-from PyQt5.QtGui import QStandardItem
-from PyQt5.QtWidgets import QShortcut
+from .compatible_import import Anki
+if Anki.isQt6:
+    from PyQt6.QtGui import QStandardItem
+    from PyQt6.QtWidgets import QShortcut
+else:
+    from PyQt5.QtGui import QStandardItem
+    from PyQt5.QtWidgets import QShortcut
 from aqt import mw
 from aqt.utils import tooltip, showInfo
 
@@ -167,6 +171,7 @@ class LinkDataPair:
     @desc.setter
     def desc(self,value):
         self._desc=value
+        self.get_desc_from=LinkDescFrom.DB
 
     @property
     def int_card_id(self):
@@ -179,6 +184,7 @@ class LinkDataPair:
         return {"card_id":self.card_id, "desc":self.desc,"dir":self.dir}
 
     def update_desc(self):
+        """是从卡片中更新描述"""
         from . import funcs
         self.desc = funcs.desc_extract(self.card_id)
 

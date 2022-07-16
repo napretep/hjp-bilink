@@ -1,5 +1,10 @@
 import anki.notes
-from PyQt5.QtCore import QTimer
+from ..imports import common_tools
+Anki = common_tools.compatible_import.Anki
+if Anki.isQt6:
+    from PyQt6.QtCore import QTimer
+else:
+    from PyQt5.QtCore import QTimer
 from anki.notes import Note
 from aqt.editor import Editor
 from aqt.utils import tooltip, showInfo
@@ -57,7 +62,7 @@ def handle_editor_will_munge_html(text, editor: "Editor"):
         backlink_append_remove(self_card_id, nowbacklink, lastbacklink)
         note.hjp_bilink_backlink = nowbacklink
         QTimer().singleShot(100, common_tools.G.signals.on_data_refresh_all.emit)
-
+    common_tools.funcs.CardOperation.refresh()
     return text
 
 

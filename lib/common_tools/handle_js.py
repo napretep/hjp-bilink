@@ -1,3 +1,7 @@
+import os
+import platform
+import re
+import sys
 from urllib.parse import quote, unquote
 
 from aqt import mw
@@ -5,9 +9,9 @@ from aqt import mw
 from aqt.browser.previewer import BrowserPreviewer
 from aqt.editor import Editor
 from aqt.reviewer import Reviewer
-from aqt.utils import showInfo
+from aqt.utils import showInfo, tooltip
 
-from . import funcs
+from . import funcs,terms
 
 CardId = funcs.Compatible.CardId()
 
@@ -79,5 +83,18 @@ def on_js_message(handled, url: str, context):
             funcs.BrowserOperation.search(searchstring).activateWindow()
         else:
             showInfo("未知指令/unknown command:<br>"+url)
+    elif url.startswith("file://"):
+        pdfurl = re.sub("^file:/{2,3}|#page=\d+$","",url)
+        pdfpath = unquote(pdfurl)
+        pagenum = re.search("#page=(\d+)$",url).groups()[0] if re.search("#page=(\d+)$",url)!=None else "0"
+        cmd:"str" = funcs.G.CONFIG.PDFUrlLink_cmd.value
+        if cmd.__contains__(terms.PDFLink.url):
+            cmd=re.sub(f"{{{terms.PDFLink.url}}}",pdfurl,cmd)
+        else:
+            cmd = re.sub(f"{{{terms.PDFLink.path}}}", pdfpath, cmd)
+        cmd = re.sub(f"{{{terms.PDFLink.page}}}", pagenum, cmd)
+        print(cmd)
+        # tooltip(cmd)
+        os.system(cmd)
     return handled
 

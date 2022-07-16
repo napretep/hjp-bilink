@@ -1,9 +1,18 @@
 import os
+from . import compatible_import as compatible
 
-import aqt
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QShortcut
+Anki = compatible.Anki
+aqt = Anki.aqt
+if Anki.isQt6:
+    from PyQt6.QtCore import pyqtSignal
+    from PyQt6.QtGui import QKeySequence
+    from PyQt6.QtWidgets import QShortcut
+else:
+    from PyQt5.QtCore import pyqtSignal
+    from PyQt5.QtGui import QKeySequence
+    from PyQt5.QtWidgets import QShortcut
+from anki import hooks
+from aqt import browser
 from anki.notes import Note
 from anki.utils import isWin
 from aqt import gui_hooks, progress, mw, webview, reviewer
@@ -11,17 +20,15 @@ from aqt.browser.previewer import MultiCardPreviewer, BrowserPreviewer
 from aqt.editor import Editor
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, tooltip
+
 from . import menu
 from .G import signals
-from . import funcs, wrappers, compatible_import
+from . import funcs
 from .handle_js import on_js_message
 from ..bilink.in_text_admin.backlink_monitor import handle_editor_will_munge_html
 from . import events
-from anki.scheduler.v3 import Scheduler
 from .language import Translate
-from .interfaces import AnswerInfoInterface
-from anki import hooks
-from aqt import browser
+from .configsModel import AnswerInfoInterface
 
 
 def run():
@@ -32,27 +39,31 @@ def run():
     gui_hooks.browser_menus_did_init.append(menu.maker(menu.T.browser))
     gui_hooks.add_cards_did_init.append(events.on_add_cards_did_init_handle)
     gui_hooks.main_window_did_init.append(menu.maker(menu.T.mainwin))
-    gui_hooks.card_will_show.append(funcs.HTML_injecttoweb)
+    gui_hooks.editor_will_show_context_menu.append(menu.maker(menu.T.editor_context))
+
+    gui_hooks.reviewer_did_show_question.append(events.on_reviewer_did_show_question)
+
+    gui_hooks.card_will_show.append(events.on_card_will_show)
+    gui_hooks.add_cards_did_add_note.append(events.open_grahper_with_newcard)
     signals.on_clipper_closed.connect(funcs.on_clipper_closed_handle)
     gui_hooks.webview_did_receive_js_message.append(on_js_message)
     gui_hooks.editor_will_munge_html.append(handle_editor_will_munge_html)
     gui_hooks.profile_will_close.append(events.on_profile_will_close_handle)
-    gui_hooks.add_cards_did_add_note.append(events.open_grahper_with_newcard)
     gui_hooks.browser_sidebar_will_show_context_menu.append(events.on_browser_sidebar_will_show_context_menu_handle)
 
-    #AutoReview
-    signals.on_card_answerd.connect(funcs.CardOperation.auto_review)
+    # GroupReview
+    signals.on_card_answerd.connect(funcs.CardOperation.group_review)
     gui_hooks.reviewer_did_answer_card.append(lambda x, y, z: signals.on_card_answerd.emit(
-        AnswerInfoInterface(platform=x, card_id=y.id, option_num=z)
+            AnswerInfoInterface(platform=x, card_id=y.id, option_num=z)
     ))
-    signals.on_card_changed.connect(funcs.AutoReview.modified_card_record)
-    hooks.note_will_flush.append(lambda x : signals.on_card_changed.emit(x)) #能检查到更改field,tag,deck,只要显示了都会检测到
-    gui_hooks.collection_did_load.append(lambda x:funcs.AutoReview.begin())
-    signals.on_auto_review_search_string_changed.connect(funcs.AutoReview.build)
+    signals.on_card_changed.connect(funcs.GroupReview.modified_card_record)
+    hooks.note_will_flush.append(lambda x: signals.on_card_changed.emit(x))  # 能检查到更改field,tag,deck,只要显示了都会检测到
+    gui_hooks.collection_did_load.append(lambda x: funcs.GroupReview.begin())
+    signals.on_group_review_search_string_changed.connect(funcs.GroupReview.build)
 
-    #MonkeyPatch
+    # MonkeyPatch
     browser.browser.PreviewDialog = funcs.MonkeyPatch.BrowserPreviewer
-    browser.Browser.setupMenus = funcs.MonkeyPatch.BrowserSetupMenus(browser.Browser.setupMenus,setupShortCuts)
+    browser.Browser.setupMenus = funcs.MonkeyPatch.BrowserSetupMenus(browser.Browser.setupMenus, setupShortCuts)
     reviewer.Reviewer._showEaseButtons = funcs.MonkeyPatch.Reviewer_showEaseButtons(reviewer.Reviewer._showEaseButtons)
     reviewer.Reviewer.nextCard = funcs.MonkeyPatch.Reviewer_nextCard(reviewer.Reviewer.nextCard)
     setupAnkiLinkProtocol()
@@ -71,33 +82,33 @@ def test(*args, **kwargs):
     # signals.testsignal.blockSignals(True)
 
 
-
-def setupShortCuts(self:"browser.Browser"):
+def setupShortCuts(self: "browser.Browser"):
     """"""
     cfg = funcs.Config.get()
-    copylink,link,unlink,insert,linkpool = cfg.shortcut_for_copylink.value,cfg.shortcut_for_link.value,\
-                                  cfg.shortcut_for_unlink.value,cfg.shortcut_for_insert.value,\
-                                  cfg.shortcut_for_openlinkpool.value
+    copylink, link, unlink, insert, linkpool = cfg.shortcut_for_copylink.value, cfg.shortcut_for_link.value, \
+                                               cfg.shortcut_for_unlink.value, cfg.shortcut_for_insert.value, \
+                                               cfg.shortcut_for_openlinkpool.value
     typ = funcs.AnkiLinksCopy2.LinkType
     cmd = funcs.AnkiLinksCopy2.Open.Card
     funcs_dict = {
-        typ.inAnki:funcs.copy_intext_links,
-        typ.htmlbutton:cmd.from_htmlbutton,
-        typ.htmllink:cmd.from_htmllink,
-        typ.markdown:cmd.from_markdown,
-        typ.orgmode:cmd.from_orgmode,
+            typ.inAnki    : funcs.copy_intext_links,
+            typ.htmlbutton: cmd.from_htmlbutton,
+            typ.htmllink  : cmd.from_htmllink,
+            typ.markdown  : cmd.from_markdown,
+            typ.orgmode   : cmd.from_orgmode,
     }
-    QShortcut(QKeySequence(copylink),self).activated.connect(
-        lambda:funcs_dict[cfg.default_copylink_mode.value](funcs.BrowserOperation.get_selected_card()))
+    QShortcut(QKeySequence(copylink), self).activated.connect(
+            lambda: funcs_dict[cfg.default_copylink_mode.value](funcs.BrowserOperation.get_selected_card()))
     QShortcut(QKeySequence(link), self).activated.connect(
-        lambda:funcs.LinkPoolOperation.link(FROM=funcs.DataFROM.shortCut))
+            lambda: funcs.LinkPoolOperation.link(FROM=funcs.DataFROM.shortCut))
     QShortcut(QKeySequence(unlink), self).activated.connect(
-        lambda: funcs.LinkPoolOperation.unlink(FROM=funcs.DataFROM.shortCut))
+            lambda: funcs.LinkPoolOperation.unlink(FROM=funcs.DataFROM.shortCut))
     QShortcut(QKeySequence(insert), self).activated.connect(
-        lambda: funcs.LinkPoolOperation.insert(FROM=funcs.DataFROM.shortCut))
+            lambda: funcs.LinkPoolOperation.insert(FROM=funcs.DataFROM.shortCut))
     QShortcut(QKeySequence(linkpool), self).activated.connect(
-        lambda :funcs.Dialogs.open_linkpool()
+            lambda: funcs.Dialogs.open_linkpool()
     )
+
 
 def setupAnkiLinkProtocol():
     if isWin:
@@ -107,4 +118,3 @@ def setupAnkiLinkProtocol():
         mw.app.appMsg.disconnect(mw.onAppMsg)
         mw.onAppMsg = funcs.MonkeyPatch.onAppMsgWrapper(mw)
         mw.app.appMsg.connect(mw.onAppMsg)
-

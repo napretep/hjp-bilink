@@ -9,16 +9,22 @@ __time__ = '2021/8/1 15:36'
 import os
 import sys
 
-from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import Qt, QPoint, QModelIndex, QFileSystemWatcher, QPersistentModelIndex
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QCursor
-from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView, QLineEdit, QVBoxLayout, \
-    QHeaderView, QMenu
+from ..imports import common_tools
+Anki = common_tools.compatible_import.Anki
+if Anki.isQt6:
+    from PyQt6 import QtGui, QtCore
+    from PyQt6.QtCore import Qt, QPoint, QModelIndex, QFileSystemWatcher, QPersistentModelIndex
+    from PyQt6.QtGui import QStandardItemModel, QStandardItem, QIcon, QCursor
+    from PyQt6.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView, QLineEdit, \
+        QVBoxLayout, \
+        QHeaderView, QMenu
+else:
+    from PyQt5 import QtGui, QtCore
+    from PyQt5.QtCore import Qt, QPoint, QModelIndex, QFileSystemWatcher, QPersistentModelIndex
+    from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QCursor
+    from PyQt5.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView, QLineEdit, QVBoxLayout, \
+QHeaderView, QMenu
 import json
-
-from aqt import mw
-from aqt.utils import showInfo
 
 if __name__ == "__main__":
     from lib import common_tools
@@ -223,8 +229,9 @@ class LinkPoolDialog(QDialog):
                     group.appendRow(row)
                     # self.model_rootNode.appendRow(row)
                 self.model.appendRow([group, empty])
+        # from PyQt6.QtGui import QDropEvent
 
-        pos = event.pos()
+        pos = event.position().toPoint() if common_tools.compatible_import.Anki.isQt6 else event.pos()
         drop_index = self.view.indexAt(pos)
         item_target = self.model.itemFromIndex(drop_index)  #
         insert_posi = on_view_drop_position_insert_check(self, pos, drop_index)
@@ -263,8 +270,8 @@ class LinkPoolDialog(QDialog):
         self.setWindowTitle("link_pool")
         self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.input))
         self.setAcceptDrops(True)
-        self.view.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.view.setDragDropMode(self.view.DragDrop)
+        self.view.setSelectionMode(common_tools.compatible_import.SelectMode.ExtendedSelection)
+        self.view.setDragDropMode(common_tools.compatible_import.DragDropMode.DragDrop)
         self.view.setIndentation(8)
         self.view.header().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.view.setContextMenuPolicy(Qt.CustomContextMenu)

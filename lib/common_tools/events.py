@@ -7,11 +7,19 @@ __email__ = '564298339@qq.com'
 __time__ = '2021/7/30 9:15'
 """
 import shutil
+import time
 from datetime import datetime
-
-from PyQt5.QtCore import QTimer, QModelIndex
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QDialogButtonBox, QToolButton, QMenu
+from .compatible_import import Anki
+if Anki.isQt6:
+    from PyQt6.QtCore import QTimer, QModelIndex
+    from PyQt6.QtGui import QIcon
+    from PyQt6.QtWidgets import QDialogButtonBox, QToolButton, QMenu
+else:
+    from PyQt5.QtCore import QTimer, QModelIndex
+    from PyQt5.QtGui import QIcon
+    from PyQt5.QtWidgets import QDialogButtonBox, QToolButton, QMenu
+# from anki.cards_pb2 import Card
+from anki.cards import Card
 from anki.notes import Note
 from aqt import gui_hooks, mw
 from aqt.addcards import AddCards
@@ -20,6 +28,20 @@ from aqt.utils import tooltip, showInfo
 from . import objs
 from . import funcs
 say = funcs.G.say
+
+def on_card_will_show(htmltext, card, kind):
+
+    htmltext = funcs.HTML_injecttoweb(htmltext, card, kind)
+
+    return htmltext
+
+def on_reviewer_did_show_question(card:"Card"):
+    # showInfo("show question!")
+    starttime=funcs.G.cardChangedTime=time.time()
+    print(f"show question at time={starttime}")
+    if funcs.Config.get().time_up_buzzer.value>0:
+        funcs.ReviewerOperation.time_up_buzzer(card,starttime)
+
 
 def on_profile_will_close_handle():
     if funcs.LinkPoolOperation.exists():

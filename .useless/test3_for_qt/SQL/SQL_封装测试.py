@@ -58,6 +58,6 @@ class DB:
 
 
 if __name__ == "__main__":
-    DB.where(DB.EQ(A="B", C="D") & (DB.IN("U", "V", "W") | DB.LIKE("X", "%Y%")))
+    DB.where(DB.EQ(A="B", C="D") and (DB.IN("U", "V", "W") or DB.LIKE("X", "%Y%")))
 
     pass

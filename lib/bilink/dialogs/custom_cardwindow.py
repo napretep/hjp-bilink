@@ -2,13 +2,19 @@
 from datetime import date, datetime
 import time
 from typing import Optional
-
-import aqt
-from PyQt5 import QtGui
-from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QAbstractButton, QWidget, QVBoxLayout, QShortcut, QGridLayout, QLabel
+from ..imports import common_tools
+Anki = common_tools.compatible_import.Anki
+if Anki.isQt6:
+    from PyQt6 import QtGui
+    from PyQt6.QtCore import QTimer
+    from PyQt6.QtWidgets import QAbstractButton, QWidget, QVBoxLayout, QShortcut, QGridLayout, QLabel
+else:
+    from PyQt5 import QtGui
+    from PyQt5.QtCore import QTimer
+    from PyQt5.QtWidgets import QAbstractButton, QWidget, QVBoxLayout, QShortcut, QGridLayout, QLabel
 from anki.lang import _
 from anki.stats import CardStats
+import aqt
 from aqt import qconnect, QPushButton, QHBoxLayout, QDialogButtonBox, QKeySequence, QCheckBox
 # from aqt.previewer import Previewer
 from anki.cards import Card
@@ -185,6 +191,8 @@ class SingleCardPreviewer(Previewer):
         self.bottom_layout_due.addWidget(self.due_info_widget,0,0,1,1)
         self.bottom_layout_due.addWidget(self.bottom_tools_widget,0,1,1,1)
         self.vbox.addLayout(self.bottom_layout_due)
+        self.vbox.setStretch(0,1)
+        self.vbox.setStretch(1,0)
 
     def should_review(self):
         today, next_date, last_date = self._fecth_date()
@@ -222,8 +230,8 @@ class SingleCardPreviewer(Previewer):
     def _on_edit_button(self):
         note = self.mw.col.getNote(self.card().nid)
         external_note_dialog(note)
-        aqt.QDialog.reject(self)
-        common_tools.funcs.PDFprev_close(self.card().id, all=True)
+        # aqt.QDialog.reject(self)
+        # common_tools.funcs.PDFprev_close(self.card().id, all=True)
 
     def _create_answer_buttons(self):
         enum = ["","again","hard","good","easy"]
@@ -259,7 +267,7 @@ class SingleCardPreviewer(Previewer):
         mw = common_tools.compatible_import.mw
         sched = common_tools.compatible_import.mw.col.sched
         signals = common_tools.G.signals
-        answer = common_tools.interfaces.AnswerInfoInterface
+        answer = common_tools.configsModel.AnswerInfoInterface
 
         if self.card().timer_started is None:
             self.card().timer_started = time.time() - 60
@@ -362,7 +370,7 @@ class SingleCardPreviewerMod(SingleCardPreviewer):
 
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        common_tools.funcs.PDFprev_close(self.card().id, all=True)
+        # common_tools.funcs.PDFprev_close(self.card().id, all=True)
         # addonName = BaseInfo().dialogName
         common_tools.G.mw_card_window[str(self.card().id)] = None
         # card_window = aqt.mw.__dict__[addonName]["card_window"]

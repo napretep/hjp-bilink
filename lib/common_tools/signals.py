@@ -6,7 +6,11 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/7/30 9:15'
 """
-from PyQt5.QtCore import pyqtSignal, QObject
+from .compatible_import import Anki
+if Anki.isQt6:
+    from PyQt6.QtCore import pyqtSignal, QObject
+else:
+    from PyQt5.QtCore import pyqtSignal, QObject
 
 
 class CustomSignals(QObject):
@@ -29,7 +33,7 @@ class CustomSignals(QObject):
 
     on_card_changed = pyqtSignal(object)
 
-    on_auto_review_search_string_changed = pyqtSignal()
+    on_group_review_search_string_changed = pyqtSignal()
 
     @classmethod
     def start(cls):

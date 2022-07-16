@@ -16,14 +16,25 @@ from dataclasses import dataclass, field
 import typing
 from enum import Enum, unique
 from typing import Optional, Union
-
-from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QPointF, QRectF, QLineF, pyqtSignal, QPoint, QTimer, QModelIndex
-from PyQt5.QtGui import QPainterPath, QPainter, QPen, QColor, QBrush, QIcon, QStandardItemModel, QStandardItem, QCursor
-from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QGraphicsScene, QGraphicsItem, QDialog, QHBoxLayout, \
-    QGraphicsLineItem, QMenu, QGraphicsRectItem, QWidget, QGraphicsSceneMouseEvent, QStyleOptionGraphicsItem, \
-    QApplication, QInputDialog, QLineEdit, QTableView, QVBoxLayout, QToolButton, QGridLayout, QAbstractItemView, \
-    QTreeView, QMessageBox
+from ..imports import common_tools
+Anki = common_tools.compatible_import.Anki
+if Anki.isQt6:
+    from PyQt6 import QtGui
+    from PyQt6.QtCore import Qt, QPointF, QRectF, QLineF, pyqtSignal, QPoint, QTimer, QModelIndex
+    from PyQt6.QtGui import QPainterPath, QPainter, QPen, QColor, QBrush, QIcon, QStandardItemModel, QStandardItem, \
+        QCursor
+    from PyQt6.QtWidgets import QMainWindow, QGraphicsView, QGraphicsScene, QGraphicsItem, QDialog, QHBoxLayout, \
+        QGraphicsLineItem, QMenu, QGraphicsRectItem, QWidget, QGraphicsSceneMouseEvent, QStyleOptionGraphicsItem, \
+        QApplication, QInputDialog, QLineEdit, QTableView, QVBoxLayout, QToolButton, QGridLayout, QAbstractItemView, \
+        QTreeView, QMessageBox
+else:
+    from PyQt5 import QtGui
+    from PyQt5.QtCore import Qt, QPointF, QRectF, QLineF, pyqtSignal, QPoint, QTimer, QModelIndex
+    from PyQt5.QtGui import QPainterPath, QPainter, QPen, QColor, QBrush, QIcon, QStandardItemModel, QStandardItem, QCursor
+    from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QGraphicsScene, QGraphicsItem, QDialog, QHBoxLayout, \
+        QGraphicsLineItem, QMenu, QGraphicsRectItem, QWidget, QGraphicsSceneMouseEvent, QStyleOptionGraphicsItem, \
+        QApplication, QInputDialog, QLineEdit, QTableView, QVBoxLayout, QToolButton, QGridLayout, QAbstractItemView, \
+        QTreeView, QMessageBox
 from aqt.utils import showInfo, tooltip
 
 
@@ -36,8 +47,8 @@ else:
     from ..imports import common_tools
 
 LinkDataPair = common_tools.objs.LinkDataPair
-GraphMode = common_tools.interfaces.GraphMode
-GViewData = common_tools.interfaces.GViewData
+GraphMode = common_tools.configsModel.GraphMode
+GViewData = common_tools.configsModel.GViewData
 Translate = common_tools.language.Translate
 Struct = common_tools.objs.Struct
 funcs=common_tools.funcs
@@ -76,6 +87,11 @@ class Grapher(QDialog):
         #     self.load_view()
 
     def card_edit_desc(self,item:"Grapher.ItemRect"):
+        text, okPressed = common_tools.compatible_import.QInputDialog.getText(self,"get description","",text=item.pair.desc)
+        if okPressed:
+            item.pair.desc = text
+            common_tools.funcs.LinkDataOperation.update_desc_to_db(item.pair)
+            common_tools.funcs.CardOperation.refresh()
         pass
 
     def on_card_updated_handle(self, event):
@@ -496,11 +512,11 @@ class Grapher(QDialog):
             super().__init__(parent)
             self.ratio = 1
             self.superior = parent
-            self.setDragMode(self.ScrollHandDrag)
+            self.setDragMode(common_tools.compatible_import.DragMode.ScrollHandDrag)
             self.setRenderHints(QPainter.Antialiasing |  # 抗锯齿
                                 QPainter.HighQualityAntialiasing |  # 高精度抗锯齿
                                 QPainter.SmoothPixmapTransform)  # 平滑过渡 渲染设定
-            self.setViewportUpdateMode(self.FullViewportUpdate)
+            self.setViewportUpdateMode(common_tools.compatible_import.ViewportUpdateMode.FullViewportUpdate)
             self.Auxiliary_line: "Optional[QGraphicsLineItem]" = QGraphicsLineItem()
             self.Auxiliary_line.setZValue(-1)
             self.Auxiliary_line.setPen(Grapher.ItemEdge.normal_pen)
@@ -579,7 +595,7 @@ class Grapher(QDialog):
                 pass
 
             if event.buttons() == Qt.RightButton:
-                self.setDragMode(QGraphicsView.RubberBandDrag)
+                self.setDragMode(common_tools.compatible_import.DragMode.RubberBandDrag)
 
             super().mousePressEvent(event)
 
@@ -595,7 +611,7 @@ class Grapher(QDialog):
                 self.make_context_menu(event)
             self.draw_line_end_item, self.draw_line_start_item = None, None
             super().mouseReleaseEvent(event)
-            self.setDragMode(self.ScrollHandDrag)
+            self.setDragMode(common_tools.compatible_import.DragMode.ScrollHandDrag)
             self.superior.update()
             self.superior.data.mouse_right_clicked = False
             self.superior.data.mouse_left_clicked = False
@@ -607,8 +623,10 @@ class Grapher(QDialog):
             menu.addAction(Translate.创建为视图).triggered.connect(lambda:self.superior.create_view(*self.superior.data.node_edge_packup()))
             if len(pairli)>0:
                 menu.addAction(Translate.粘贴卡片).triggered.connect(lambda:self.superior.insert(pairli))
-
-            menu.exec(event.screenPos().toPoint())
+            # from PyQt6.QtGui import QMouseEvent
+            # QMouseEvent.globalPosition()
+            pos = event.globalPosition() if common_tools.compatible_import.Anki.isQt6 else event.screenPos()
+            menu.exec(pos.toPoint())
 
         pass
 
@@ -657,7 +675,11 @@ class Grapher(QDialog):
                 #     lambda: self.superior.remove_edge(self.itemA.pair.card_id, self.itemB.pair.card_id,
                 #                                       remove_bilink=False)
                 # )
-                menu.exec(event.screenPos())
+                # from PyQt6.QtWidgets import QGraphicsSceneMouseEvent
+                # QGraphicsSceneMouseEvent.screenPos()
+
+                pos = event.screenPos() #if common_tools.compatible_import.Anki.isQt6 else event.screenPosition()
+                menu.exec(pos)
 
             super().mousePressEvent(event)
 
@@ -681,9 +703,9 @@ class Grapher(QDialog):
             self.setPen(QPen(QColor(30, 144, 255)))
             self.setBrush(QBrush(QColor(30, 144, 255)))
             self.setRect(self.superior.data.default_rect)
-            self.setFlag(self.ItemIsMovable, True)
-            self.setFlag(self.ItemIsSelectable, True)
-            self.setFlag(self.ItemSendsGeometryChanges, True)
+            self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, True)
+            self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsSelectable, True)
+            self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemSendsGeometryChanges, True)
             self.setAcceptHoverEvents(True)
             w, h = self.boundingRect().width(), self.boundingRect().height()
             self.collide_LeftTop = QRectF(0, 0, w / 4, h / 4)
@@ -802,11 +824,11 @@ class Grapher(QDialog):
             for edge in edges:
                 edge.update_line()
             super().mouseMoveEvent(event)
-            tooltip(self.scenePos().__str__())
+            print(self.scenePos().__str__())
 
         def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
             super().mouseReleaseEvent(event)
-            self.setFlag(self.ItemIsMovable, True)
+            self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, True)
 
         def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
                   widget: typing.Optional[QWidget] = ...) -> None:
@@ -909,11 +931,12 @@ class GViewAdmin(QDialog):
         funcs.GviewOperation.update(data)
 
         pass
+
     def get_item(self)->"GViewAdmin.Item":
         indxs = self.view.selectedIndexes()
         if len(indxs) == 0:
             return False
-        item = self.model.itemFromIndex(indxs[0])
+        item:"GViewAdmin.Item" = self.model.itemFromIndex(indxs[0])
         return item
 
     def on_display_changed(self):
@@ -1068,8 +1091,8 @@ class GViewAdmin(QDialog):
             self.setParent(superior)
 
         def init_UI(self):
-            self.setSelectionMode(QAbstractItemView.SingleSelection)
-            self.setDragDropMode(self.NoDragDrop)
+            self.setSelectionMode(common_tools.compatible_import.SelectMode.SingleSelection)
+            self.setDragDropMode(common_tools.compatible_import.DragDropMode.NoDragDrop)
             self.setAcceptDrops(False)
 
     class Bottom(QWidget):

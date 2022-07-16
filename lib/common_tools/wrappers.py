@@ -44,8 +44,8 @@ def func_wrapper(before=None, after=None):
 def Previewer_close_wrapper(func):
     def do(self, QCloseEvent):
         result = func(self, QCloseEvent)
-        if self.card() is not None:
-            funcs.PDFprev_close(self.card().id, all=True)
+        # if self.card() is not None:
+        #     funcs.PDFprev_close(self.card().id, all=True)
         return result
 
     return do
@@ -53,7 +53,7 @@ def Previewer_close_wrapper(func):
 
 def BrowserPreviewer_card_change_wrapper(func):
     def do(self):
-        funcs.PDFprev_close(self.card().id, all=True)
+        # funcs.PDFprev_close(self.card().id, all=True)
         result = func(self)
         return result
 

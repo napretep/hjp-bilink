@@ -16,10 +16,13 @@ MAXINT = 2147483647
 MININT = -2147483646
 
 class SrcAdmin:
-    ADDON_VERSION="2.0.3"
+    ADDON_VERSION=""
     addon_name = "hjp_bilink"
     dialog_name = "hjp_bilink_dialog"
-    autoreview_update_interval = 3000
+    groupreview_update_interval = 3000
+
+    pdfurl_class_name="hjp_pdfurl_link"
+    pdfurl_style_class_name="hjp_pdfurl_style"
 
     @dataclasses.dataclass
     class AnkiLink:

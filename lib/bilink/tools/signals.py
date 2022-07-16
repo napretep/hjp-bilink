@@ -1,4 +1,9 @@
-from PyQt5.QtCore import pyqtSignal
+
+from ..imports import common_tools
+if common_tools.compatible_import.Anki.isQt6:
+    from PyQt6.QtCore import pyqtSignal
+else:
+    from PyQt5.QtCore import pyqtSignal
 
 
 class CustomSignals:

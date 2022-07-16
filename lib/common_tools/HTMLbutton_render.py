@@ -195,30 +195,30 @@ class PDFPageButtonMaker(FieldHTMLData):
     pass
 
 
-class AutoReviewButtonMaker(FieldHTMLData):
+class GroupReviewButtonMaker(FieldHTMLData):
     """
     打开卡片后,首先判断配置开了没有,
     """
     def build(self):
-        if funcs.Config.get().auto_review.value==1 and int(self.card_id) in G.AutoReview_dict.card_group:
+        if funcs.Config.get().group_review.value==True and int(self.card_id) in G.GroupReview_dict.card_group:
             self.cascadeDIV_create()
         return self.html_root.__str__()
 
     def button_make(self, card_id):
         h = self.html_root
-        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor autoreview button",
+        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor groupreview button",
                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
         b.string = "→" + funcs.CardOperation.desc_extract(card_id)
         return b
 
     def cascadeDIV_create(self):
-        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "auto_review_list",attr={"open": "",
-                                                                                                             "class":"autoreview"})
-        searchs = G.AutoReview_dict.card_group[int(self.card_id)]
+        details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "group_review_list",attr={"open": "",
+                                                                                                             "class":"groupreview"})
+        searchs = G.GroupReview_dict.card_group[int(self.card_id)]
         for search in searchs:
             details2,div2=funcs.HTML_LeftTopContainer_detail_el_make(self.html_root,search,attr={"open": ""})
             div1.append(details2)
-            cids = G.AutoReview_dict.search_group[search]
+            cids = G.GroupReview_dict.search_group[search]
             for cid in cids:
                 button = self.button_make(cid)
                 div2.append(button)
@@ -266,15 +266,17 @@ def HTMLbutton_make(htmltext, card):
     if funcs.HTML_clipbox_exists(html_string):
         funcs.Utils.print(f"{card.id} clipbox_exists")
         html_string = PDFPageButtonMaker(html_string, card_id=card.id).build()
-    if G.AutoReview_dict and card.id in G.AutoReview_dict.card_group:
-        funcs.Utils.print(f"{card.id} AutoReview")
-        html_string = AutoReviewButtonMaker(html_string, card_id=card.id).build()
+    if G.GroupReview_dict and card.id in G.GroupReview_dict.card_group:
+        funcs.Utils.print(f"{card.id} GroupReview")
+        html_string = GroupReviewButtonMaker(html_string, card_id=card.id).build()
 
     view_li = funcs.GviewOperation.find_by_card([funcs.LinkDataPair(str(card.id))])
     if len(view_li)>0:
         funcs.Utils.print(f"{card.id} len(view_li)>0:")
         html_string = GViewButtonMaker(html_string,card_id=card.id).build(view_li=view_li)
     html_string = funcs.AnchorOperation.if_empty_then_remove(html_string)
+    html_string = funcs.HTML.file_protocol_support(html_string)
+
     return html_string
 
 

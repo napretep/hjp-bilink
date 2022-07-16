@@ -1,5 +1,5 @@
-from anki.lang import *
-
+from . import compatible_import as compatible
+currentLang = compatible.Anki.Lang.currentLang
 
 def rosetta(text: str = ""):
     """# return text"""
@@ -76,7 +76,7 @@ def rosetta(text: str = ""):
         "已删除选中卡片": "selected card deleted",
         "input 已清空": "input cleared",
         "重置config": "config reset",
-        "打开anchor": "open anchor",
+        "打开卡片元信息": "open card meta info",
         "多选模式": "in multi-select mode",
         "普通模式": "in default mode",
         "同名组已合并": "the group with the same name has been merged",
@@ -143,10 +143,10 @@ def rosetta(text: str = ""):
         "在clipper中打开卡片":"open card in clipper",
         "在grapher中打开卡片":"open card in grapher",
         "添加同步复习标签":"add sync review tag",
-        "保存当前搜索条件为自动复习条件":"restore current search for auto review",
+        "保存当前搜索条件为群组复习条件":"restore current search for group review",
         "保存成功":"successfully restored",
-        "自动复习操作":"auto review operation",
-        "重建数据库":"rebuild auto review database",
+        "群组复习操作":"group review operation",
+        "重建群组复习数据库":"rebuild group review database",
         "配置表操作":"operations for config file",
         "重置配置表":"reset config file",
         "创建为视图":"create view",
@@ -179,7 +179,7 @@ def rosetta(text: str = ""):
         "已冻结":"review freezed",
         "已解冻":"review recovered",
         "你复习得太快了,你确定你记住了吗?":"review too fast, are you sure you really recall the card?",
-        "要开始自动复习了, 你确定吗?":"The automatic review is about to start, please confirm",
+        "要开始群组复习了, 你确定吗?":"The automatic review is about to start, please confirm",
         "查看数据库最近更新时间":"lateset update time",
         "手风琴式":"accordion style",
         "直铺式":"straight laying",
@@ -187,34 +187,40 @@ def rosetta(text: str = ""):
         "重命名":"rename",
         "删除":"delete",
         "视图":"graph view",
-        "自动复习视图":"auto_review graph view",
+        "群组复习视图":"group_review graph view",
         "含于视图":"Included in view",
         "新建视图":"create view",
         "插入到已有视图":"insert into existing view",
         "临时视图":"as temporary view",
         "粘贴卡片":"paste cards",
         "插入到已打开视图":"insert into opened view",
-        "修改描述":"edit card description"
+        "修改描述":"edit card description",
+        "时间到":"time up",
+        "请选择后续操作":"please choose next action",
+        "取消":"cancel",
+        "重新计时":"retime",
+        "默认操作":"default action",
+        "秒":"seconds"
     }
     ZHdict = {
         "gview_admin_default_display":"视图管理器默认显示",
         "gview_popup_when_review":"复习时视图自动弹出",
         "gview_popup_type":"自动弹出的视图种类",
         "last_backup_time":"上次备份时间",
-        "auto_review_just_due_card":"仅自动复习到期卡片",
-        "auto_review_global_condition": "自动复习的全局条件",
+        "group_review_just_due_card":"仅群组复习到期卡片",
+        "group_review_global_condition": "群组复习的全局条件",
         "auto_backup_interval":"自动备份间隔",
         "auto_backup_path":"自动备份路径",
         "auto_backup": "自动备份",
         "auto_sync":"自动同步",
-        "auto_review_search_string":"自动复习的卡片筛选条件",
+        "group_review_search_string":"群组复习的卡片筛选条件",
         "freeze_review": "开启冻结复习",
         "freeze_review_interval":"冻结复习的最小间隔",
         "too_fast_warn_interval":"提示复习过快的最小间隔",
         "too_fast_warn":"提示复习过快",
         "too_fast_warn_everycard":"连续几张卡片复习过快才提示",
-        "auto_review":"开启自动复习",
-        "auto_review_comfirm_dialog":"开启自动复习提示框",
+        "group_review":"开启群组复习",
+        "group_review_comfirm_dialog":"开启群组复习提示框",
         "length_of_desc":"链接描述自动提取时的限制长度",
         "desc_sync":"链接描述与卡片内容全局同步",
         "new_card_default_desc_sync":"新卡片默认启用链接描述同步",
@@ -229,7 +235,11 @@ def rosetta(text: str = ""):
         "shortcut_for_unlink":"取消链接快捷键",
         "shortcut_for_insert":"插入链接池快捷键",
         "shortcut_for_copylink":"复制链接快捷键",
-        "shortcut_for_openlinkpool":"打开链接池快捷键"
+        "shortcut_for_openlinkpool":"打开链接池快捷键",
+        "PDFUrlLink_style":"链接样式",
+        "PDFUrlLink_cmd":"调用命令",
+        "PDFUrlLink_page_num_str":"pdf页码名称",
+        "PDFUrlLink_default_show_pagenum":"pdf默认显示页码",
     }
     translateFuncs = {
         "en": En,
@@ -246,7 +256,7 @@ class Translate:
     lang = currentLang
     surrport = ["zh-CN", "zh_TW", "en", "en-GB"]
     打开配置表:str = rosetta("打开配置表")
-    打开anchor:str  = rosetta("打开anchor")
+    打开anchor:str  = rosetta("打开卡片元信息")
     文内链接:str = rosetta("文内链接")
     html链接:str = rosetta("html链接")
     markdown链接:str = rosetta("markdown链接")
@@ -279,10 +289,10 @@ class Translate:
     在clipper中打开卡片:str=rosetta("在clipper中打开卡片")
     在grapher中打开卡片:str=rosetta("在grapher中打开卡片")
     添加同步复习标签:str=rosetta("添加同步复习标签")
-    保存当前搜索条件为自动复习条件:str=rosetta("保存当前搜索条件为自动复习条件")
+    保存当前搜索条件为群组复习条件:str=rosetta("保存当前搜索条件为群组复习条件")
     保存成功:str=rosetta("保存成功")
-    自动复习操作:str=rosetta("自动复习操作")
-    重建数据库:str=rosetta("重建数据库")
+    群组复习操作:str=rosetta("群组复习操作")
+    重建群组复习数据库:str=rosetta("重建群组复习数据库")
     配置表操作:str=rosetta("配置表操作")
     重置配置表:str=rosetta("重置配置表")
     创建为视图:str=rosetta("创建为视图")
@@ -316,7 +326,7 @@ class Translate:
     已冻结:str=rosetta("已冻结")
     已解冻:str=rosetta("已解冻")
     过快提示:str=rosetta("你复习得太快了,你确定你记住了吗?")
-    自动复习提示:str=rosetta("即将开始自动复习,请确认执行")
+    群组复习提示:str=rosetta("即将开始群组复习,请确认执行")
     查看数据库最近更新时间:str=rosetta("查看数据库最近更新时间")
     手风琴式:str=rosetta("手风琴式")
     直铺式:str=rosetta("直铺式")
@@ -324,13 +334,34 @@ class Translate:
     重命名:str=rosetta("重命名")
     删除:str=rosetta("删除")
     视图:str=rosetta("视图")
-    自动复习视图:str=rosetta("自动复习视图")
+    群组复习视图:str=rosetta("群组复习视图")
     反链视图:str=rosetta("含于视图")
     新建视图:str=rosetta("新建视图")
     插入视图:str=rosetta("插入到已有视图")
     粘贴卡片:str=rosetta("粘贴卡片")
     插入到已打开视图:str=rosetta("插入到已打开视图")
     修改描述:str=rosetta("修改描述")
+    插入pdf链接:str=rosetta("插入pdf链接")
+    pdf链接:str=rosetta("pdf链接")
+    pdf路径:str=rosetta("pdf路径")
+    pdf页码:str=rosetta("pdf页码")
+    pdf名字:str=rosetta("pdf名字")
+    确定:str=rosetta("确定")
+    不操作:str=rosetta("不操作")
+    忘记:str=rosetta("忘记")
+    困难:str=rosetta("困难")
+    良好:str=rosetta("良好")
+    简单:str=rosetta("简单")
+    延迟一天:str=rosetta("延迟一天")
+    延迟三天: str = rosetta("延迟三天")
+    延迟一周: str = rosetta("延迟一周")
+    延迟一月: str = rosetta("延迟一月")
+    自定义延迟: str = rosetta("自定义延迟")
+    显示答案:str=rosetta("显示答案")
+    取消:str=rosetta("取消")
+    重新计时:str=rosetta("重新计时")
+    默认操作:str=rosetta("默认操作")
+    pdf默认显示页码:str=rosetta("pdf默认显示页码")
 
 if __name__ == "__main__":
     print(Translate.打开配置表)

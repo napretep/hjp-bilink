@@ -1,21 +1,26 @@
 import time
 from dataclasses import dataclass
-from typing import Union, List, Optional
+from typing import Union, List
+from .compatible_import import Anki
 
-from PyQt5.QtGui import QContextMenuEvent
-from PyQt5.QtWidgets import QMenu, QAction
+if Anki.isQt6:
+    from PyQt6.QtWidgets import QMenu, QAction
+else:
+    from PyQt5.QtWidgets import QMenu, QAction
 from aqt import mw
 from aqt.browser import Browser
+from aqt.editor import Editor, EditorWebView
 from aqt.utils import showInfo, tooltip
 from aqt.webview import AnkiWebView
 
-from ..common_tools import G
-from ..common_tools.language import rosetta as say
-from ..common_tools.language import Translate
+from . import G
+from .language import rosetta as say
+from .language import Translate
 from .. import common_tools
 
-GViewData = common_tools.interfaces.GViewData
-GraphMode = common_tools.interfaces.GraphMode
+GViewData = common_tools.configsModel.GViewData
+GraphMode = common_tools.configsModel.GraphMode
+
 
 class T:
     # 标记不同的来源
@@ -28,6 +33,7 @@ class T:
     linkpool_context = 6
     grapher_node_context = 7
     browser_searchbar_context = 8
+    editor_context = 9
 
 
 class PairsLiAdmin(object):
@@ -46,8 +52,7 @@ class PairsLiAdmin(object):
             if cid != "":
                 cardLi = [str(cid)]
         self.pairs_li = [common_tools.objs.LinkDataPair(
-            card_id=card_id, desc=common_tools.funcs.desc_extract(card_id)) for card_id in cardLi]
-
+                card_id=card_id, desc=common_tools.funcs.desc_extract(card_id)) for card_id in cardLi]
 
 
 def get_browser_menu(browser: "Browser"):
@@ -78,32 +83,35 @@ def func_actionMenuConnector(menu, action_name, action, **kwargs):
 def placeholder(*args, **kwargs):
     return
 
+
 def make__open_GViewAdmin(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
-    if atype in {T.browser,T.mainwin}:
-        M = get_browser_menu(args[0]) if atype==T.browser else get_mainWin_menu()
+    if atype in {T.browser, T.mainwin}:
+        M = get_browser_menu(args[0]) if atype == T.browser else get_mainWin_menu()
         M.addAction(Translate.打开视图管理器).triggered.connect(common_tools.funcs.Dialogs.open_GviewAdmin)
 
-def make__auto_review_operation(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
-    if atype in {T.browser} and common_tools.funcs.Config.get().auto_review.value==1:
+
+def make__group_review_operation(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
+    if atype in {T.browser} and common_tools.funcs.Config.get().group_review.value == True:
         view: "Browser" = args[0]
         M = get_browser_menu(view)
-        M2 = M.addMenu(Translate.自动复习操作)
-        menus=[Translate.保存当前搜索条件为自动复习条件,Translate.重建数据库,Translate.查看数据库最近更新时间]
+        M2 = M.addMenu(Translate.群组复习操作)
+        menus = [Translate.保存当前搜索条件为群组复习条件, Translate.重建群组复习数据库, Translate.查看数据库最近更新时间]
         acts = [
-            lambda: common_tools.funcs.AutoReview.save_search_to_config(view),
-            common_tools.funcs.AutoReview.build,
-            lambda: tooltip(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(G.AutoReview_dict.version)))
+                lambda: common_tools.funcs.GroupReview.save_search_to_config(view),
+                common_tools.funcs.GroupReview.build,
+                lambda: tooltip(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(G.GroupReview_dict.version)))
         ]
-        list(map(lambda x:func_actionMenuConnector(M2,menus[x],acts[x]),range(len(menus))))
+        list(map(lambda x: func_actionMenuConnector(M2, menus[x], acts[x]), range(len(menus))))
+
 
 def make__open_configfile(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
-
-    if atype in {T.mainwin,T.browser}:
-        M = get_mainWin_menu() if atype ==T.mainwin else get_browser_menu(args[0])
+    if atype in {T.mainwin, T.browser}:
+        M = get_mainWin_menu() if atype == T.mainwin else get_browser_menu(args[0])
         M2 = M.addMenu(Translate.配置表操作)
         # M2.addAction(Translate.打开配置表).triggered.connect(lambda: common_tools.funcs.open_file(G.src.path.userconfig))
         M2.addAction(Translate.打开配置表).triggered.connect(lambda: common_tools.funcs.Dialogs.open_configuration())
         M2.addAction(Translate.重置配置表).triggered.connect(lambda: common_tools.funcs.Config.save())
+
 
 def make__open_anchor(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
     if atype == T.webview:
@@ -123,7 +131,7 @@ def make__copy_card_as(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
         pair_li: "list[common_tools.objs.LinkDataPair]" = kwargs[
             "pair_li"] if "pair_li" in kwargs else pairsli_admin.pairs_li
         act_li = [[Translate.文内链接, lambda: common_tools.funcs.copy_intext_links(pair_li)],
-                  [Translate.文内链接+"(new)",lambda: AnkiLinks.Open.Card.from_htmlbutton(pair_li)],
+                  [Translate.文内链接 + "(new)", lambda: AnkiLinks.Open.Card.from_htmlbutton(pair_li)],
                   [Translate.html链接, lambda: AnkiLinks.Open.Card.from_htmllink(pair_li)],
                   [Translate.markdown链接, lambda: AnkiLinks.Open.Card.from_markdown(pair_li)],
                   [Translate.orgmode链接, lambda: AnkiLinks.Open.Card.from_orgmode(pair_li)]
@@ -139,7 +147,7 @@ def make__copy_search_as(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
         M = get_browser_menu(view)
         M2 = M.addMenu(Translate.复制当前搜索栏为)
         AnkiLinks = common_tools.funcs.AnkiLinksCopy2
-        act_li = [[Translate.html链接, lambda: AnkiLinks.Open.BrowserSearch.from_htmllink( view)],
+        act_li = [[Translate.html链接, lambda: AnkiLinks.Open.BrowserSearch.from_htmllink(view)],
                   [Translate.markdown链接, lambda: AnkiLinks.Open.BrowserSearch.from_md(view)],
                   [Translate.orgmode链接, lambda: AnkiLinks.Open.BrowserSearch.from_orgmode(view)]]
         list(map(lambda x: M2.addAction(x[0]).triggered.connect(x[1]), act_li))
@@ -181,13 +189,13 @@ def make__outtext_link(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
 
         d = {
 
-            Translate.卡片插入池: [(Translate.清空后插入, lambda: L.insert(pair_li, mode=L.M.before_clean)),
-                              (Translate.直接插入, lambda: L.insert(pair_li, mode=L.M.directly)),
-                              (Translate.编组插入, lambda: L.insert(pair_li, mode=L.M.by_group))],
-            Translate.池中卡片操作: [(Translate.完全图绑定, lambda: L.link(mode=L.M.complete_map)),
-                               (Translate.组到组绑定, lambda: L.link(mode=L.M.group_by_group)),
-                               (Translate.按结点解绑, lambda: L.unlink(mode=L.M.unlink_by_node)),
-                               (Translate.按路径解绑, lambda: L.unlink(mode=L.M.unlink_by_path))]
+                Translate.卡片插入池 : [(Translate.清空后插入, lambda: L.insert(pair_li, mode=L.M.before_clean)),
+                                   (Translate.直接插入, lambda: L.insert(pair_li, mode=L.M.directly)),
+                                   (Translate.编组插入, lambda: L.insert(pair_li, mode=L.M.by_group))],
+                Translate.池中卡片操作: [(Translate.完全图绑定, lambda: L.link(mode=L.M.complete_map)),
+                                   (Translate.组到组绑定, lambda: L.link(mode=L.M.group_by_group)),
+                                   (Translate.按结点解绑, lambda: L.unlink(mode=L.M.unlink_by_node)),
+                                   (Translate.按路径解绑, lambda: L.unlink(mode=L.M.unlink_by_path))]
         }
         for menu, actli in d.items():
             m = out_text_link.addMenu(say(menu))
@@ -210,14 +218,14 @@ def make__change_deck(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
             return
         menu: "QMenu" = args[1]
         menu.addAction(prefix + Translate.改变牌组).triggered.connect(
-            lambda: common_tools.funcs.Dialogs.open_deck_chooser(pair_li, view))
+                lambda: common_tools.funcs.Dialogs.open_deck_chooser(pair_li, view))
 
     pass
 
 
 def make__tag_operation(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
     if atype in {T.webview, T.browser_context, T.grapher_node_context}:
-        pair_li=None
+        pair_li = None
         prefix = kwargs["prefix"]
         if atype in {T.webview, T.browser_context}:
             view = args[0]
@@ -228,9 +236,22 @@ def make__tag_operation(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
             return
         menu: "QMenu" = args[1]
         m = menu.addAction(prefix + Translate.操作标签).triggered.connect(
-            lambda: common_tools.funcs.Dialogs.open_tag_chooser(pair_li))
+                lambda: common_tools.funcs.Dialogs.open_tag_chooser(pair_li))
 
     pass
+
+
+def make__insert_PDFlink(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
+    """用来在编辑器中插入PDF链接时可以更快捷地修改数据"""
+    if atype in {T.editor_context}:
+        prefix = kwargs["prefix"]
+        editor: "EditorWebView" = args[0]
+        # tooltip(str(editor.editor.currentField))
+        if editor.editor.currentField is None:
+            return
+        M: "QMenu" = args[1]
+        make_PDFlink = M.addAction(Translate.插入pdf链接)
+        make_PDFlink.triggered.connect(lambda: common_tools.funcs.EditorOperation.make_PDFlink(editor))
 
 
 def make__other(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
@@ -238,37 +259,37 @@ def make__other(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
         M: "QMenu" = get_browser_menu(args[0])
         other = M.addMenu(Translate.其他)
         act_li = [
-            (Translate.联系作者, common_tools.funcs.Dialogs.open_contact),
-            (Translate.支持作者, common_tools.funcs.Dialogs.open_support),
-            (Translate.打开链接数据保存目录, common_tools.funcs.Dialogs.open_link_storage_folder),
-            (Translate.打开代码仓库, common_tools.funcs.Dialogs.open_repository),
-            (Translate.查看更新与文档, common_tools.funcs.Dialogs.open_version)
+                (Translate.联系作者, common_tools.funcs.Dialogs.open_contact),
+                (Translate.支持作者, common_tools.funcs.Dialogs.open_support),
+                (Translate.打开链接数据保存目录, common_tools.funcs.Dialogs.open_link_storage_folder),
+                (Translate.打开代码仓库, common_tools.funcs.Dialogs.open_repository),
+                (Translate.查看更新与文档, common_tools.funcs.Dialogs.open_version)
         ]
         for act, func in act_li:
             other.addAction(say(act)).triggered.connect(func)
     pass
 
 
-def make__open_clipper(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
-    if atype in {T.browser, T.browser_context, T.webview, T.mainwin}:
-        from ..common_tools import funcs
-        prefix = kwargs["prefix"]
-        name = Translate.打开clipper
-        if len(args) > 0:
-            if atype == T.browser:
-                view = args[0]
-                M = get_browser_menu(view)
-                prefix = ""
-            elif atype in {T.browser_context, T.webview}:
-                M: "QMenu" = args[1]
-                name = Translate.在clipper中打开卡片
-            elif atype in (T.mainwin):
-                M = get_mainWin_menu()
-                prefix = ""
-        else:
-            M = get_mainWin_menu()
-            prefix = ""
-        M.addAction(prefix + say(name)).triggered.connect(lambda: funcs.Dialogs.open_clipper(pairsli_admin.pairs_li))
+# def make__open_clipper(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
+#     if atype in {T.browser, T.browser_context, T.webview, T.mainwin}:
+#         from ..common_tools import funcs
+#         prefix = kwargs["prefix"]
+#         name = Translate.打开clipper
+#         if len(args) > 0:
+#             if atype == T.browser:
+#                 view = args[0]
+#                 M = get_browser_menu(view)
+#                 prefix = ""
+#             elif atype in {T.browser_context, T.webview}:
+#                 M: "QMenu" = args[1]
+#                 name = Translate.在clipper中打开卡片
+#             elif atype in (T.mainwin):
+#                 M = get_mainWin_menu()
+#                 prefix = ""
+#         else:
+#             M = get_mainWin_menu()
+#             prefix = ""
+#         M.addAction(prefix + say(name)).triggered.connect(lambda: funcs.Dialogs.open_clipper(pairsli_admin.pairs_li))
 
 
 def make__open_grapher(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
@@ -284,25 +305,26 @@ def make__open_grapher(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
         if len(args) > 0:
             M: "QMenu" = args[1]
             name = Translate.在grapher中打开卡片
-            M2=M.addMenu(prefix + name)
+            M2 = M.addMenu(prefix + name)
 
             M2.addAction(Translate.直接打开).triggered.connect(lambda: funcs.Dialogs.open_grapher(pair_li))
 
-            M2.addAction(Translate.新建视图).triggered.connect(lambda:funcs.GviewOperation.create_from_pair(pair_li))
+            M2.addAction(Translate.新建视图).triggered.connect(lambda: funcs.GviewOperation.create_from_pair(pair_li))
 
-            if len(funcs.GviewOperation.load_all())>0:
+            if len(funcs.GviewOperation.load_all()) > 0:
                 M2.addAction(Translate.插入视图).triggered.connect(lambda: funcs.GviewOperation.insert(pair_li))
-            viewdata_L=Gop.find_by_card(pair_li)
+            viewdata_L = Gop.find_by_card(pair_li)
 
-            opened_view:"list[str]" = list(filter(lambda x:G.mw_gview.get(x) is not None,list(G.mw_gview.keys())))
-            if len(opened_view)>0:
-                M3=M2.addMenu(Translate.插入到已打开视图)
+            opened_view: "list[str]" = list(filter(lambda x: G.mw_gview.get(x) is not None, list(G.mw_gview.keys())))
+            if len(opened_view) > 0:
+                M3 = M2.addMenu(Translate.插入到已打开视图)
                 for uuid in opened_view:
                     data = funcs.GviewOperation.load(uuid=uuid)
-                    M3.addAction(data.name).triggered.connect(lambda :funcs.Dialogs.open_grapher(pair_li=pair_li,gviewdata=data,mode=GraphMode.view_mode))
+                    M3.addAction(data.name).triggered.connect(lambda: funcs.Dialogs.open_grapher(pair_li=pair_li, gviewdata=data, mode=GraphMode.view_mode))
 
-            list(map(lambda x:func_actionMenuConnector(M2,Translate.打开于视图+":"+x.name,dlg.open_grapher,pair_li=pair_li,
-                mode=GraphMode.view_mode, gviewdata=x),viewdata_L))
+            list(map(lambda x: func_actionMenuConnector(M2, Translate.打开于视图 + ":" + x.name, dlg.open_grapher, pair_li=pair_li,
+                                                        mode=GraphMode.view_mode, gviewdata=x), viewdata_L))
+
 
 make_list = [globals()[name] for name in globals() if name.startswith("make__")]
 
@@ -319,7 +341,7 @@ def maker(atype):
             if not focus_on_mw and not focus_on_prev:
                 # showInfo("return")
                 return
-        p = PairsLiAdmin(atype, args[0] if len(args)>0 else None)
+        p = PairsLiAdmin(atype, args[0] if len(args) > 0 else None)
         # browser_context的情况,多次提取pairs_Li会造成严重的性能瓶颈问题,所以在这里一次性把pairs_li提取好
         for m in make_list:
             m(atype, p, *args, **kwargs)

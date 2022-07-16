@@ -1,5 +1,5 @@
 .container_header_L1 {
-    z-index:99999;
+    z-index: 99999;
     margin: 0 !important;
     display: block;
     color: #fff;
@@ -10,11 +10,11 @@
     border-radius: 1px;
     position: relative;
     max-width: 150px;
-    
     color: white;
     overflow-wrap: anywhere;
     font-size: 15px
 }
+
 button[card_id].hjp-bilink.anchor.button {
     margin: 0 !important;
     display: block;
@@ -37,14 +37,14 @@ button[card_id].hjp-bilink.anchor.button {
     text-align: left;
     margin: 1px !important;
     padding: 1px;
-
 }
 
 .container_body_L1 {
     margin: 0 !important;
-    font-size:inherit;
+    font-size: inherit;
     position: absolute;
     display: none;
+    z-index: 9999;
 }
 
 .container_L0:hover .container_body_L1 {
@@ -61,16 +61,19 @@ button[card_id].hjp-bilink.anchor.button {
     text-align: left;
     color: white;
 }
-.hjp_bilink.details summary{
+
+.hjp_bilink.details summary {
     margin: 0 !important;
-    background-color:green;
+    background-color: green;
 }
+
 .hjp_bilink.details div {
     margin: 0 !important;
     color: white;
     text-align: left;
     margin-left: 6px;
 }
-.hjp-bilink.intext.button{
+
+.hjp-bilink.intext.button {
     /* font-size: 25px; */
 }

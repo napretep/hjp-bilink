@@ -6,20 +6,35 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/8/1 16:48'
 """
+import os
 import re
+import urllib
+from bs4 import BeautifulSoup
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Union, Optional
-
-from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QModelIndex
-from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QDialog, QProgressBar, QTreeView, QToolButton, QHeaderView, \
-    QMenu, QListWidget
-
 import sys
 
-from PyQt5.QtGui import QPixmap, QIcon, QStandardItemModel, QStandardItem, QCursor
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QApplication
+
+from .language import Translate, rosetta
+from . import configsModel
+from .compatible_import import Anki, DragDropMode, SelectMode, dropIndicatorPosition
+
+if Anki.isQt6:
+    from PyQt6 import QtGui, QtCore
+    from PyQt6.QtCore import pyqtSignal, QTimer, Qt, QModelIndex, QMimeData
+    from PyQt6.QtWidgets import QWidget, QLabel, QGridLayout, QDialog, QProgressBar, QTreeView, QToolButton, \
+        QHeaderView, \
+        QMenu, QListWidget, QFormLayout, QLineEdit, QSpinBox, QPushButton, QMessageBox, QShortcut, QRadioButton
+    from PyQt6.QtGui import QPixmap, QIcon, QStandardItemModel, QStandardItem, QCursor, QKeySequence
+    from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QApplication
+else:
+    from PyQt5 import QtGui, QtCore
+    from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QModelIndex, QMimeData
+    from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QDialog, QProgressBar, QTreeView, QToolButton, QHeaderView, \
+        QMenu, QListWidget, QFormLayout, QLineEdit, QSpinBox, QPushButton, QMessageBox, QShortcut, QRadioButton
+    from PyQt5.QtGui import QPixmap, QIcon, QStandardItemModel, QStandardItem, QCursor, QKeySequence
+    from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QApplication
 
 from aqt import mw, dialogs
 from aqt.browser import Browser
@@ -29,14 +44,10 @@ from aqt.reviewer import Reviewer
 from aqt.utils import tooltip, showInfo
 from aqt.webview import AnkiWebView
 
-from .language import Translate
-
 if __name__ == "__main__":
     from lib.common_tools import G
 else:
     from . import G
-
-
 
 
 class ConfigDialog(QDialog):
@@ -80,7 +91,7 @@ class UniversalProgresser(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.progressbar = ProgressBarBlackFont(self)
-        self.intro = QLabel("if crashed, press esc to quit",self)
+        self.intro = QLabel("if crashed, press esc to quit", self)
         self.signal_func_dict: "Optional[dict[str,list[callable,callable,Union[dict,None]]]]" = None  # "signal_name":[signal,funcs,kwargs] 传入的信号与槽函数
         self.signal_sequence: "Optional[list[list[str]]]" = None  # [["signal_name"]] 0,1,2 分别是前,中,后的回调函数.
         self.timer = QTimer()
@@ -139,7 +150,7 @@ class UniversalProgresser(QDialog):
         self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
         glayout = QGridLayout(self)
         glayout.addWidget(self.progressbar, 0, 0, 1, 4)
-        glayout.addWidget(self.intro,1,0,1,1)
+        glayout.addWidget(self.intro, 1, 0, 1, 1)
         self.setLayout(glayout)
 
 
@@ -317,25 +328,25 @@ class deck_chooser(QDialog):
     def get_all_decks(self):
         if __name__ == "__main__":
             return [self.Id_deck(*i) for i in [
-                ['0总库', 1601526645310],
-                ['0活动', 1602850575642],
-                ['0活动::0dailynotes', 1604795557392],
-                ['0活动::0dailynotes::0文章', 1607826406813],
-                ['0活动::0dailynotes::1随记', 1607828983488],
-                ['0活动::1短期组', 1604795498696],
-                ['0活动::2中期组', 1604795524293],
-                ['0活动::3长期组', 1604795533215],
-                ['0活动::4手机组', 1605919084022],
-                ['PDF Review', 1610961897321],
-                ['废堆', 1602984243504],
-                ['测试用', 1608350433000],
-                ['睡眠组', 1604795430927],
-                ['老友记 Friends', 1610645864792],
-                ['老友记 Friends::Season 01', 1610645864791],
-                ['老友记 Friends::Season 01::Episode 01', 1610645864793],
-                ['考研词汇5500', 1610646719431],
-                ['考研词汇5500::3 Dictation', 1610646719432],
-                ['默认', 1]
+                    ['0总库', 1601526645310],
+                    ['0活动', 1602850575642],
+                    ['0活动::0dailynotes', 1604795557392],
+                    ['0活动::0dailynotes::0文章', 1607826406813],
+                    ['0活动::0dailynotes::1随记', 1607828983488],
+                    ['0活动::1短期组', 1604795498696],
+                    ['0活动::2中期组', 1604795524293],
+                    ['0活动::3长期组', 1604795533215],
+                    ['0活动::4手机组', 1605919084022],
+                    ['PDF Review', 1610961897321],
+                    ['废堆', 1602984243504],
+                    ['测试用', 1608350433000],
+                    ['睡眠组', 1604795430927],
+                    ['老友记 Friends', 1610645864792],
+                    ['老友记 Friends::Season 01', 1610645864791],
+                    ['老友记 Friends::Season 01::Episode 01', 1610645864793],
+                    ['考研词汇5500', 1610646719431],
+                    ['考研词汇5500::3 Dictation', 1610646719432],
+                    ['默认', 1]
             ]
                     ]
         else:
@@ -359,7 +370,7 @@ class deck_chooser(QDialog):
 
         def __init__(self, parent, deckname="test::test"):
             super().__init__(parent)
-            self.desc = QLabel(deckname, self)
+            self.desc = QLabel("current deck|   " + deckname, self)
             self.desc.setWordWrap(True)
             self.button = QToolButton(self)
             self.button.setText(self.deck_tree)
@@ -407,6 +418,7 @@ class deck_chooser(QDialog):
 
 class tag_chooser(QDialog):
     """添加后需要更新内容, 用 init_data_left方法"""
+
     def __init__(self, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
         super().__init__()
         self.pair_li = pair_li
@@ -423,9 +435,9 @@ class tag_chooser(QDialog):
         self.init_UI()
         self.init_model()
         self.allevent = G.objs.AllEventAdmin([
-            [self.model_left.dataChanged, self.on_model_left_datachanged_handle],
-            [self.view_right.doubleClicked, self.on_view_right_doubleClicked_handle],
-            # [self.view_left.customContextMenuRequested, self.on_view_show_context_menu]
+                [self.model_left.dataChanged, self.on_model_left_datachanged_handle],
+                [self.view_right.doubleClicked, self.on_view_right_doubleClicked_handle],
+                # [self.view_left.customContextMenuRequested, self.on_view_show_context_menu]
         ]).bind()
 
     # def on_view_show_context_menu(self, pos: QtCore.QPoint):
@@ -693,7 +705,7 @@ class tag_chooser(QDialog):
                     if not tagname_li:
                         item.set_tag_name(i)
                 parent = parent.children[tagname]
-        view.setDragDropMode(view.InternalMove)
+        view.setDragDropMode(DragDropMode.NoDragDrop)
         view.setAcceptDrops(True)
         pass
 
@@ -705,7 +717,7 @@ class tag_chooser(QDialog):
             item = self.Item(i, total_tag=total_tag)
             item.set_tag_name(i)
             model.appendRow([item])
-        view.setDragDropMode(view.NoDragDrop)
+        view.setDragDropMode(DragDropMode.NoDragDrop)
         pass
 
     def init_data_left(self, init=False):
@@ -805,14 +817,14 @@ class tag_chooser(QDialog):
                 self.func_button.clicked.connect(self.on_collection_tag_add_handle)
             self.arrange_button.clicked.connect(self.button_text_switch)
 
-        def on_card_tag_new_handle(self, tag_name=None,from_posi=None):
+        def on_card_tag_new_handle(self, tag_name=None, from_posi=None):
             if tag_name:
                 new_tag = tag_name
             else:
                 new_tag = f"""new_tag_{datetime.now().strftime("%Y%m%d%H%M%S")}"""
             if from_posi:
                 item_parent = from_posi
-                new_full_tag=new_tag
+                new_full_tag = new_tag
             else:
                 if self.fromView.selectedIndexes():
                     item = self.fromModel.itemFromIndex(self.fromView.selectedIndexes()[0])
@@ -870,7 +882,7 @@ class tag_chooser(QDialog):
             self.superior: "tag_chooser" = parent
             self.viewmode: "Optional[int]" = None
             self.setDragDropOverwriteMode(False)
-            self.setSelectionMode(self.ExtendedSelection)
+            self.setSelectionMode(SelectMode.ExtendedSelection)
             # self.on_did_drop.connect(self.change_base_tag_after_dropEvent)
 
         def dropEvent(self, event: QtGui.QDropEvent) -> None:
@@ -881,13 +893,13 @@ class tag_chooser(QDialog):
             parent_to: "tag_chooser.Item" = item_to.parent() if item_to is not None else self.model().invisibleRootItem()
             for i in range(len(parent_from)):
                 item = parent_from[i].takeRow(item_from[i].row())
-                if self.dropIndicatorPosition() == self.OnItem:
+                if self.dropIndicatorPosition() == dropIndicatorPosition.OnItem:
                     item_to.appendRow(item)
-                elif self.dropIndicatorPosition() == self.OnViewport:
+                elif self.dropIndicatorPosition() == dropIndicatorPosition.OnViewport:
                     self.model().appendRow(item)
-                elif self.dropIndicatorPosition() == self.BelowItem:
+                elif self.dropIndicatorPosition() == dropIndicatorPosition.BelowItem:
                     parent_to.insertRow(item_to.row() + 1, item)
-                elif self.dropIndicatorPosition() == self.AboveItem:
+                elif self.dropIndicatorPosition() == dropIndicatorPosition.AboveItem:
                     parent_to.insertRow(item_to.row(), item)
             self.superior.tag_list = self.superior.save()
             self.superior.init_data_left()
@@ -919,6 +931,106 @@ class tag_chooser(QDialog):
     class Id_tag:
         tag: "str"
         ID: "int"
+
+
+class Dialog_PDFUrlTool(QDialog):
+
+    def __init__(self):
+        super().__init__()
+        self.class_name = G.src.pdfurl_class_name
+        layout = QFormLayout(self)
+        self.setWindowTitle("PDFUrlTool")
+        self.widgets = {
+                Translate.pdf路径    : QLineEdit(self),
+                Translate.pdf页码    : QSpinBox(self),
+                Translate.pdf名字    : QLineEdit(self),
+                Translate.pdf默认显示页码: QRadioButton(self),
+                Translate.确定       : QToolButton(self)
+        }
+        self.widgets[Translate.pdf页码].setRange(0, 99999)
+        list(map(lambda items: layout.addRow(items[0], items[1]), self.widgets.items()))
+        self.needpaste = False
+        self.widgets[Translate.pdf路径].textChanged.connect(lambda string: self.on_pdfpath_changed(string))
+        self.widgets[Translate.确定].clicked.connect(lambda event: self.on_confirm_clicked())
+        QShortcut(QKeySequence(Qt.Key_Enter), self).activated.connect(lambda: self.widgets[Translate.确定].click())
+        # self.widgets[Translate.确定].clicked.connect()
+
+    def on_pdfpath_changed(self, string):
+        text = re.sub("^file:/{2,3}", "", urllib.parse.unquote(string))
+        splitresult = re.split("#page=(\d+)$", text)
+        if len(splitresult) > 1:
+            self.widgets[Translate.pdf页码].setValue(int(splitresult[1]))
+        pdffilepath = splitresult[0]
+        pdffilename, _ = os.path.splitext(os.path.basename(pdffilepath))
+        self.widgets[Translate.pdf路径].blockSignals(True)
+        self.widgets[Translate.pdf路径].setText(pdffilepath)
+        self.widgets[Translate.pdf路径].blockSignals(False)
+        self.widgets[Translate.pdf名字].setText(pdffilename)
+
+    def get_url_name_num(self):
+        return self.widgets[Translate.pdf路径].text(), \
+               self.widgets[Translate.pdf名字].text(), \
+               self.widgets[Translate.pdf页码].value()
+
+    def on_confirm_clicked(self):
+        self.needpaste = True
+        clipboard = QApplication.clipboard()
+        mmdata = QMimeData()
+        pdfurl, pdfname, pdfpage = self.get_url_name_num()
+        quote = f"{pdfurl[:2]}{urllib.parse.quote(pdfurl[2:])}"  # TODO 将来要适配mac系统的路径
+        page_str = self.get_pdf_str(pdfpage) if self.widgets[Translate.pdf默认显示页码].isChecked() else ""
+        mmdata.setHtml(f"""<a class="{self.class_name}" href="file://{quote}#page={pdfpage}">{pdfname}{page_str}</a>""")
+        mmdata.setText(pdfurl)
+        clipboard.setMimeData(mmdata)
+        self.close()
+
+    def get_pdf_str(self, page):
+        from . import funcs, terms
+        s = funcs.Config.get().PDFUrlLink_page_num_str.value
+        return re.sub(f"{{{terms.PDFLink.page}}}", f"{page}", s)
+
+
+# class Dialog_timeup_comfirm(QDialog):
+#
+#     unknown,cancel, retime, next =0,1,2,3
+#     def __init__(self):
+#         super().__init__()
+#         from . import G
+#         self.answer=self.unknown
+#         self.setWindowTitle("time up")
+#         self.label=QLabel(f"{G.CONFIG.time_up_buzzer.value}秒已到,请选择操作!",self)
+#         self.btns=[
+#             QPushButton(Translate.取消,self),QPushButton(Translate.重新计时,self),QPushButton(Translate.继续,self)
+#         ]
+#         self.v_layout=QVBoxLayout(self)
+#         h_layout = QHBoxLayout(self)
+#         for btn in self.btns:
+#             h_layout.addWidget(btn)
+#         self.v_layout.addWidget(self.label)
+#         self.v_layout.addLayout(h_layout)
+#         self.setLayout(self.v_layout)
+#         list(map(lambda i:self.btns[i].clicked.connect(lambda :self.set_answer(i+1)),range(3)))
+#
+#     def set_answer(self,code):
+#         self.answer=code
+#         self.close()
+def message_box_for_time_up(seconds):
+    msgBox = QMessageBox()
+    msgBox.setIcon(QMessageBox.Information)
+    msgBox.setText(f"{seconds} {rosetta('秒')} {rosetta('时间到')},{rosetta('请选择后续操作')}:")
+    msgBox.setWindowTitle("time up")
+    msgBox.addButton(Translate.取消, QMessageBox.ButtonRole.NoRole)
+    msgBox.addButton(Translate.重新计时, QMessageBox.ButtonRole.ResetRole)
+    msgBox.addButton(Translate.默认操作, QMessageBox.ButtonRole.AcceptRole)
+    msgBox.exec_()
+    return msgBox.clickedButton().text()
+
+
+class ConfigWidget:
+    class PDFUrlLinkBooklist(configsModel.CustomConfigItemView):
+
+        pass
+
 
 
 if __name__ == "__main__":

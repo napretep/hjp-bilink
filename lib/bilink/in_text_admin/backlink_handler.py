@@ -1,9 +1,13 @@
 """
 专门用来处理backlink是删除呢,还是添加呢
 """
-from PyQt5.QtCore import QTimer
-from aqt.utils import tooltip
 from ..imports import common_tools, say
+Anki = common_tools.compatible_import.Anki
+if Anki.isQt6:
+    from PyQt6.QtCore import QTimer
+else:
+    from PyQt5.QtCore import QTimer
+from aqt.utils import tooltip
 from .. import linkdata_admin
 
 signals = common_tools.G.signals
