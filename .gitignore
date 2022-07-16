@@ -1,6 +1,9 @@
 # Default ignored files
 /.idea/
 debug.json
-/user_files/#
-/user_files/linkInfo.db
-/user_files/config.json
+/user_files/
+/venv/
+/Searching - Anki Manual_files/
+/.useless/
+/.vscode/
+/__pycache__/
