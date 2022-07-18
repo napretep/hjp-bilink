@@ -6,11 +6,7 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/7/30 9:15'
 """
-from .compatible_import import Anki
-if Anki.isQt6:
-    from PyQt6.QtCore import pyqtSignal, QObject
-else:
-    from PyQt5.QtCore import pyqtSignal, QObject
+from .compatible_import import *
 
 
 class CustomSignals(QObject):

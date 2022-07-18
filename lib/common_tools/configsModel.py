@@ -5,6 +5,7 @@ __file_name__ = 'configsModel.py'
 __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/11/15 1:34'
+这是一个比较底层的模块, 尽量不要直接引用其他模块, 用lambda表达式的方式推迟引用
 """
 import datetime
 import json
@@ -21,7 +22,40 @@ from aqt.utils import tooltip, isMac, isWin
 from .language import Translate
 from .src_admin import MAXINT, MININT, src
 from . import widgets, terms, baseClass
-from .compatible_import import QWidget
+from .compatible_import import *
+from typing import TYPE_CHECKING
+
+
+class CustomConfigItemView:
+
+    @property
+    def Item(self)->"ConfigModelItem":
+        return self._item
+
+    @Item.setter
+    def Item(self, value:"ConfigModelItem"):
+        self._item = value
+
+    @property
+    def Parent(self):
+        return self._parent
+
+    @Parent.setter
+    def Parent(self, value):
+        self._parent = value
+
+    @property
+    def View(self)->"QWidget":
+        return self._view
+
+    @View.setter
+    def View(self, value:"QWidget"):
+        self._view = value
+
+    def __init__(self, configItem: "ConfigModelItem" = None, parent: "QWidget" = None, *args, **kwargs):
+        self.Item: "ConfigModelItem" = configItem
+        self.Parent: "QWidget" = parent
+        self.View: "QWidget" = QWidget(parent)
 
 
 @dataclass
@@ -103,7 +137,7 @@ class ConfigModelItem:
     display: 'Callable[[Any],Any]' = lambda x: x
     validate: 'Callable[[Any,Any],Any]' = lambda x, item: None
     limit: "list" = field(default_factory=lambda: [0, MAXINT])
-    customizeComponent: "baseClass.CustomConfigItemView" = None  # 这个组件的第一个参数必须接受
+    customizeComponent: "Callable[[],CustomConfigItemView.__class__]" = lambda : CustomConfigItemView  # 这个组件的第一个参数必须接受
     _id: "int" = 0  # 0表示无特殊信息
 
     def setValue(self, value):
@@ -322,6 +356,15 @@ class ConfigModel:
             component=ConfigModel.Widget.radio,
             tab_at=Translate.链接相关
     ))
+
+    descExtractTable:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=["在本项设置中,你可以指定提取卡片描述的方式, 比如指定什么模板,提取哪个字段,长度多少,还可以写正则表达式, 双击单元格修改,加号按钮增加规则,减号去掉选中规则"],
+            value = [[-1,-1,32,""]],
+            component=ConfigModel.Widget.customize,
+            tab_at=Translate.链接相关,
+            customizeComponent=lambda : widgets.ConfigWidget.DescExtractPresetTable
+    ))
+
     new_card_default_desc_sync: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
                     "开启后,链接默认被设定为与卡片内容保持同步,关闭后,则链接默认不同步",
@@ -536,12 +579,16 @@ text-decoration:none;""",
     ))
 
     PDFUrlLink_booklist: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["粘贴什么路径的pdf,查这个表生成所需的文字描述"],
-            value=[],
+            instruction=["遇到指定路径的pdf,提供预先设置好的显示名称,样式, 是否显示页码,双击左侧表格单元修改对应行内容"],
+            value=[[r"D:\备份盘\经常更新\数学书大全\分析学\随机分析\An Informal Introduction to Stochastic Calculus with Applications by Ovidiu Calin (z-lib.org).pdf",
+                    "An Informal Introduction to Stochastic Calculus with Applications by Ovidiu Calin ",
+                    "color:green;",
+                    True]],
             component=ConfigModel.Widget.customize,
-            customizeComponent=widgets.ConfigWidget.PDFUrlLinkBooklist,
+            customizeComponent=lambda :widgets.ConfigWidget.PDFUrlLinkBooklist,
             tab_at=Translate.pdf链接,
-            hide=True,
+
+
     ))
 
     # PDFUrlLink_path_arg:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
@@ -601,35 +648,6 @@ text-decoration:none;""",
     def __contains__(self, item):
         return item in self.__dict__.keys()
 
-class CustomConfigItemView():
-
-    @property
-    def Item(self):
-        return self._item
-
-    @Item.setter
-    def Item(self, value):
-        self._item = value
-
-    @property
-    def Parent(self):
-        return self._parent
-
-    @Parent.setter
-    def Parent(self, value):
-        self._parent = value
-
-    @property
-    def View(self):
-        return self._view
-
-    @View.setter
-    def View(self, value):
-        self._view = value
-
-    def __init__(self, configItem: "ConfigModelItem", parent: "QWidget", *args, **kwargs):
-        self.Item: "ConfigModelItem" = configItem
-        self.Parent: "QWidget" = parent
 
 if __name__ == '__main__':
     test = """

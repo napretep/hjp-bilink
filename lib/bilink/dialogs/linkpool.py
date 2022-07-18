@@ -270,7 +270,7 @@ class LinkPoolDialog(QDialog):
         self.setWindowTitle("link_pool")
         self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.input))
         self.setAcceptDrops(True)
-        self.view.setSelectionMode(common_tools.compatible_import.SelectMode.ExtendedSelection)
+        self.view.setSelectionMode(common_tools.compatible_import.QAbstractItemViewSelectMode.ExtendedSelection)
         self.view.setDragDropMode(common_tools.compatible_import.DragDropMode.DragDrop)
         self.view.setIndentation(8)
         self.view.header().setSectionResizeMode(QHeaderView.ResizeToContents)

@@ -8,35 +8,38 @@ __time__ = '2021/7/30 9:47'
 G.py 就是GLOBAL.py, 存放一些持续不变的常量
 """
 from typing import Optional
-try:
-    from PyQt5.QtCore import QTimer
-except:
-    from PyQt6.QtCore import QTimer
+
+
 from aqt.utils import showInfo
-from . import signals, src_admin, objs, widgets,language
+from . import signals, src_admin, objs, widgets, language
 # from .src_admin import SrcAdmin
 # from .signals import CustomSignals
 # from .objs import DB_admin
-from .configsModel import GroupReviewDictInterface,ConfigModel
-from .compatible_import import Anki
+
+from typing import TYPE_CHECKING
+from .compatible_import import *
 from aqt import mw
+
+if TYPE_CHECKING:
+    from .configsModel import GroupReviewDictInterface, ConfigModel
 
 
 class MW: pass
+
 
 isQt6 = Anki.isQt6
 
 if mw is None:
     mw = MW()
-QTMAXINT=2147483647
-QTMININT=-2147483647
-say=language.rosetta
-ISDEBUG=False
+QTMAXINT = 2147483647
+QTMININT = -2147483647
+say = language.rosetta
+ISDEBUG = False
 DB = objs.DB_admin()  # 这个是通用DB,如果要用linkdata请用linkdata_admin里的DB
 signals = signals.CustomSignals.start()
 src = src_admin.src
 addonName = src.dialog_name
-CONFIG: "ConfigModel" =None
+CONFIG: "ConfigModel" = None
 mw.__dict__[addonName] = {}
 mw.__dict__[addonName]["progresser"] = None
 mw.__dict__[addonName]["card_window"] = {}
@@ -60,11 +63,11 @@ mw_grapher = mw.__dict__[addonName]["grapher"]
 mw_gview = {}
 GViewAdmin_window = None
 GViewAutoShow_window = None
-mw_addcard_to_grapher_on=False
+mw_addcard_to_grapher_on = False
 browser_addon_menu = None
-GroupReview_dict: "Optional[GroupReviewDictInterface]" =None #卡片ID映射到searchString
-GroupReview_tempfile: "set"=set() #只保存卡片id
-GroupReview_timer=QTimer()
-GroupReview_version: "float"=0
-nextCard_interval:"list[int]"=[]#用来记录连续过快复习
-cardChangedTime=-1
+GroupReview_dict: "Optional[GroupReviewDictInterface]" = None  # 卡片ID映射到searchString
+GroupReview_tempfile: "set" = set()  # 只保存卡片id
+GroupReview_timer = QTimer()
+GroupReview_version: "float" = 0
+nextCard_interval: "list[int]" = []  # 用来记录连续过快复习
+cardChangedTime = -1

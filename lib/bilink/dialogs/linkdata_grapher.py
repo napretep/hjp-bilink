@@ -1091,7 +1091,7 @@ class GViewAdmin(QDialog):
             self.setParent(superior)
 
         def init_UI(self):
-            self.setSelectionMode(common_tools.compatible_import.SelectMode.SingleSelection)
+            self.setSelectionMode(common_tools.compatible_import.QAbstractItemViewSelectMode.SingleSelection)
             self.setDragDropMode(common_tools.compatible_import.DragDropMode.NoDragDrop)
             self.setAcceptDrops(False)
 

@@ -370,7 +370,7 @@ class AnchorDialog(QDialog):
         self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.anchor))
         self.setWindowTitle(f"""anchor of [desc={self.attr.linkdata.self_data.desc},card_id={self.card_id}]""")
         self.setAcceptDrops(True)
-        self.view.setSelectionMode(common_tools.compatible_import.SelectMode.ExtendedSelection)
+        self.view.setSelectionMode(common_tools.compatible_import.QAbstractItemViewSelectMode.ExtendedSelection)
         self.view.setDragDropMode(common_tools.compatible_import.DragDropMode.DragDrop)
         self.view.setIndentation(8)
         self.view.header().setSectionResizeMode(QHeaderView.ResizeToContents)

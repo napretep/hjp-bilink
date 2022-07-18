@@ -15,26 +15,11 @@ from datetime import datetime
 from typing import Union, Optional
 import sys
 
-
 from .language import Translate, rosetta
 from . import configsModel
-from .compatible_import import Anki, DragDropMode, SelectMode, dropIndicatorPosition
 
-if Anki.isQt6:
-    from PyQt6 import QtGui, QtCore
-    from PyQt6.QtCore import pyqtSignal, QTimer, Qt, QModelIndex, QMimeData
-    from PyQt6.QtWidgets import QWidget, QLabel, QGridLayout, QDialog, QProgressBar, QTreeView, QToolButton, \
-        QHeaderView, \
-        QMenu, QListWidget, QFormLayout, QLineEdit, QSpinBox, QPushButton, QMessageBox, QShortcut, QRadioButton
-    from PyQt6.QtGui import QPixmap, QIcon, QStandardItemModel, QStandardItem, QCursor, QKeySequence
-    from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QApplication
-else:
-    from PyQt5 import QtGui, QtCore
-    from PyQt5.QtCore import pyqtSignal, QTimer, Qt, QModelIndex, QMimeData
-    from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QDialog, QProgressBar, QTreeView, QToolButton, QHeaderView, \
-        QMenu, QListWidget, QFormLayout, QLineEdit, QSpinBox, QPushButton, QMessageBox, QShortcut, QRadioButton
-    from PyQt5.QtGui import QPixmap, QIcon, QStandardItemModel, QStandardItem, QCursor, QKeySequence
-    from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QApplication
+from .compatible_import import *
+from . import funcs, baseClass
 
 from aqt import mw, dialogs
 from aqt.browser import Browser
@@ -49,10 +34,10 @@ if __name__ == "__main__":
 else:
     from . import G
 
+from typing import TYPE_CHECKING
 
-class ConfigDialog(QDialog):
-    def __init__(self):
-        super().__init__()
+if TYPE_CHECKING:
+    from .configsModel import *
 
 
 class GridHDescUnit(QWidget):
@@ -882,7 +867,7 @@ class tag_chooser(QDialog):
             self.superior: "tag_chooser" = parent
             self.viewmode: "Optional[int]" = None
             self.setDragDropOverwriteMode(False)
-            self.setSelectionMode(SelectMode.ExtendedSelection)
+            self.setSelectionMode(QAbstractItemViewSelectMode.ExtendedSelection)
             # self.on_did_drop.connect(self.change_base_tag_after_dropEvent)
 
         def dropEvent(self, event: QtGui.QDropEvent) -> None:
@@ -990,30 +975,6 @@ class Dialog_PDFUrlTool(QDialog):
         return re.sub(f"{{{terms.PDFLink.page}}}", f"{page}", s)
 
 
-# class Dialog_timeup_comfirm(QDialog):
-#
-#     unknown,cancel, retime, next =0,1,2,3
-#     def __init__(self):
-#         super().__init__()
-#         from . import G
-#         self.answer=self.unknown
-#         self.setWindowTitle("time up")
-#         self.label=QLabel(f"{G.CONFIG.time_up_buzzer.value}秒已到,请选择操作!",self)
-#         self.btns=[
-#             QPushButton(Translate.取消,self),QPushButton(Translate.重新计时,self),QPushButton(Translate.继续,self)
-#         ]
-#         self.v_layout=QVBoxLayout(self)
-#         h_layout = QHBoxLayout(self)
-#         for btn in self.btns:
-#             h_layout.addWidget(btn)
-#         self.v_layout.addWidget(self.label)
-#         self.v_layout.addLayout(h_layout)
-#         self.setLayout(self.v_layout)
-#         list(map(lambda i:self.btns[i].clicked.connect(lambda :self.set_answer(i+1)),range(3)))
-#
-#     def set_answer(self,code):
-#         self.answer=code
-#         self.close()
 def message_box_for_time_up(seconds):
     msgBox = QMessageBox()
     msgBox.setIcon(QMessageBox.Information)
@@ -1027,10 +988,304 @@ def message_box_for_time_up(seconds):
 
 
 class ConfigWidget:
-    class PDFUrlLinkBooklist(configsModel.CustomConfigItemView):
+    class PDFUrlLinkBooklist(baseClass.ConfigTableView):
+        colnames = ["PDFpath", "name", "style", "showPage"]
+
+        def NewRow(self):
+            w = self.NewRowFormWidget(self)
+            w.widget.exec()
+            self.AppendRow(w.colItems)
+            self.SaveDataToConfigModel()
+
+        def ShowRowEditor(self, row: "list[ConfigWidget.PDFUrlLinkBooklist.TableItem]"):
+            # dialog = QDialog()
+            # dialog.resize(300, 600)
+            layout = QFormLayout()
+            textItemList = list(map(lambda col: QTextEdit(col.text()), row[0:3]))
+
+            list(map(lambda idx: textItemList[idx].textChanged.connect(
+                    lambda: row[idx].setData(textItemList[idx].toPlainText(), ItemDataRole.DisplayRole)
+            ), range(3)))
+            funcs.Map.do(range(3), lambda idx: layout.addRow(self.colnames[idx], textItemList[idx]))
+            layout.addRow(self.colnames[3], row[3].ShowAsWidget())
+            self.rowEditor.setLayout(layout)
+            self.rowEditor.exec()
+
+        def SaveDataToConfigModel(self):
+            newConfigItem = []
+            for row in range(self.model.rowCount()):
+                line = []
+                for col in range(4):
+                    item: "ConfigWidget.PDFUrlLinkBooklist.TableItem" = self.model.item(row, col)
+                    if col in range(2):
+                        if not re.search("\S", item.text()):
+                            break
+                        else:
+                            line.append(item.text())
+                    elif col == 3:
+                        line.append(item.text() == "True")
+                    else:
+                        line.append(item.text())
+                if len(line) > 0:
+                    newConfigItem.append(line)
+            self.Item.setValue(newConfigItem)
+            pass
+
+        def GetRowFromData(self, data: "list[str]"):
+            # return [for itemname in data]
+            return list(map(lambda itemname: ConfigWidget.PDFUrlLinkBooklist.TableItem(self, itemname), data))
+
+        class TableItem(baseClass.ConfigTableView.TableItem):
+
+            def __init__(self, superior, name):
+                self.isBool = False
+                if type(name) != str:
+                    name = str(name)
+                    self.isBool = True
+                super().__init__(superior, name)
+                self.superior: "ConfigWidget.DescExtractPresetTable" = superior
+
+            def ShowAsWidget(self):
+                if self.isBool:
+                    widget = QRadioButton()
+                    widget.setChecked(self.text() == "True")
+                else:
+                    widget = QTextEdit()
+                    widget.setText(self.text())
+                return widget
+
+            def GetValue(self):
+                return self.text()
+
+            pass
+
+        class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
+            def __init__(self, superior:"ConfigWidget.PDFUrlLinkBooklist", colItems: "list[ConfigWidget.PDFUrlLinkBooklist.TableItem]" = None):
+                if not colItems:
+                    colItems = funcs.Map.do(superior.defaultRowData, lambda unit: superior.TableItem(superior, unit))
+                super().__init__(superior,colItems)
+
+            def SetupEvent(self):
+                funcs.Map.do(range(3), lambda idx: self.colWidgets[idx].textChanged.connect(lambda:self.colItems[idx].setText(self.colWidgets[idx].toPlainText())))
+                self.colWidgets[3].clicked.connect(lambda:self.colItems[3].setText(str(self.colWidgets[3].isChecked())))
+
+    class DescExtractPresetTable(baseClass.ConfigTableView):
+        """模板Id:combo, field:受模板影响显示可选combo, length为spinbox, regexp为字符串用textedit
+
+        """
+        colnames = ["templateName", "fieldName", "length", "regexp"]
+
+        class colEnum:
+            template = 1
+            field = 2
+            length = 3
+            regexp = 4
+
+        defaultRowData = [(-1, "ALL_TEMPLATES", colEnum.template),
+                          ((-1, -1), "ALL_FIELDS", colEnum.field),
+                          (32, "32", colEnum.length),
+                          ("", "", colEnum.regexp)]
+
+        def GetRowFromData(self, data: "list[str]"):
+            dataformat = self.DataFormat(*data)
+            colType = self.colEnum
+            return [
+                    self.TableItem(self, dataformat.templateId, dataformat.templateName, colType.template),
+                    self.TableItem(self, (dataformat.templateId, dataformat.fieldId), dataformat.fieldName, colType.field),
+                    self.TableItem(self, dataformat.length, str(dataformat.length), colType.length),
+                    self.TableItem(self, dataformat.regexp, dataformat.regexp, colType.regexp)
+            ]
+
+        def NewRow(self):
+            w = self.NewRowFormWidget(self)
+            w.widget.exec()
+            self.AppendRow(w.colItems)
+
+        def ShowRowEditor(self, row: "list[ConfigWidget.DescExtractPresetTable.TableItem]"):
+            self.NewRowFormWidget(self, row).widget.exec()
+            self.SaveDataToConfigModel()
+
+        def OnTemplateComboBoxChanged(self, item: "ConfigWidget.DescExtractPresetTable.TableItem", templateId):
+            row = self.model.indexFromItem(item).row()
+            # templateId = item.data(ItemDataRole.UserRole)
+            fieldItem: "ConfigWidget.DescExtractPresetTable.TableItem" = self.model.item(row, 1)
+            fieldItem.SetupFieldCombo(templateId)
+            self.rowEditor.update()
 
         pass
 
+        def SaveDataToConfigModel(self):
+            data = []
+            for row in range(self.model.rowCount()):
+                rowdata = []
+                for col in range(4):
+                    item: "ConfigWidget.DescExtractPresetTable.TableItem" = self.model.item(row, col)
+                    value = item.GetValue()
+                    rowdata.append(value)
+                data.append(rowdata)
+            self.Item.setValue(data)
+            pass
+
+        class TableItem(baseClass.ConfigTableView.TableItem):
+            def __init__(self, superior, value, name, valueType):
+                super().__init__(superior, name)
+                self.superior: "ConfigWidget.DescExtractPresetTable" = superior
+                self.valueType = valueType
+                self.setData(value, ItemDataRole.UserRole)
+
+            def SetupFieldCombo(self, templateId: "int", fieldId: "int" = None):
+                """text=字段的名字, value=[模板id,字段id]"""
+                colType = self.superior.colEnum
+
+                if self.valueType == colType.field:
+                    for i in range(self.innerWidget.count()):
+                        self.innerWidget.removeItem(i)
+                    self.innerWidget.clear()
+                    print("self.valueType == colType.field,templateId=" + templateId.__str__() + " clear()")
+
+                    if templateId > 0:
+                        fields = funcs.CardTemplateOperation.GetModelFromId(templateId)["flds"]
+                        for _field in fields:
+                            self.innerWidget.addItem(_field["name"], (templateId, _field["ord"]))
+                        idx = fieldId if fieldId else 0
+                    else:
+                        self.innerWidget.addItem("ALL_FIELDS", (-1, -1))
+                        self.innerWidget.addItem("front", (-1, -2))
+                        self.innerWidget.addItem("back", (-1, -3))
+                        idx = self.innerWidget.findData((-1, fieldId), ItemDataRole.UserRole) if fieldId else 0
+                    self.innerWidget.setCurrentIndex(idx)
+
+                    return
+
+            def SetupTemplateCombo(self, templateId):
+                """text=模板名字, value=模板Id"""
+                data = self.data(ItemDataRole.UserRole)
+
+                def CurIndexChanged(idx: "int"):
+                    print(f"currentIndexChanged={idx}")
+                    self.setData(self.innerWidget.itemData(idx, ItemDataRole.UserRole), ItemDataRole.UserRole)
+                    self.setText(self.innerWidget.itemText(idx))
+                    newTemplateId = self.innerWidget.itemData(idx, ItemDataRole.UserRole)
+                    self.superior.OnTemplateComboBoxChanged(self, newTemplateId)
+                    print(f"{newTemplateId}")
+
+                templates = funcs.CardTemplateOperation.GetAllTemplates()
+                for template in templates:
+                    self.innerWidget.addItem(template["name"], template["id"])
+                self.innerWidget.addItem("ALL_TEMPLATES", -1)
+                idx = self.innerWidget.findData(data, ItemDataRole.UserRole)
+                self.innerWidget.setCurrentIndex(idx)
+                # self.innerWidget.currentIndexChanged.connect(lambda Idx: CurIndexChanged(Idx))
+                return
+
+            def ShowAsWidget(self):
+                """"""
+                self.widget = QWidget()
+                layout = QVBoxLayout()
+                colType = self.superior.colEnum
+                data = self.data(ItemDataRole.UserRole)
+                if self.valueType in [colType.field, colType.template]:
+                    self.innerWidget = QComboBox()
+                    if self.valueType == colType.field:
+                        templateId, fieldId = data
+                        self.SetupFieldCombo(templateId, fieldId)
+
+                        def CurIndexChanged(idx: "int"):
+                            self.setData(self.innerWidget.itemData(idx), ItemDataRole.UserRole)
+                            self.setText(self.innerWidget.itemText(idx))
+                        # self.innerWidget.currentIndexChanged.connect(lambda Idx: CurIndexChanged(Idx))
+
+                    else:
+                        templateId = data
+                        self.SetupTemplateCombo(templateId)
+                else:
+                    if self.valueType == colType.length:
+                        self.innerWidget = QSpinBox()
+                        self.innerWidget.setValue(data)
+                        # self.innerWidget.valueChanged.connect(lambda val: self.setText(str(val)))
+                    else:
+                        self.innerWidget = QTextEdit()
+                        self.innerWidget.setText(data)
+                        # self.innerWidget.textChanged.connect(lambda : self.setText(self.innerWidget.toPlainText()))
+                # layout.addWidget(self.innerWidget)
+                # self.widget.setLayout(layout)
+                return self.innerWidget
+
+            def GetValue(self):
+                colType = self.superior.colEnum
+                if self.valueType == colType.field:
+                    return self.data(ItemDataRole.UserRole)[1]
+                elif self.valueType == colType.template:
+                    return self.data(ItemDataRole.UserRole)
+                elif self.valueType == colType.regexp:
+                    return self.text()
+                else:
+                    return int(self.text())
+
+        class DataFormat:
+            templateId: "int"
+            fieldId: "int"
+            length: "int"
+            regexp: "str"
+
+            def __init__(self, templateId, fieldId, length, regexp):
+                self.templateId = templateId
+                self.fieldId = fieldId
+                if templateId < 0:
+                    self.model = None
+                    self.templateName = "ALL_TEMPLATES"
+                else:
+                    self.model = funcs.CardTemplateOperation.GetModelFromId(templateId)
+                    if not self.model:
+                        self.templateId = -1
+                        self.templateName = "ALL_TEMPLATES"
+                    else:
+                        self.templateName = self.model["name"]
+
+                if self.model:
+                    self.fieldName = self.model["flds"][self.fieldId]["name"]
+                elif self.fieldId < 0:
+                    self.fieldName = "ALL_FIELDS"
+                else:
+                    self.fieldName = self.fieldId.__str__()
+
+                self.length = length
+                self.regexp = regexp
+
+        class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
+            def __init__(self, superior, colItems: "list[ConfigWidget.DescExtractPresetTable.TableItem]" = None):
+                if not colItems:
+                    colItems = funcs.Map.do(superior.defaultRowData, lambda data: superior.TableItem(superior, *data))
+                super().__init__(superior, colItems)
+
+            def SetupEvent(self):
+                col0: "QComboBox" = self.colWidgets[0]
+                col1: "QComboBox" = self.colWidgets[1]
+                col2: "QSpinBox" = self.colWidgets[2]
+                col3: "QTextEdit" = self.colWidgets[3]
+                col0.currentIndexChanged.connect(lambda idx: OnCol0CurrentIndexChanged(idx))
+                col1.currentIndexChanged.connect(lambda idx: OnCol1CurrentIndexChanged(idx))
+                col2.valueChanged.connect(lambda val: self.colItems[2].setText(str(val)))
+                col3.textChanged.connect(lambda: self.colItems[3].setText(col3.toPlainText()))
+
+                def OnCol0CurrentIndexChanged(idx):
+                    self.colItems[0].setData(col0.currentData(ItemDataRole.UserRole), ItemDataRole.UserRole)
+                    self.colItems[0].setText(col0.currentText())
+                    InitCol1(col0.currentData(ItemDataRole.UserRole))
+
+                def OnCol1CurrentIndexChanged(idx):
+                    self.colItems[1].setData(col1.currentData(ItemDataRole.UserRole), ItemDataRole.UserRole)
+                    self.colItems[1].setText(col1.currentText())
+
+                def InitCol1(tmplId):
+                    col1.clear()
+                    idx = 0
+                    if tmplId > 0:
+                        fields = funcs.CardTemplateOperation.GetModelFromId(tmplId)["flds"]
+                        funcs.Map.do(fields, lambda _field: col1.addItem(_field["name"], (tmplId, _field["ord"])))
+                    else:
+                        funcs.Map.do([("ALL_FIELDS", (-1, -1)), ("FRONT", (-1, -2)), ("BACK", (-1, -3))], lambda col1data: col1.addItem(col1data[0], col1data[1]))
+                    col1.setCurrentIndex(idx)
 
 
 if __name__ == "__main__":

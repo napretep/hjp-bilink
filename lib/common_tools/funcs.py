@@ -26,6 +26,7 @@ import re
 from functools import reduce
 from .compatible_import import Anki, QSettings_NativeFormat
 from . import baseClass
+
 if Anki.isQt6:
     from PyQt6.QtCore import pyqtSignal, QThread, QUrl, QTimer, Qt, QSettings, QMimeData, QRectF, QRect, QPointF
     from PyQt6.QtWidgets import QApplication, QToolButton, QLineEdit, QInputDialog, QHBoxLayout, QPushButton, QWidget, \
@@ -76,9 +77,8 @@ from .language import Translate, rosetta
 from .objs import LinkDataPair, LinkDataJSONInfo
 from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
 from .configsModel import ConfigModel, AnswerInfoInterface, GroupReviewDictInterface, GViewData, GraphMode, \
-    ConfigModelItem,CustomConfigItemView
+    ConfigModelItem, CustomConfigItemView
 from . import widgets
-
 
 
 def do_nothing(*args, **kwargs):
@@ -119,6 +119,12 @@ def logger(logname=None, level=None, allhandler=None):
         return printer
     else:
         return do_nothing
+
+
+class Map:
+    @staticmethod
+    def do(li: "iter", func: "callable"):
+        return list(map(func, li))
 
 
 class MenuMaker:
@@ -459,12 +465,13 @@ class Config:
 
         w = ConfigModel.Widget
         d = {  # 不写在这的必须要有自己的validate
-                w.spin : lambda x, item: type(x) == int and item.limit[0] <= x <= item.limit[1],
-                w.radio: lambda x, item: type(x) == bool,
-                w.line : lambda x, item: type(x) == str,
-                w.label: lambda x, item: type(x) == str,
-                w.text : lambda x, item: type(x) == str,
-                w.combo: lambda x, item: x in item.limit,
+                w.spin     : lambda x, item: type(x) == int and item.limit[0] <= x <= item.limit[1],
+                w.radio    : lambda x, item: type(x) == bool,
+                w.line     : lambda x, item: type(x) == str,
+                w.label    : lambda x, item: type(x) == str,
+                w.text     : lambda x, item: type(x) == str,
+                w.combo    : lambda x, item: x in item.limit,
+                w.customize: lambda x, item: True
         }
 
         if item.validate(item.value, item) is None:
@@ -543,11 +550,10 @@ class Config:
             w.setContentsMargins(0, 0, 0, 0)
             w.setText(value)
         elif widgetType == typ.customize:
-            if isinstance(configitem.customizeComponent, CustomConfigItemView):
+            w = configitem.customizeComponent()(configitem, container).View  # 这个地方的警告去不掉, 很烦人.
 
-                w = configitem.customizeComponent(configitem, container).View  # 这个地方的警告去不掉, 很烦人.
-
-        if w == None: return False
+        if w is None:
+            return False
         layout.addWidget(w)
         layout.addWidget(tipbutton)
         container.setLayout(layout)
@@ -617,12 +623,6 @@ class Config:
 
             pass
 
-    # class TextPicker(QWidget):
-    #     def __init__(self,item:ConfigModelItem):
-    #         super().__init__()
-    #         self.item = item
-    #         self.button=QToolButton()
-    #         self.label=QLabel
 
 
 class GrapherOperation:
@@ -631,7 +631,6 @@ class GrapherOperation:
         from ..bilink.dialogs.linkdata_grapher import Grapher
         if isinstance(G.mw_grapher, Grapher):
             G.mw_grapher.on_card_updated.emit(None)
-
 
 class LinkDataOperation:
     """针对链接数据库的操作,
@@ -707,6 +706,18 @@ class LinkDataOperation:
             return False
         return True
 
+class CardTemplateOperation:
+    @staticmethod
+    def GetModelFromId(Id:int):
+        return mw.col.models.get(Id)
+
+    @staticmethod
+    def GetNameFromId(Id:int):
+        return CardTemplateOperation.GetModelFromId(Id)[""]
+
+    @staticmethod
+    def GetAllTemplates():
+        return mw.col.models.all()
 
 class Compatible:
 
@@ -1914,6 +1925,7 @@ class Dialogs:
             layout: QFormLayout = dataclasses.field(default_factory=QFormLayout)
 
         dialog = QDialog()
+        dialog.resize(800,600)
         layout = QHBoxLayout()
         tab = QTabWidget()
         cfg = Config.get()
