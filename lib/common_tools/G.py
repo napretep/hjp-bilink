@@ -19,7 +19,11 @@ from . import signals, src_admin, objs, widgets, language
 from typing import TYPE_CHECKING
 from .compatible_import import *
 from aqt import mw
+import os
 
+class installAs:
+    local=0
+    ankiweb=1
 if TYPE_CHECKING:
     from .configsModel import GroupReviewDictInterface, ConfigModel
 
@@ -31,8 +35,13 @@ isQt6 = Anki.isQt6
 
 if mw is None:
     mw = MW()
+
+
+
 QTMAXINT = 2147483647
 QTMININT = -2147483647
+
+addonId= 1420819673
 say = language.rosetta
 ISDEBUG = False
 DB = objs.DB_admin()  # 这个是通用DB,如果要用linkdata请用linkdata_admin里的DB
@@ -59,7 +68,7 @@ mw_linkpool_window = mw_addonName["input_window"]  # input窗口
 mw_VersionDialog = mw_addonName["VersionDialog"]
 mw_progresser = mw.__dict__[addonName]["progresser"]
 mw_universal_worker = None
-mw_grapher = mw.__dict__[addonName]["grapher"]
+mw_grapher = mw.__dict__[addonName]["grapher"] # grapher是临时视图, 也叫链接池视图
 mw_gview = {}
 GViewAdmin_window = None
 GViewAutoShow_window = None
@@ -71,3 +80,5 @@ GroupReview_timer = QTimer()
 GroupReview_version: "float" = 0
 nextCard_interval: "list[int]" = []  # 用来记录连续过快复习
 cardChangedTime = -1
+
+

@@ -104,7 +104,7 @@ class ConfigTableView(CustomConfigItemView):
 
     def OnViewTableDoubleClicked(self, index: "QModelIndex"):
         row = index.row()
-        self.ShowRowEditor([self.model.item(row, col) for col in range(4)])
+        self.ShowRowEditor([self.model.item(row, col) for col in range(self.colnames.__len__())])
 
     def AppendRow(self, row: "list[ConfigTableView.Item]"):
         self.model.appendRow(row)
@@ -161,3 +161,28 @@ class ConfigTableNewRowFormView:
 
     @abc.abstractmethod
     def SetupEvent(self):raise NotImplementedError()
+
+
+class Geometry:
+    class ArrowLine(QGraphicsLineItem):
+
+
+        def paint(self, QPainter, QStyleOptionGraphicsItem, QWidget_widget=None):
+
+            QPainter.setPen(self.pen())
+            line =self.line()
+            v = line.unitVector()
+            v.setLength(30)
+            v.translate(QPointF(line.dx() * 2 / 5, line.dy() * 2 / 5))
+
+            n = v.normalVector()
+            n.setLength(n.length() * 0.3)
+            n2 = n.normalVector().normalVector()
+
+            p1 = v.p2()
+            p2 = n.p2()
+            p3 = n2.p2()
+            QPainter.drawLine(line)
+            QPainter.drawPolygon(p1, p2, p3)
+
+

@@ -58,6 +58,17 @@ if Anki.isQt6:
     from PyQt6.QtGui import *
 
     QSettings_NativeFormat = QSettings.Format.NativeFormat
+    class TextFlag:
+        TextSingleLine  = Qt.TextFlag.TextSingleLine
+        TextDontClip  = Qt.TextFlag.TextDontClip
+        TextExpandTabs  = Qt.TextFlag.TextExpandTabs
+        TextShowMnemonic  = Qt.TextFlag.TextShowMnemonic
+        TextWordWrap  = Qt.TextFlag.TextWordWrap
+        TextWrapAnywhere  = Qt.TextFlag.TextWrapAnywhere
+        TextHideMnemonic  = Qt.TextFlag.TextHideMnemonic
+        TextDontPrint  = Qt.TextFlag.TextDontPrint
+        TextIncludeTrailingSpaces  = Qt.TextFlag.TextIncludeTrailingSpaces
+        TextJustificationForced  = Qt.TextFlag.TextJustificationForced
 
     class QAbstractItemViewSelectionBehavior:
         SelectItems = QAbstractItemView.SelectionBehavior.SelectItems
@@ -69,6 +80,14 @@ if Anki.isQt6:
         InternalMove = QAbstractItemView.DragDropMode.InternalMove
         DragDrop = QAbstractItemView.DragDropMode.DragDrop
 
+
+    class PenStyle:
+        SolidLine = Qt.PenStyle.SolidLine
+        DashLine = Qt.PenStyle.DashLine
+        DotLine = Qt.PenStyle.DotLine
+        DashDotLine = Qt.PenStyle.DashDotLine
+        DashDotDotLine = Qt.PenStyle.DashDotDotLine
+        CustomDashLine = Qt.PenStyle.CustomDashLine
 
     class QAbstractItemViewSelectMode:
         ExtendedSelection = QAbstractItemView.SelectionMode.ExtendedSelection
@@ -119,6 +138,57 @@ else:
     from PyQt5.QtWidgets import *
     from PyQt5.QtGui import *
     QSettings_NativeFormat = QSettings.NativeFormat
+    QPainter.RenderHint.Antialiasing=QPainter.Antialiasing
+    QPainter.RenderHint.TextAntialiasing=QPainter.TextAntialiasing
+    QPainter.RenderHint.SmoothPixmapTransform=QPainter.SmoothPixmapTransform
+    # QPainter.RenderHint.VerticalSubpixelPositioning=QPainter.VerticalSubpixelPositioning
+    QPainter.RenderHint.LosslessImageRendering=QPainter.LosslessImageRendering
+    Qt.MouseButton.NoButton = Qt.NoButton
+    Qt.MouseButton.AllButtons = Qt.AllButtons
+    Qt.MouseButton.LeftButton = Qt.LeftButton
+    Qt.MouseButton.RightButton = Qt.RightButton
+    Qt.MouseButton.MiddleButton = Qt.MiddleButton
+    Qt.KeyboardModifier.NoModifier = Qt.NoModifier
+    Qt.KeyboardModifier.ShiftModifier = Qt.ShiftModifier
+    Qt.KeyboardModifier.ControlModifier = Qt.ControlModifier
+    Qt.KeyboardModifier.AltModifier = Qt.AltModifier
+    Qt.KeyboardModifier.MetaModifier = Qt.MetaModifier
+    Qt.KeyboardModifier.KeypadModifier = Qt.KeypadModifier
+    Qt.KeyboardModifier.GroupSwitchModifier = Qt.GroupSwitchModifier
+    Qt.ContextMenuPolicy.NoContextMenu = Qt.NoContextMenu
+    Qt.ContextMenuPolicy.PreventContextMenu = Qt.PreventContextMenu
+    Qt.ContextMenuPolicy.DefaultContextMenu = Qt.DefaultContextMenu
+    Qt.ContextMenuPolicy.ActionsContextMenu = Qt.ActionsContextMenu
+    Qt.ContextMenuPolicy.CustomContextMenu = Qt.CustomContextMenu
+    Qt.ItemFlag.NoItemFlags = Qt.NoItemFlags
+    Qt.ItemFlag.ItemIsSelectable = Qt.ItemIsSelectable
+    Qt.ItemFlag.ItemIsEditable = Qt.ItemIsEditable
+    Qt.ItemFlag.ItemIsDragEnabled = Qt.ItemIsDragEnabled
+    Qt.ItemFlag.ItemIsDropEnabled = Qt.ItemIsDropEnabled
+    Qt.ItemFlag.ItemIsUserCheckable = Qt.ItemIsUserCheckable
+    Qt.ItemFlag.ItemIsEnabled = Qt.ItemIsEnabled
+    Qt.ItemFlag.ItemIsAutoTristate = Qt.ItemIsAutoTristate
+    Qt.ItemFlag.ItemNeverHasChildren = Qt.ItemNeverHasChildren
+    Qt.ItemFlag.ItemIsUserTristate = Qt.ItemIsUserTristate
+    Qt.WindowType.Widget=Qt.Widget
+    Qt.WindowType.Window=Qt.Window
+    Qt.WindowType.Dialog=Qt.Dialog
+    Qt.WindowType.Sheet=Qt.Sheet
+    Qt.WindowType.Drawer=Qt.Drawer
+    Qt.WindowType.Popup=Qt.Popup
+    Qt.WindowType.Tool=Qt.Tool
+    Qt.WindowType.ToolTip=Qt.ToolTip
+    Qt.WindowType.SplashScreen=Qt.SplashScreen
+    Qt.WindowType.SubWindow=Qt.SubWindow
+    Qt.WindowType.ForeignWindow=Qt.ForeignWindow
+    Qt.WindowType.CoverWindow=Qt.CoverWindow
+    class PenStyle:
+        SolidLine = Qt.SolidLine
+        DashLine = Qt.DashLine
+        DotLine = Qt.DotLine
+        DashDotLine = Qt.DashDotLine
+        DashDotDotLine = Qt.DashDotDotLine
+        CustomDashLine = Qt.CustomDashLine
 
 
     class DragDropMode:
@@ -176,6 +246,20 @@ else:
         SelectItems = QAbstractItemView.SelectItems
         SelectRows = QAbstractItemView.SelectRows
         SelectColumns = QAbstractItemView.SelectColumns
+
+
+    class TextFlag:
+        TextSingleLine  = Qt.TextSingleLine
+        TextDontClip  = Qt.TextDontClip
+        TextExpandTabs  = Qt.TextExpandTabs
+        TextShowMnemonic  = Qt.TextShowMnemonic
+        TextWordWrap  = Qt.TextWordWrap
+        TextWrapAnywhere  = Qt.TextWrapAnywhere
+        TextHideMnemonic  = Qt.TextHideMnemonic
+        TextDontPrint  = Qt.TextDontPrint
+        TextIncludeTrailingSpaces  = Qt.TextIncludeTrailingSpaces
+        TextJustificationForced  = Qt.TextJustificationForced
+
 
 mw = Anki.aqt.mw
 

@@ -21,4 +21,5 @@ from . import (objs,
                 compatible_import,
                 menu,
                 configsModel,
+                baseClass,
                )

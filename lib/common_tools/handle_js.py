@@ -11,22 +11,25 @@ from aqt.editor import Editor
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo, tooltip
 
-from . import funcs,terms
+from . import funcs, terms
 
 CardId = funcs.Compatible.CardId()
 
-
 # print, _ = clipper_imports.funcs.logger(__name__)
 ankilink = funcs.G.src.ankilink
+
+
 def find_card_from_context(context):
     from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
-    if isinstance(context,Editor):
+    if isinstance(context, Editor):
         return context.card.id
-    if isinstance(context,SingleCardPreviewerMod):
+    if isinstance(context, SingleCardPreviewerMod):
         return context.card().id
-    if isinstance(context,BrowserPreviewer):
+    if isinstance(context, BrowserPreviewer):
         return context.card().id
     return None
+
+
 def on_js_message(handled, url: str, context):
     """onAppMsgWrapper 这个函数也控制一些读取, 这里搞不懂的去那看看"""
     if url.startswith("hjp-bilink-cid:"):
@@ -38,23 +41,17 @@ def on_js_message(handled, url: str, context):
         else:
             showInfo(f"""卡片不存在,id={str(cid)}""")
         return True, None
-    elif url.startswith("hjp-bilink-clipuuid:"):
-        pdfuuid, pagenum = url.split(":")[-1].split("_")
-        funcs.Dialogs.open_PDFprev(pdfuuid, pagenum, context)
+    # elif url.startswith("hjp-bilink-clipuuid:"):
+    #     pdfuuid, pagenum = url.split(":")[-1].split("_")
+    #     funcs.Dialogs.open_PDFprev(pdfuuid, pagenum, context)
     elif url.startswith(f"{ankilink.protocol}://"):
         if url.startswith(f"{ankilink.protocol}://{ankilink.cmd.opengview}="):
             mode = funcs.GraphMode
             uuid = url[-8:]
             funcs.Utils.print(str(context.__class__.__name__))
-            if funcs.GviewOperation.exists(uuid = uuid):
+            if funcs.GviewOperation.exists(uuid=uuid):
                 data = funcs.GviewOperation.load(uuid=uuid)
-                # card_id = find_card_from_context(context)
-                # pair=None
-                # if card_id:
-                #     desc = funcs.CardOperation.desc_extract(card_id)
-                #     pair = funcs.G.objs.LinkDataPair(card_id=str(card_id),desc=desc)
-                funcs.Dialogs.open_grapher(mode=mode.view_mode,gviewdata=data)
-                                           # [pair] if pair else None)
+                funcs.Dialogs.open_grapher(mode=mode.view_mode, gviewdata=data)
             else:
                 showInfo(f"""视图不存在,id={uuid}""")
         elif url.startswith(f"{ankilink.protocol}://{ankilink.cmd.opencard}="):
@@ -65,7 +62,7 @@ def on_js_message(handled, url: str, context):
                 showInfo(f"""卡片不存在,card_id={card_id}""")
         elif url.startswith(f"{ankilink.protocol}://{ankilink.cmd.openbrowser_search}="):
             s_len = len(f"{ankilink.protocol}://{ankilink.cmd.openbrowser_search}=")
-            searchstring =unquote(url[s_len+1:])
+            searchstring = unquote(url[s_len + 1:])
             funcs.BrowserOperation.search(searchstring).activateWindow()
         elif url.startswith(f"{ankilink.protocol}://{ankilink.Cmd.open}?{ankilink.Key.card}="):
             card_id = url[-13:]
@@ -77,19 +74,20 @@ def on_js_message(handled, url: str, context):
             gview_id = url[-8:]
             if funcs.GviewOperation.exists(uuid=gview_id):
                 data = funcs.GviewOperation.load(uuid=gview_id)
-                funcs.Dialogs.open_grapher(gviewdata=data,mode=funcs.GraphMode.view_mode)
+                funcs.Dialogs.open_grapher(gviewdata=data, mode=funcs.GraphMode.view_mode)
         elif url.startswith(f"{ankilink.protocol}://{ankilink.Cmd.open}?{ankilink.Key.browser_search}="):
             searchstring = unquote(url.split("=")[-1])
             funcs.BrowserOperation.search(searchstring).activateWindow()
         else:
-            showInfo("未知指令/unknown command:<br>"+url)
+            showInfo("未知指令/unknown command:<br>" + url)
     elif url.startswith("file://"):
-        pdfurl = re.sub("^file:/{2,3}|#page=\d+$","",url)
-        pdfpath = unquote(pdfurl)
-        pagenum = re.search("#page=(\d+)$",url).groups()[0] if re.search("#page=(\d+)$",url)!=None else "0"
-        cmd:"str" = funcs.G.CONFIG.PDFUrlLink_cmd.value
+        matches = re.search("file:/{2,3}(?P<pdfpath>.*)#page=(?P<page>\d+)$", url)
+        pdfpath = matches.group("pdfpath")
+        pdfurl = quote(pdfpath)
+        pagenum = matches.group("page")
+        cmd: "str" = funcs.G.CONFIG.PDFUrlLink_cmd.value
         if cmd.__contains__(terms.PDFLink.url):
-            cmd=re.sub(f"{{{terms.PDFLink.url}}}",pdfurl,cmd)
+            cmd = re.sub(f"{{{terms.PDFLink.url}}}", pdfurl, cmd)
         else:
             cmd = re.sub(f"{{{terms.PDFLink.path}}}", pdfpath, cmd)
         cmd = re.sub(f"{{{terms.PDFLink.page}}}", pagenum, cmd)
@@ -97,4 +95,3 @@ def on_js_message(handled, url: str, context):
         # tooltip(cmd)
         os.system(cmd)
     return handled
-

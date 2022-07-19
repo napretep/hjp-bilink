@@ -20,7 +20,6 @@ from . import configsModel
 
 from .compatible_import import *
 from . import funcs, baseClass
-
 from aqt import mw, dialogs
 from aqt.browser import Browser
 from aqt.browser.previewer import Previewer
@@ -922,39 +921,42 @@ class Dialog_PDFUrlTool(QDialog):
 
     def __init__(self):
         super().__init__()
+        self.resize(500, 200)
         self.class_name = G.src.pdfurl_class_name
         layout = QFormLayout(self)
         self.setWindowTitle("PDFUrlTool")
         self.widgets = {
-                Translate.pdf路径    : QLineEdit(self),
+                Translate.pdf路径    : QTextEdit(self),
                 Translate.pdf页码    : QSpinBox(self),
-                Translate.pdf名字    : QLineEdit(self),
+                Translate.pdf名字    : QTextEdit(self),
                 Translate.pdf默认显示页码: QRadioButton(self),
+                Translate.pdf样式    : QTextEdit(self),
                 Translate.确定       : QToolButton(self)
         }
         self.widgets[Translate.pdf页码].setRange(0, 99999)
         list(map(lambda items: layout.addRow(items[0], items[1]), self.widgets.items()))
         self.needpaste = False
-        self.widgets[Translate.pdf路径].textChanged.connect(lambda string: self.on_pdfpath_changed(string))
+        self.widgets[Translate.pdf路径].textChanged.connect(lambda: self.on_pdfpath_changed(self.widgets[Translate.pdf路径].toPlainText()))
         self.widgets[Translate.确定].clicked.connect(lambda event: self.on_confirm_clicked())
         QShortcut(QKeySequence(Qt.Key_Enter), self).activated.connect(lambda: self.widgets[Translate.确定].click())
         # self.widgets[Translate.确定].clicked.connect()
 
-    def on_pdfpath_changed(self, string):
-        text = re.sub("^file:/{2,3}", "", urllib.parse.unquote(string))
+    def on_pdfpath_changed(self, path):
+        text = re.sub("^file:/{2,3}", "", urllib.parse.unquote(path))
         splitresult = re.split("#page=(\d+)$", text)
         if len(splitresult) > 1:
             self.widgets[Translate.pdf页码].setValue(int(splitresult[1]))
         pdffilepath = splitresult[0]
-        pdffilename, _ = os.path.splitext(os.path.basename(pdffilepath))
+        config = funcs.PDFLink.GetPathInfoFromPreset(pdffilepath)
+        pdffilename, _ = config[1] if config is not None else os.path.splitext(os.path.basename(pdffilepath))
         self.widgets[Translate.pdf路径].blockSignals(True)
         self.widgets[Translate.pdf路径].setText(pdffilepath)
         self.widgets[Translate.pdf路径].blockSignals(False)
         self.widgets[Translate.pdf名字].setText(pdffilename)
 
-    def get_url_name_num(self):
-        return self.widgets[Translate.pdf路径].text(), \
-               self.widgets[Translate.pdf名字].text(), \
+    def get_url_name_num(self)->(str, str, str):
+        return self.widgets[Translate.pdf路径].toPlainText(), \
+               self.widgets[Translate.pdf名字].toPlainText(), \
                self.widgets[Translate.pdf页码].value()
 
     def on_confirm_clicked(self):
@@ -962,9 +964,17 @@ class Dialog_PDFUrlTool(QDialog):
         clipboard = QApplication.clipboard()
         mmdata = QMimeData()
         pdfurl, pdfname, pdfpage = self.get_url_name_num()
-        quote = f"{pdfurl[:2]}{urllib.parse.quote(pdfurl[2:])}"  # TODO 将来要适配mac系统的路径
+        quote = re.sub(r"\\","/",pdfurl)    # f{pdfurl[:2]}{urllib.parse.quote(pdfurl[2:])} TODO 将来要适配mac系统的路径
         page_str = self.get_pdf_str(pdfpage) if self.widgets[Translate.pdf默认显示页码].isChecked() else ""
-        mmdata.setHtml(f"""<a class="{self.class_name}" href="file://{quote}#page={pdfpage}">{pdfname}{page_str}</a>""")
+        style = self.widgets[Translate.pdf样式].toPlainText()
+        bs = BeautifulSoup("", "html.parser")
+        a_tag = bs.new_tag("a", attrs={
+                "class": self.class_name,
+                "style": style,
+                "href" : f"file://{quote}#page={pdfpage}"
+        })
+        a_tag.string = pdfname + page_str
+        mmdata.setHtml(a_tag.__str__())
         mmdata.setText(pdfurl)
         clipboard.setMimeData(mmdata)
         self.close()
@@ -1060,49 +1070,54 @@ class ConfigWidget:
             pass
 
         class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
-            def __init__(self, superior:"ConfigWidget.PDFUrlLinkBooklist", colItems: "list[ConfigWidget.PDFUrlLinkBooklist.TableItem]" = None):
+            def __init__(self, superior: "ConfigWidget.PDFUrlLinkBooklist", colItems: "list[ConfigWidget.PDFUrlLinkBooklist.TableItem]" = None):
                 if not colItems:
                     colItems = funcs.Map.do(superior.defaultRowData, lambda unit: superior.TableItem(superior, unit))
-                super().__init__(superior,colItems)
+                super().__init__(superior, colItems)
 
             def SetupEvent(self):
-                funcs.Map.do(range(3), lambda idx: self.colWidgets[idx].textChanged.connect(lambda:self.colItems[idx].setText(self.colWidgets[idx].toPlainText())))
-                self.colWidgets[3].clicked.connect(lambda:self.colItems[3].setText(str(self.colWidgets[3].isChecked())))
+                funcs.Map.do(range(3), lambda idx: self.colWidgets[idx].textChanged.connect(lambda: self.colItems[idx].setText(self.colWidgets[idx].toPlainText())))
+                self.colWidgets[3].clicked.connect(lambda: self.colItems[3].setText(str(self.colWidgets[3].isChecked())))
 
     class DescExtractPresetTable(baseClass.ConfigTableView):
         """模板Id:combo, field:受模板影响显示可选combo, length为spinbox, regexp为字符串用textedit
 
         """
-        colnames = ["templateName", "fieldName", "length", "regexp"]
+        colnames = ["templateName", "fieldName", "length", "regexp", "autoUpdateDesc"]
 
         class colEnum:
             template = 1
             field = 2
             length = 3
             regexp = 4
+            autoUpdateDesc= 5
 
         defaultRowData = [(-1, "ALL_TEMPLATES", colEnum.template),
                           ((-1, -1), "ALL_FIELDS", colEnum.field),
                           (32, "32", colEnum.length),
-                          ("", "", colEnum.regexp)]
+                          ("", "", colEnum.regexp),
+                          (True,"True",colEnum.autoUpdateDesc)]
 
         def GetRowFromData(self, data: "list[str]"):
+            if len(data)<len(self.colnames):
+                data+=self.defaultRowData[len(data):]
             dataformat = self.DataFormat(*data)
             colType = self.colEnum
             return [
                     self.TableItem(self, dataformat.templateId, dataformat.templateName, colType.template),
                     self.TableItem(self, (dataformat.templateId, dataformat.fieldId), dataformat.fieldName, colType.field),
                     self.TableItem(self, dataformat.length, str(dataformat.length), colType.length),
-                    self.TableItem(self, dataformat.regexp, dataformat.regexp, colType.regexp)
+                    self.TableItem(self, dataformat.regexp, dataformat.regexp, colType.regexp),
+                    self.TableItem(self, dataformat.autoUpdateDesc, str(dataformat.autoUpdateDesc),colType.autoUpdateDesc)
             ]
 
         def NewRow(self):
-            w = self.NewRowFormWidget(self)
+            w = self.RowFormWidget(self)
             w.widget.exec()
             self.AppendRow(w.colItems)
 
         def ShowRowEditor(self, row: "list[ConfigWidget.DescExtractPresetTable.TableItem]"):
-            self.NewRowFormWidget(self, row).widget.exec()
+            self.RowFormWidget(self, row).widget.exec()
             self.SaveDataToConfigModel()
 
         def OnTemplateComboBoxChanged(self, item: "ConfigWidget.DescExtractPresetTable.TableItem", templateId):
@@ -1112,13 +1127,12 @@ class ConfigWidget:
             fieldItem.SetupFieldCombo(templateId)
             self.rowEditor.update()
 
-        pass
 
         def SaveDataToConfigModel(self):
             data = []
             for row in range(self.model.rowCount()):
                 rowdata = []
-                for col in range(4):
+                for col in range(len(self.colnames)):
                     item: "ConfigWidget.DescExtractPresetTable.TableItem" = self.model.item(row, col)
                     value = item.GetValue()
                     rowdata.append(value)
@@ -1145,6 +1159,7 @@ class ConfigWidget:
 
                     if templateId > 0:
                         fields = funcs.CardTemplateOperation.GetModelFromId(templateId)["flds"]
+                        self.innerWidget.addItem("ALL_FIELDS", (templateId, -1))
                         for _field in fields:
                             self.innerWidget.addItem(_field["name"], (templateId, _field["ord"]))
                         idx = fieldId if fieldId else 0
@@ -1170,9 +1185,9 @@ class ConfigWidget:
                     print(f"{newTemplateId}")
 
                 templates = funcs.CardTemplateOperation.GetAllTemplates()
+                self.innerWidget.addItem("ALL_TEMPLATES", -1)
                 for template in templates:
                     self.innerWidget.addItem(template["name"], template["id"])
-                self.innerWidget.addItem("ALL_TEMPLATES", -1)
                 idx = self.innerWidget.findData(data, ItemDataRole.UserRole)
                 self.innerWidget.setCurrentIndex(idx)
                 # self.innerWidget.currentIndexChanged.connect(lambda Idx: CurIndexChanged(Idx))
@@ -1203,9 +1218,12 @@ class ConfigWidget:
                         self.innerWidget = QSpinBox()
                         self.innerWidget.setValue(data)
                         # self.innerWidget.valueChanged.connect(lambda val: self.setText(str(val)))
-                    else:
+                    elif self.valueType == colType.regexp:
                         self.innerWidget = QTextEdit()
                         self.innerWidget.setText(data)
+                    else:
+                        self.innerWidget = QRadioButton()
+                        self.innerWidget.setChecked(data)
                         # self.innerWidget.textChanged.connect(lambda : self.setText(self.innerWidget.toPlainText()))
                 # layout.addWidget(self.innerWidget)
                 # self.widget.setLayout(layout)
@@ -1219,6 +1237,8 @@ class ConfigWidget:
                     return self.data(ItemDataRole.UserRole)
                 elif self.valueType == colType.regexp:
                     return self.text()
+                elif self.valueType == colType.autoUpdateDesc:
+                    return self.text()=="True"
                 else:
                     return int(self.text())
 
@@ -1228,9 +1248,10 @@ class ConfigWidget:
             length: "int"
             regexp: "str"
 
-            def __init__(self, templateId, fieldId, length, regexp):
+            def __init__(self, templateId, fieldId, length, regexp, autoUpdateDesc):
                 self.templateId = templateId
                 self.fieldId = fieldId
+                self.autoUpdateDesc = autoUpdateDesc
                 if templateId < 0:
                     self.model = None
                     self.templateName = "ALL_TEMPLATES"
@@ -1252,7 +1273,7 @@ class ConfigWidget:
                 self.length = length
                 self.regexp = regexp
 
-        class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
+        class RowFormWidget(baseClass.ConfigTableNewRowFormView):
             def __init__(self, superior, colItems: "list[ConfigWidget.DescExtractPresetTable.TableItem]" = None):
                 if not colItems:
                     colItems = funcs.Map.do(superior.defaultRowData, lambda data: superior.TableItem(superior, *data))
@@ -1263,11 +1284,12 @@ class ConfigWidget:
                 col1: "QComboBox" = self.colWidgets[1]
                 col2: "QSpinBox" = self.colWidgets[2]
                 col3: "QTextEdit" = self.colWidgets[3]
+                col4: "QRadioButton" = self.colWidgets[4]
                 col0.currentIndexChanged.connect(lambda idx: OnCol0CurrentIndexChanged(idx))
                 col1.currentIndexChanged.connect(lambda idx: OnCol1CurrentIndexChanged(idx))
                 col2.valueChanged.connect(lambda val: self.colItems[2].setText(str(val)))
                 col3.textChanged.connect(lambda: self.colItems[3].setText(col3.toPlainText()))
-
+                col4.clicked.connect(lambda : self.colItems[4].setText(col4.isChecked().__str__()))
                 def OnCol0CurrentIndexChanged(idx):
                     self.colItems[0].setData(col0.currentData(ItemDataRole.UserRole), ItemDataRole.UserRole)
                     self.colItems[0].setText(col0.currentText())
@@ -1283,6 +1305,7 @@ class ConfigWidget:
                     if tmplId > 0:
                         fields = funcs.CardTemplateOperation.GetModelFromId(tmplId)["flds"]
                         funcs.Map.do(fields, lambda _field: col1.addItem(_field["name"], (tmplId, _field["ord"])))
+                        col1.addItem("ALL_FIELDS", (tmplId, -1))
                     else:
                         funcs.Map.do([("ALL_FIELDS", (-1, -1)), ("FRONT", (-1, -2)), ("BACK", (-1, -3))], lambda col1data: col1.addItem(col1data[0], col1data[1]))
                     col1.setCurrentIndex(idx)

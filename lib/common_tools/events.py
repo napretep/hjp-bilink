@@ -71,7 +71,7 @@ def on_add_cards_did_init_handle(addcards:"AddCards"):
 def open_grahper_with_newcard(note:"Note"):
     if funcs.G.mw_addcard_to_grapher_on:
         QTimer.singleShot(100,lambda :funcs.Dialogs.open_grapher(
-            [objs.LinkDataPair(str(note.card_ids()[0]),funcs.desc_extract(note.card_ids()[0]))]
+            [objs.LinkDataPair(str(note.card_ids()[0]),funcs.CardOperation.desc_extract(note.card_ids()[0]))]
             ,need_activate=False))
 
 

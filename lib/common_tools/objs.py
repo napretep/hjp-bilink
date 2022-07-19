@@ -13,16 +13,17 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Union
 from urllib.parse import unquote
-from .compatible_import import Anki
-if Anki.isQt6:
-    from PyQt6.QtGui import QStandardItem
-    from PyQt6.QtWidgets import QShortcut
-else:
-    from PyQt5.QtGui import QStandardItem
-    from PyQt5.QtWidgets import QShortcut
+from .compatible_import import *
 from aqt import mw
 from aqt.utils import tooltip, showInfo
 
+@dataclass
+class descExtractTable:
+    templateId:"int"
+    fieldId:"int"
+    length:"int"
+    regex:"str"
+    sync:"bool"
 
 class NONE:
     @staticmethod
@@ -39,12 +40,6 @@ class CmdArgs:
         """
         self.args=unquote(cmdargsli[1])
         self.type=cmdargsli[0].lower()
-
-
-    # def check_version(self,cmd:str):
-    #     if "?" in cmd.split("=")[0]:
-    #         return 1
-    #     elif
 
 
 @dataclass
@@ -160,18 +155,16 @@ class LinkDataPair:
 
     @property
     def desc(self):
-        from . import funcs
-        if funcs.Config.get().desc_sync.value==1:
-            return funcs.CardOperation.desc_extract(self.card_id,fromField=True)
-        if self.get_desc_from==LinkDescFrom.DB:
-            return self._desc
-        else:
-            return funcs.CardOperation.desc_extract(self.card_id,fromField=True)
+        # from . import funcs
+        # if self.get_desc_from == LinkDescFrom.DB:
+        return self._desc
+        # return funcs.CardOperation.desc_extract(self.card_id)
+
 
     @desc.setter
     def desc(self,value):
         self._desc=value
-        self.get_desc_from=LinkDescFrom.DB
+        # self.get_desc_from=LinkDescFrom.DB
 
     @property
     def int_card_id(self):
@@ -186,7 +179,7 @@ class LinkDataPair:
     def update_desc(self):
         """是从卡片中更新描述"""
         from . import funcs
-        self.desc = funcs.desc_extract(self.card_id)
+        self.desc = funcs.CardOperation.desc_extract(self.card_id)
 
     def __eq__(self, other: "LinkDataPair"):
         return self.card_id == other.card_id

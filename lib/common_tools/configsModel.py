@@ -84,7 +84,7 @@ class GViewData:
 
 
 @dataclass
-class GraphMode():
+class GraphMode:
     normal: int = 0
     view_mode: int = 1
 
@@ -359,7 +359,7 @@ class ConfigModel:
 
     descExtractTable:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["在本项设置中,你可以指定提取卡片描述的方式, 比如指定什么模板,提取哪个字段,长度多少,还可以写正则表达式, 双击单元格修改,加号按钮增加规则,减号去掉选中规则"],
-            value = [[-1,-1,32,""]],
+            value = [[-1, -1, 32, "", True]],# 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
             component=ConfigModel.Widget.customize,
             tab_at=Translate.链接相关,
             customizeComponent=lambda : widgets.ConfigWidget.DescExtractPresetTable

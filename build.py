@@ -51,7 +51,7 @@ def status_check():
 
 def ankiaddon_make(version):
     status_check()
-    repository = os.path.join(r"D:\备份盘\个人创作成果\代码\hjp-bilink历代版本",version)
+    repository = os.path.join(r"D:\备份盘\个人创作成果\代码\hjp-bilink历代版本",version[:-2])
     if not os.path.exists(repository):
         os.mkdir(repository)
     zip_name = os.path.join(repository,"hjp_bilink.zip")
@@ -75,10 +75,13 @@ def ankiaddon_make(version):
 
 if __name__ == "__main__":
     version=input("请输入版本号\n")
-    with open("./__init__.py","r",encoding="utf-8") as f:
-        s = f.read()
-        s = re.sub("""(?<=ADDON_VERSION=")\d+\.\d+\.\d+""",version,s)
+    if not re.search("\d+\.\d+\.\d+",version):
+        print("请输入符合格式的版本号!")
+    for v in ["w","l"]:
+        with open("./__init__.py","r",encoding="utf-8") as f:
+            s = f.read()
+            s = re.sub("""(?<=ADDON_VERSION=")\d+\.\d+\.\d+\.[wl]]""",version+"."+v, s) # w表示ankiweb,l表示local
 
-    with open("./__init__.py","w",encoding="utf-8") as f:
-        f.write(s)
-    ankiaddon_make(version)
+        with open("./__init__.py","w",encoding="utf-8") as f:
+            f.write(s)
+        ankiaddon_make(version+"."+v)

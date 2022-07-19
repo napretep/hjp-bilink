@@ -9,21 +9,21 @@ __time__ = '2021/8/1 15:33'
 import os
 import sys
 from typing import Union
-from ..imports import common_tools
-Anki = common_tools.compatible_import.Anki
-if Anki.isQt6:
-    from PyQt6 import QtGui, QtCore
-    from PyQt6.QtCore import Qt, QPoint, QModelIndex, QPersistentModelIndex
-    from PyQt6.QtGui import QStandardItemModel, QStandardItem, QIcon, QCursor
-    from PyQt6.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView, QLineEdit, \
-        QVBoxLayout, \
-        QHeaderView, QMenu, QWidget, QCheckBox, QRadioButton
-else:
-    from PyQt5 import QtGui, QtCore
-    from PyQt5.QtCore import Qt, QPoint, QModelIndex, QPersistentModelIndex
-    from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QCursor
-    from PyQt5.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView, QLineEdit, QVBoxLayout, \
-        QHeaderView, QMenu, QWidget, QCheckBox, QRadioButton
+from ..imports import *
+# Anki = common_tools.compatible_import.Anki
+# if Anki.isQt6:
+#     from PyQt6 import QtGui, QtCore
+#     from PyQt6.QtCore import Qt, QPoint, QModelIndex, QPersistentModelIndex
+#     from PyQt6.QtGui import QStandardItemModel, QStandardItem, QIcon, QCursor
+#     from PyQt6.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView, QLineEdit, \
+#         QVBoxLayout, \
+#         QHeaderView, QMenu, QWidget, QCheckBox, QRadioButton
+# else:
+#     from PyQt5 import QtGui, QtCore
+#     from PyQt5.QtCore import Qt, QPoint, QModelIndex, QPersistentModelIndex
+#     from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QCursor
+#     from PyQt5.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView, QLineEdit, QVBoxLayout, \
+#         QHeaderView, QMenu, QWidget, QCheckBox, QRadioButton
 
 import json
 
@@ -149,11 +149,14 @@ class AnchorDialog(QDialog):
         menu.show()
         pass
 
-    def on_self_desc_text_changed_handle(self):
-
+    def on_self_desc_text_changed_handle(self,s):
+        print(s)
         self.attr.linkdata.self_data.desc=self.bottom.line.text()
+
+        self.bottom.cbox.setChecked(False)
         self.model_data_save()
         self.setWindowTitle(f"""anchor of [desc={self.bottom.line.text()},card_id={self.card_id}]""")
+
 
     def on_bilink_link_operation_end_handle(self):
         self.model_data_load()
@@ -295,12 +298,12 @@ class AnchorDialog(QDialog):
         self.model_rootNode.character = -1
         self.model_rootNode.level = -1
         self.model_rootNode.primData = None
-        desc2 = common_tools.funcs.desc_extract(self.card_id)
+        desc2 = common_tools.funcs.CardOperation.desc_extract(self.card_id)
         self.bottom.line.setText(desc2)
         self.bottom.cbox.setChecked(self.attr.linkdata.self_data.get_desc_from==From.Field)
         def load_group(self, item: "common_tools.objs.LinkDataNode", parent: "AnchorDialog.Item"):
             if item.card_id:
-                desc2 = common_tools.funcs.desc_extract(item.card_id)
+                desc2 = common_tools.funcs.CardOperation.desc_extract(item.card_id)
                 descitem = self.Item(desc2, self.Item.desc, parent.level + 1)
                 carditem = self.Item(item.card_id, self.Item.card_id, parent.level + 1)
                 parent.appendRow([carditem, descitem])
@@ -315,7 +318,7 @@ class AnchorDialog(QDialog):
 
         for item in self.attr.linkdata.root:
             if item.card_id:
-                desc2 = common_tools.funcs.desc_extract(item.card_id)
+                desc2 = common_tools.funcs.CardOperation.desc_extract(item.card_id)
                 descitem = self.Item(desc2, self.Item.desc, 0)
                 carditem = self.Item(item.card_id, self.Item.card_id, 0)
                 self.model.appendRow([carditem, descitem])
@@ -334,14 +337,14 @@ class AnchorDialog(QDialog):
         """model->data"""
         from .. import linkdata_admin
         data = json.dumps(self.data_model_load())
-        common_tools.funcs.Utils.print(data)
+        print(data)
         linkdata_admin.write_card_link_info(self.card_id, data)
         common_tools.funcs.LinkPoolOperation.both_refresh(0,2)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.signout()
         self.model_data_save()
-
+        common_tools.funcs.CardOperation.refresh()
     def reject(self) -> None:
         self.close()
         super().reject()

@@ -52,7 +52,7 @@ class PairsLiAdmin(object):
             if cid != "":
                 cardLi = [str(cid)]
         self.pairs_li = [common_tools.objs.LinkDataPair(
-                card_id=card_id, desc=common_tools.funcs.desc_extract(card_id)) for card_id in cardLi]
+                card_id=card_id, desc=common_tools.funcs.CardOperation.desc_extract(card_id)) for card_id in cardLi]
 
 
 def get_browser_menu(browser: "Browser"):

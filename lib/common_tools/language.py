@@ -149,7 +149,7 @@ def rosetta(text: str = ""):
         "重建群组复习数据库":"rebuild group review database",
         "配置表操作":"operations for config file",
         "重置配置表":"reset config file",
-        "创建为视图":"create view",
+        "创建为视图":"create a new view",
         "视图名":"name of view",
         "视图名不能为空":"name of view cannot be empty",
         "视图名必须是JSON合法的字符串":"must be a valid JSON string",
@@ -191,7 +191,7 @@ def rosetta(text: str = ""):
         "含于视图":"Included in view",
         "新建视图":"create view",
         "插入到已有视图":"insert into existing view",
-        "临时视图":"as temporary view",
+        "链接池视图":"as linkpool view",
         "粘贴卡片":"paste cards",
         "插入到已打开视图":"insert into opened view",
         "修改描述":"edit card description",
@@ -362,6 +362,7 @@ class Translate:
     重新计时:str=rosetta("重新计时")
     默认操作:str=rosetta("默认操作")
     pdf默认显示页码:str=rosetta("pdf默认显示页码")
+    pdf样式:str=rosetta("pdf样式")
 
 if __name__ == "__main__":
     print(Translate.打开配置表)

@@ -32,6 +32,12 @@ from .configsModel import AnswerInfoInterface
 
 
 def run():
+
+    # funcs.G.thisVersion()
+    # mw.addonManager.
+    # print(mw.addonManager.allAddons())
+    # print(mw.addonManager.ankiweb_addons())
+    # print(mw.addonManager.)
     if funcs.G.ISDEBUG:
         funcs.Utils.print("hjp-bilink is debug")
     gui_hooks.webview_will_show_context_menu.append(menu.maker(menu.T.webview))

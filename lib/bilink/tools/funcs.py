@@ -60,7 +60,7 @@
 #         cid = card_id
 #     else:
 #         raise TypeError("参数类型不支持:" + card_id.__str__())
-#     if card_exists(cid):
+#     if cardExistsInDB(cid):
 #         note = mw.col.getCard(cid).note()
 #     else:
 #         showInfo(f"{cid} 卡片不存在/card don't exist")
@@ -100,7 +100,7 @@
 # #     return desc
 #
 #
-# def card_exists(card_id):
+# def cardExistsInDB(card_id):
 #     from . import objs
 #     if isinstance(card_id, objs.LinkDataPair):
 #         cid = card_id.int_card_id

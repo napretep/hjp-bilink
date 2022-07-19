@@ -24,38 +24,8 @@ import json
 import os
 import re
 from functools import reduce
-from .compatible_import import Anki, QSettings_NativeFormat
+from .compatible_import import *
 from . import baseClass
-
-if Anki.isQt6:
-    from PyQt6.QtCore import pyqtSignal, QThread, QUrl, QTimer, Qt, QSettings, QMimeData, QRectF, QRect, QPointF
-    from PyQt6.QtWidgets import QApplication, QToolButton, QLineEdit, QInputDialog, QHBoxLayout, QPushButton, QWidget, \
-        QGridLayout, QLabel, QSpinBox, QComboBox, QRadioButton, QDialog, QFormLayout, QTabWidget, QListWidget, \
-        QVBoxLayout, QMessageBox, QTextEdit
-    from PyQt6.QtGui import QIcon, QDesktopServices
-else:
-    from PyQt5.QtCore import pyqtSignal, QThread, QUrl, QTimer, Qt, QSettings, QMimeData, QRectF, QRect, QPointF
-    from PyQt5.QtWidgets import QApplication, QToolButton, QLineEdit, QInputDialog, QHBoxLayout, QPushButton, QWidget, \
-        QGridLayout, QLabel, QSpinBox, QComboBox, QRadioButton, QDialog, QFormLayout, QTabWidget, QListWidget, QVBoxLayout, \
-        QMessageBox, QTextEdit
-    from PyQt5.QtGui import QIcon, QDesktopServices
-
-# pyqtSignal, QThread, QUrl, QTimer, Qt, QSettings, QMimeData, QRectF, QRect, QPointF = \
-#     Anki.aqt.pyqtSignal, Anki.aqt.QThread, Anki.aqt.QUrl, Anki.aqt.QTimer, Anki.aqt.Qt, \
-#     Anki.aqt.QSettings, Anki.aqt.QMimeData, Anki.aqt.QRectF, Anki.aqt.QRect, Anki.aqt.QPointF
-# noinspection PyUnresolvedReferences
-# QDesktopServices, QIcon = Anki.pyqt.QtGui.QDesktopServices,Anki.pyqt.QtGui.QIcon
-# noinspection PyUnresolvedReferences
-# QApplication, QToolButton, QLineEdit, QInputDialog, QHBoxLayout, QPushButton, QWidget, \
-#     QGridLayout, QLabel, QSpinBox, QComboBox, QRadioButton, QDialog, QFormLayout, QTabWidget, QListWidget, QVBoxLayout, \
-#     QMessageBox, QTextEdit= Anki.pyqt.QtWidgets.QApplication, Anki.pyqt.QtWidgets.QToolButton, Anki.pyqt.QtWidgets.QLineEdit, \
-#                             Anki.pyqt.QtWidgets.QInputDialog, Anki.pyqt.QtWidgets.QHBoxLayout, Anki.pyqt.QtWidgets.QPushButton, \
-#                             Anki.pyqt.QtWidgets.QWidget, Anki.pyqt.QtWidgets.QGridLayout, Anki.pyqt.QtWidgets.QLabel, \
-#                             Anki.pyqt.QtWidgets.QSpinBox, Anki.pyqt.QtWidgets.QComboBox, Anki.pyqt.QtWidgets.QRadioButton, \
-#                             Anki.pyqt.QtWidgets.QDialog, Anki.pyqt.QtWidgets.QFormLayout, Anki.pyqt.QtWidgets.QTabWidget, \
-#                             Anki.pyqt.QtWidgets.QListWidget, Anki.pyqt.QtWidgets.QVBoxLayout, \
-#                             Anki.pyqt.QtWidgets.QMessageBox, Anki.pyqt.QtWidgets.QTextEdit
-
 
 from anki import notes
 from anki.cards import Card
@@ -624,13 +594,13 @@ class Config:
             pass
 
 
-
 class GrapherOperation:
     @staticmethod
     def refresh():
         from ..bilink.dialogs.linkdata_grapher import Grapher
         if isinstance(G.mw_grapher, Grapher):
             G.mw_grapher.on_card_updated.emit(None)
+
 
 class LinkDataOperation:
     """针对链接数据库的操作,
@@ -667,9 +637,9 @@ class LinkDataOperation:
         if cardB.self_data not in cardA.link_list:
             cardA.append_link(cardB.self_data)
             if needsave: cardA.save_to_DB()
-        if cardA.self_data not in cardB.link_list:
-            cardB.append_link(cardA.self_data)
-            if needsave: cardB.save_to_DB()
+        # if cardA.self_data not in cardB.link_list:
+        #     cardB.append_link(cardA.self_data)
+        #     if needsave: cardB.save_to_DB()
 
     @staticmethod
     def unbind(card_idA: 'Union[str,LinkDataJSONInfo]', card_idB: 'Union[str,LinkDataJSONInfo]', needsave=True):
@@ -683,9 +653,9 @@ class LinkDataOperation:
         if cardB.self_data in cardA.link_list:
             cardA.remove_link(cardB.self_data)
             if needsave: cardA.save_to_DB()
-        if cardA.self_data in cardB.link_list:
-            cardB.remove_link(cardA.self_data)
-            if needsave: cardB.save_to_DB()
+        # if cardA.self_data in cardB.link_list:
+        #     cardB.remove_link(cardA.self_data)
+        #     if needsave: cardB.save_to_DB()
 
     @staticmethod
     def backup(cfg: "ConfigModel", now=None):
@@ -706,18 +676,20 @@ class LinkDataOperation:
             return False
         return True
 
+
 class CardTemplateOperation:
     @staticmethod
-    def GetModelFromId(Id:int):
+    def GetModelFromId(Id: int):
         return mw.col.models.get(Id)
 
     @staticmethod
-    def GetNameFromId(Id:int):
+    def GetNameFromId(Id: int):
         return CardTemplateOperation.GetModelFromId(Id)[""]
 
     @staticmethod
     def GetAllTemplates():
         return mw.col.models.all()
+
 
 class Compatible:
 
@@ -850,7 +822,13 @@ class EditorOperation:
         dialog = widgets.Dialog_PDFUrlTool()
         dialog.widgets[Translate.pdf路径].setText(text)
         dialog.widgets[Translate.pdf默认显示页码].setChecked(Config.get().PDFUrlLink_default_show_pagenum.value)
-        dialog.exec_()
+        config = PDFLink.GetPathInfoFromPreset(text)
+        if config is not None:
+            dialog.widgets[Translate.pdf名字].setText(config[1])
+            dialog.widgets[Translate.pdf默认显示页码].setChecked(config[3])
+            dialog.widgets[Translate.pdf样式].setText(config[2])
+
+        dialog.exec()
         # if dialog.needpaste:tooltip("neeapaste")
         if dialog.needpaste: editor.onPaste()
         return text
@@ -965,89 +943,6 @@ class CardOperation:
         note.flush()
         return str(note.card_ids()[0])
 
-    # @staticmethod
-    # def clipbox_insert_field(clipuuid, timestamp=None):
-    #     """用于插入clipbox到指定的卡片字段,如果这个字段存在这个clipbox则不做操作"""
-    #     if platform.system() in {"Darwin", "Linux"}:
-    #         tooltip("当前系统暂时不支持该功能\n current os not supports the feature")
-    #         return
-    #     else:
-    #         from ..clipper2.exports import fitz
-    #
-    #     def bookmark_to_tag(bookmark: "list[list[int,str,int]]"):
-    #         tag_dict = {}
-    #         if len(bookmark) == 0:
-    #             return tag_dict
-    #         level, content, pagenum = bookmark[0][0], bookmark[0][1], bookmark[0][2]
-    #         tag_dict[pagenum] = re.sub(r"\s|\r|\n", "-", content)
-    #         level_stack = []
-    #         level_stack.append([level, content, pagenum])
-    #         for item in bookmark[1:]:
-    #             level, content, pagenum = item[0], re.sub(r"\s|\r|\n", "-", item[1]), item[2]
-    #             if level == 1:
-    #                 tag_dict[pagenum] = content
-    #             else:
-    #                 while len(level_stack) != 0 and level_stack[-1][0] >= level:
-    #                     level_stack.pop()
-    #                 content = f"{level_stack[-1][1]}::{content}"
-    #                 tag_dict[pagenum] = content
-    #             level_stack.append([level, content, pagenum])
-    #         return tag_dict
-    #
-    #     DB = G.DB
-    #     DB.go(DB.table_clipbox)
-    #     clipbox_ = DB.select(uuid=clipuuid).return_all().zip_up()[0]
-    #     clipbox = G.objs.ClipboxRecord(**clipbox_)
-    #     DB.end()
-    #     DB.go(DB.table_pdfinfo)
-    #     if timestamp is None:
-    #         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    #     card_id_li = clipbox.card_id.split(",")
-    #     for card_id in card_id_li:
-    #         if not card_id.isdigit():
-    #             continue
-    #         pdfinfo_ = DB.select(uuid=clipbox.pdfuuid).return_all().zip_up()[0]
-    #         pdfinfo = G.objs.PDFinfoRecord(**pdfinfo_)
-    #         pdfname = os.path.basename(pdfinfo.pdf_path)
-    #         pdfname_in_tag = re.sub(r"\s|\r|\n", "-", pdfname[0:-4])
-    #         note = mw.col.getCard(CardId(int(card_id))).note()
-    #         html = reduce(lambda x, y: x + "\n" + y, note.fields)
-    #         if clipbox.uuid not in html:
-    #             note.fields[clipbox.QA] += \
-    #                 f"""<img class="hjp_clipper_clipbox" src="hjp_clipper_{clipbox.uuid}_.png"><br>\n"""
-    #         if clipbox.comment != "" and clipbox.uuid not in html:
-    #             note.fields[clipbox.commentQA] += \
-    #                 f"""<p class="hjp_clipper_clipbox text" id="{clipbox.uuid}">{clipbox.comment}</p>\n"""
-    #
-    #         note.addTag(f"""hjp-bilink::timestamp::{timestamp}""")
-    #         # print(f"in the loop, timestamp={timestamp}")
-    #         note.addTag(f"""hjp-bilink::books::{pdfname_in_tag}::page::{clipbox.pagenum}""")
-    #         doc: "fitz.Document" = fitz.open(pdfinfo.pdf_path)
-    #         toc = doc.get_toc()
-    #         if len(toc) > 0:
-    #             # 读取缓存的书签
-    #             jsonfilename = os.path.join(tempfile.gettempdir(),
-    #                                         UUID.by_hash(pdfinfo.pdf_path) + ".json")
-    #             if os.path.exists(jsonfilename):  # 存在直接读
-    #                 bookdict = json.loads(open(jsonfilename, "r", encoding="utf-8").read())
-    #             else:  # 不存在则新建
-    #                 bookdict = bookmark_to_tag(toc)
-    #                 json.dump(bookdict, open(jsonfilename, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
-    #             pagelist = sorted(list(bookdict.keys()), key=lambda x: int(x))  # 根据bookdict的键名(页码)进行排序
-    #
-    #             atbookmark = -1
-    #             for idx in range(len(pagelist)):
-    #                 # 这里是在选择card所在的页码插入到合适的标签之间的位置,比如标签A在36页,标签B在38页, card指向37页,那么保存在标签A中.
-    #                 #
-    #                 if int(pagelist[idx]) > clipbox.pagenum:
-    #                     if idx > 0:
-    #                         atbookmark = pagelist[idx - 1]
-    #                     break
-    #             if atbookmark != -1:
-    #                 note.addTag(f"""hjp-bilink::books::{pdfname_in_tag}::bookmark::{bookdict[atbookmark]}""")
-    #         note.flush()
-    #     DB.end()
-
     @staticmethod
     def refresh():
         def prev_refresh(p: Previewer):
@@ -1071,7 +966,12 @@ class CardOperation:
         for k, v in G.mw_card_window.items():
             if v is not None:
                 prev_refresh(v)
-        # TODO grahper也要刷新
+        GrapherOperation.refresh()
+        from ..bilink.dialogs.linkdata_grapher import Grapher
+        for k, v in G.mw_gview.items():
+            if isinstance(v, Grapher):
+                v.on_card_updated.emit(None)
+
         print("card refreshed")
 
     @staticmethod
@@ -1084,8 +984,76 @@ class CardOperation:
 
     @staticmethod
     def desc_extract(card_id, fromField=False):
-        """读取逻辑, 默认从数据库读取,除非强制 fromField=True"""
-        return desc_extract(card_id, fromField)
+        """读取逻辑,
+        0 判断是否强制从卡片字段中提取
+            0.1 是 则直接提取
+            0.2 不是 再往下看.
+        1 从数据库了解是否要auto update,
+            1.1 不auto则读取数据库
+            1.2 auto 则读取卡片本身
+                1.2.1 从预设了解是否有预定的读取方案
+                    1.2.1.1 若有预定的方案则根据预定方案读取
+                    1.2.1.2 无预定方案, 则根据默认的方案读取.
+       """
+        cfg = Config.get()
+
+        def get_desc_from_field(ins, note) -> str:
+            if ins.fieldId == -1:
+                StrReadyToExtract = "".join(note.fields)
+            elif ins.fieldId == -2:
+                StrReadyToExtract = note.fields[0]
+            elif ins.fieldId == -3:
+                StrReadyToExtract = note.fields[1]
+            else:
+                StrReadyToExtract = note.fields[ins.fieldId]
+            step1_desc = HTML.TextContentRead(StrReadyToExtract)
+            step2_desc = step1_desc if ins.length == 0 else step1_desc[0:int(ins.length)]
+            if ins.regex != "":
+                search = re.search(ins.regex, step2_desc)
+                if search is None:
+                    tooltip("根据设置中预留的正则表达式, 没有找到描述")
+                else:
+                    step2_desc = search.group()
+            return step2_desc
+
+        from . import objs
+
+        ins = CardOperation.InstructionOfExtractDesc(card_id)
+
+        note: "Note" = CardOperation.note_get(card_id)
+        if fromField:  # 若强制指定了要从字段中读取, 则抛弃以下讨论, 直接返回结果.
+            # 确定字段
+            return get_desc_from_field(ins, note)
+        else:
+            datainfo = LinkDataOperation.read_from_db(card_id)
+            if datainfo.self_data.get_desc_from == objs.LinkDescFrom.DB:
+                print("--------=--=-=-=-=       desc  from DB       ")
+                return datainfo.self_data.desc
+            else:
+                if ins.sync:
+                    # 确定字段
+                    return get_desc_from_field(ins, note)
+                else:
+                    datainfo.self_data.get_desc_from = objs.LinkDescFrom.DB
+                    datainfo.save_to_DB()
+                    return datainfo.self_data.desc
+
+    @staticmethod
+    def InstructionOfExtractDesc(card_id):
+        from . import objs
+        cfg = Config.get()
+        specialModelIdLi = [desc[0] for desc in cfg.descExtractTable.value]
+        modelId = CardOperation.note_get(card_id).mid
+        returnData = []
+        if modelId in specialModelIdLi:
+            idx = specialModelIdLi.index(modelId)
+            returnData = cfg.descExtractTable.value[idx]
+        elif -1 in specialModelIdLi:
+            idx = specialModelIdLi.index(modelId)
+            returnData = cfg.descExtractTable.value[idx]
+        else:
+            returnData = [-1, -1, cfg.length_of_desc.value, "", cfg.desc_sync.value]
+        return objs.descExtractTable(*returnData)
 
     @staticmethod
     def get_correct_id(card_id):
@@ -1101,6 +1069,13 @@ class CardOperation:
         else:
             raise TypeError("参数类型不支持:" + card_id.__str__())
         return cid
+
+    @staticmethod
+    def GetCard(card_id):
+        if pointVersion() > 46:
+            return mw.col.get_card(card_id)
+        else:
+            return mw.col.getCard(card_id)
 
 
 class Media:
@@ -1775,25 +1750,6 @@ class Dialogs:
         else:
             G.mw_anchor_window[card_id].activateWindow()
 
-    # @staticmethod
-    # def open_clipper(pairs_li=None, clipboxlist=None, **kwargs):
-    #     if platform.system() in {"Darwin", "Linux"}:
-    #         tooltip("当前系统暂时不支持PDFprev")
-    #         return
-    #     else:
-    #         from . import G
-    #         from ..clipper2.lib.Clipper import Clipper
-    #     # log.debug(G.mw_win_clipper.__str__())
-    #     if not isinstance(G.mw_win_clipper, Clipper):
-    #         G.mw_win_clipper = Clipper()
-    #         G.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
-    #         G.mw_win_clipper.show()
-    #     else:
-    #         G.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
-    #         # all_objs.mw_win_clipper.show()
-    #         G.mw_win_clipper.activateWindow()
-    #         # print("just activate")
-
     @staticmethod
     def open_linkpool():
         from . import G
@@ -1804,45 +1760,6 @@ class Dialogs:
         else:
             G.mw_linkpool_window.activateWindow()
         pass
-
-    # @staticmethod
-    # def open_PDFprev(pdfuuid, pagenum, FROM):
-    #     if platform.system() in {"Darwin", "Linux"}:
-    #         tooltip("当前系统暂时不支持PDFprev")
-    #         return
-    #     else:
-    #         from ..clipper2.lib.PDFprev import PDFPrevDialog
-    #     # print(FROM)
-    #     if isinstance(FROM, Reviewer):
-    #         card_id = FROM.card.id
-    #         pass
-    #     elif isinstance(FROM, BrowserPreviewer):
-    #         card_id = FROM.card().id
-    #         pass
-    #     elif isinstance(FROM, SingleCardPreviewerMod):
-    #         card_id = FROM.card().id
-    #     else:
-    #         TypeError("未能找到card_id")
-    #     card_id = str(card_id)
-    #
-    #     DB = G.DB
-    #     result = DB.go(DB.table_pdfinfo).select(uuid=pdfuuid).return_all().zip_up()[0]
-    #     DB.end()
-    #     pdfname = result.to_pdfinfo_data().pdf_path
-    #     pdfpageuuid = UUID.by_hash(pdfname + str(pagenum))
-    #     if card_id not in G.mw_pdf_prev:
-    #         G.mw_pdf_prev[card_id] = {}
-    #     if pdfpageuuid not in G.mw_pdf_prev[card_id]:
-    #         G.mw_pdf_prev[card_id][pdfpageuuid] = None
-    #     if isinstance(G.mw_pdf_prev[card_id][pdfpageuuid], PDFPrevDialog):
-    #         G.mw_pdf_prev[card_id][pdfpageuuid].activateWindow()
-    #     else:
-    #         ratio = 1
-    #         G.mw_pdf_prev[card_id][pdfpageuuid] = \
-    #             PDFPrevDialog(pdfuuid=pdfuuid, pdfname=pdfname, pagenum=pagenum, pageratio=ratio, card_id=card_id)
-    #         G.mw_pdf_prev[card_id][pdfpageuuid].show()
-    #
-    #     pass
 
     @staticmethod
     def open_custom_cardwindow(card: Union[Card, str, int]) -> 'Optional[SingleCardPreviewerMod]':
@@ -1909,6 +1826,7 @@ class Dialogs:
         elif mode == GraphMode.view_mode:
             if (gviewdata.uuid not in G.mw_gview) or (not isinstance(G.mw_gview[gviewdata.uuid], Grapher)):
                 G.mw_gview[gviewdata.uuid] = Grapher(pair_li=pair_li, mode=mode, gviewdata=gviewdata)
+                G.mw_gview[gviewdata.uuid].insert(pair_li)
                 G.mw_gview[gviewdata.uuid].show()
             else:
                 G.mw_gview[gviewdata.uuid].insert(pair_li)
@@ -1925,7 +1843,7 @@ class Dialogs:
             layout: QFormLayout = dataclasses.field(default_factory=QFormLayout)
 
         dialog = QDialog()
-        dialog.resize(800,600)
+        dialog.resize(800, 600)
         layout = QHBoxLayout()
         tab = QTabWidget()
         cfg = Config.get()
@@ -1991,6 +1909,10 @@ class HTML:
                 href["href"] = ""
                 href["class"] = G.src.pdfurl_class_name
         return root.__str__()
+
+    @staticmethod
+    def TextContentRead(html):
+        return HTML_txtContent_read(html)
 
 
 def button_icon_clicked_switch(button: QToolButton, old: list, new: list, callback: "callable" = None):
@@ -2497,6 +2419,26 @@ class AnkiLinks:
         return pair_li
 
 
+class PDFLink:
+    @staticmethod
+    def FindIndexOfPathInPreset(url: "str"):
+        booklist = Config.get().PDFUrlLink_booklist.value
+        a = [url == bookunit[0] for bookunit in booklist]
+        if True in a:
+            return a.index(True)
+        else:
+            return -1
+
+    @staticmethod
+    def GetPathInfoFromPreset(url):
+        booklist = Config.get().PDFUrlLink_booklist.value
+        index = PDFLink.FindIndexOfPathInPreset(url)
+        if index != -1:
+            return booklist[index]
+        else:
+            return None
+
+
 def copy_intext_links(pairs_li: 'list[G.objs.LinkDataPair]'):
     from .objs import LinkDataPair
     from .language import rosetta as say
@@ -2512,37 +2454,6 @@ def copy_intext_links(pairs_li: 'list[G.objs.LinkDataPair]'):
         clipboard.setText(clipstring)
         tooltip(f"""{Translate.已复制到剪贴板}：{clipstring}""")
     pass
-
-
-# def PDFprev_close(card_id, pdfpageuuid=None, all=False):
-#     if platform.system() in {"Darwin", "Linux"}:
-#         # tooltip("当前系统暂时不支持PDFprev")
-#         return
-#     else:
-#         from . import G
-#         from ..clipper2.lib.PDFprev import PDFPrevDialog
-#     if isinstance(card_id, int):
-#         card_id = str(card_id)
-#     if card_id not in G.mw_pdf_prev:
-#         return
-#     reviewer_still = mw.reviewer.card is not None and mw.reviewer.card.id == int(card_id)
-#     browser = BrowserOperation.get_browser()  # aqt.mw = self
-#     previewer_still = browser is not None and browser._previewer is not None \
-#                       and browser._previewer.card() is not None and browser._previewer.card().id == int(card_id)
-#     card_window_still = card_id in G.mw_card_window and G.mw_card_window[card_id] is not None
-#     if reviewer_still or previewer_still or card_window_still:
-#         return
-#     if all:
-#         for pdfpageuuid in G.mw_pdf_prev[card_id].keys():
-#             if isinstance(G.mw_pdf_prev[card_id][pdfpageuuid], PDFPrevDialog):
-#                 p = G.mw_pdf_prev[card_id][pdfpageuuid]
-#                 p.close()
-#                 # all_objs.mw_pdf_prev[card_id][pdfpageuuid]=None
-#     else:
-#         if pdfpageuuid in G.mw_pdf_prev[card_id]:
-#             p = G.mw_pdf_prev[card_id][pdfpageuuid]
-#             p.close()
-#             # all_objs.mw_pdf_prev[card_id][pdfpageuuid] = None
 
 
 def on_clipper_closed_handle():
@@ -2587,7 +2498,7 @@ def note_get(card_id):
     from . import objs
     cid = CardOperation.get_correct_id(card_id)
     if card_exists(cid):
-        note = mw.col.getCard(cid).note()
+        note = CardOperation.GetCard(cid).note()
     else:
         showInfo(f"{cid} 卡片不存在/card don't exist")
         return None
@@ -2645,7 +2556,7 @@ def HTML_txtContent_read(html):
     root = BeautifulSoup(html, "html.parser")
     list(map(lambda x: x.extract(), root.select(".hjp_bilink.ankilink.button")))
     text = root.getText()
-    if cfg.delete_intext_link_when_extract_desc.value == 1:
+    if cfg.delete_intext_link_when_extract_desc.value:
         newtext = text
         replace_str = ""
         intextlinks = BackLinkReader(html_str=text).backlink_get()
@@ -2686,6 +2597,37 @@ def data_crashed_report(data):
         f = open(path, "a", encoding="utf-8")
     f.write(info)
 
+class Geometry:
+    @staticmethod
+    def MakeArrowForLine(line:"QLineF"):
+        v = line.unitVector()
+        v.setLength(30)
+        v.translate(QPointF(line.dx()*2/5, line.dy()*2/5))
+
+        n = v.normalVector()
+        n.setLength(n.length() * 0.3)
+        n2 = n.normalVector().normalVector()
+
+        p1 = v.p2()
+        p2 = n.p2()
+        p3 = n2.p2()
+        return QPolygonF([p1,p2,p3])
+
+    @staticmethod
+    def IntersectPointByLineAndRect(line:"QLineF",polygon:"QRectF"):
+        intersectPoint = QPointF()
+        edges = [
+                QLineF(polygon.topLeft(), polygon.topRight()),
+                QLineF(polygon.topLeft(), polygon.bottomLeft()),
+                QLineF(polygon.bottomRight(), polygon.bottomLeft()),
+                QLineF(polygon.bottomRight(), polygon.topRight()),
+        ]
+        # edges = Map.do(range(4),lambda i:QLineF(polygon.at(i),polygon.at((i+1)%4)))
+        # print(f"edges={edges},\nLine={line}")
+        for edge in edges:
+            if line.intersect(edge, intersectPoint) == QLineF.BoundedIntersection:
+                 return intersectPoint
+        return None
 
 CardId = Compatible.CardId()
 log = logger(__name__)

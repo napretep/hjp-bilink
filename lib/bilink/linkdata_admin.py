@@ -10,7 +10,7 @@ __time__ = '2021/7/29 16:20'
 import json
 
 from ..common_tools import funcs
-from ..common_tools.objs import LinkDataJSONInfo
+from ..common_tools.objs import LinkDataJSONInfo, LinkDescFrom
 from ..common_tools import G
 
 # json数据结构:
@@ -63,7 +63,7 @@ from ..common_tools import G
 class LinkInfoDB(object):
     @staticmethod
     def exists(card_id:str)->bool:
-        return card_exists(card_id)
+        return cardExistsInDB(card_id)
 
     @staticmethod
     def get_template(card_id, desc="", version=2) ->dict:
@@ -99,8 +99,8 @@ def get_template(card_id, desc="", version=2):
         "link_dict": {},
         "self_data": {  # 自身的数据
             "card_id": card_id,
-            "desc": desc if desc else funcs.desc_extract(card_id, fromField=True), # 如果不 fromField会循环引用报错
-            "get_desc_from":funcs.Config.get().new_card_default_desc_sync.value,
+            "desc": desc if desc else funcs.CardOperation.desc_extract(card_id, fromField=True), # 如果不 fromField会循环引用报错
+            "get_desc_from": LinkDescFrom.Field if funcs.Config.get().new_card_default_desc_sync.value else LinkDescFrom.DB,
         },
         "root": [],
         "node": {}
@@ -114,7 +114,7 @@ DB.go(DB.table_linkinfo)
 
 def read_card_link_info(card_id: str) -> LinkDataJSONInfo:
     DB.go(DB.table_linkinfo)
-    if not card_exists(card_id):
+    if not cardExistsInDB(card_id):
         data = json.dumps(get_template(card_id))
         DB.insert(card_id=card_id, data=data).commit()
     result: "LinkDataJSONInfo" = DB.select(DB.EQ(card_id=card_id)).return_all().zip_up()[0].to_givenformat_data(
@@ -127,9 +127,9 @@ def read_card_link_info(card_id: str) -> LinkDataJSONInfo:
 def write_card_link_info(card_id: str, data: str, commit=True):
     """接受两种参数, cid为"""
     with G.DB.go(G.DB.table_linkinfo) as DB:
-        DB.replace(card_id=card_id, data=data).commit(need_commit=False,callback=funcs.Utils.print)
+        DB.replace(card_id=card_id, data=data).commit()
 
-    # if card_exists(card_id):
+    # if cardExistsInDB(card_id):
     #     DB.update(values=DB.VALUEEQ(data=data), where=DB.EQ(card_id=card_id))
     # else:
     #     DB.insert(card_id=card_id, data=data)
@@ -138,7 +138,7 @@ def write_card_link_info(card_id: str, data: str, commit=True):
     #     DB.end()
 
 
-def card_exists(card_id: "str") -> bool:
+def cardExistsInDB(card_id: "str") -> bool:
     DB.go(DB.table_linkinfo)
     result = len(DB.select(DB.EQ(card_id=card_id)).return_all()) > 0
 
