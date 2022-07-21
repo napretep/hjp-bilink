@@ -1,3 +1,7 @@
 {
-  "promptDelete": false
+  "promptDelete": false,
+  "strictLineBreaks": true,
+  "showLineNumber": true,
+  "rightToLeft": false,
+  "attachmentFolderPath": "./assets/"
 }

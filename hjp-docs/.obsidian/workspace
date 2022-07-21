@@ -125,10 +125,9 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
-  "active": "e335fb61d3a0de06",
+  "active": "91554ecb450d2c58",
   "lastOpenFiles": [
     "README.md",
     "updates.md"
