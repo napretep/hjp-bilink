@@ -29,11 +29,11 @@ from typing import TYPE_CHECKING
 class CustomConfigItemView:
 
     @property
-    def Item(self)->"ConfigModelItem":
+    def Item(self) -> "ConfigModelItem":
         return self._item
 
     @Item.setter
-    def Item(self, value:"ConfigModelItem"):
+    def Item(self, value: "ConfigModelItem"):
         self._item = value
 
     @property
@@ -45,11 +45,11 @@ class CustomConfigItemView:
         self._parent = value
 
     @property
-    def View(self)->"QWidget":
+    def View(self) -> "QWidget":
         return self._view
 
     @View.setter
-    def View(self, value:"QWidget"):
+    def View(self, value: "QWidget"):
         self._view = value
 
     def __init__(self, configItem: "ConfigModelItem" = None, parent: "QWidget" = None, *args, **kwargs):
@@ -137,7 +137,7 @@ class ConfigModelItem:
     display: 'Callable[[Any],Any]' = lambda x: x
     validate: 'Callable[[Any,Any],Any]' = lambda x, item: None
     limit: "list" = field(default_factory=lambda: [0, MAXINT])
-    customizeComponent: "Callable[[],CustomConfigItemView.__class__]" = lambda : CustomConfigItemView  # 这个组件的第一个参数必须接受
+    customizeComponent: "Callable[[],CustomConfigItemView.__class__]" = lambda: CustomConfigItemView  # 这个组件的第一个参数必须接受
     _id: "int" = 0  # 0表示无特殊信息
 
     def setValue(self, value):
@@ -357,12 +357,12 @@ class ConfigModel:
             tab_at=Translate.链接相关
     ))
 
-    descExtractTable:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    descExtractTable: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["在本项设置中,你可以指定提取卡片描述的方式, 比如指定什么模板,提取哪个字段,长度多少,还可以写正则表达式, 双击单元格修改,加号按钮增加规则,减号去掉选中规则"],
-            value = [[-1, -1, 32, "", True]],# 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
+            value=[],  # 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
             component=ConfigModel.Widget.customize,
             tab_at=Translate.链接相关,
-            customizeComponent=lambda : widgets.ConfigWidget.DescExtractPresetTable
+            customizeComponent=lambda: widgets.ConfigWidget.DescExtractPresetTable
     ))
 
     new_card_default_desc_sync: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
@@ -526,6 +526,13 @@ class ConfigModel:
             component=ConfigModel.Widget.radio,
             tab_at=Translate.同步与备份
     ))
+    # distChoice: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=["当你同时装了anki网络版与本地版的hjp-bilink, 你选择启动哪一个版本?默认选择本地版"],
+    #         value=0,
+    #         tab_at=Translate.同步与备份,
+    #         limit=[ComboItem(Translate.本地版, 0), ComboItem(Translate.anki网络版, 1)]
+    #
+    # ))
     auto_backup_interval: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["自动备份链接数据的间隔,单位是小时", "English Instruction Maybe later"],
             value=12,
@@ -580,15 +587,10 @@ text-decoration:none;""",
 
     PDFUrlLink_booklist: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["遇到指定路径的pdf,提供预先设置好的显示名称,样式, 是否显示页码,双击左侧表格单元修改对应行内容"],
-            value=[[r"D:\备份盘\经常更新\数学书大全\分析学\随机分析\An Informal Introduction to Stochastic Calculus with Applications by Ovidiu Calin (z-lib.org).pdf",
-                    "An Informal Introduction to Stochastic Calculus with Applications by Ovidiu Calin ",
-                    "color:green;",
-                    True]],
+            value=[],
             component=ConfigModel.Widget.customize,
-            customizeComponent=lambda :widgets.ConfigWidget.PDFUrlLinkBooklist,
+            customizeComponent=lambda: widgets.ConfigWidget.PDFUrlLinkBooklist,
             tab_at=Translate.pdf链接,
-
-
     ))
 
     # PDFUrlLink_path_arg:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(

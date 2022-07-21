@@ -938,6 +938,7 @@ class Dialog_PDFUrlTool(QDialog):
         self.needpaste = False
         self.widgets[Translate.pdf路径].textChanged.connect(lambda: self.on_pdfpath_changed(self.widgets[Translate.pdf路径].toPlainText()))
         self.widgets[Translate.确定].clicked.connect(lambda event: self.on_confirm_clicked())
+        self.widgets[Translate.确定].setIcon(QIcon(G.src.ImgDir.correct))
         QShortcut(QKeySequence(Qt.Key_Enter), self).activated.connect(lambda: self.widgets[Translate.确定].click())
         # self.widgets[Translate.确定].clicked.connect()
 
@@ -947,8 +948,12 @@ class Dialog_PDFUrlTool(QDialog):
         if len(splitresult) > 1:
             self.widgets[Translate.pdf页码].setValue(int(splitresult[1]))
         pdffilepath = splitresult[0]
-        config = funcs.PDFLink.GetPathInfoFromPreset(pdffilepath)
-        pdffilename, _ = config[1] if config is not None else os.path.splitext(os.path.basename(pdffilepath))
+        config:"list" = funcs.PDFLink.GetPathInfoFromPreset(pdffilepath)
+        if config is not None:
+            pdffilename = config[1]
+        else:
+            pdffilename = os.path.splitext(os.path.basename(pdffilepath))[0]
+        # pdffilename, _ = config[1] if config is not None else os.path.splitext(os.path.basename(pdffilepath))
         self.widgets[Translate.pdf路径].blockSignals(True)
         self.widgets[Translate.pdf路径].setText(pdffilepath)
         self.widgets[Translate.pdf路径].blockSignals(False)

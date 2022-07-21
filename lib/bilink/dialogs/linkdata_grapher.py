@@ -742,6 +742,7 @@ class Grapher(QDialog):
 
             def menuCloseEvent():
                 self.setSelected(True)
+                self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, True)
                 self.contextMenuOpened=False
 
             menu.closeEvent = lambda x: menuCloseEvent()
@@ -761,7 +762,8 @@ class Grapher(QDialog):
                         f"""card_id={pair.card_id},desc={shorten(pair.desc)}""").triggered.connect(
                         action(pair)
                     )
-
+            self.contextMenuOpened = True
+            self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, False)
             return menu
 
         def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
@@ -774,7 +776,6 @@ class Grapher(QDialog):
             if event.buttons() == Qt.MouseButton.RightButton:
                 if event.modifiers() != Qt.KeyboardModifier.ControlModifier:
                     self.make_context_menu().exec(event.screenPos())
-                    self.contextMenuOpened = True
             # if not self.contextMenuOpened:
             super().mousePressEvent(event)
 
@@ -791,8 +792,10 @@ class Grapher(QDialog):
             # print(self.scenePos().__str__())
 
         def mouseReleaseEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-            super().mouseReleaseEvent(event)
-            self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, True)
+
+            if not self.contextMenuOpened:
+                super().mouseReleaseEvent(event)
+                self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, True)
 
         def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
                   widget: typing.Optional[QWidget] = ...) -> None:
@@ -806,7 +809,7 @@ class Grapher(QDialog):
             body_rect = QRectF(0, header_height, int(self.rect().width()), int(self.rect().height()))
             painter.drawRect(header_rect)
             painter.setPen(QColor(255, 255, 255))
-            painter.drawText(header_rect.adjusted(5, 5, -5, -5), Qt.TextWordWrap, self.pair.card_id)
+            painter.drawText(header_rect.adjusted(5, 5, -5, -5), Qt.TextWordWrap, str(self.pair.card_id))
             painter.drawText(body_rect.adjusted(5, 5, -5, -5), Qt.TextWordWrap, f"""{self.pair.desc}""")
 
             if self.isSelected():

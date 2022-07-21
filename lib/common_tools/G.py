@@ -24,6 +24,7 @@ import os
 class installAs:
     local=0
     ankiweb=1
+
 if TYPE_CHECKING:
     from .configsModel import GroupReviewDictInterface, ConfigModel
 

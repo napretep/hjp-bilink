@@ -32,12 +32,17 @@ from .configsModel import AnswerInfoInterface
 
 
 def run():
+    # thisDist = funcs.G.installAs.local if funcs.G.src.ADDON_VERSION[-1]=="l" else funcs.G.installAs.ankiweb
+    # # 当本发行版是本地版,而且存在网络版
+    # conflict = funcs.G.addonId in mw.addonManager.ankiweb_addons() and mw.addonManager.isEnabled(str(funcs.G.addonId)) and thisDist==funcs.G.installAs.local
+    # if conflict:
+    #     if funcs.Config.get().distChoice.value == funcs.G.installAs.ankiweb:
+    #         return
+    #
+    # # 当本发行版是网络版,而且存在本地版
+    #
 
-    # funcs.G.thisVersion()
-    # mw.addonManager.
-    # print(mw.addonManager.allAddons())
-    # print(mw.addonManager.ankiweb_addons())
-    # print(mw.addonManager.)
+
     if funcs.G.ISDEBUG:
         funcs.Utils.print("hjp-bilink is debug")
     gui_hooks.webview_will_show_context_menu.append(menu.maker(menu.T.webview))

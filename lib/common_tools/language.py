@@ -153,7 +153,7 @@ def rosetta(text: str = ""):
         "视图名":"name of view",
         "视图名不能为空":"name of view cannot be empty",
         "视图名必须是JSON合法的字符串":"must be a valid JSON string",
-        "打开于视图:":"open in view of:",
+        "打开于视图":"in view of",
         "直接打开":"just open",
         "删除边":"delete edge",
         "隐藏边":"hide edge",
@@ -200,7 +200,9 @@ def rosetta(text: str = ""):
         "取消":"cancel",
         "重新计时":"retime",
         "默认操作":"default action",
-        "秒":"seconds"
+        "秒":"seconds",
+        "插入pdf链接":"insert pdf link",
+        "临时视图":"temp graph for outext link"
     }
     ZHdict = {
         "gview_admin_default_display":"视图管理器默认显示",
@@ -363,6 +365,9 @@ class Translate:
     默认操作:str=rosetta("默认操作")
     pdf默认显示页码:str=rosetta("pdf默认显示页码")
     pdf样式:str=rosetta("pdf样式")
+    anki网络版:str=rosetta("anki网络版")
+    本地版:str=rosetta("本地版")
+
 
 if __name__ == "__main__":
     print(Translate.打开配置表)

@@ -1049,7 +1049,7 @@ class CardOperation:
             idx = specialModelIdLi.index(modelId)
             returnData = cfg.descExtractTable.value[idx]
         elif -1 in specialModelIdLi:
-            idx = specialModelIdLi.index(modelId)
+            idx = specialModelIdLi.index(-1)
             returnData = cfg.descExtractTable.value[idx]
         else:
             returnData = [-1, -1, cfg.length_of_desc.value, "", cfg.desc_sync.value]
@@ -2422,7 +2422,7 @@ class AnkiLinks:
 class PDFLink:
     @staticmethod
     def FindIndexOfPathInPreset(url: "str"):
-        booklist = Config.get().PDFUrlLink_booklist.value
+        booklist = Config.get().PDFUrlLink_booklist.value # [["PDFpath", "name", "style", "showPage"]...]
         a = [url == bookunit[0] for bookunit in booklist]
         if True in a:
             return a.index(True)
@@ -2431,8 +2431,8 @@ class PDFLink:
 
     @staticmethod
     def GetPathInfoFromPreset(url):
-        booklist = Config.get().PDFUrlLink_booklist.value
-        index = PDFLink.FindIndexOfPathInPreset(url)
+        booklist = Config.get().PDFUrlLink_booklist.value # [["PDFpath", "name", "style", "showPage"]...]
+        index:"int" = PDFLink.FindIndexOfPathInPreset(url)
         if index != -1:
             return booklist[index]
         else:
