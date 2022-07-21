@@ -80,7 +80,7 @@ def on_js_message(handled, url: str, context):
             funcs.BrowserOperation.search(searchstring).activateWindow()
         else:
             showInfo("未知指令/unknown command:<br>" + url)
-    elif url.startswith("file://"):
+    elif url.startswith("file:/"):
         matches = re.search("file:/{2,3}(?P<pdfpath>.*)#page=(?P<page>\d+)$", url)
         pdfpath = matches.group("pdfpath")
         pdfurl = quote(pdfpath)

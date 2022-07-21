@@ -184,11 +184,11 @@ class ConfigModel:
     @staticmethod
     def pdfurl_default_system_cmd():
         """因为不同的系统需要的命令不同,所以要这个东西来确定"""
-        url = f"file:///{{{terms.PDFLink.url}}}#page={{{terms.PDFLink.page}}}"
+        url = f"""   file:///{{{terms.PDFLink.url}}}#page={{{terms.PDFLink.page}}} """
         if isMac:
-            return f'open -a Safari {url}'
+            return f'''open -a Safari "{url}" '''
         if isWin:
-            return f"start msedge {url}"
+            return f""" start msedge "{url}" """
         return ""
 
     gview_admin_default_display: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
