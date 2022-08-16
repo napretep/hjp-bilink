@@ -17,11 +17,9 @@ import typing
 from enum import Enum, unique
 from typing import Optional, Union
 
-
-from .. imports import *
+from ..imports import *
 
 from aqt.utils import showInfo, tooltip
-
 
 from ..linkdata_admin import read_card_link_info
 
@@ -37,21 +35,22 @@ GraphMode = common_tools.configsModel.GraphMode
 GViewData = common_tools.configsModel.GViewData
 Translate = common_tools.language.Translate
 Struct = common_tools.objs.Struct
-funcs=common_tools.funcs
-src=common_tools.G.src
+funcs = common_tools.funcs
+src = common_tools.G.src
+
 
 class Grapher(QDialog):
     """所有的个性化数据都储存在Entity对象中"""
     on_card_updated = pyqtSignal(object)
 
-    def __init__(self, pair_li: "list[LinkDataPair]" = None,mode=GraphMode.normal,gviewdata:"GViewData"=None):
+    def __init__(self, pair_li: "list[LinkDataPair]" = None, mode=GraphMode.normal, gviewdata: "GViewData" = None):
         super().__init__()
         self.setAttribute(Qt.WA_DeleteOnClose, on=True)
         self.data = self.Entity(self)
         self.data.gviewdata = gviewdata
         self.data.node_dict = pair_li
         if gviewdata:
-            self.data.node_dict = [ LinkDataPair(card_id,funcs.CardOperation.desc_extract(card_id)) for card_id in gviewdata.nodes.keys()]
+            self.data.node_dict = [LinkDataPair(card_id, funcs.CardOperation.desc_extract(card_id)) for card_id in gviewdata.nodes.keys()]
         self.data.graph_mode = mode
         self.view = self.View(self)
         self.scene = self.Scene(self)
@@ -61,10 +60,10 @@ class Grapher(QDialog):
                                 float(r.height() * 4))
         self.init_UI()
         self.all_event = common_tools.objs.AllEventAdmin([
-            [self.scene.selectionChanged, self.on_scene_selectionChanged_handle],
-            [self.view.verticalScrollBar().valueChanged, self.on_view_verticalScrollBar_valueChanged_handle],
-            [self.view.horizontalScrollBar().valueChanged, self.on_view_horizontalScrollBar_valueChanged_handle],
-            [self.on_card_updated, self.on_card_updated_handle],
+                [self.scene.selectionChanged, self.on_scene_selectionChanged_handle],
+                [self.view.verticalScrollBar().valueChanged, self.on_view_verticalScrollBar_valueChanged_handle],
+                [self.view.horizontalScrollBar().valueChanged, self.on_view_horizontalScrollBar_valueChanged_handle],
+                [self.on_card_updated, self.on_card_updated_handle],
         ]).bind()
         self.init_graph_item()
         # if self.data.graph_mode == GraphMode.normal:
@@ -72,8 +71,8 @@ class Grapher(QDialog):
         # elif self.data.graph_mode == GraphMode.view_mode:
         #     self.load_view()
 
-    def card_edit_desc(self,item:"Grapher.ItemRect"):
-        text, okPressed = common_tools.compatible_import.QInputDialog.getText(self,"get new description","",text=item.pair.desc)
+    def card_edit_desc(self, item: "Grapher.ItemRect"):
+        text, okPressed = common_tools.compatible_import.QInputDialog.getText(self, "get new description", "", text=item.pair.desc)
         if okPressed:
             item.pair.desc = text
             common_tools.funcs.LinkDataOperation.update_desc_to_db(item.pair)
@@ -111,15 +110,15 @@ class Grapher(QDialog):
             common_tools.G.mw_grapher = None
         elif mode == GraphMode.view_mode:
             node, edge = self.data.node_edge_packup()
-            data = GViewData(self.data.gviewdata.uuid,self.data.gviewdata.name,node,edge)
+            data = GViewData(self.data.gviewdata.uuid, self.data.gviewdata.name, node, edge)
             if funcs.GviewOperation.exists(data):
                 funcs.GviewOperation.save(data)
             else:
-                correction = QMessageBox.warning(self,"warning",Translate.本视图已被删除_确定退出么,QMessageBox.Yes|QMessageBox.No)
+                correction = QMessageBox.warning(self, "warning", Translate.本视图已被删除_确定退出么, QMessageBox.Yes | QMessageBox.No)
                 if correction == QMessageBox.No:
                     a0.ignore()
                     return
-            common_tools.G.mw_gview[self.data.gviewdata.uuid]=None
+            common_tools.G.mw_gview[self.data.gviewdata.uuid] = None
             # common_tools.G.GViewAdmin_window
 
     def reject(self) -> None:
@@ -129,9 +128,7 @@ class Grapher(QDialog):
     def on_scene_selectionChanged_handle(self):
         self.switch_edge_highlight()
 
-
-
-    #view
+    # view
     def load_view(self, gviewdata=None):
         """从外部读取布局事先确定好的内容
         目前有一个bug, 初始化调用的时候
@@ -139,49 +136,48 @@ class Grapher(QDialog):
         LinkDataPair = common_tools.funcs.LinkDataPair
         CardOperation = common_tools.funcs.CardOperation
         if gviewdata is None: gviewdata = self.data.gviewdata
-        last_card=""
-        for card_id,posi in gviewdata.nodes.items():
+        last_card = ""
+        for card_id, posi in gviewdata.nodes.items():
             if card_id not in self.data.node_dict or posi[0] is None:
-                pair = LinkDataPair(card_id=card_id,desc=CardOperation.desc_extract(card_id))
+                pair = LinkDataPair(card_id=card_id, desc=CardOperation.desc_extract(card_id))
                 item = self.add_node(pair)
                 self.arrange_node(item)
             else:
                 item = self.add_node(self.data.node_dict[card_id].pair)
                 item.setSelected(True)
-                last_card=card_id
+                last_card = card_id
                 item.setPos(*posi)
-        for cardA,cardB in gviewdata.edges:
+        for cardA, cardB in gviewdata.edges:
             # data = read_card_link_info(cardA)
             # if LinkDataPair(card_id=cardB) in data.link_list:
-            self.add_edge(cardA,cardB,add_bilink=self.data.graph_mode==GraphMode.normal)
-        if last_card: self.view.centerOn(item = self.data.node_dict[last_card].item)
+            self.add_edge(cardA, cardB, add_bilink=self.data.graph_mode == GraphMode.normal)
+        if last_card: self.view.centerOn(item=self.data.node_dict[last_card].item)
         pass
 
-    def insert(self,pair_li: "list[LinkDataPair]"):
+    def insert(self, pair_li: "list[LinkDataPair]"):
         """根据填入的pair 点亮,聚焦到对应的卡片上"""
         if pair_li is None:
             return
         self.scene.clearSelection()
         for pair in pair_li:
             if pair.card_id not in self.data.node_dict \
-                or not isinstance(self.data.node_dict[pair.card_id],Grapher.Entity.Node) :
-                funcs.write_to_log_file(pair.todict().__str__(),need_timestamp=True)
+                    or not isinstance(self.data.node_dict[pair.card_id], Grapher.Entity.Node):
+                funcs.write_to_log_file(pair.todict().__str__(), need_timestamp=True)
                 item = self.add_node(pair)
                 self.arrange_node(item)
-        list(map(lambda x:self.data.node_dict[x.card_id].item.setSelected(True),pair_li))
+        list(map(lambda x: self.data.node_dict[x.card_id].item.setSelected(True), pair_li))
         card_id = pair_li[-1].card_id
         self.view.centerOn(item=self.data.node_dict[card_id].item)
 
-    def create_view(self,node=None,edge=None):
-        name,submitted = funcs.GviewOperation.get_correct_input()
-        if not submitted:return
+    def create_view(self, node=None, edge=None):
+        name, submitted = funcs.GviewOperation.get_correct_input()
+        if not submitted: return
         uuid = funcs.UUID.by_random()
-        node,edge = self.data.node_edge_packup()
-        data = GViewData(uuid,name,node,edge)
-        #去检查一下scene变大时,item的scene坐标是否会改变
+        node, edge = self.data.node_edge_packup()
+        data = GViewData(uuid, name, node, edge)
+        # 去检查一下scene变大时,item的scene坐标是否会改变
         common_tools.funcs.GviewOperation.save(data)
-        common_tools.funcs.Dialogs.open_grapher(gviewdata=data,mode=funcs.GraphMode.view_mode)
-
+        common_tools.funcs.Dialogs.open_grapher(gviewdata=data, mode=funcs.GraphMode.view_mode)
 
     # node
 
@@ -192,7 +188,7 @@ class Grapher(QDialog):
         如果你有位置数据, 那就用 item自己的setPos
         """
         if pair.card_id not in self.data.node_dict:
-            self.data.node_dict=[pair]
+            self.data.node_dict = [pair]
         item = self.ItemRect(self, pair)
         self.data.node_dict[pair.card_id].item = item
         self.scene.addItem(item)
@@ -209,7 +205,7 @@ class Grapher(QDialog):
             if pair.card_id in self.data.node_dict:
                 continue
             self.data.node_dict[pair.card_id] = self.data.Node(pair)
-            item = self.add_node(pair) #我就单纯读
+            item = self.add_node(pair)  # 我就单纯读
             item_li.append(pair.card_id)
             if begin_item:
                 self.arrange_node(item, begin_item)
@@ -275,7 +271,6 @@ class Grapher(QDialog):
 
         return item_li
 
-
     def load_edges_from_linkdata(self, card_li: "list[str]" = None):
         if __name__ == "__main__":
             from lib.bilink.imports import common_tools
@@ -291,7 +286,7 @@ class Grapher(QDialog):
                 if card_idB == card_idA:
                     continue
                 if card_idB in cardA_dict:
-                    self.add_edge(card_idA, card_idB,add_bilink=self.data.graph_mode==GraphMode.normal)
+                    self.add_edge(card_idA, card_idB, add_bilink=self.data.graph_mode == GraphMode.normal)
 
     def update_all_edges_posi(self):
         updated = set()
@@ -313,12 +308,11 @@ class Grapher(QDialog):
                 if edge is None:
                     continue
                 if edge not in modified:
-                    if nodeA in card_li :
+                    if nodeA in card_li:
                         edge.highlight()
                     else:
                         edge.unhighlight()
                 modified.add(edge)
-
 
     def add_edge(self, card_idA: "str", card_idB: "str", add_bilink=False):
         """A->B, 反过来不成立"""
@@ -330,7 +324,7 @@ class Grapher(QDialog):
         edge = self.ItemEdge(self, itemA, itemB)
         # self.data.node_dict[card_idB].edges.append(edge)
         self.data.node_dict[card_idA].edges.append(edge)
-        if card_idA not in self.data.edge_dict: #如果边集里不存在
+        if card_idA not in self.data.edge_dict:  # 如果边集里不存在
             self.data.edge_dict[card_idA] = {}
         self.data.edge_dict[card_idA][card_idB] = edge
         self.scene.addItem(edge)
@@ -347,7 +341,7 @@ class Grapher(QDialog):
         self.scene.removeItem(edges[card_idA][card_idB])
         nodes[card_idA].edges.remove(edge)
         # nodes[card_idB].edges.remove(edge)
-        edges[card_idA][card_idB]=None
+        edges[card_idA][card_idB] = None
         if remove_bilink:
             self.remove_bilink(card_idA, card_idB)
         pass
@@ -373,8 +367,8 @@ class Grapher(QDialog):
         last_item = None
         for card_id, node in self.data.node_dict.items():
             item = self.add_node(node.pair)
-            if self.data.graph_mode==GraphMode.view_mode and card_id in self.data.gviewdata.nodes\
-                and self.data.gviewdata.nodes[card_id][0] is not None:
+            if self.data.graph_mode == GraphMode.view_mode and card_id in self.data.gviewdata.nodes \
+                    and self.data.gviewdata.nodes[card_id][0] is not None:
                 item.setPos(*self.data.gviewdata.nodes[card_id])
             else:
                 self.arrange_node(item)
@@ -383,17 +377,17 @@ class Grapher(QDialog):
         if last_item:
             # last_item.setSelected(True)
             self.view.centerOn(item=last_item)
-        if self.data.graph_mode==GraphMode.normal:
+        if self.data.graph_mode == GraphMode.normal:
             self.load_edges_from_linkdata()
         elif self.data.graph_mode == GraphMode.view_mode:
-            for cardA,cardB in self.data.gviewdata.edges:
-                self.add_edge(cardA,cardB)
+            for cardA, cardB in self.data.gviewdata.edges:
+                self.add_edge(cardA, cardB)
 
     def init_UI(self):
-        if self.data.graph_mode==GraphMode.normal:
+        if self.data.graph_mode == GraphMode.normal:
             self.setWindowTitle("temporary view")
-        elif self.data.graph_mode==GraphMode.view_mode:
-            self.setWindowTitle("view of "+self.data.gviewdata.name)
+        elif self.data.graph_mode == GraphMode.view_mode:
+            self.setWindowTitle("view of " + self.data.gviewdata.name)
         self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.link2))
         self.setWindowFlags(Qt.WindowType.WindowMinMaxButtonsHint | Qt.WindowType.WindowCloseButtonHint)
 
@@ -403,6 +397,10 @@ class Grapher(QDialog):
         Hbox.addWidget(self.view)
         self.setLayout(Hbox)
         pass
+
+    def saveAsGroupReviewCondition(self):
+
+        common_tools.funcs.GroupReview.saveGViewAsGroupReviewCondition(self.data.gviewdata.uuid)
 
     # class
 
@@ -414,10 +412,9 @@ class Grapher(QDialog):
             self.superior = superior
             self.root = superior
             self.graph_mode = GraphMode.normal
-            self.gviewdata:"Optional[GViewData]" = None
+            self.gviewdata: "Optional[GViewData]" = None
             self._node_dict: "Optional[dict[str,Optional[Grapher.Entity.Node]]]" = {}
             self._edge_dict: "Optional[dict[str,dict[str,Optional[Grapher.ItemEdge]]]]" = {}
-
 
         @property
         def node_dict(self) -> 'dict[str,Grapher.Entity.Node]':
@@ -431,38 +428,42 @@ class Grapher(QDialog):
                 self._node_dict[pair.card_id] = self.Node(pair)
 
         @property
-        def edge_dict(self)->'dict[str,dict[str,Optional[Grapher.ItemEdge]]]':
+        def edge_dict(self) -> 'dict[str,dict[str,Optional[Grapher.ItemEdge]]]':
             return self._edge_dict
 
-        def node_edge_packup(self)->"dict[str,list[Union[float,int],Union[float,int]]],tuple[list[list[str,str]],]":
+        def node_edge_packup(self) -> "dict[str,list[Union[float,int],Union[float,int]]],tuple[list[list[str,str]],]":
             """
 
             """
-            def get_edgeinfo_list()->"list[list[str,str]]":
+
+            def get_edgeinfo_list() -> "list[list[str,str]]":
                 edge_list = []
                 edge_list2 = []
                 for cardA in self.edge_dict.keys():
                     for cardB in self.edge_dict[cardA].keys():
                         if self.edge_dict[cardA][cardB] is not None:
-                            edge = [cardA,cardB]
+                            edge = [cardA, cardB]
                             if edge not in edge_list:
                                 edge_list.append(edge)
                                 edge_list2.append([cardA, cardB])
                 return edge_list2
 
-            def get_nodeinfo_list()->'dict[str,list[Union[float,int],Union[float,int]]]':
-                d={}
-                def get_card_id(node:'Grapher.Entity.Node'):
+            def get_nodeinfo_list() -> 'dict[str,list[Union[float,int],Union[float,int]]]':
+                d = {}
+
+                def get_card_id(node: 'Grapher.Entity.Node'):
                     return node.pair.card_id
-                def get_posi(node:'Grapher.Entity.Node'):
-                    return [node.item.scenePos().x(),node.item.scenePos().y()]
-                list(map(lambda x:d.__setitem__(get_card_id(x),get_posi(x)),self.node_dict.values()))
+
+                def get_posi(node: 'Grapher.Entity.Node'):
+                    return [node.item.scenePos().x(), node.item.scenePos().y()]
+
+                list(map(lambda x: d.__setitem__(get_card_id(x), get_posi(x)), self.node_dict.values()))
                 return d
 
             node_info_list = get_nodeinfo_list()
             edge_info_list = get_edgeinfo_list()
 
-            return (node_info_list,edge_info_list)
+            return (node_info_list, edge_info_list)
 
         @dataclass
         class Node:
@@ -476,14 +477,14 @@ class Grapher(QDialog):
             nodes: "set[Grapher.ItemRect]"
             item: "Grapher.ItemEdge"
 
-            def as_card(self)->'set':
+            def as_card(self) -> 'set':
                 return set([int(item.pair.card_id) for item in self.nodes])
 
     class View(QGraphicsView):
         def __init__(self, parent: "Grapher"):
             super().__init__(parent)
             self.ratio = 1
-            self.superior = parent
+            self.superior: "Grapher" = parent
             self.setDragMode(common_tools.compatible_import.DragMode.ScrollHandDrag)
             self.setRenderHints(QPainter.RenderHint.Antialiasing |  # 抗锯齿
                                 QPainter.RenderHint.LosslessImageRendering |  # 高精度抗锯齿
@@ -543,9 +544,9 @@ class Grapher(QDialog):
                         p2 = self.mapToScene(event.pos())
                         rect = self.draw_line_start_item.mapRectToScene(self.draw_line_start_item.rect())
                         # self.draw_line_start_item.mapRectToScene()
-                        p1_1=common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1,p2),rect)
+                        p1_1 = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rect)
                         if p1_1 is not None:
-                            p1=p1_1
+                            p1 = p1_1
                         line.setP2(p2)
                         line.setP1(p1)
                         self.Auxiliary_line.setLine(line)
@@ -599,11 +600,11 @@ class Grapher(QDialog):
         def make_context_menu(self, event: QtGui.QMouseEvent):
             pairli = funcs.AnkiLinks.get_card_from_clipboard()
             menu = QMenu()
-            menu.addAction(Translate.创建为视图).triggered.connect(lambda:self.superior.create_view(*self.superior.data.node_edge_packup()))
-            if len(pairli)>0:
-                menu.addAction(Translate.粘贴卡片).triggered.connect(lambda:self.superior.insert(pairli))
-            # from PyQt6.QtGui import QMouseEvent
-            # QMouseEvent.globalPosition()
+            menu.addAction(Translate.创建为视图).triggered.connect(lambda: self.superior.create_view(*self.superior.data.node_edge_packup()))
+            if len(pairli) > 0:
+                menu.addAction(Translate.粘贴卡片).triggered.connect(lambda: self.superior.insert(pairli))
+            if self.superior.data.graph_mode==GraphMode.view_mode:
+                menu.addAction(Translate.保存当前视图为群组复习条件).triggered.connect(lambda: self.superior.saveAsGroupReviewCondition())
             pos = event.globalPosition() if common_tools.compatible_import.Anki.isQt6 else event.screenPos()
             menu.exec(pos.toPoint())
 
@@ -634,9 +635,9 @@ class Grapher(QDialog):
             p2 = self.itemEnd.mapToScene(self.itemEnd.boundingRect().center())
             rectA = self.itemStart.mapRectToScene(self.itemStart.rect())
             rectB = self.itemEnd.mapRectToScene(self.itemEnd.rect())
-            pA = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2),rectA)
-            pB = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2),rectB)
-            print(f"start==end:{pA==pB}")
+            pA = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rectA)
+            pB = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rectB)
+            print(f"start==end:{pA == pB}")
             # if pA is not None: p1=pA
             # if pB is not None: p2=pB
             line = QLineF(p1, p2)
@@ -649,25 +650,21 @@ class Grapher(QDialog):
         def unhighlight(self):
             self.setPen(self.normal_pen)
             self.setZValue(-10)
-        def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
 
+        def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
             if event.buttons() == Qt.MouseButton.RightButton:
                 menu = QMenu()
                 remove_bilink = self.superior.data.graph_mode == GraphMode.normal
                 menu.addAction(Translate.删除边).triggered.connect(
-                    lambda: self.superior.remove_edge(self.itemStart.pair.card_id, self.itemEnd.pair.card_id,
-                                                      remove_bilink=remove_bilink))
+                        lambda: self.superior.remove_edge(self.itemStart.pair.card_id, self.itemEnd.pair.card_id,
+                                                          remove_bilink=remove_bilink))
 
-                pos = event.screenPos() #if common_tools.compatible_import.Anki.isQt6 else event.screenPosition()
+                pos = event.screenPos()  # if common_tools.compatible_import.Anki.isQt6 else event.screenPosition()
                 menu.exec(pos)
 
             super().mousePressEvent(event)
 
-
         pass
-
-
-
 
     class ItemRect(QGraphicsRectItem):
         class MODE:
@@ -734,7 +731,7 @@ class Grapher(QDialog):
 
             menu.addAction(Translate.删除).triggered.connect(self.superior.del_selected_node)
             # noinspection PyUnresolvedReferences
-            menu.addAction(Translate.修改描述).triggered.connect(lambda:self.superior.card_edit_desc(self))
+            menu.addAction(Translate.修改描述).triggered.connect(lambda: self.superior.card_edit_desc(self))
 
             pair_li: "list[LinkDataPair]" = [item.pair for item in self.scene().selectedItems()]
             common_tools.menu.maker(common_tools.menu.T.grapher_node_context)(pair_li, menu, self.superior,
@@ -743,13 +740,13 @@ class Grapher(QDialog):
             def menuCloseEvent():
                 self.setSelected(True)
                 self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, True)
-                self.contextMenuOpened=False
+                self.contextMenuOpened = False
 
             menu.closeEvent = lambda x: menuCloseEvent()
             if self.superior.data.graph_mode == GraphMode.normal:
                 loadlinkcard = menu.addMenu("加载链接卡片")
                 for name, action in [
-                    ("加载全部文外链接卡片", lambda: self.load_linked_card(mode=self.MODE.outext))
+                        ("加载全部文外链接卡片", lambda: self.load_linked_card(mode=self.MODE.outext))
                 ]:
                     loadlinkcard.addAction(name).triggered.connect(action)
                 outtextmenu = loadlinkcard.addMenu("选择文外链接卡片加载")
@@ -759,8 +756,8 @@ class Grapher(QDialog):
                 for pair in link_list:
                     action = lambda pair: lambda: self.superior.load_node([pair], begin_item=self)
                     outtextmenu.addAction(
-                        f"""card_id={pair.card_id},desc={shorten(pair.desc)}""").triggered.connect(
-                        action(pair)
+                            f"""card_id={pair.card_id},desc={shorten(pair.desc)}""").triggered.connect(
+                            action(pair)
                     )
             self.contextMenuOpened = True
             self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, False)
@@ -826,40 +823,41 @@ class Grapher(QDialog):
     #     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem', widget: typing.Optional[QWidget] = ...) -> None:
     #     pass
 
+
 class GViewAdmin(QDialog):
     """视图管理器,实现改名,复制链接,删除,打开"""
 
     class DisplayState:
-        as_tree=0
-        as_list=1
+        as_tree = 0
+        as_list = 1
 
     def __init__(self):
         super().__init__()
-        self.view=self.Tree(self)
-        self.bottom=self.Bottom(self)
-        self.model=self.Model(self)
+        self.view = self.Tree(self)
+        self.bottom = self.Bottom(self)
+        self.model = self.Model(self)
         self.view.setModel(self.model)
-        self.data:"dict[str,Optional[GViewData]]"={}
-        self.wait_for_delete:"list[str]"=[]
-        self.wait_for_update:"set[GViewData]"=set()
-        self.displaystate=funcs.Config.get().gview_admin_default_display.value
+        self.data: "dict[str,Optional[GViewData]]" = {}
+        self.wait_for_delete: "list[str]" = []
+        self.wait_for_update: "set[GViewData]" = set()
+        self.displaystate = funcs.Config.get().gview_admin_default_display.value
         self.init_UI()
         self.init_data()
         self.view.init_UI()
-        self.allevent=common_tools.objs.AllEventAdmin([
-            [self.bottom.open_button.clicked,self.on_open],
-            [self.bottom.rename_button.clicked,self.on_rename],
-            [self.bottom.delete_button.clicked,self.on_delete],
-            [self.bottom.link_button.clicked,self.on_link],
-            [self.bottom.display_button.clicked,self.on_display_changed],
-            [self.model.itemChanged, self.on_model_item_changed_handle],
-            [self.view.doubleClicked,self.on_view_doubleclicked_handle],
-            [self.view.customContextMenuRequested,self.on_view_contextmenu_handle],
+        self.allevent = common_tools.objs.AllEventAdmin([
+                [self.bottom.open_button.clicked, self.on_open],
+                [self.bottom.rename_button.clicked, self.on_rename],
+                [self.bottom.delete_button.clicked, self.on_delete],
+                [self.bottom.link_button.clicked, self.on_link],
+                [self.bottom.display_button.clicked, self.on_display_changed],
+                [self.model.itemChanged, self.on_model_item_changed_handle],
+                [self.view.doubleClicked, self.on_view_doubleclicked_handle],
+                [self.view.customContextMenuRequested, self.on_view_contextmenu_handle],
 
-            # [self.view.horizontalHeader().clicked,self.on_horizontal_header_clicked_handle],
+                # [self.view.horizontalHeader().clicked,self.on_horizontal_header_clicked_handle],
         ]).bind()
 
-    def on_view_contextmenu_handle(self,pos):
+    def on_view_contextmenu_handle(self, pos):
         item = self.model.itemFromIndex(self.view.indexAt(pos))
         if item is None:
             return
@@ -869,28 +867,28 @@ class GViewAdmin(QDialog):
 
         data = item.data(Qt.UserRole)
         menu = self.view.contextMenu = QMenu(self.view)
-        menu.addAction(Translate.重命名,).triggered.connect(lambda: self.on_rename(item))
+        menu.addAction(Translate.重命名, ).triggered.connect(lambda: self.on_rename(item))
         menu.addAction(Translate.删除).triggered.connect(lambda: self.on_delete(item))
         menu_copy_as = menu.addMenu(Translate.复制为)
-        funcs.MenuMaker.gview_ankilink(menu_copy_as,data)
+        funcs.MenuMaker.gview_ankilink(menu_copy_as, data)
         menu.popup(QCursor.pos())
         # menu.popup(pos)
 
-    def on_view_doubleclicked_handle(self ,index: "QModelIndex"):
+    def on_view_doubleclicked_handle(self, index: "QModelIndex"):
         # noinspection PyTypeChecker
-        item:"GViewAdmin.Item" = self.model.itemFromIndex(index)
-        data:"GViewData" = funcs.GviewOperation.load(gviewdata=item.data(Qt.UserRole))
+        item: "GViewAdmin.Item" = self.model.itemFromIndex(index)
+        data: "GViewData" = funcs.GviewOperation.load(gviewdata=item.data(Qt.UserRole))
         if data is None:
             tooltip(Translate.请点击叶结点)
             return
-        funcs.Dialogs.open_grapher(gviewdata=data,mode=GraphMode.view_mode)
+        funcs.Dialogs.open_grapher(gviewdata=data, mode=GraphMode.view_mode)
 
     def on_horizontal_header_clicked_handle(self):
         print("horizontalHeader clicked")
 
-    def on_model_item_changed_handle(self, item:"GViewAdmin.Item"):
+    def on_model_item_changed_handle(self, item: "GViewAdmin.Item"):
         data: "GViewData" = item.data(Qt.UserRole)
-        if not re.match(r"\S",item.text()):
+        if not re.match(r"\S", item.text()):
             item.setText(data.name)
             funcs.Utils.tooltip(Translate.视图命名规则)
             return
@@ -899,35 +897,35 @@ class GViewAdmin(QDialog):
 
         pass
 
-    def get_item(self)->"GViewAdmin.Item":
+    def get_item(self) -> "GViewAdmin.Item":
         indxs = self.view.selectedIndexes()
         if len(indxs) == 0:
             return False
-        item:"GViewAdmin.Item" = self.model.itemFromIndex(indxs[0])
+        item: "GViewAdmin.Item" = self.model.itemFromIndex(indxs[0])
         return item
 
     def on_display_changed(self):
         btn = self.bottom.display_button
-        if self.displaystate==self.DisplayState.as_tree:
+        if self.displaystate == self.DisplayState.as_tree:
             btn.setIcon(QIcon(src.ImgDir.list))
             btn.setToolTip("display as list")
-            self.displaystate=self.DisplayState.as_list
+            self.displaystate = self.DisplayState.as_list
             self.build_list()
 
         else:
             btn.setIcon(QIcon(src.ImgDir.tree))
             btn.setToolTip("display as tree")
-            self.displaystate=self.DisplayState.as_tree
+            self.displaystate = self.DisplayState.as_tree
             self.build_tree()
 
         funcs.Config.get().gview_admin_default_display.value = self.displaystate
         self.view.expandAll()
 
     def on_open(self):
-        item=self.get_item()
-        if not item:return
-        data:"GViewData"=item.data(Qt.UserRole)
-        funcs.Dialogs.open_grapher(gviewdata=data,mode=GraphMode.view_mode)
+        item = self.get_item()
+        if not item: return
+        data: "GViewData" = item.data(Qt.UserRole)
+        funcs.Dialogs.open_grapher(gviewdata=data, mode=GraphMode.view_mode)
         pass
 
     def save(self):
@@ -936,19 +934,19 @@ class GViewAdmin(QDialog):
         funcs.GviewOperation.delete(uuid_li=self.wait_for_delete)
 
     def rebuild(self):
-        if self.displaystate==self.DisplayState.as_tree:
+        if self.displaystate == self.DisplayState.as_tree:
             self.build_tree()
         else:
             self.build_list()
         self.view.expandAll()
 
-    def on_rename(self,it=None):
+    def on_rename(self, it=None):
         """由于有两个不同的display所以需要弹出窗口让同学修改"""
-        item:"GViewAdmin.Item" = self.get_item() if not it else it
-        if not item : return
-        data :"GViewData" = item.data(Qt.UserRole)
-        newname,submitted = funcs.GviewOperation.get_correct_input(data.name)
-        if not submitted:return
+        item: "GViewAdmin.Item" = self.get_item() if not it else it
+        if not item: return
+        data: "GViewData" = item.data(Qt.UserRole)
+        newname, submitted = funcs.GviewOperation.get_correct_input(data.name)
+        if not submitted: return
         data.name = newname
         self.wait_for_update.add(data)
         self.rebuild()
@@ -957,21 +955,21 @@ class GViewAdmin(QDialog):
     def on_link(self):
         item = self.get_item()
         if not item: return
-        data:"GViewData" = item.data(Qt.UserRole)
-        m=QMenu()
-        funcs.MenuMaker.gview_ankilink(m,data)
+        data: "GViewData" = item.data(Qt.UserRole)
+        m = QMenu()
+        funcs.MenuMaker.gview_ankilink(m, data)
         l_b = self.bottom.link_button
         # pos=l_b.mapToGlobal(l_b.pos())
         m.move(QCursor.pos())
         m.exec_()
         pass
 
-    def on_delete(self,it=None):
+    def on_delete(self, it=None):
         item = self.get_item() if not it else it
-        if not item : return
-        data:"GViewData" = item.data(Qt.UserRole)
+        if not item: return
+        data: "GViewData" = item.data(Qt.UserRole)
         self.wait_for_delete.append(data.uuid)
-        self.data[data.uuid]=None
+        self.data[data.uuid] = None
         self.rebuild()
         pass
 
@@ -990,8 +988,8 @@ class GViewAdmin(QDialog):
         self.setLayout(g_layout)
 
     def init_data(self):
-        datas=funcs.GviewOperation.load_all()
-        list(map(lambda x: self.data.__setitem__(x.uuid,x),datas))
+        datas = funcs.GviewOperation.load_all()
+        list(map(lambda x: self.data.__setitem__(x.uuid, x), datas))
         self.rebuild()
 
     def init_model(self):
@@ -1006,34 +1004,34 @@ class GViewAdmin(QDialog):
         self.init_model()
         root = Struct.TreeNode(item=self.model.invisibleRootItem(), children={})
         for data in self.data.values():
-            if not isinstance(data,GViewData):
+            if not isinstance(data, GViewData):
                 continue
             original_name = data.name.split("::")
             parent = root
             while original_name:
                 nodename = original_name.pop(0)
                 if nodename not in parent.children:
-                    item = self.Item(nodename,data=None if original_name else data )
+                    item = self.Item(nodename, data=None if original_name else data)
                     parent.item.appendRow([item])
-                    parent.children[nodename] = Struct.TreeNode(item=item,children={})
+                    parent.children[nodename] = Struct.TreeNode(item=item, children={})
                 parent = parent.children[nodename]
         pass
 
     def build_list(self):
         self.init_model()
         for data in self.data.values():
-            if isinstance(data,GViewData):
-                item = self.Item(data.name,data=data)
+            if isinstance(data, GViewData):
+                item = self.Item(data.name, data=data)
                 self.model.appendRow([item])
 
         pass
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.save()
-        funcs.G.GViewAdmin_window=None
+        funcs.G.GViewAdmin_window = None
 
     class Model(QStandardItemModel):
-        def addRow(self,data:GViewData):
+        def addRow(self, data: GViewData):
             item = GViewAdmin.Item(data)
             self.appendRow(item)
 
@@ -1042,19 +1040,17 @@ class GViewAdmin(QDialog):
         nonterminal = 1
 
     class Item(QStandardItem):
-        def __init__(self,name,data:GViewData=None):
+        def __init__(self, name, data: GViewData = None):
             super().__init__(name)
-            self.setFlags(self.flags()&~Qt.ItemFlag.ItemIsSelectable&~Qt.ItemFlag.ItemIsEditable)
+            self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsEditable)
             if data:
-                self.setData(data,role=Qt.UserRole) #当不设置的时候,返回的是空
-                self.setFlags(self.flags()|Qt.ItemFlag.ItemIsSelectable)
-
-
+                self.setData(data, role=Qt.UserRole)  # 当不设置的时候,返回的是空
+                self.setFlags(self.flags() | Qt.ItemFlag.ItemIsSelectable)
 
     class Tree(QTreeView):
-        def __init__(self,superior:'GViewAdmin'):
+        def __init__(self, superior: 'GViewAdmin'):
             super().__init__()
-            self.superior=superior
+            self.superior = superior
             self.setParent(superior)
 
         def init_UI(self):
@@ -1063,28 +1059,30 @@ class GViewAdmin(QDialog):
             self.setAcceptDrops(False)
 
     class Bottom(QWidget):
-        def __init__(self,superior:'GViewAdmin'):
+        def __init__(self, superior: 'GViewAdmin'):
             super().__init__()
-            self.superior=superior
+            self.superior = superior
             self.setParent(superior)
             self.rename_button = QToolButton(self)
             self.delete_button = QToolButton(self)
             self.link_button = QToolButton(self)
             self.open_button = QToolButton(self)
             self.display_button = QToolButton(self)
-            h_layout=QHBoxLayout(self)
-            h_layout.setContentsMargins(0,0,0,0)
+            h_layout = QHBoxLayout(self)
+            h_layout.setContentsMargins(0, 0, 0, 0)
             self.setContentsMargins(0, 0, 0, 0)
-            button_li:"list[QToolButton]" = [self.display_button, self.open_button, self.rename_button, self.delete_button, self.link_button]
-            icon_li = [src.ImgDir.tree,src.ImgDir.open,src.ImgDir.rename,src.ImgDir.delete,src.ImgDir.link]
-            tooltip_li = ["display as tree","open","rename","delete","copy link"]
+            button_li: "list[QToolButton]" = [self.display_button, self.open_button, self.rename_button, self.delete_button, self.link_button]
+            icon_li = [src.ImgDir.tree, src.ImgDir.open, src.ImgDir.rename, src.ImgDir.delete, src.ImgDir.link]
+            tooltip_li = ["display as tree", "open", "rename", "delete", "copy link"]
             # self.open_button.setToolTip()
-            list(map(lambda x:x.setContentsMargins(0,0,0,0),button_li))
-            list(map(lambda x:h_layout.addWidget(x,alignment=AlignmentFlag.AlignRight),button_li))
-            list(map(lambda x:x[0].setIcon(QIcon(x[1])),zip(button_li,icon_li)))
+            list(map(lambda x: x.setContentsMargins(0, 0, 0, 0), button_li))
+            list(map(lambda x: h_layout.addWidget(x, alignment=AlignmentFlag.AlignRight), button_li))
+            list(map(lambda x: x[0].setIcon(QIcon(x[1])), zip(button_li, icon_li)))
             list(map(lambda x: x[0].setToolTip(x[1]), zip(button_li, tooltip_li)))
 
             self.setLayout(h_layout)
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     testdata = [LinkDataPair("1627401415334", "1"),

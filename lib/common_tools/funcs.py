@@ -356,9 +356,12 @@ class GroupReview(object):
         for search in searchs:
             if search == "" or not re.search(r"\S", search):
                 continue
-            for_due = "(is:new OR is:due)" if Config.get().group_review_just_due_card.value else ""
-            global_str = f"({Config.get().group_review_global_condition.value})"
-            cids = mw.col.find_cards(f"({search}) {for_due} {global_str if global_str != '()' else ''}")
+            if search.lower().startswith("gviewid"):
+                cids = Map.do(GviewOperation.load(search[len("gviewid"):]).nodes.keys(),lambda card_id:int(card_id))
+            else:
+                for_due = "(is:new OR is:due)" if Config.get().group_review_just_due_card.value else ""
+                global_str = f"({Config.get().group_review_global_condition.value})"
+                cids = mw.col.find_cards(f"({search}) {for_due} {global_str if global_str != '()' else ''}")
             list(map(lambda cid: G.GroupReview_dict.card_group_insert(cid, search), cids))
             list(map(lambda cid: G.GroupReview_dict.search_group_insert(cid, search), cids))
         G.GroupReview_dict.build_union_search()
@@ -397,24 +400,32 @@ class GroupReview(object):
     @staticmethod
     def modified_card_record(note: Note):
         """将卡片写到一个全局变量,作为集合"""
-        if Config.get().group_review.value == False:
+        if not Config.get().group_review.value:
             return
         G.GroupReview_tempfile |= set(note.card_ids())
 
     @staticmethod
-    def save_search_to_config(browser: Browser):
+    def save_search_condition_to_config(browser: Browser):
         """把搜索栏的内容拷贝下来粘贴到配置表"""
-        c = Config.get()
         curr_string = browser.form.searchEdit.currentText()
         if curr_string == "" or not re.search(r"\S", curr_string):
             tooltip("不接受空格与空值<br>null string or empty string is not allowed")
             return
+        GroupReview.addReviewCondition(curr_string)
+
+    @staticmethod
+    def saveGViewAsGroupReviewCondition(gviewId: "str"):
+        GroupReview.addReviewCondition("gviewid:" + gviewId)
+
+    @staticmethod
+    def addReviewCondition(condition):
+        c = Config.get()
         setv = set(c.group_review_search_string.value)
-        setv.add(curr_string)
+        setv.add(condition)
         c.group_review_search_string.value = list(setv)
         Config.save(c)
         G.signals.on_group_review_search_string_changed.emit()
-
+        tooltip("已添加到群组复习条件列表: "+condition)
 
 class Config:
 
@@ -2422,7 +2433,7 @@ class AnkiLinks:
 class PDFLink:
     @staticmethod
     def FindIndexOfPathInPreset(url: "str"):
-        booklist = Config.get().PDFUrlLink_booklist.value # [["PDFpath", "name", "style", "showPage"]...]
+        booklist = Config.get().PDFUrlLink_booklist.value  # [["PDFpath", "name", "style", "showPage"]...]
         a = [url == bookunit[0] for bookunit in booklist]
         if True in a:
             return a.index(True)
@@ -2431,8 +2442,8 @@ class PDFLink:
 
     @staticmethod
     def GetPathInfoFromPreset(url):
-        booklist = Config.get().PDFUrlLink_booklist.value # [["PDFpath", "name", "style", "showPage"]...]
-        index:"int" = PDFLink.FindIndexOfPathInPreset(url)
+        booklist = Config.get().PDFUrlLink_booklist.value  # [["PDFpath", "name", "style", "showPage"]...]
+        index: "int" = PDFLink.FindIndexOfPathInPreset(url)
         if index != -1:
             return booklist[index]
         else:
@@ -2597,12 +2608,13 @@ def data_crashed_report(data):
         f = open(path, "a", encoding="utf-8")
     f.write(info)
 
+
 class Geometry:
     @staticmethod
-    def MakeArrowForLine(line:"QLineF"):
+    def MakeArrowForLine(line: "QLineF"):
         v = line.unitVector()
         v.setLength(30)
-        v.translate(QPointF(line.dx()*2/5, line.dy()*2/5))
+        v.translate(QPointF(line.dx() * 2 / 5, line.dy() * 2 / 5))
 
         n = v.normalVector()
         n.setLength(n.length() * 0.3)
@@ -2611,10 +2623,10 @@ class Geometry:
         p1 = v.p2()
         p2 = n.p2()
         p3 = n2.p2()
-        return QPolygonF([p1,p2,p3])
+        return QPolygonF([p1, p2, p3])
 
     @staticmethod
-    def IntersectPointByLineAndRect(line:"QLineF",polygon:"QRectF"):
+    def IntersectPointByLineAndRect(line: "QLineF", polygon: "QRectF"):
         intersectPoint = QPointF()
         edges = [
                 QLineF(polygon.topLeft(), polygon.topRight()),
@@ -2626,8 +2638,9 @@ class Geometry:
         # print(f"edges={edges},\nLine={line}")
         for edge in edges:
             if line.intersect(edge, intersectPoint) == QLineF.BoundedIntersection:
-                 return intersectPoint
+                return intersectPoint
         return None
+
 
 CardId = Compatible.CardId()
 log = logger(__name__)

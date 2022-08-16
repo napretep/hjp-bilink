@@ -202,7 +202,9 @@ def rosetta(text: str = ""):
         "默认操作":"default action",
         "秒":"seconds",
         "插入pdf链接":"insert pdf link",
-        "临时视图":"temp graph for outext link"
+        "临时视图":"temp graph for outext link",
+            "即将开始群组复习,点是确认执行,点否仅复习当前卡片":'To start the group review, tap Yes to confirm the execution, or No to review only the current card.',
+            "保存当前视图为群组复习条件":"save as group review condition"
     }
     ZHdict = {
         "gview_admin_default_display":"视图管理器默认显示",
@@ -328,7 +330,7 @@ class Translate:
     已冻结:str=rosetta("已冻结")
     已解冻:str=rosetta("已解冻")
     过快提示:str=rosetta("你复习得太快了,你确定你记住了吗?")
-    群组复习提示:str=rosetta("即将开始群组复习,请确认执行")
+    群组复习提示:str=rosetta("即将开始群组复习,点是确认执行,点否仅复习当前卡片")
     查看数据库最近更新时间:str=rosetta("查看数据库最近更新时间")
     手风琴式:str=rosetta("手风琴式")
     直铺式:str=rosetta("直铺式")
@@ -367,6 +369,7 @@ class Translate:
     pdf样式:str=rosetta("pdf样式")
     anki网络版:str=rosetta("anki网络版")
     本地版:str=rosetta("本地版")
+    保存当前视图为群组复习条件:str=rosetta("保存当前视图为群组复习条件")
 
 
 if __name__ == "__main__":

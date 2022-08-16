@@ -10,21 +10,6 @@ import os
 import sys
 from typing import Union
 from ..imports import *
-# Anki = common_tools.compatible_import.Anki
-# if Anki.isQt6:
-#     from PyQt6 import QtGui, QtCore
-#     from PyQt6.QtCore import Qt, QPoint, QModelIndex, QPersistentModelIndex
-#     from PyQt6.QtGui import QStandardItemModel, QStandardItem, QIcon, QCursor
-#     from PyQt6.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView, QLineEdit, \
-#         QVBoxLayout, \
-#         QHeaderView, QMenu, QWidget, QCheckBox, QRadioButton
-# else:
-#     from PyQt5 import QtGui, QtCore
-#     from PyQt5.QtCore import Qt, QPoint, QModelIndex, QPersistentModelIndex
-#     from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon, QCursor
-#     from PyQt5.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView, QLineEdit, QVBoxLayout, \
-#         QHeaderView, QMenu, QWidget, QCheckBox, QRadioButton
-
 import json
 
 
