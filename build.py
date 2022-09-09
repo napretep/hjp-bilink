@@ -68,7 +68,7 @@ def ankiaddon_make(version):
     if os.path.exists(filename):
         os.remove(filename)
     os.rename(zip_name, filename)
-    print("构建完成!")
+    print(f"{version}构建完成!")
     pass
 
 
@@ -77,11 +77,11 @@ if __name__ == "__main__":
     version=input("请输入版本号\n")
     if not re.search("\d+\.\d+\.\d+",version):
         print("请输入符合格式的版本号!")
-    for v in ["w","l"]:
+    for webOrLocal in ["w","l"]:
         with open("./__init__.py","r",encoding="utf-8") as f:
-            s = f.read()
-            s = re.sub("""(?<=ADDON_VERSION=")\d+\.\d+\.\d+\.[wl]]""",version+"."+v, s) # w表示ankiweb,l表示local
-
+            pyFile = f.read()
+            pyFile = re.sub("""(?<=connectors.funcs.G.src.ADDON_VERSION=")\d+\.\d+\.\d+\.[wl]""",version+"."+webOrLocal, pyFile) # w表示ankiweb,l表示local
+            print(pyFile)
         with open("./__init__.py","w",encoding="utf-8") as f:
-            f.write(s)
-        ankiaddon_make(version+"."+v)
+            f.write(pyFile)
+        ankiaddon_make(version+"."+webOrLocal)

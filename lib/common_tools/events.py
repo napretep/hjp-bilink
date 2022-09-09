@@ -9,22 +9,9 @@ __time__ = '2021/7/30 9:15'
 import shutil
 import time
 from datetime import datetime
-from .compatible_import import Anki
-if Anki.isQt6:
-    from PyQt6.QtCore import QTimer, QModelIndex
-    from PyQt6.QtGui import QIcon
-    from PyQt6.QtWidgets import QDialogButtonBox, QToolButton, QMenu
-else:
-    from PyQt5.QtCore import QTimer, QModelIndex
-    from PyQt5.QtGui import QIcon
-    from PyQt5.QtWidgets import QDialogButtonBox, QToolButton, QMenu
-# from anki.cards_pb2 import Card
+from .compatible_import import *
 from anki.cards import Card
 from anki.notes import Note
-from aqt import gui_hooks, mw
-from aqt.addcards import AddCards
-from aqt.browser import SidebarItem, SidebarItemType, SidebarTreeView
-from aqt.utils import tooltip, showInfo
 from . import objs
 from . import funcs
 say = funcs.G.say

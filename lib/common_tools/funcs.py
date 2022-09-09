@@ -30,22 +30,13 @@ from . import baseClass
 from anki import notes
 from anki.cards import Card
 from anki.notes import Note
-from anki.utils import pointVersion, isWin
-# notes,Card,Note,pointVersion,isWin = Anki.notes,Anki.cards.Card,Anki.notes.Note,Anki.utils.pointVersion,Anki.utils.isWin
-from aqt import mw, dialogs, AnkiQt
-from aqt.browser import Browser
-from aqt.browser.previewer import BrowserPreviewer, Previewer, MultiCardPreviewer
-from aqt.editor import Editor
-from aqt.operations.card import set_card_deck
-from aqt.reviewer import Reviewer, RefreshNeeded
-from aqt.utils import showInfo, tooltip, tr
-from aqt.webview import AnkiWebView
 
 from bs4 import BeautifulSoup, element
 from . import G, compatible_import
 from .language import Translate, rosetta
 from .objs import LinkDataPair, LinkDataJSONInfo
-from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
+if not ISLOCAL:
+    from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
 from .configsModel import ConfigModel, AnswerInfoInterface, GroupReviewDictInterface, GViewData, GraphMode, \
     ConfigModelItem, CustomConfigItemView
 from . import widgets
@@ -357,7 +348,7 @@ class GroupReview(object):
             if search == "" or not re.search(r"\S", search):
                 continue
             if search.lower().startswith("gviewid"):
-                cids = Map.do(GviewOperation.load(search[len("gviewid"):]).nodes.keys(),lambda card_id:int(card_id))
+                cids = Map.do(GviewOperation.load(search[len("gviewid"):]).nodes.keys(), lambda card_id: int(card_id))
             else:
                 for_due = "(is:new OR is:due)" if Config.get().group_review_just_due_card.value else ""
                 global_str = f"({Config.get().group_review_global_condition.value})"
@@ -398,14 +389,14 @@ class GroupReview(object):
         G.GroupReview_tempfile.clear()
 
     @staticmethod
-    def modified_card_record(note: Note):
+    def modified_card_record(note: "Note"):
         """将卡片写到一个全局变量,作为集合"""
         if not Config.get().group_review.value:
             return
         G.GroupReview_tempfile |= set(note.card_ids())
 
     @staticmethod
-    def save_search_condition_to_config(browser: Browser):
+    def save_search_condition_to_config(browser: "Browser"):
         """把搜索栏的内容拷贝下来粘贴到配置表"""
         curr_string = browser.form.searchEdit.currentText()
         if curr_string == "" or not re.search(r"\S", curr_string):
@@ -425,7 +416,8 @@ class GroupReview(object):
         c.group_review_search_string.value = list(setv)
         Config.save(c)
         G.signals.on_group_review_search_string_changed.emit()
-        tooltip("已添加到群组复习条件列表: "+condition)
+        tooltip("已添加到群组复习条件列表: " + condition)
+
 
 class Config:
 
@@ -789,19 +781,19 @@ class ReviewerOperation:
 
 class BrowserOperation:
     @staticmethod
-    def search(s) -> Browser:
+    def search(s) -> "Browser":
         """注意,如果你是自动搜索,需要自己激活窗口"""
-        browser: Browser = BrowserOperation.get_browser()
+        browser: "Browser" = BrowserOperation.get_browser()
         # if browser is not None:
         if not isinstance(browser, Browser):
-            browser: Browser = dialogs.open("Browser", mw)
+            browser: "Browser" = dialogs.open("Browser", mw)
 
         browser.search_for(s)
         return browser
 
     @staticmethod
     def refresh():
-        browser: Browser = BrowserOperation.get_browser()
+        browser: "Browser" = BrowserOperation.get_browser()
         if isinstance(browser, Browser):
             # if dialogs._dialogs["Browser"][1] is not None:
             browser.sidebar.refresh()
@@ -810,7 +802,7 @@ class BrowserOperation:
 
     @staticmethod
     def get_browser(OPEN=False):
-        browser: Browser = dialogs._dialogs["Browser"][1]
+        browser: "Browser" = dialogs._dialogs["Browser"][1]
         if not isinstance(browser, Browser) and OPEN:
             browser = dialogs.open("Browser")
         return browser
@@ -967,7 +959,7 @@ class CardOperation:
             p._last_state = _last_state
             p._card_changed = _card_changed
 
-        browser: Browser = BrowserOperation.get_browser()
+        browser: "Browser" = BrowserOperation.get_browser()
         if browser is not None and browser._previewer is not None:
             prev_refresh(browser._previewer)
         if mw.state == "review":
@@ -1423,7 +1415,7 @@ class MonkeyPatch:
         return setupMenus
 
     @staticmethod
-    def onAppMsgWrapper(self: AnkiQt):
+    def onAppMsgWrapper(self: "AnkiQt"):
         # self.app.appMsg.connect(self.onAppMsg)
         """"""
 
@@ -1528,213 +1520,216 @@ class MonkeyPatch:
             return None
 
         return onAppMsg
+    if not ISLOCAL:
+        class BrowserPreviewer(MultiCardPreviewer):
+            _last_card_id = 0
+            _parent: Optional["Browser"]
 
-    class BrowserPreviewer(MultiCardPreviewer):
-        _last_card_id = 0
-        _parent: Optional[Browser]
+            def __init__(
+                    self, parent: "Browser", mw: "AnkiQt", on_close: Callable[[], None]
+            ) -> None:
+                super().__init__(parent=parent, mw=mw, on_close=on_close)
+                self.ease_button: "dict[int,QPushButton]" = {}
+                self.review_button: "QWidget" = QWidget()
+                self.due_info_widget: "QWidget" = QWidget()
+                self.bottom_layout = QGridLayout()
+                self.bottom_layout_rev = QGridLayout()
+                self.bottom_layout_due = QGridLayout()
+                self.due_label = QLabel()
+                self.last_time_label = QLabel()
+                self.next_time_label = QLabel()
 
-        def __init__(
-                self, parent: Browser, mw: AnkiQt, on_close: Callable[[], None]
-        ) -> None:
-            super().__init__(parent=parent, mw=mw, on_close=on_close)
-            self.ease_button: "dict[int,QPushButton]" = {}
-            self.review_button: "QWidget" = QWidget()
-            self.due_info_widget: "QWidget" = QWidget()
-            self.bottom_layout = QGridLayout()
-            self.bottom_layout_rev = QGridLayout()
-            self.bottom_layout_due = QGridLayout()
-            self.due_label = QLabel()
-            self.last_time_label = QLabel()
-            self.next_time_label = QLabel()
+            def card(self) -> Optional[Card]:
+                if self._parent.singleCard:
 
-        def card(self) -> Optional[Card]:
-            if self._parent.singleCard:
-
-                return self._parent.card
-            else:
-                return None
-
-        def render_card(self) -> None:
-            super().render_card()
-            self._update_info()
-            self.switch_to_due_info_widget()
-
-        def _create_gui(self):
-            super()._create_gui()
-            self._build_review_buttons()
-            self._create_due_info_widget()
-            self.bottom_layout_due.addWidget(self.due_info_widget, 0, 0, 1, 1)
-            self.bottom_layout_rev.addWidget(self.review_button, 0, 0, 1, 1)
-            self.review_button.hide()
-            self.vbox.removeWidget(self.bbox)
-            self.bottom_layout_due.addWidget(self.bbox, 0, 1, 1, 1)
-            self.vbox.addLayout(self.bottom_layout_due)
-
-        def card_changed(self) -> bool:
-            c = self.card()
-            if not c:
-                return True
-            else:
-                changed = c.id != self._last_card_id
-                self._last_card_id = c.id
-                return changed
-
-        def _on_prev_card(self) -> None:
-            self._parent.onPreviousCard()
-            # self._update_info()
-
-        def _on_next_card(self) -> None:
-            self._parent.onNextCard()
-            # self._update_info()
-            # self.switch_to_due_info_widget()
-
-        def _should_enable_prev(self) -> bool:
-            return super()._should_enable_prev() or self._parent.has_previous_card()
-
-        def _should_enable_next(self) -> bool:
-            return super()._should_enable_next() or self._parent.has_next_card()
-
-        def _render_scheduled(self) -> None:
-            super()._render_scheduled()
-            self._updateButtons()
-
-        def _on_prev(self) -> None:
-
-            if self._state == "answer" and not self._show_both_sides:
-                self._state = "question"
-                self.render_card()
-            else:
-                self._on_prev_card()
-
-        def _on_next(self) -> None:
-
-            if self._state == "question":
-                self._state = "answer"
-                self.render_card()
-            else:
-                self._on_next_card()
-            Utils.tooltip(self._state)
-
-        def freeze_answer_buttons(self):
-            for button in self.ease_button.values():
-                button.setEnabled(False)
-            tooltip(Translate.已冻结)
-
-        def recover_answer_buttons(self):
-            for button in self.ease_button.values():
-                button.setEnabled(True)
-            tooltip(Translate.已解冻)
-
-        def switch_to_answer_buttons(self):
-            self._update_info()
-            self.review_button.show()
-            self.vbox.removeItem(self.bottom_layout_due)
-            self.bottom_layout_rev.addWidget(self.bbox, 0, 1, 1, 1)
-            self.vbox.addLayout(self.bottom_layout_rev)
-            self.due_info_widget.hide()
-            cfg = Config.get()
-            if cfg.freeze_review.value:
-                interval = cfg.freeze_review_interval.value
-                self.freeze_answer_buttons()
-                QTimer.singleShot(interval, lambda: self.recover_answer_buttons())
-
-        def switch_to_due_info_widget(self):
-            self._update_info()
-            self.review_button.hide()
-            self.vbox.removeItem(self.bottom_layout_rev)
-            self.bottom_layout_due.addWidget(self.bbox, 0, 1, 1, 1)
-            self.vbox.addLayout(self.bottom_layout_due)
-            self.due_info_widget.show()
-
-        def _answerCard(self, ease):
-            mw = compatible_import.mw
-            answer = AnswerInfoInterface
-
-            if self.card().timer_started is None:
-                self.card().timer_started = time.time() - 60
-            CardOperation.answer_card(self.card(), ease)
-            self.switch_to_due_info_widget()
-            LinkPoolOperation.both_refresh()
-            mw.col.reset()
-            G.signals.on_card_answerd.emit(
-                    answer(platform=self, card_id=self.card().id, option_num=ease))
-
-        def should_review(self):
-            today, next_date, last_date = self._fecth_date()
-            return next_date <= today
-
-        def _update_info(self):
-            self._update_answer_buttons()
-            self._update_due_info_widget()
-
-        def _create_due_info_widget(self):
-            layout = QGridLayout(self.due_info_widget)
-            layout.setContentsMargins(0, 0, 0, 0)
-            today, next_date, last_date = self._fecth_date()
-            self.inAdvance_button = QPushButton(Translate.学习)
-            self.inAdvance_button.clicked.connect(self.switch_to_answer_buttons)
-            self.due_label.setText(Translate.可复习 if today >= next_date else Translate.未到期)
-            self.last_time_label.setText(Translate.上次复习 + ":" + last_date.__str__())
-            self.next_time_label.setText(Translate.下次复习 + ":" + next_date.__str__())
-            layout.addWidget(self.due_label, 0, 0, 2, 1)
-            layout.addWidget(self.last_time_label, 0, 1, 1, 1)
-            layout.addWidget(self.next_time_label, 1, 1, 1, 1)
-            layout.addWidget(self.inAdvance_button, 0, 2, 2, 1)
-            self.due_info_widget.setLayout(layout)
-
-        def _build_review_buttons(self):
-            """生成 again,hard,good,easy 按钮"""
-            enum = ["", "again", "hard", "good", "easy"]
-            layout = QHBoxLayout(self.review_button)
-            layout.setContentsMargins(0, 0, 0, 0)
-            sched = compatible_import.mw.col.sched
-            mw = compatible_import.mw
-            button_num = sched.answerButtons(self.card())
-            for i in range(button_num):
-                ease = enum[i + 1] + ":" + sched.nextIvlStr(self.card(), i + 1)
-                self.ease_button[i + 1] = QPushButton(ease)
-                answer = lambda i: lambda: self._answerCard(i + 1)
-                self.ease_button[i + 1].clicked.connect(answer(i))
-                layout.addWidget(self.ease_button[i + 1])
-            self.review_button.setLayout(layout)
-            self.review_button.setContentsMargins(0, 0, 0, 0)
-
-        def _update_due_info_widget(self):
-            today, next_date, last_date = self._fecth_date()
-            self.due_label.setText(Translate.可复习 if today >= next_date else Translate.未到期)
-            self.last_time_label.setText(Translate.上次复习 + ":" + last_date.__str__())
-            self.next_time_label.setText(Translate.下次复习 + ":" + next_date.__str__())
-            should_review = next_date <= today
-
-        def _update_answer_buttons(self):
-            enum = ["", "again", "hard", "good", "easy"]
-            sched = compatible_import.mw.col.sched
-            button_num = sched.answerButtons(self.card())
-            for i in range(button_num):
-                ease = enum[i + 1] + ":" + sched.nextIvlStr(self.card(), i + 1)
-                self.ease_button[i + 1].setText(ease)
-
-        def _fecth_date(self):
-            mw = compatible_import.mw
-            result = mw.col.db.execute(
-                    f"select id,ivl from revlog where id = (select  max(id) from revlog where cid = {self.card().id})"
-            )
-            if result:
-                last, ivl = result[0]
-                last_date = datetime.fromtimestamp(last / 1000)  # (Y,M,D,H,M,S,MS)
-
-                write_to_log_file(f"id={last},ivl={ivl}")
-                if ivl >= 0:  # ivl 正表示天为单位,负表示秒为单位
-                    next_date = datetime.fromtimestamp(last / 1000 + ivl * 86400)  # (Y,M,D,H,M,S,MS)
+                    return self._parent.card
                 else:
-                    next_date = datetime.fromtimestamp(last / 1000 - ivl)
-            else:
-                ivl = 0
-                next_date = datetime.today()  # (Y,M,D,H,M,S,MS)
-                last_date = datetime.today()  # (Y,M,D,H,M,S,MS)
-            today = datetime.today()  # (Y,M,D,H,M,S,MS)
-            return today, next_date, last_date
+                    return None
 
+            def render_card(self) -> None:
+                super().render_card()
+                self._update_info()
+                self.switch_to_due_info_widget()
+
+            def _create_gui(self):
+                super()._create_gui()
+                self._build_review_buttons()
+                self._create_due_info_widget()
+                self.bottom_layout_due.addWidget(self.due_info_widget, 0, 0, 1, 1)
+                self.bottom_layout_rev.addWidget(self.review_button, 0, 0, 1, 1)
+                self.review_button.hide()
+                self.vbox.removeWidget(self.bbox)
+                self.bottom_layout_due.addWidget(self.bbox, 0, 1, 1, 1)
+                self.vbox.addLayout(self.bottom_layout_due)
+
+            def card_changed(self) -> bool:
+                c = self.card()
+                if not c:
+                    return True
+                else:
+                    changed = c.id != self._last_card_id
+                    self._last_card_id = c.id
+                    return changed
+
+            def _on_prev_card(self) -> None:
+                self._parent.onPreviousCard()
+                # self._update_info()
+
+            def _on_next_card(self) -> None:
+                self._parent.onNextCard()
+                # self._update_info()
+                # self.switch_to_due_info_widget()
+
+            def _should_enable_prev(self) -> bool:
+                return super()._should_enable_prev() or self._parent.has_previous_card()
+
+            def _should_enable_next(self) -> bool:
+                return super()._should_enable_next() or self._parent.has_next_card()
+
+            def _render_scheduled(self) -> None:
+                super()._render_scheduled()
+                self._updateButtons()
+
+            def _on_prev(self) -> None:
+
+                if self._state == "answer" and not self._show_both_sides:
+                    self._state = "question"
+                    self.render_card()
+                else:
+                    self._on_prev_card()
+
+            def _on_next(self) -> None:
+
+                if self._state == "question":
+                    self._state = "answer"
+                    self.render_card()
+                else:
+                    self._on_next_card()
+                Utils.tooltip(self._state)
+
+            def freeze_answer_buttons(self):
+                for button in self.ease_button.values():
+                    button.setEnabled(False)
+                tooltip(Translate.已冻结)
+
+            def recover_answer_buttons(self):
+                for button in self.ease_button.values():
+                    button.setEnabled(True)
+                tooltip(Translate.已解冻)
+
+            def switch_to_answer_buttons(self):
+                self._update_info()
+                self.review_button.show()
+                self.vbox.removeItem(self.bottom_layout_due)
+                self.bottom_layout_rev.addWidget(self.bbox, 0, 1, 1, 1)
+                self.vbox.addLayout(self.bottom_layout_rev)
+                self.due_info_widget.hide()
+                cfg = Config.get()
+                if cfg.freeze_review.value:
+                    interval = cfg.freeze_review_interval.value
+                    self.freeze_answer_buttons()
+                    QTimer.singleShot(interval, lambda: self.recover_answer_buttons())
+
+            def switch_to_due_info_widget(self):
+                self._update_info()
+                self.review_button.hide()
+                self.vbox.removeItem(self.bottom_layout_rev)
+                self.bottom_layout_due.addWidget(self.bbox, 0, 1, 1, 1)
+                self.vbox.addLayout(self.bottom_layout_due)
+                self.due_info_widget.show()
+
+            def _answerCard(self, ease):
+                mw = compatible_import.mw
+                answer = AnswerInfoInterface
+
+                if self.card().timer_started is None:
+                    self.card().timer_started = time.time() - 60
+                CardOperation.answer_card(self.card(), ease)
+                self.switch_to_due_info_widget()
+                LinkPoolOperation.both_refresh()
+                mw.col.reset()
+                G.signals.on_card_answerd.emit(
+                        answer(platform=self, card_id=self.card().id, option_num=ease))
+
+            def should_review(self):
+                today, next_date, last_date = self._fecth_date()
+                return next_date <= today
+
+            def _update_info(self):
+                self._update_answer_buttons()
+                self._update_due_info_widget()
+
+            def _create_due_info_widget(self):
+                layout = QGridLayout(self.due_info_widget)
+                layout.setContentsMargins(0, 0, 0, 0)
+                today, next_date, last_date = self._fecth_date()
+                self.inAdvance_button = QPushButton(Translate.学习)
+                self.inAdvance_button.clicked.connect(self.switch_to_answer_buttons)
+                self.due_label.setText(Translate.可复习 if today >= next_date else Translate.未到期)
+                self.last_time_label.setText(Translate.上次复习 + ":" + last_date.__str__())
+                self.next_time_label.setText(Translate.下次复习 + ":" + next_date.__str__())
+                layout.addWidget(self.due_label, 0, 0, 2, 1)
+                layout.addWidget(self.last_time_label, 0, 1, 1, 1)
+                layout.addWidget(self.next_time_label, 1, 1, 1, 1)
+                layout.addWidget(self.inAdvance_button, 0, 2, 2, 1)
+                self.due_info_widget.setLayout(layout)
+
+            def _build_review_buttons(self):
+                """生成 again,hard,good,easy 按钮"""
+                enum = ["", "again", "hard", "good", "easy"]
+                layout = QHBoxLayout(self.review_button)
+                layout.setContentsMargins(0, 0, 0, 0)
+                sched = compatible_import.mw.col.sched
+                mw = compatible_import.mw
+                button_num = sched.answerButtons(self.card())
+                for i in range(button_num):
+                    ease = enum[i + 1] + ":" + sched.nextIvlStr(self.card(), i + 1)
+                    self.ease_button[i + 1] = QPushButton(ease)
+                    answer = lambda i: lambda: self._answerCard(i + 1)
+                    self.ease_button[i + 1].clicked.connect(answer(i))
+                    layout.addWidget(self.ease_button[i + 1])
+                self.review_button.setLayout(layout)
+                self.review_button.setContentsMargins(0, 0, 0, 0)
+
+            def _update_due_info_widget(self):
+                today, next_date, last_date = self._fecth_date()
+                self.due_label.setText(Translate.可复习 if today >= next_date else Translate.未到期)
+                self.last_time_label.setText(Translate.上次复习 + ":" + last_date.__str__())
+                self.next_time_label.setText(Translate.下次复习 + ":" + next_date.__str__())
+                should_review = next_date <= today
+
+            def _update_answer_buttons(self):
+                enum = ["", "again", "hard", "good", "easy"]
+                sched = compatible_import.mw.col.sched
+                button_num = sched.answerButtons(self.card())
+                for i in range(button_num):
+                    ease = enum[i + 1] + ":" + sched.nextIvlStr(self.card(), i + 1)
+                    self.ease_button[i + 1].setText(ease)
+
+            def _fecth_date(self):
+                mw = compatible_import.mw
+                result = mw.col.db.execute(
+                        f"select id,ivl from revlog where id = (select  max(id) from revlog where cid = {self.card().id})"
+                )
+                if result:
+                    last, ivl = result[0]
+                    last_date = datetime.fromtimestamp(last / 1000)  # (Y,M,D,H,M,S,MS)
+
+                    write_to_log_file(f"id={last},ivl={ivl}")
+                    if ivl >= 0:  # ivl 正表示天为单位,负表示秒为单位
+                        next_date = datetime.fromtimestamp(last / 1000 + ivl * 86400)  # (Y,M,D,H,M,S,MS)
+                    else:
+                        next_date = datetime.fromtimestamp(last / 1000 - ivl)
+                else:
+                    ivl = 0
+                    next_date = datetime.today()  # (Y,M,D,H,M,S,MS)
+                    last_date = datetime.today()  # (Y,M,D,H,M,S,MS)
+                today = datetime.today()  # (Y,M,D,H,M,S,MS)
+                return today, next_date, last_date
+    else:
+        class BrowserPreviewer:
+            def __init__(self):
+                raise Exception("not support in this env")
 
 class Dialogs:
     """打开对话框的函数,而不是对话框本身"""
@@ -1845,6 +1840,9 @@ class Dialogs:
                 if need_activate:
                     G.mw_gview[gviewdata.uuid].show()
                     G.mw_gview[gviewdata.uuid].activateWindow()
+        elif mode == GraphMode.debug_mode:
+            Grapher(pair_li=pair_li, mode=mode, gviewdata=gviewdata).show()
+
 
     @staticmethod
     def open_configuration():
@@ -2637,7 +2635,9 @@ class Geometry:
         # edges = Map.do(range(4),lambda i:QLineF(polygon.at(i),polygon.at((i+1)%4)))
         # print(f"edges={edges},\nLine={line}")
         for edge in edges:
-            if line.intersect(edge, intersectPoint) == QLineF.BoundedIntersection:
+            intersectsType, pointAt = line.intersects(edge)
+
+            if intersectsType == QLineF.IntersectionType.BoundedIntersection:
                 return intersectPoint
         return None
 

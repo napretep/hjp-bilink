@@ -20,13 +20,7 @@ from . import configsModel
 
 from .compatible_import import *
 from . import funcs, baseClass
-from aqt import mw, dialogs
-from aqt.browser import Browser
-from aqt.browser.previewer import Previewer
-from aqt.operations.card import set_card_deck
-from aqt.reviewer import Reviewer
-from aqt.utils import tooltip, showInfo
-from aqt.webview import AnkiWebView
+
 
 if __name__ == "__main__":
     from lib.common_tools import G

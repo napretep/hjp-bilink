@@ -13,8 +13,6 @@ from ..imports import *
 import json
 
 
-from aqt.utils import showInfo, tooltip
-
 if __name__ == "__main__":
     from lib import common_tools
     from lib.common_tools.language import rosetta as say

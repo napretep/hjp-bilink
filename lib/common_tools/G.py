@@ -10,7 +10,7 @@ G.py 就是GLOBAL.py, 存放一些持续不变的常量
 from typing import Optional
 
 
-from aqt.utils import showInfo
+
 from . import signals, src_admin, objs, widgets, language
 # from .src_admin import SrcAdmin
 # from .signals import CustomSignals
@@ -18,7 +18,6 @@ from . import signals, src_admin, objs, widgets, language
 
 from typing import TYPE_CHECKING
 from .compatible_import import *
-from aqt import mw
 import os
 
 class installAs:

@@ -17,12 +17,11 @@ from enum import unique, Enum
 from functools import reduce
 from typing import List, Any, Union, Callable
 
-from aqt.utils import tooltip, isMac, isWin
-
 from .language import Translate
 from .src_admin import MAXINT, MININT, src
 from . import widgets, terms, baseClass
 from .compatible_import import *
+from .compatible_import import tooltip,  isMac, isWin
 from typing import TYPE_CHECKING
 
 
@@ -87,6 +86,7 @@ class GViewData:
 class GraphMode:
     normal: int = 0
     view_mode: int = 1
+    debug_mode :int=2
 
 
 @dataclass

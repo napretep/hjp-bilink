@@ -8,19 +8,10 @@ __time__ = '2021/8/1 15:35'
 """
 import os
 import sys
-from ..imports import common_tools
-Anki = common_tools.compatible_import.Anki
-if Anki.isQt6:
-    from PyQt6.QtCore import Qt, QPoint, QModelIndex
-    from PyQt6.QtGui import QStandardItemModel, QStandardItem, QIcon
-    from PyQt6.QtWebEngineWidgets import QWebEngineView
-    from PyQt6.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView
-else:
-    from PyQt5.QtCore import Qt, QPoint, QModelIndex
-    from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon
-    from PyQt5.QtWebEngineWidgets import QWebEngineView
-    from PyQt5.QtWidgets import QDialog, QAbstractItemView, QApplication, QHBoxLayout, QTreeView
 
+
+
+from ..imports import *
 
 import json
 

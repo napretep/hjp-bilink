@@ -1,17 +1,7 @@
 import time
 from dataclasses import dataclass
 from typing import Union, List
-from .compatible_import import Anki
-
-if Anki.isQt6:
-    from PyQt6.QtWidgets import QMenu, QAction
-else:
-    from PyQt5.QtWidgets import QMenu, QAction
-from aqt import mw
-from aqt.browser import Browser
-from aqt.editor import Editor, EditorWebView
-from aqt.utils import showInfo, tooltip
-from aqt.webview import AnkiWebView
+from .compatible_import import *
 
 from . import G
 from .language import rosetta as say

@@ -10,7 +10,7 @@ import dataclasses
 import json
 import os
 
-from aqt.utils import tooltip, showInfo
+from .compatible_import import tooltip, showInfo
 
 MAXINT = 2147483647
 MININT = -2147483646

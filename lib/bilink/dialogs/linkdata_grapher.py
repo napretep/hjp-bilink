@@ -272,6 +272,8 @@ class Grapher(QDialog):
         return item_li
 
     def load_edges_from_linkdata(self, card_li: "list[str]" = None):
+        if self.data.graph_mode == GraphMode.debug_mode:
+            return
         if __name__ == "__main__":
             from lib.bilink.imports import common_tools
             pass
@@ -540,13 +542,13 @@ class Grapher(QDialog):
                     if isinstance(self.draw_line_start_item, Grapher.ItemRect) and choose1:
                         self.draw_line_end_item = self.itemAt(event.pos())
                         line = self.Auxiliary_line.line()
-                        p1 = self.draw_line_start_item.mapToScene(self.draw_line_start_item.rect().center())
+                        p1 = line.p1()#self.draw_line_start_item.mapToScene(self.draw_line_start_item.rect().center())
                         p2 = self.mapToScene(event.pos())
                         rect = self.draw_line_start_item.mapRectToScene(self.draw_line_start_item.rect())
                         # self.draw_line_start_item.mapRectToScene()
-                        p1_1 = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rect)
-                        if p1_1 is not None:
-                            p1 = p1_1
+                        # p1_1 = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rect)
+                        # if p1_1 is not None:
+                        #     p1 = p1_1
                         line.setP2(p2)
                         line.setP1(p1)
                         self.Auxiliary_line.setLine(line)
@@ -565,8 +567,9 @@ class Grapher(QDialog):
                     select_1 = len(self.superior.scene.selectedItems()) == 1
                     if isinstance(self.itemAt(event.pos()), Grapher.ItemRect) and select_1:
                         self.draw_line_start_item: "Grapher.ItemRect" = self.itemAt(event.pos())
-                        center = self.draw_line_start_item.mapToScene(self.draw_line_start_item.rect().center())
-                        self.Auxiliary_line.setLine(QLineF(center, center))
+                        startItemCenter = self.draw_line_start_item.mapToScene(self.draw_line_start_item.rect().center())
+                        self.Auxiliary_line.setLine(QLineF(startItemCenter, startItemCenter))
+                        # print(self.Auxiliary_line.line().p1())
                         self.superior.scene.addItem(self.Auxiliary_line)
             elif event.buttons() == Qt.MouseButton.RightButton:
                 self.superior.data.mouse_left_clicked = False
@@ -635,9 +638,9 @@ class Grapher(QDialog):
             p2 = self.itemEnd.mapToScene(self.itemEnd.boundingRect().center())
             rectA = self.itemStart.mapRectToScene(self.itemStart.rect())
             rectB = self.itemEnd.mapRectToScene(self.itemEnd.rect())
-            pA = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rectA)
-            pB = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rectB)
-            print(f"start==end:{pA == pB}")
+            # pA = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rectA)
+            # pB = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rectB)
+
             # if pA is not None: p1=pA
             # if pB is not None: p2=pB
             line = QLineF(p1, p2)
@@ -806,8 +809,8 @@ class Grapher(QDialog):
             body_rect = QRectF(0, header_height, int(self.rect().width()), int(self.rect().height()))
             painter.drawRect(header_rect)
             painter.setPen(QColor(255, 255, 255))
-            painter.drawText(header_rect.adjusted(5, 5, -5, -5), Qt.TextWordWrap, str(self.pair.card_id))
-            painter.drawText(body_rect.adjusted(5, 5, -5, -5), Qt.TextWordWrap, f"""{self.pair.desc}""")
+            painter.drawText(header_rect.adjusted(5, 5, -5, -5), Qt.TextFlag.TextWordWrap, str(self.pair.card_id))
+            painter.drawText(body_rect.adjusted(5, 5, -5, -5), Qt.TextFlag.TextWordWrap, f"""{self.pair.desc}""")
 
             if self.isSelected():
                 path = QPainterPath()

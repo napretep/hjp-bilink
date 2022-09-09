@@ -14,8 +14,7 @@ from enum import Enum
 from typing import Any, Union
 from urllib.parse import unquote
 from .compatible_import import *
-from aqt import mw
-from aqt.utils import tooltip, showInfo
+
 
 @dataclass
 class descExtractTable:
@@ -764,7 +763,9 @@ class DB_admin(object):
             raise ValueError("values is empty!")
         return DB_admin.BOX(string, val)
 
-
+    def selectAll(self,tablename:"str"):
+        self.excute_queue.append(self.sqlstr_RECORD_SELECT_ALL.format(tablename=tablename))
+        return self
 
     def select(self, box: "DB_admin.BOX" = None, **kwargs):
         assert box is not None or len(kwargs) > 0
@@ -923,6 +924,12 @@ class DBResults(object):
 
         def to_gview_data(self):
             return [GviewRecord(**i) for i in self]
+
+        def to_givenformat_data(self, _format,multiArgs=False):
+            if multiArgs:
+                return [_format(**i) for i in self]
+            else:
+                return [_format(i) for i in self]
 
 
 
