@@ -43,7 +43,7 @@ QTMININT = -2147483647
 
 addonId= 1420819673
 say = language.rosetta
-ISDEBUG = False
+ISDEBUG = ISDEBUG
 DB = objs.DB_admin()  # 这个是通用DB,如果要用linkdata请用linkdata_admin里的DB
 signals = signals.CustomSignals.start()
 src = src_admin.src

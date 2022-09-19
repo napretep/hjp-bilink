@@ -5,7 +5,7 @@ from shutil import copy2
 
 THIS_FOLDER = os.path.curdir
 baseconfig = json.load(open("baseInfo.json","r",encoding="utf-8"))
-
+excludeFile = ["lib/clipper2","lib/clipper3"]
 class addon_version:
     def __init__(self,v_str):
         self.v = [int(i) for i in v_str.split(".")]
@@ -35,8 +35,8 @@ def check_version():
         raise ValueError("update_version!=base_version")
 
 def check_is_debug():
-    f_str = open("./__init__.py","r",encoding="utf-8").read()
-    if re.search(r"ISDEBUG\s*=\s*True",f_str):
+    from lib.common_tools.compatible_import import ISDEBUG
+    if ISDEBUG:
         raise ValueError("ISDEBUG=True!")
 def pycache_check():
     for root,dirs,files in os.walk(THIS_FOLDER,onerror=lambda x:print("wrong direction")):

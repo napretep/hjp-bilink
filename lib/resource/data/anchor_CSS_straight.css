@@ -1,6 +1,6 @@
 div.container_L0 {
     text-align: left!important;
-    border: 1px solid green;
+    border: 1px solid rgb(0, 176, 155, 0.8);
 }
 
 .container_header_L1 {
@@ -35,4 +35,24 @@ details.hjp_bilink details.hjp_bilink {
 
 div.container_body_L1>details {
     display: block;
+}
+
+.container_header_L1,
+.hjp_bilink.details summary,
+button.hjp-bilink.anchor.button {
+    color: rgb(248, 248, 248);
+    background: rgb(0, 176, 155, 0.8);
+    box-shadow: 1px 1px 1px rgb(0, 0, 0, 0.14);
+    transition: all 200ms;
+    font-family: "Microsoft JhengHei";
+    border: none;
+    user-select: none;
+    margin: 1px;
+}
+
+.container_header_L1:hover,
+.hjp_bilink.details summary:hover,
+button.hjp-bilink.anchor.button:hover {
+    cursor: pointer;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.616);
 }

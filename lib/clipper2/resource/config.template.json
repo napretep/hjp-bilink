@@ -1,0 +1,68 @@
+{
+  "clipbox.A_map_Field": {
+    "value": 1
+  },
+  "clipbox.Q_map_Field": {
+    "value": 0
+  },
+  "clipbox.comment_A_map_Field": {
+    "value": 1
+  },
+  "clipbox.comment_Q_map_Field": {
+    "value": 0
+  },
+  "clipbox.macro": {
+    "value": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        1
+      ]
+    ]
+  },
+  "clipbox.newcard_deck_id": {
+    "value": null
+  },
+  "clipbox.newcard_model_id": {
+    "value": null
+  },
+  "mainview.layout_col_per_row": {
+    "value": 2
+  },
+  "mainview.layout_mode": {
+    "value": 0
+  },
+  "mainview.layout_row_per_col": {
+    "value": 1
+  },
+  "output.RatioFix": {
+    "value": 1.0
+  },
+  "output.closeClipbox": {
+    "value": false
+  },
+  "output.closeClipper": {
+    "value": true
+  },
+  "output.needRatioFix": {
+    "value": 0
+  },
+  "pagepicker.bottombar_default_path": {
+    "value": ""
+  },
+  "pagepicker.bottombar_page_num": {
+    "value": 0
+  },
+  "pagepicker.bottombar_page_ratio": {
+    "value": 1.6
+  },
+  "pagepicker.browser_layout_col_per_row": {
+    "value": 4
+  },
+  "pagepicker.changepage_ratio_choose": {
+    "value": 0
+  }
+}

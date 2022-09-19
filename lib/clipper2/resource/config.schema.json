@@ -1,0 +1,16 @@
+{
+  "include": [
+    "defaultRatio",
+    "defaultPageNum",
+    "defaultLayout",
+    "defaultLayoutColumnNum",
+    "defaultLayoutRowNum"
+  ],
+  "data_schema": {
+    "allow_empty": [],
+    "data_range": {
+      "data_type": {
+      }
+    }
+  }
+}

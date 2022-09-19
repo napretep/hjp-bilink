@@ -18,7 +18,7 @@ say = funcs.G.say
 
 def on_card_will_show(htmltext, card, kind):
 
-    htmltext = funcs.HTML_injecttoweb(htmltext, card, kind)
+    htmltext = funcs.HTML.injectToWeb(htmltext, card, kind)
 
     return htmltext
 

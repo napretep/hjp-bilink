@@ -321,6 +321,7 @@ class Utils(object):
 
     @staticmethod
     def print(*args, need_timestamp=True, **kwargs):
+        print(f"G.ISDEBUG={G.ISDEBUG}")
         if G.ISDEBUG:
             if need_timestamp: print(datetime.now().strftime("%Y%m%d%H%M%S"))
             print(*args, **kwargs)
@@ -393,7 +394,11 @@ class GroupReview(object):
         """将卡片写到一个全局变量,作为集合"""
         if not Config.get().group_review.value:
             return
-        G.GroupReview_tempfile |= set(note.card_ids())
+        try:
+            G.GroupReview_tempfile |= set(note.card_ids())
+        except Exception as e:
+            Utils.print(e)
+            return
 
     @staticmethod
     def save_search_condition_to_config(browser: "Browser"):
@@ -783,6 +788,8 @@ class BrowserOperation:
     @staticmethod
     def search(s) -> "Browser":
         """注意,如果你是自动搜索,需要自己激活窗口"""
+        if ISLOCALDEBUG :
+            return
         browser: "Browser" = BrowserOperation.get_browser()
         # if browser is not None:
         if not isinstance(browser, Browser):
@@ -914,6 +921,8 @@ class CardOperation:
 
     @staticmethod
     def create(model_id: "int" = None, deck_id: "int" = None, failed_callback: "Callable" = None):
+        if ISLOCALDEBUG :
+            return "1234567890"
         if model_id is not None and not (type(model_id)) == int:
             model_id = int(model_id)
         if deck_id is not None and not (type(deck_id)) == int:
@@ -1080,38 +1089,125 @@ class CardOperation:
         else:
             return mw.col.getCard(card_id)
 
+    @staticmethod
+    def clipbox_insert_field(clipuuid, timestamp=None):
+        """用于插入clipbox到指定的卡片字段,如果这个字段存在这个clipbox则不做操作"""
+        if ISLOCALDEBUG:
+            return
+        if platform.system() in {"Darwin", "Linux"}:
+            tooltip("当前系统暂时不支持该功能\n current os not supports the feature")
+            return
+        else:
+            from ..clipper2.exports import fitz
+
+        def bookmark_to_tag(bookmark: "list[list[int,str,int]]"):
+            tag_dict = {}
+            if len(bookmark) == 0:
+                return tag_dict
+            level, content, pagenum = bookmark[0][0], bookmark[0][1], bookmark[0][2]
+            tag_dict[pagenum] = re.sub(r"\s|\r|\n", "-", content)
+            level_stack = []
+            level_stack.append([level, content, pagenum])
+            for item in bookmark[1:]:
+                level, content, pagenum = item[0], re.sub(r"\s|\r|\n", "-", item[1]), item[2]
+                if level == 1:
+                    tag_dict[pagenum] = content
+                else:
+                    while len(level_stack) != 0 and level_stack[-1][0] >= level:
+                        level_stack.pop()
+                    content = f"{level_stack[-1][1]}::{content}"
+                    tag_dict[pagenum] = content
+                level_stack.append([level, content, pagenum])
+            return tag_dict
+
+        DB = G.DB
+        DB.go(DB.table_clipbox)
+        clipbox_ = DB.select(uuid=clipuuid).return_all().zip_up()[0]
+        clipbox = G.objs.ClipboxRecord(**clipbox_)
+        DB.end()
+        DB.go(DB.table_pdfinfo)
+        if timestamp is None:
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        card_id_li = clipbox.card_id.split(",")
+        for card_id in card_id_li:
+            if not card_id.isdigit():
+                continue
+            pdfinfo_ = DB.select(uuid=clipbox.pdfuuid).return_all().zip_up()[0]
+            pdfinfo = G.objs.PDFinfoRecord(**pdfinfo_)
+            pdfname = os.path.basename(pdfinfo.pdf_path)
+            pdfname_in_tag = re.sub(r"\s|\r|\n", "-", pdfname[0:-4])
+            note = mw.col.getCard(CardId(int(card_id))).note()
+            html = reduce(lambda x, y: x + "\n" + y, note.fields)
+            if clipbox.uuid not in html:
+                note.fields[clipbox.QA] += \
+                    f"""<img class="hjp_clipper_clipbox" src="hjp_clipper_{clipbox.uuid}_.png"><br>\n"""
+            if clipbox.comment != "" and clipbox.uuid not in html:
+                note.fields[clipbox.commentQA] += \
+                    f"""<p class="hjp_clipper_clipbox text" id="{clipbox.uuid}">{clipbox.comment}</p>\n"""
+
+            note.addTag(f"""hjp-bilink::timestamp::{timestamp}""")
+            # print(f"in the loop, timestamp={timestamp}")
+            note.addTag(f"""hjp-bilink::books::{pdfname_in_tag}::page::{clipbox.pagenum}""")
+            doc: "fitz.Document" = fitz.open(pdfinfo.pdf_path)
+            toc = doc.get_toc()
+            if len(toc) > 0:
+                # 读取缓存的书签
+                jsonfilename = os.path.join(tempfile.gettempdir(),
+                                            UUID.by_hash(pdfinfo.pdf_path) + ".json")
+                if os.path.exists(jsonfilename):  # 存在直接读
+                    bookdict = json.loads(open(jsonfilename, "r", encoding="utf-8").read())
+                else:  # 不存在则新建
+                    bookdict = bookmark_to_tag(toc)
+                    json.dump(bookdict, open(jsonfilename, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
+                pagelist = sorted(list(bookdict.keys()), key=lambda x: int(x))  # 根据bookdict的键名(页码)进行排序
+
+                atbookmark = -1
+                for idx in range(len(pagelist)):
+                    # 这里是在选择card所在的页码插入到合适的标签之间的位置,比如标签A在36页,标签B在38页, card指向37页,那么保存在标签A中.
+                    #
+                    if int(pagelist[idx]) > clipbox.pagenum:
+                        if idx > 0:
+                            atbookmark = pagelist[idx - 1]
+                        break
+                if atbookmark != -1:
+                    note.addTag(f"""hjp-bilink::books::{pdfname_in_tag}::bookmark::{bookdict[atbookmark]}""")
+            note.flush()
+        DB.end()
 
 class Media:
     """"""
-    # @staticmethod
-    # def clipbox_png_save(clipuuid):
-    #     if platform.system() in {"Darwin", "Linux"}:
-    #         tooltip("当前系统暂时不支持该功能")
-    #         return
-    #     else:
-    #         from ..clipper2.exports import fitz
-    #     mediafolder = os.path.join(mw.pm.profileFolder(), "collection.media")
-    #     DB = G.DB
-    #     clipbox_ = DB.go(DB.table_clipbox).select(uuid=clipuuid).return_all().zip_up()[0]
-    #     clipbox = G.objs.ClipboxRecord(**clipbox_)
-    #     DB.end()
-    #     pdfinfo_ = DB.go(DB.table_pdfinfo).select(uuid=clipbox.pdfuuid).return_all().zip_up()[0]
-    #     pdfinfo = G.objs.PDFinfoRecord(**pdfinfo_)
-    #     DB.end()
-    #     doc: "fitz.Document" = fitz.open(pdfinfo.pdf_path)
-    #     # 0.144295302 0.567695962 0.5033557047 0.1187648456
-    #     page = doc.load_page(clipbox.pagenum)
-    #     pagerect: "fitz.rect_like" = page.rect
-    #     x0, y0 = clipbox.x * pagerect.width, clipbox.y * pagerect.height
-    #     x1, y1 = x0 + clipbox.w * pagerect.width, y0 + clipbox.h * pagerect.height
-    #     pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2),
-    #                              clip=fitz.Rect(x0, y0, x1, y1))
-    #     pngdir = os.path.join(mediafolder, f"""hjp_clipper_{clipbox.uuid}_.png""")
-    #     write_to_log_file(pngdir + "\n" + f"w={pixmap.width} h={pixmap.height}")
-    #     if os.path.exists(pngdir):
-    #         # showInfo("截图已更新")
-    #         os.remove(pngdir)
-    #     pixmap.save(pngdir)
+    @staticmethod
+    def clipbox_png_save(clipuuid):
+        if platform.system() in {"Darwin", "Linux"}:
+            tooltip("当前系统暂时不支持该功能")
+            return
+        else:
+            from ..clipper2.exports import fitz
+        if ISLOCALDEBUG:
+            mediafolder=r"D:\png"
+        else:
+            mediafolder = os.path.join(mw.pm.profileFolder(), "collection.media")
+        DB = G.DB
+        clipbox_ = DB.go(DB.table_clipbox).select(uuid=clipuuid).return_all().zip_up()[0]
+        clipbox = G.objs.ClipboxRecord(**clipbox_)
+        DB.end()
+        pdfinfo_ = DB.go(DB.table_pdfinfo).select(uuid=clipbox.pdfuuid).return_all().zip_up()[0]
+        pdfinfo = G.objs.PDFinfoRecord(**pdfinfo_)
+        DB.end()
+        doc: "fitz.Document" = fitz.open(pdfinfo.pdf_path)
+        # 0.144295302 0.567695962 0.5033557047 0.1187648456
+        page = doc.load_page(clipbox.pagenum)
+        pagerect: "fitz.rect_like" = page.rect
+        x0, y0 = clipbox.x * pagerect.width, clipbox.y * pagerect.height
+        x1, y1 = x0 + clipbox.w * pagerect.width, y0 + clipbox.h * pagerect.height
+        pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2),
+                                 clip=fitz.Rect(x0, y0, x1, y1))
+        pngdir = os.path.join(mediafolder, f"""hjp_clipper_{clipbox.uuid}_.png""")
+        write_to_log_file(pngdir + "\n" + f"w={pixmap.width} h={pixmap.height}")
+        if os.path.exists(pngdir):
+            # showInfo("截图已更新")
+            os.remove(pngdir)
+        pixmap.save(pngdir)
 
 
 class LinkPoolOperation:
@@ -1130,6 +1226,8 @@ class LinkPoolOperation:
     @staticmethod
     def both_refresh(*args):
         """0,1,2 可选刷新"""
+        if ISLOCALDEBUG:
+            return
         o = [CardOperation, BrowserOperation, GrapherOperation]
         if len(args) > 0:
             for i in args:
@@ -1326,6 +1424,9 @@ class ModelOperation:
     @staticmethod
     def get_all():
         data = []
+        if ISLOCALDEBUG:
+            data=[{"id":123456,"name":"hello"}]
+            return data
         model = mw.col.models.all_names_and_ids()
         for i in model:
             data.append({"id": i.id, "name": i.name})
@@ -1336,6 +1437,10 @@ class DeckOperation:
     @staticmethod
     def get_all():
         data = []
+        if ISLOCALDEBUG:
+            data=[{"id":123456,"name":"hello"}]
+            return data
+
         deck = mw.col.decks.all_names_and_ids()
         for i in deck:
             data.append({"id": i.id, "name": i.name})
@@ -1875,7 +1980,65 @@ class Dialogs:
         dialog.setWindowTitle("配置表/configuration")
         dialog.closeEvent = lambda x: Config.save(cfg)
         dialog.exec_()
+    @staticmethod
+    def open_clipper(pairs_li=None, clipboxlist=None, **kwargs):
+        if platform.system() in {"Darwin", "Linux"}:
+            tooltip("当前系统暂时不支持PDFprev")
+            return
+        elif Utils.isQt6():
+            tooltip("暂时不支持QT6")
+            return
+        else:
+            from . import G
+            from ..clipper2.lib.Clipper import Clipper
+        # log.debug(G.mw_win_clipper.__str__())
+        if not isinstance(G.mw_win_clipper, Clipper):
+            G.mw_win_clipper = Clipper()
+            G.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
+            G.mw_win_clipper.show()
+        else:
+            G.mw_win_clipper.start(pairs_li=pairs_li, clipboxlist=clipboxlist)
+            # all_objs.mw_win_clipper.show()
+            G.mw_win_clipper.activateWindow()
+            # print("just activate")
+    @staticmethod
+    def open_PDFprev(pdfuuid, pagenum, FROM):
+        if platform.system() in {"Darwin", "Linux"}:
+            tooltip("当前系统暂时不支持PDFprev")
+            return
+        else:
+            from ..clipper2.lib.PDFprev import PDFPrevDialog
+        # print(FROM)
+        if isinstance(FROM, Reviewer):
+            card_id = FROM.card.id
+            pass
+        elif isinstance(FROM, BrowserPreviewer):
+            card_id = FROM.card().id
+            pass
+        elif isinstance(FROM, SingleCardPreviewerMod):
+            card_id = FROM.card().id
+        else:
+            TypeError("未能找到card_id")
+        card_id = str(card_id)
 
+        DB = G.DB
+        result = DB.go(DB.table_pdfinfo).select(uuid=pdfuuid).return_all().zip_up()[0]
+        DB.end()
+        pdfname = result.to_pdfinfo_data().pdf_path
+        pdfpageuuid = UUID.by_hash(pdfname + str(pagenum))
+        if card_id not in G.mw_pdf_prev:
+            G.mw_pdf_prev[card_id] = {}
+        if pdfpageuuid not in G.mw_pdf_prev[card_id]:
+            G.mw_pdf_prev[card_id][pdfpageuuid] = None
+        if isinstance(G.mw_pdf_prev[card_id][pdfpageuuid], PDFPrevDialog):
+            G.mw_pdf_prev[card_id][pdfpageuuid].activateWindow()
+        else:
+            ratio = 1
+            G.mw_pdf_prev[card_id][pdfpageuuid] = \
+                PDFPrevDialog(pdfuuid=pdfuuid, pdfname=pdfname, pagenum=pagenum, pageratio=ratio, card_id=card_id)
+            G.mw_pdf_prev[card_id][pdfpageuuid].show()
+
+        pass
 
 class AnchorOperation:
     @staticmethod
@@ -1923,6 +2086,97 @@ class HTML:
     def TextContentRead(html):
         return HTML_txtContent_read(html)
 
+    @staticmethod
+    def injectToWeb(htmltext, card, kind):
+        if kind in [
+                "previewQuestion",
+                "previewAnswer",
+                "reviewQuestion",
+                "reviewAnswer"
+        ]:
+            from .HTMLbutton_render import HTMLbutton_make
+            html_string = HTMLbutton_make(htmltext, card)
+
+            return html_string
+        else:
+            return htmltext
+
+
+    @staticmethod
+    def cardHTMLShadowDom(innerHTML:"str", HostId="",insertSelector="#qa", insertPlace="afterBegin"):
+        if HostId == "":
+            HostId = G.src.addon_name+"_host"
+        innerHTML2 = innerHTML
+        script = BeautifulSoup(f"""<script> 
+        (()=>{{
+         const Host = document.createElement("div");
+         const root = Host.attachShadow({{mode:"open"}});
+         const qa=document.body.querySelector("{insertSelector}")
+         Host.id = "{HostId}";
+         Host.style.zIndex = "999999";
+         qa.insertAdjacentElement("{insertPlace}",Host)
+         root.innerHTML=`{innerHTML2}`
+         }})()
+         </script>""", "html.parser")
+        return script
+
+    @staticmethod
+    def LeftTopContainer_make(root: "BeautifulSoup"):
+        """
+            注意在这一层已经完成了,CSS注入
+            传入的是从html文本解析成的beautifulSoup对象
+            设计的是webview页面的左上角按钮,包括的内容有:
+            anchorname            ->一切的开始
+                style             ->样式设计
+                div.container_L0  ->按钮所在地
+                    div.header_L1 ->就是 hjp_bilink 这个名字所在的地方
+                    div.body_L1   ->就是按钮和折叠栏所在的地方
+            一开始会先检查这个anchorname元素是不是已经存在,如果存在则直接读取
+            """
+        # 寻找 anchorname ,建立 anchor_el,作为总的锚点.
+        ID = G.addonName
+        # ID = ""
+        anchorname = ID if ID != "" else "anchor_container"
+        resultli = root.select(f"#{anchorname}")
+        if len(resultli) > 0:  # 如果已经存在,就直接取得并返回
+            anchor_el: "element.Tag" = resultli[0]
+        else:
+            anchor_el: "element.Tag" = root.new_tag("div", attrs={"id": anchorname})
+            root.insert(1, anchor_el)
+            # 设计 style
+            cfg = Config.get()
+            if cfg.anchor_style_text.value != "":
+                style_str = cfg.anchor_style_text.value
+            elif cfg.anchor_style_file.value != "" and os.path.exists(cfg.anchor_style_file.value):
+                style_str = cfg.anchor_style_file.value
+            else:
+                style_str = open(G.src.path.anchor_CSS_file[cfg.anchor_style_preset.value], "r", encoding="utf-8").read()
+            style = root.new_tag("style")
+            style.string = style_str
+            anchor_el.append(style)
+            # 设计 容器 div.container_L0, div.header_L1和div.body_L1
+            L0 = root.new_tag("div", attrs={"class": "container_L0"})
+            header_L1 = root.new_tag("div", attrs={"class": "container_header_L1"})
+            header_L1.string = G.addonName
+            body_L1 = root.new_tag("div", attrs={"class": "container_body_L1"})
+            L0.append(header_L1)
+            L0.append(body_L1)
+            anchor_el.append(L0)
+        return anchor_el  # 已经传入了root,因此不必传出.
+    @staticmethod
+    def clipbox_exists(html, card_id=None):
+        """任务:
+        1检查clipbox的uuid是否在数据库中存在,如果存在,返回True,不存在返回False,
+        2当存在时,检查卡片id是否是clipbox对应card_id,如果不是,则要添加,此卡片
+        3搜索本卡片,得到clipbox的uuid,如果有搜到 uuid 但是又不在html解析出的uuid中, 则将数据库中的uuid的card_id删去本卡片的id
+        """
+        clipbox_uuid_li = HTML_clipbox_uuid_get(html)
+        DB = G.DB
+        DB.go(DB.table_clipbox)
+        # print(clipbox_uuid_li)
+        true_or_false_li = [DB.exists(DB.EQ(uuid=uuid)) for uuid in clipbox_uuid_li]
+        DB.end()
+        return (reduce(lambda x, y: x or y, true_or_false_li, False))
 
 def button_icon_clicked_switch(button: QToolButton, old: list, new: list, callback: "callable" = None):
     if button.text() == old[0]:

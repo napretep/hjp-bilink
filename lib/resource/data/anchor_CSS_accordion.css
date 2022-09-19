@@ -19,14 +19,11 @@ button.hjp-bilink.anchor.button {
     display: block;
     color: #fff;
     /*锚点字体的颜色*/
-    background-color: green;
     /*锚点的背景色*/
     border: none;
     border-radius: 1px;
     position: relative;
-    /* max-width:150px; */
     color: white;
-    /* overflow-wrap: anywhere; */
     font-size: 15px;
     text-align: left;
     margin: 1px !important;
@@ -58,7 +55,25 @@ button.hjp-bilink.anchor.button {
 
 .hjp_bilink.details summary {
     margin: 0 !important;
-    background-color: green;
+    width: 150px;
+    font-size: 15px;
+}
+
+.container_header_L1,
+.hjp_bilink.details summary,
+button.hjp-bilink.anchor.button {
+    color: rgb(248, 248, 248);
+    background: rgb(0, 176, 155, 0.8);
+    box-shadow: 1px 1px 1px rgb(0, 0, 0, 0.14);
+    transition: all 200ms;
+    font-family: "Microsoft JhengHei";
+}
+
+.container_header_L1:hover,
+.hjp_bilink.details summary:hover,
+button.hjp-bilink.anchor.button:hover {
+    cursor: pointer;
+    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.616);
 }
 
 .hjp_bilink.details div {
