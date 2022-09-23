@@ -12,6 +12,7 @@ import urllib
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
 from datetime import datetime
+import time
 from typing import Union, Optional
 import sys
 
@@ -20,7 +21,6 @@ from . import configsModel
 
 from .compatible_import import *
 from . import funcs, baseClass
-
 
 if __name__ == "__main__":
     from lib.common_tools import G
@@ -942,7 +942,7 @@ class Dialog_PDFUrlTool(QDialog):
         if len(splitresult) > 1:
             self.widgets[Translate.pdf页码].setValue(int(splitresult[1]))
         pdffilepath = splitresult[0]
-        config:"list" = funcs.PDFLink.GetPathInfoFromPreset(pdffilepath)
+        config: "list" = funcs.PDFLink.GetPathInfoFromPreset(pdffilepath)
         if config is not None:
             pdffilename = config[1]
         else:
@@ -953,7 +953,7 @@ class Dialog_PDFUrlTool(QDialog):
         self.widgets[Translate.pdf路径].blockSignals(False)
         self.widgets[Translate.pdf名字].setText(pdffilename)
 
-    def get_url_name_num(self)->(str, str, str):
+    def get_url_name_num(self) -> (str, str, str):
         return self.widgets[Translate.pdf路径].toPlainText(), \
                self.widgets[Translate.pdf名字].toPlainText(), \
                self.widgets[Translate.pdf页码].value()
@@ -963,7 +963,7 @@ class Dialog_PDFUrlTool(QDialog):
         clipboard = QApplication.clipboard()
         mmdata = QMimeData()
         pdfurl, pdfname, pdfpage = self.get_url_name_num()
-        quote = re.sub(r"\\","/",pdfurl)    # f{pdfurl[:2]}{urllib.parse.quote(pdfurl[2:])} TODO 将来要适配mac系统的路径
+        quote = re.sub(r"\\", "/", pdfurl)
         page_str = self.get_pdf_str(pdfpage) if self.widgets[Translate.pdf默认显示页码].isChecked() else ""
         style = self.widgets[Translate.pdf样式].toPlainText()
         bs = BeautifulSoup("", "html.parser")
@@ -1089,17 +1089,17 @@ class ConfigWidget:
             field = 2
             length = 3
             regexp = 4
-            autoUpdateDesc= 5
+            autoUpdateDesc = 5
 
         defaultRowData = [(-1, "ALL_TEMPLATES", colEnum.template),
                           ((-1, -1), "ALL_FIELDS", colEnum.field),
                           (32, "32", colEnum.length),
                           ("", "", colEnum.regexp),
-                          (True,"True",colEnum.autoUpdateDesc)]
+                          (True, "True", colEnum.autoUpdateDesc)]
 
         def GetRowFromData(self, data: "list[str]"):
-            if len(data)<len(self.colnames):
-                data+=self.defaultRowData[len(data):]
+            if len(data) < len(self.colnames):
+                data += self.defaultRowData[len(data):]
             dataformat = self.DataFormat(*data)
             colType = self.colEnum
             return [
@@ -1107,7 +1107,7 @@ class ConfigWidget:
                     self.TableItem(self, (dataformat.templateId, dataformat.fieldId), dataformat.fieldName, colType.field),
                     self.TableItem(self, dataformat.length, str(dataformat.length), colType.length),
                     self.TableItem(self, dataformat.regexp, dataformat.regexp, colType.regexp),
-                    self.TableItem(self, dataformat.autoUpdateDesc, str(dataformat.autoUpdateDesc),colType.autoUpdateDesc)
+                    self.TableItem(self, dataformat.autoUpdateDesc, str(dataformat.autoUpdateDesc), colType.autoUpdateDesc)
             ]
 
         def NewRow(self):
@@ -1125,7 +1125,6 @@ class ConfigWidget:
             fieldItem: "ConfigWidget.DescExtractPresetTable.TableItem" = self.model.item(row, 1)
             fieldItem.SetupFieldCombo(templateId)
             self.rowEditor.update()
-
 
         def SaveDataToConfigModel(self):
             data = []
@@ -1237,7 +1236,7 @@ class ConfigWidget:
                 elif self.valueType == colType.regexp:
                     return self.text()
                 elif self.valueType == colType.autoUpdateDesc:
-                    return self.text()=="True"
+                    return self.text() == "True"
                 else:
                     return int(self.text())
 
@@ -1288,7 +1287,8 @@ class ConfigWidget:
                 col1.currentIndexChanged.connect(lambda idx: OnCol1CurrentIndexChanged(idx))
                 col2.valueChanged.connect(lambda val: self.colItems[2].setText(str(val)))
                 col3.textChanged.connect(lambda: self.colItems[3].setText(col3.toPlainText()))
-                col4.clicked.connect(lambda : self.colItems[4].setText(col4.isChecked().__str__()))
+                col4.clicked.connect(lambda: self.colItems[4].setText(col4.isChecked().__str__()))
+
                 def OnCol0CurrentIndexChanged(idx):
                     self.colItems[0].setData(col0.currentData(ItemDataRole.UserRole), ItemDataRole.UserRole)
                     self.colItems[0].setText(col0.currentText())
@@ -1308,6 +1308,128 @@ class ConfigWidget:
                     else:
                         funcs.Map.do([("ALL_FIELDS", (-1, -1)), ("FRONT", (-1, -2)), ("BACK", (-1, -3))], lambda col1data: col1.addItem(col1data[0], col1data[1]))
                     col1.setCurrentIndex(idx)
+
+
+class ReviewButtonForCardPreviewer:
+    def __init__(self, papa: "Previewer"):
+        self.papa: "Previewer" = papa
+        self.ease_button: "dict[int,QPushButton]" = {}
+        self.bottom_layout_rev = QGridLayout()
+        self.bottom_layout_all = QGridLayout()
+        self.bottom_tools_widget = QWidget()
+        self.bottom_tools_widget_layout = QHBoxLayout()
+        self.forClickToAnswer_button = QPushButton(Translate.开始复习)
+        self.forClickToAnswer_button.clicked.connect(self.switch_to_answer_buttons)
+        self.review_buttons = self._create_review_buttons()
+        self.due_info_widget = self._create_due_info_widget()
+        self.review_buttons.hide()
+
+    def card(self):
+        return self.papa.card()
+
+    def _create_review_buttons(self):
+        enum = ["", "again", "hard", "good", "easy"]
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        sched = mw.col.sched
+
+        button_num = sched.answerButtons(self.card())
+        for i in range(button_num):
+            ease = enum[i + 1] + ":" + sched.nextIvlStr(self.card(), i + 1)
+            self.ease_button[i + 1] = QPushButton(ease)
+            answer = lambda j: lambda: self._answerCard(j + 1)
+            self.ease_button[i + 1].clicked.connect(answer(i))
+            layout.addWidget(self.ease_button[i + 1])
+        widget.setLayout(layout)
+        return widget
+
+    def _answerCard(self, ease):
+        say = rosetta
+
+        sched = mw.col.sched
+        signals = G.signals
+        answer = configsModel.AnswerInfoInterface
+
+        if self.card().timer_started is None:
+            self.card().timer_started = time.time() - 60
+        funcs.CardOperation.answer_card(self.card(), ease)
+        self.switch_to_due_info_widget()
+        funcs.LinkPoolOperation.both_refresh()
+        mw.col.reset()
+        G.signals.on_card_answerd.emit(
+                answer(platform=self, card_id=self.card().id, option_num=ease))
+
+    def _create_due_info_widget(self):
+        """due info 包括
+        1 label显示复习状态
+        2 button点击开始复习(button根据到期情况,显示不同的提示文字)
+        """
+        widget = QWidget()
+        layout = QGridLayout(widget)
+        widget.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        today = time.time()
+        self.due_label = QLabel()
+        self._setDueInfo()
+        layout.addWidget(self.due_label, 0, 0, 2, 1)
+        layout.addWidget(self.forClickToAnswer_button, 0, 2, 2, 1)
+        widget.setLayout(layout)
+        return widget
+
+    def _setDueInfo(self):
+        now = datetime.now()
+        lastDate, nextDate = self.realDue()
+        due = now >= nextDate
+        self.due_label.setText((f"{Translate.可复习}" if due else f"{Translate.未到期}") + f"\n{nextDate}")
+        self.forClickToAnswer_button.setText(Translate.开始复习 if due else Translate.提前复习)
+
+    def realDue(self):
+        # 由于card.due落后,所以直接从数据库去取
+        """由于 card.due受各种因素影响, 因此 他不能被正确地记录, 因此我需要用别的东西来替代."""
+
+        return funcs.CardOperation.getLastNextRev(self.card().id)
+
+    def _update_info(self):
+        self._update_answer_buttons()
+        self._update_due_info_widget()
+
+    def _update_answer_buttons(self):
+        enum = ["", "again", "hard", "good", "easy"]
+        sched = mw.col.sched
+        button_num = sched.answerButtons(self.card())
+        for i in range(button_num):
+            ease = enum[i + 1] + ":" + sched.nextIvlStr(self.card(), i + 1)
+            self.ease_button[i + 1].setText(ease)
+
+    def _update_due_info_widget(self):
+        self._setDueInfo()
+
+    def switch_to_answer_buttons(self):
+        self._update_info()
+
+        self.review_buttons.show()
+        self.due_info_widget.hide()
+        cfg = funcs.Config.get()
+        if cfg.freeze_review.value:
+            interval = cfg.freeze_review_interval.value
+            self.freeze_answer_buttons()
+            QTimer.singleShot(interval, lambda: self.recover_answer_buttons())
+
+    def switch_to_due_info_widget(self):
+        self._update_info()
+        self.review_buttons.hide()
+        self.due_info_widget.show()
+
+    def freeze_answer_buttons(self):
+        for button in self.ease_button.values():
+            button.setEnabled(False)
+        tooltip(Translate.已冻结)
+
+    def recover_answer_buttons(self):
+        for button in self.ease_button.values():
+            button.setEnabled(True)
+        tooltip(Translate.已解冻)
 
 
 if __name__ == "__main__":

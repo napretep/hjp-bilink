@@ -2,8 +2,10 @@ import json
 import re
 from typing import Iterator
 
+
+
 import bs4
-from anki.cards import CardId
+from anki.cards import CardId,Card
 from aqt import mw
 from bs4 import BeautifulSoup, element
 from aqt.utils import showInfo, tooltip
@@ -57,10 +59,10 @@ class BacklinkButtonMaker(FieldHTMLData):
         # self.data = data
         self.data = linkdata_admin.read_card_link_info(self.card_id)
         if not self.data.root and not self.data.backlink:
-            funcs.Utils.print(f"self.data.root = {self.data.root.__str__()}", need_timestamp=True)
+            # funcs.Utils.print(f"self.data.root = {self.data.root.__str__()}", need_timestamp=True)
             return self.html_root.__str__()
         self.cascadeDIV_create()  # 这个名字其实取得不好,就是反链的设计
-        funcs.Utils.print("next backlink_create", need_timestamp=True)
+        # funcs.Utils.print("next backlink_create", need_timestamp=True)
         self.backlink_create()  # 这个是文内链接的设计,顺便放着的,因为用的元素基本一样.
         return self.html_root
 
@@ -104,7 +106,7 @@ class BacklinkButtonMaker(FieldHTMLData):
     def backlink_create(self):
         from ..bilink import linkdata_admin
         h = self.html_root
-        funcs.Utils.print("make backlink", need_timestamp=True)
+        # funcs.Utils.print("make backlink", need_timestamp=True)
         if len(self.data.backlink) == 0:
             return None
         details, div = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "referenced_in_text",
@@ -254,7 +256,7 @@ class GViewButtonMaker(FieldHTMLData):
         pass
 
 
-def HTMLbutton_make(htmltext, card):
+def HTMLbutton_make(htmltext, card:"Card"):
     """
     htmltext长什么样? 只有卡片本身+卡片模板的html代码, 没有header body 之类的, 非完整html
     这里的工程就是,
@@ -281,29 +283,29 @@ def HTMLbutton_make(htmltext, card):
 
     # 以下ButtonMaker是用来生成左上角按钮的
     if len(data.link_list) > 0 or len(data.backlink) > 0:
-        funcs.Utils.print(f"{card.id} hasbacklink")
+        # funcs.Utils.print(f"{card.id} hasbacklink")
         anchor = BacklinkButtonMaker(anchor, card_id=card.id).build()
     if funcs.HTML.clipbox_exists(html_string):
-        funcs.Utils.print(f"{card.id} clipbox_exists")
+        # funcs.Utils.print(f"{card.id} clipbox_exists")
         anchor = PDFPageButtonMaker(anchor, card_id=card.id).build()
     if G.GroupReview_dict and card.id in G.GroupReview_dict.card_group:
-        funcs.Utils.print(f"{card.id} GroupReview")
+        # funcs.Utils.print(f"{card.id} GroupReview")
         anchor = GroupReviewButtonMaker(anchor, card_id=card.id).build()
     view_li = funcs.GviewOperation.find_by_card([funcs.LinkDataPair(str(card.id))])
     if len(view_li) > 0:
-        funcs.Utils.print(f"{card.id} len(view_li)>0:")
+        # funcs.Utils.print(f"{card.id} len(view_li)>0:")
         anchor = GViewButtonMaker(anchor, card_id=card.id).build(view_li=view_li)
 
     # 以下内容来替换文本
     hasInTextButton = len(backlink_reader.BackLinkReader(html_str=htmltext).backlink_get()) > 0
     if hasInTextButton:
-        funcs.Utils.print(f"{card.id} hasInTextButton")
+        # funcs.Utils.print(f"{card.id} hasInTextButton")
         html_string = InTextButtonMaker(html_string).build()
     html_string = funcs.HTML.file_protocol_support(html_string)
 
     # html_string = funcs.AnchorOperation.if_empty_then_remove(html_string)
     # 如果左上角确实有内容则将其插入htmltext
-    funcs.Utils.print(anchor)
+    # funcs.Utils.print(anchor)
     container_body_L1_exists = anchor.find("div", attrs={"class": "container_body_L1"})
     if container_body_L1_exists:
         container_body_L1_children = [child for child in anchor.find("div", attrs={"class": "container_body_L1"}).children]
@@ -311,7 +313,7 @@ def HTMLbutton_make(htmltext, card):
             script = funcs.HTML.cardHTMLShadowDom(anchor.__str__())
             html_string = script.__str__() + html_string
 
-    funcs.Utils.print(html_string)
+    # funcs.Utils.print(html_string)
     return html_string
 
 

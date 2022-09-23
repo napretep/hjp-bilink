@@ -167,8 +167,8 @@ def rosetta(text: str = ""):
         "自动更新描述":"auto update desc",
         "上次复习":"last review",
         "下次复习":"next review",
-        "可复习":"due",
-        "未到期":"not due",
+        "可复习":"reviewable",
+        "未到期":"not now",
         "学习":"review",
         "请选择卡片":"please select card",
         "复习相关":"review",
@@ -203,8 +203,11 @@ def rosetta(text: str = ""):
         "秒":"seconds",
         "插入pdf链接":"insert pdf link",
         "临时视图":"temp graph for outext link",
-            "即将开始群组复习,点是确认执行,点否仅复习当前卡片":'To start the group review, tap Yes to confirm the execution, or No to review only the current card.',
-            "保存当前视图为群组复习条件":"save as group review condition"
+        "即将开始群组复习,点是确认执行,点否仅复习当前卡片":'To start the group review, tap Yes to confirm the execution, or No to review only the current card.',
+        "保存当前视图为群组复习条件":"save as group review condition",
+        "下次到期":"next due",
+        "提前复习": "review in advance",
+        "开始复习": "click to review"
     }
     ZHdict = {
         "gview_admin_default_display":"视图管理器默认显示",
@@ -244,6 +247,7 @@ def rosetta(text: str = ""):
         "PDFUrlLink_cmd":"调用命令",
         "PDFUrlLink_page_num_str":"pdf页码名称",
         "PDFUrlLink_default_show_pagenum":"pdf默认显示页码",
+
     }
     translateFuncs = {
         "en": En,
@@ -370,7 +374,9 @@ class Translate:
     anki网络版:str=rosetta("anki网络版")
     本地版:str=rosetta("本地版")
     保存当前视图为群组复习条件:str=rosetta("保存当前视图为群组复习条件")
-
+    下次到期:str=rosetta("下次到期")
+    提前复习:str=rosetta("提前复习")
+    开始复习:str=rosetta("开始复习")
 
 if __name__ == "__main__":
     print(Translate.打开配置表)

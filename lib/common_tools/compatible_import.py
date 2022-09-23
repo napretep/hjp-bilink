@@ -65,6 +65,7 @@ class Anki:
             else:
                 currentLang = lang.currentLang
     else:
+        from anki import notes, cards, utils, hooks
         class Lang:
             currentLang = None
 
