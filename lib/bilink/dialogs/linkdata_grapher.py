@@ -6,6 +6,7 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/8/10 21:18'
 """
+import datetime
 import json
 import math
 import random
@@ -42,7 +43,7 @@ src = common_tools.G.src
 class Grapher(QDialog):
     """所有的个性化数据都储存在Entity对象中"""
     on_card_updated = pyqtSignal(object)
-
+    on_card_reviewed = pyqtSignal(str)
     def __init__(self, pair_li: "list[LinkDataPair]" = None, mode=GraphMode.normal, gviewdata: "GViewData" = None):
         super().__init__()
         self.setAttribute(Qt.WA_DeleteOnClose, on=True)
@@ -50,7 +51,7 @@ class Grapher(QDialog):
         self.data.gviewdata = gviewdata
         self.data.node_dict = pair_li
         if gviewdata:
-            self.data.node_dict = [LinkDataPair(card_id, funcs.CardOperation.desc_extract(card_id)) for card_id in gviewdata.nodes.keys()]
+            self.data.node_dict = [LinkDataPair(card_id, funcs.CardOperation.desc_extract(card_id)) for card_id in gviewdata.nodes.keys() if funcs.CardOperation.exists(card_id)]
         self.data.graph_mode = mode
         self.view = self.View(self)
         self.scene = self.Scene(self)
@@ -64,6 +65,7 @@ class Grapher(QDialog):
                 [self.view.verticalScrollBar().valueChanged, self.on_view_verticalScrollBar_valueChanged_handle],
                 [self.view.horizontalScrollBar().valueChanged, self.on_view_horizontalScrollBar_valueChanged_handle],
                 [self.on_card_updated, self.on_card_updated_handle],
+                # [self.on_card_reviewed, lambda card_id : if card_id in self.data.node_dict.keys(): self.data.updateNodeDue() else None]
         ]).bind()
         self.init_graph_item()
         # if self.data.graph_mode == GraphMode.normal:
@@ -428,6 +430,14 @@ class Grapher(QDialog):
                 return
             for pair in pair_li:
                 self._node_dict[pair.card_id] = self.Node(pair)
+            self.updateNodeDueAll()
+        def updateNodeDue(self, card_id):
+            last_, next_ = funcs.CardOperation.getLastNextRev(card_id)
+            self.node_dict[card_id].due = next_ <= datetime.datetime.now()
+
+        def updateNodeDueAll(self):
+            for card_id in self.node_dict.keys():
+                self.updateNodeDue(card_id)
 
         @property
         def edge_dict(self) -> 'dict[str,dict[str,Optional[Grapher.ItemEdge]]]':
@@ -471,6 +481,7 @@ class Grapher(QDialog):
         class Node:
             "一个node就是一个结点, 他有图形表示的item, 和数据表示的pair"
             pair: "LinkDataPair"
+            due: bool = False
             item: "Optional[Grapher.ItemRect]" = None
             edges: "list[Grapher.ItemEdge]" = field(default_factory=list)
 
@@ -681,6 +692,7 @@ class Grapher(QDialog):
 
             self.superior = superior
             self.pair: "LinkDataPair" = pair
+
             self.setPen(QPen(QColor(30, 144, 255)))
             self.setBrush(QBrush(QColor(30, 144, 255)))
             self.setRect(self.superior.data.default_rect)
@@ -699,6 +711,10 @@ class Grapher(QDialog):
             self.collide_right = QRectF(w * 3 / 4, h * 1 / 4, w / 4, h / 2)
             self.collide_top = QRectF(w / 4, 0, w / 2, h / 4)
             self.collide_bottom = QRectF(w / 4, h * 3 / 4, w / 2, h / 4)
+
+        @property
+        def node(self):
+            return self.superior.data.node_dict[self.pair.card_id]
 
         def load_linked_card(self, mode=3):
             cardinfo = common_tools.funcs.LinkDataOperation.read_from_db(self.pair.card_id)
@@ -797,10 +813,12 @@ class Grapher(QDialog):
                 super().mouseReleaseEvent(event)
                 self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, True)
 
+        # def drawRedDot(self):
+
+
         def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
                   widget: typing.Optional[QWidget] = ...) -> None:
             super().paint(painter, option, widget)
-            # self.prepareGeometryChange()  # 这个 非常重要. https://www.cnblogs.com/ybqjymy/p/13862382.html
 
             painter.setPen(QColor(50, 205, 50))
             painter.setBrush(QBrush(QColor(50, 205, 50)))
@@ -808,9 +826,10 @@ class Grapher(QDialog):
             header_rect = QRectF(0, 0, int(self.rect().width()), header_height)
             body_rect = QRectF(0, header_height, int(self.rect().width()), int(self.rect().height()))
             painter.drawRect(header_rect)
+
             painter.setPen(QColor(255, 255, 255))
             painter.drawText(header_rect.adjusted(5, 5, -5, -5), Qt.TextFlag.TextWordWrap, str(self.pair.card_id))
-            painter.drawText(body_rect.adjusted(5, 5, -5, -5), Qt.TextFlag.TextWordWrap, f"""{self.pair.desc}""")
+            painter.drawText(body_rect.adjusted(5, 5, -5, -5), Qt.TextFlag.TextWordWrap, f"""{self.node.pair.desc}""")
 
             if self.isSelected():
                 path = QPainterPath()
@@ -819,6 +838,12 @@ class Grapher(QDialog):
                 self.setZValue(10)
             else:
                 self.setZValue(0)
+
+            if self.node.due:
+                print("self.node.due")
+                painter.setPen(QColor(255, 0, 0))
+                painter.setBrush(QBrush(QColor(255, 0, 0)))
+                painter.drawEllipse(header_rect.right()-5,0,5,5)
 
         pass
 

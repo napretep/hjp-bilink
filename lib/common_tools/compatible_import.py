@@ -11,6 +11,7 @@ __time__ = '2021/8/9 11:46'
 
 """
 import sys
+from ..debugState import *
 from typing import Union, Callable
 # from . import G
 
@@ -19,8 +20,7 @@ try:
 except:
     profiler = None
 
-ISDEBUG=True
-ISLOCALDEBUG = False
+
 def pointVersion():
     from anki.buildinfo import version
     return int(version.split(".")[-1])

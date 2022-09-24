@@ -5,7 +5,7 @@ from shutil import copy2
 
 THIS_FOLDER = os.path.curdir
 baseconfig = json.load(open("baseInfo.json","r",encoding="utf-8"))
-excludeFile = ["lib/clipper2","lib/clipper3"]
+excludeFile = ["clipper2","clipper3","__pycache__"]
 class addon_version:
     def __init__(self,v_str):
         self.v = [int(i) for i in v_str.split(".")]
@@ -35,7 +35,7 @@ def check_version():
         raise ValueError("update_version!=base_version")
 
 def check_is_debug():
-    from lib.common_tools.compatible_import import ISDEBUG
+    from lib.debugState import ISDEBUG
     if ISDEBUG:
         raise ValueError("ISDEBUG=True!")
 def pycache_check():
@@ -47,7 +47,7 @@ def pycache_check():
 
 def status_check():
     check_is_debug()
-    pycache_check()
+    # pycache_check()
 
 def ankiaddon_make(version):
     status_check()
@@ -56,7 +56,10 @@ def ankiaddon_make(version):
         os.mkdir(repository)
     zip_name = os.path.join(repository,"hjp_bilink.zip")
     f = zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED)
+    # root 是 当前文件夹的路径, dirs 是当前文件夹的直接子文件夹, files是当前文件夹下的文件
     for root, dirs, files in os.walk(THIS_FOLDER, onerror=lambda x: print("wrong direction")):
+        if any([ex in root for ex in excludeFile ]):
+            continue
         if r".\lib" in root.__str__():
             for file in files:
                 f.write(os.path.join(root, file))

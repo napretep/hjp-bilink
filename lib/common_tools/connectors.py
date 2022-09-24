@@ -64,6 +64,7 @@ def run():
 
     # GroupReview
     signals.on_card_answerd.connect(funcs.CardOperation.group_review)
+    signals.on_card_answerd.connect(lambda answerinfo:funcs.GrapherOperation.updateDue(f"{answerinfo.card_id}"))
     gui_hooks.reviewer_did_answer_card.append(lambda x, y, z: signals.on_card_answerd.emit(
             AnswerInfoInterface(platform=x, card_id=y.id, option_num=z)
     ))

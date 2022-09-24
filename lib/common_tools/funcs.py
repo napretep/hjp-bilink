@@ -192,7 +192,7 @@ class GviewOperation:
 
     @staticmethod
     def update(data: GViewData):
-        """"""
+        """把数据写回到数据库"""
         DB = G.DB
         DB.go(DB.table_Gview)
         d = data.to_DB_format()
@@ -614,12 +614,28 @@ class Config:
 
 
 class GrapherOperation:
+
     @staticmethod
     def refresh():
         from ..bilink.dialogs.linkdata_grapher import Grapher
         if isinstance(G.mw_grapher, Grapher):
             G.mw_grapher.on_card_updated.emit(None)
+        for gviewName in G.mw_gview.keys():
+            if isinstance(G.mw_gview[gviewName],Grapher):
+                G.mw_gview[gviewName].on_card_updated.emit(None)
 
+    @staticmethod
+    def updateDue(card_id:str):
+        from ..bilink.dialogs.linkdata_grapher import Grapher
+
+        if isinstance(G.mw_grapher, Grapher):
+            if card_id in G.mw_grapher.data.node_dict.keys():
+                G.mw_grapher.data.updateNodeDue(card_id)
+        
+        for gviewName in G.mw_gview.keys():
+            if isinstance(G.mw_gview[gviewName],Grapher):
+                if card_id in G.mw_gview[gviewName].data.node_dict.keys():
+                    G.mw_gview[gviewName].data.updateNodeDue(card_id)
 
 class LinkDataOperation:
     """针对链接数据库的操作,
@@ -929,7 +945,7 @@ class CardOperation:
             except:
                 time.sleep(0.2)
                 continue
-
+        GrapherOperation.updateDue(f"{card.id}")
     @staticmethod
     def create(model_id: "int" = None, deck_id: "int" = None, failed_callback: "Callable" = None):
         if ISLOCALDEBUG :
@@ -990,10 +1006,8 @@ class CardOperation:
             if v is not None:
                 prev_refresh(v)
         GrapherOperation.refresh()
-        from ..bilink.dialogs.linkdata_grapher import Grapher
-        for k, v in G.mw_gview.items():
-            if isinstance(v, Grapher):
-                v.on_card_updated.emit(None)
+        # from ..bilink.dialogs.linkdata_grapher import Grapher
+
 
         print("card refreshed")
 

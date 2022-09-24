@@ -535,7 +535,7 @@ class ConfigModel:
     # ))
     auto_backup_interval: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["自动备份链接数据的间隔,单位是小时", "English Instruction Maybe later"],
-            value=12,
+            value=24,
             component=ConfigModel.Widget.spin,
             tab_at=Translate.同步与备份
     ))
