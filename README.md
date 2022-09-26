@@ -15,7 +15,7 @@
 
 可我始终不知道A,B,C之间有什么联系 
 
-![](hjp-docs/assets/Pasted image 20220721104252.png)
+![](https://github.com/napretep/hjp-bilink/blob/a71e5186952c049a5f21d82e116f17bddb7a47a5/hjp-docs/assets/Pasted%20image%2020220721104156.png)
 
 因此我开发了hjp-bilink, 他可以给卡片之间额外绑定一些关系, 
 
