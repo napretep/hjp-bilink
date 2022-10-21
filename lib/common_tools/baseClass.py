@@ -8,6 +8,8 @@ __time__ = '2022/7/15 23:09'
 
 这个文件用于提供基类
 """
+import typing
+
 from .compatible_import import *
 from . import funcs
 import abc
@@ -167,24 +169,32 @@ class ConfigTableNewRowFormView:
 
 class Geometry:
     class ArrowLine(QGraphicsLineItem):
+        def __init__(self):
+            super().__init__()
+            self.triangle = []
 
-
-        def paint(self, QPainter, QStyleOptionGraphicsItem, QWidget_widget=None):
-
-            QPainter.setPen(self.pen())
+        def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
+                  widget: typing.Optional[QWidget] = ...) -> None:
+            super().paint(painter, option, widget)
+            painter.setPen(self.pen())
             line =self.line()
-            v = line.unitVector()
-            v.setLength(30)
-            v.translate(QPointF(line.dx() * 2 / 5, line.dy() * 2 / 5))
+            v = line.unitVector() # 同向单位向量
+            v.setLength(40) # 设置单位向量长度
+            v.translate(QPointF(line.dx() * 2 / 7, line.dy() * 2 / 7)) # dx,dy是直线作为向量的分解向量, 此步骤移动单位向量到 长2/5处
 
-            n = v.normalVector()
-            n.setLength(n.length() * 0.3)
-            n2 = n.normalVector().normalVector()
+            n = v.normalVector() # 获取到单位向量的法向量
+            n.setLength(n.length() * 0.6) # 设置法向量为原来的0.4倍
+            n2 = n.normalVector().normalVector() # 法向量的法向量,再求法向量,得到相反方向的法向量
 
-            p1 = v.p2()
-            p2 = n.p2()
-            p3 = n2.p2()
-            QPainter.drawLine(line)
-            QPainter.drawPolygon(p1, p2, p3)
+            p1 = v.p2() # 单位向量的终点
+            p2 = n.p2() # 法向量的终点
+            p3 = n2.p2() # 第二个法向量的终点
+            self.triangle = [p1,p2,p3]
+            painter.drawLine(line)
+            painter.drawPolygon(p1, p2, p3)
 
-
+        # def shape(self) -> QtGui.QPainterPath:
+        #     super().shape()
+        #     path = QPainterPath()
+        #     path.addPolygon(QPolygonF(self.triangle))
+        #     return path

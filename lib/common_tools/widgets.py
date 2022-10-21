@@ -21,6 +21,7 @@ from . import configsModel
 
 from .compatible_import import *
 from . import funcs, baseClass
+# from ..bilink.dialogs.linkdata_grapher import Grapher
 
 if __name__ == "__main__":
     from lib.common_tools import G
@@ -1311,18 +1312,12 @@ class ConfigWidget:
 
 
 class ReviewButtonForCardPreviewer:
-    def __init__(self, papa: "Previewer"):
+    def __init__(self, papa: "Previewer",layout:"QGridLayout"):
         self.papa: "Previewer" = papa
         self.ease_button: "dict[int,QPushButton]" = {}
-        self.bottom_layout_rev = QGridLayout()
-        self.bottom_layout_all = QGridLayout()
-        self.bottom_tools_widget = QWidget()
-        self.bottom_tools_widget_layout = QHBoxLayout()
-        self.forClickToAnswer_button = QPushButton(Translate.开始复习)
-        self.forClickToAnswer_button.clicked.connect(self.switch_to_answer_buttons)
         self.review_buttons = self._create_review_buttons()
-        self.due_info_widget = self._create_due_info_widget()
-        self.review_buttons.hide()
+        self.due_info = self._create_due_info_widget()
+        layout.addWidget(self.due_info,0,0,1,1)
 
     def card(self):
         return self.papa.card()
@@ -1344,6 +1339,34 @@ class ReviewButtonForCardPreviewer:
         widget.setLayout(layout)
         return widget
 
+    def _create_due_info_widget(self):
+        """due info 包括
+        1 label显示复习状态
+        2 button点击开始复习(button根据到期情况,显示不同的提示文字)
+        """
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        widget.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.due_label = QLabel()
+        self._setDueInfo()
+        layout.addWidget(self.due_label)
+        layout.addWidget(self.review_buttons)
+        widget.setLayout(layout)
+        return widget
+
+    def _setDueInfo(self):
+        now = datetime.now()
+        lastDate, nextDate = self.realDue()
+        due = now >= nextDate
+        self.due_label.setText((f"{Translate.可复习}" if due else f"{Translate.未到期}") + f"\n{nextDate}"[:-10])
+        self.due_label.setStyleSheet("background-color:" + ("red" if due else "green") + f";color:white")
+
+    def realDue(self):
+        # 由于card.due落后,所以直接从数据库去取
+        """由于 card.due受各种因素影响, 因此 他不能被正确地记录, 因此我需要用别的东西来替代."""
+        return funcs.CardOperation.getLastNextRev(self.card().id)
+
     def _answerCard(self, ease):
         say = rosetta
 
@@ -1354,43 +1377,14 @@ class ReviewButtonForCardPreviewer:
         if self.card().timer_started is None:
             self.card().timer_started = time.time() - 60
         funcs.CardOperation.answer_card(self.card(), ease)
-        self.switch_to_due_info_widget()
+        # self.switch_to_due_info_widget()
         funcs.LinkPoolOperation.both_refresh()
         mw.col.reset()
         G.signals.on_card_answerd.emit(
                 answer(platform=self, card_id=self.card().id, option_num=ease))
+        self.update_info()
 
-    def _create_due_info_widget(self):
-        """due info 包括
-        1 label显示复习状态
-        2 button点击开始复习(button根据到期情况,显示不同的提示文字)
-        """
-        widget = QWidget()
-        layout = QGridLayout(widget)
-        widget.setContentsMargins(0, 0, 0, 0)
-        layout.setContentsMargins(0, 0, 0, 0)
-        today = time.time()
-        self.due_label = QLabel()
-        self._setDueInfo()
-        layout.addWidget(self.due_label, 0, 0, 2, 1)
-        layout.addWidget(self.forClickToAnswer_button, 0, 2, 2, 1)
-        widget.setLayout(layout)
-        return widget
-
-    def _setDueInfo(self):
-        now = datetime.now()
-        lastDate, nextDate = self.realDue()
-        due = now >= nextDate
-        self.due_label.setText((f"{Translate.可复习}" if due else f"{Translate.未到期}") + f"\n{nextDate}")
-        self.forClickToAnswer_button.setText(Translate.开始复习 if due else Translate.提前复习)
-
-    def realDue(self):
-        # 由于card.due落后,所以直接从数据库去取
-        """由于 card.due受各种因素影响, 因此 他不能被正确地记录, 因此我需要用别的东西来替代."""
-
-        return funcs.CardOperation.getLastNextRev(self.card().id)
-
-    def _update_info(self):
+    def update_info(self):
         self._update_answer_buttons()
         self._update_due_info_widget()
 
@@ -1405,21 +1399,12 @@ class ReviewButtonForCardPreviewer:
     def _update_due_info_widget(self):
         self._setDueInfo()
 
-    def switch_to_answer_buttons(self):
-        self._update_info()
-
-        self.review_buttons.show()
-        self.due_info_widget.hide()
+    def ifNeedFreeze(self):
         cfg = funcs.Config.get()
         if cfg.freeze_review.value:
             interval = cfg.freeze_review_interval.value
             self.freeze_answer_buttons()
             QTimer.singleShot(interval, lambda: self.recover_answer_buttons())
-
-    def switch_to_due_info_widget(self):
-        self._update_info()
-        self.review_buttons.hide()
-        self.due_info_widget.show()
 
     def freeze_answer_buttons(self):
         for button in self.ease_button.values():
@@ -1430,6 +1415,8 @@ class ReviewButtonForCardPreviewer:
         for button in self.ease_button.values():
             button.setEnabled(True)
         tooltip(Translate.已解冻)
+
+
 
 
 if __name__ == "__main__":

@@ -25,6 +25,7 @@ from . import G
 
 class FieldHTMLData:
     def __init__(self, html: BeautifulSoup, card_id=None):
+
         super().__init__()
         self.card_id = card_id
         self.html_str = html.__str__()
@@ -122,6 +123,19 @@ class BacklinkButtonMaker(FieldHTMLData):
 
     pass
 
+
+def InTextButtonMakeProcess(html_string):
+    from ..bilink.in_text_admin.backlink_reader import BackLinkReader
+    buttonli = BackLinkReader(html_str=html_string).backlink_get()
+    if len(buttonli) > 0:
+        finalstring = html_string[0:buttonli[0]["span"][0]]
+        for i in range(len(buttonli) - 1):
+            prevEnd, nextBegin = buttonli[i]["span"][1], buttonli[i + 1]["span"][0]
+            finalstring += funcs.HTML.InTextButtonMake(buttonli[i]) + html_string[prevEnd:nextBegin]
+        finalstring += funcs.HTML.InTextButtonMake(buttonli[-1]) + html_string[buttonli[-1]["span"][1]:]
+    else:
+        finalstring = html_string
+    return finalstring
 
 class InTextButtonMaker(FieldHTMLData):
     """负责将[[link:card-id_desc_]]替换成按钮"""
@@ -296,14 +310,15 @@ def HTMLbutton_make(htmltext, card:"Card"):
         # funcs.Utils.print(f"{card.id} len(view_li)>0:")
         anchor = GViewButtonMaker(anchor, card_id=card.id).build(view_li=view_li)
 
-    # 以下内容来替换文本
+    # 以下内容来替换文本, 替换文本是
     hasInTextButton = len(backlink_reader.BackLinkReader(html_str=htmltext).backlink_get()) > 0
     if hasInTextButton:
         # funcs.Utils.print(f"{card.id} hasInTextButton")
-        html_string = InTextButtonMaker(html_string).build()
+        html_string = funcs.HTML.InTextButtonDeal(html_string)
+        # html_string = InTextButtonMaker(html_string).build()
+
     html_string = funcs.HTML.file_protocol_support(html_string)
 
-    # html_string = funcs.AnchorOperation.if_empty_then_remove(html_string)
     # 如果左上角确实有内容则将其插入htmltext
     # funcs.Utils.print(anchor)
     container_body_L1_exists = anchor.find("div", attrs={"class": "container_body_L1"})

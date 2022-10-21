@@ -86,6 +86,10 @@ class Map:
     @staticmethod
     def do(li: "iter", func: "callable"):
         return list(map(func, li))
+class Filter:
+    @staticmethod
+    def do(li:"iter",func:"callable"):
+        return list(filter(func,li))
 
 
 class MenuMaker:
@@ -270,6 +274,14 @@ class GviewOperation:
             return
         Dialogs.open_grapher(pair_li=pairs_li, gviewdata=check[viewname], mode=GraphMode.view_mode)
 
+    @staticmethod
+    def getDueCount(gview):
+        """用于统计未复习数量"""
+        from .configsModel import GViewData
+        g:GViewData = gview
+        now = now = datetime.now()
+        return sum(1 for i in Filter.do(Map.do(g.nodes.keys(),lambda x:CardOperation.getLastNextRev(x)),
+                        lambda y:y[1]<=now))
 
 class Utils(object):
     @dataclasses.dataclass
@@ -637,6 +649,9 @@ class GrapherOperation:
                 if card_id in G.mw_gview[gviewName].data.node_dict.keys():
                     G.mw_gview[gviewName].data.updateNodeDue(card_id)
 
+
+        # return sum(filter(g.data.node_dict.keys()))
+
 class LinkDataOperation:
     """针对链接数据库的操作,
     这里的LinkDataOperation.bind/unbind和LinkPoolOperation中的link/unlink是类似但不同,不冲突.
@@ -839,6 +854,7 @@ class BrowserOperation:
         browser: "Browser" = dialogs._dialogs["Browser"][1]
         if not isinstance(browser, Browser) and OPEN:
             browser = dialogs.open("Browser")
+        # browser.forget_cards
         return browser
 
     @staticmethod
@@ -1692,13 +1708,14 @@ class MonkeyPatch:
                 super().__init__(parent=parent, mw=mw, on_close=on_close)
                 self.bottom_layout = QGridLayout()
                 self.bottom_layout_all = QGridLayout()
-                self.reviewWidget = widgets.ReviewButtonForCardPreviewer(self)
+                self.reviewWidget = widgets.ReviewButtonForCardPreviewer(self,self.bottom_layout_all)
 
             def card(self) -> Optional[Card]:
                 if self._parent.singleCard:
                     return self._parent.card
                 else:
                     return None
+
 
             def render_card(self) -> None:
                 super().render_card()
@@ -1707,8 +1724,6 @@ class MonkeyPatch:
             def _create_gui(self):
                 super()._create_gui()
                 self.vbox.removeWidget(self.bbox)
-                self.bottom_layout_all.addWidget(self.reviewWidget.due_info_widget, 0, 0, 1, 1)
-                self.bottom_layout_all.addWidget(self.reviewWidget.review_buttons, 0, 0, 1, 1)
                 self.bottom_layout_all.addWidget(self.bbox, 0, 1, 1, 1)
                 self.vbox.addLayout(self.bottom_layout_all)
 
@@ -1744,8 +1759,7 @@ class MonkeyPatch:
                     self.render_card()
                 else:
                     self._on_prev_card()
-                QTimer.singleShot(200, lambda: self.reviewWidget.switch_to_due_info_widget() )
-
+                QTimer.singleShot(100, lambda: self.reviewWidget.update_info() )
 
             def _on_next(self) -> None:
                 if self._state == "question":
@@ -1753,7 +1767,7 @@ class MonkeyPatch:
                     self.render_card()
                 else:
                     self._on_next_card()
-                QTimer.singleShot(200, lambda: self.reviewWidget.switch_to_due_info_widget() )
+                QTimer.singleShot(100, lambda: self.reviewWidget.update_info() )
 
     else:
         class BrowserPreviewer:
@@ -1990,6 +2004,7 @@ class UUID:
         return str(uuid.uuid3(uuid.NAMESPACE_URL, s))
 
 
+
 class HTML:
     @staticmethod
     def file_protocol_support(html_string):
@@ -2101,6 +2116,31 @@ class HTML:
         true_or_false_li = [DB.exists(DB.EQ(uuid=uuid)) for uuid in clipbox_uuid_li]
         DB.end()
         return (reduce(lambda x, y: x or y, true_or_false_li, False))
+
+    @staticmethod
+    def InTextButtonDeal(html_string):
+        from ..bilink.in_text_admin.backlink_reader import BackLinkReader
+        buttonli = BackLinkReader(html_str=html_string).backlink_get()
+        if len(buttonli) > 0:
+            finalstring = html_string[0:buttonli[0]["span"][0]]
+            for i in range(len(buttonli) - 1):
+                prevEnd, nextBegin = buttonli[i]["span"][1], buttonli[i + 1]["span"][0]
+                finalstring += HTML.InTextButtonMake(buttonli[i]) + html_string[prevEnd:nextBegin]
+            finalstring += HTML.InTextButtonMake(buttonli[-1]) + html_string[buttonli[-1]["span"][1]:]
+        else:
+            finalstring = html_string
+        return finalstring
+
+    @staticmethod
+    def InTextButtonMake(data):
+
+        card_id = data["card_id"]
+        desc = data["desc"]
+        h = BeautifulSoup("","html.parser")
+        b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor intext button",
+                                       "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
+        b.string = desc
+        return b.__str__()
 
 def button_icon_clicked_switch(button: QToolButton, old: list, new: list, callback: "callable" = None):
     if button.text() == old[0]:

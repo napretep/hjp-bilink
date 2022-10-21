@@ -31,6 +31,8 @@ class CustomSignals(QObject):
 
     on_group_review_search_string_changed = pyqtSignal()
 
+    onCardSwitchBothSide = pyqtSignal(bool)
+
     @classmethod
     def start(cls):
         """cls就相当于是self,这里的意思是如果instance不存在则创建一个,返回instance,这是单例模式"""

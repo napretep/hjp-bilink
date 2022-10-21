@@ -40,10 +40,12 @@ funcs = common_tools.funcs
 src = common_tools.G.src
 
 
-class Grapher(QDialog):
+class Grapher(QMainWindow):
     """所有的个性化数据都储存在Entity对象中"""
     on_card_updated = pyqtSignal(object)
-    on_card_reviewed = pyqtSignal(str)
+
+    # on_card_reviewed = pyqtSignal(str)
+
     def __init__(self, pair_li: "list[LinkDataPair]" = None, mode=GraphMode.normal, gviewdata: "GViewData" = None):
         super().__init__()
         self.setAttribute(Qt.WA_DeleteOnClose, on=True)
@@ -56,6 +58,9 @@ class Grapher(QDialog):
         self.view = self.View(self)
         self.scene = self.Scene(self)
         self.view.setScene(self.scene)
+        # self.toolBar
+        self.toolbar = self.ToolBar(self)
+
         r = self.rect()
         self.scene.setSceneRect(-float(r.width() / 2), -float(r.height() / 2), float(r.width() * 4),
                                 float(r.height() * 4))
@@ -182,7 +187,6 @@ class Grapher(QDialog):
         common_tools.funcs.Dialogs.open_grapher(gviewdata=data, mode=funcs.GraphMode.view_mode)
 
     # node
-
     def add_node(self, pair: "LinkDataPair"):
         """
         add_node 只是单纯地添加, 不会对位置作修改,
@@ -342,12 +346,14 @@ class Grapher(QDialog):
         edges = self.data.edge_dict
         nodes = self.data.node_dict
         edge = edges[card_idA][card_idB]
-        self.scene.removeItem(edges[card_idA][card_idB])
+        self.scene.removeItem(edge)
         nodes[card_idA].edges.remove(edge)
+        edge.hide()
         # nodes[card_idB].edges.remove(edge)
         edges[card_idA][card_idB] = None
         if remove_bilink:
             self.remove_bilink(card_idA, card_idB)
+        print("edge removed")
         pass
 
     # bilink
@@ -396,10 +402,12 @@ class Grapher(QDialog):
         self.setWindowFlags(Qt.WindowType.WindowMinMaxButtonsHint | Qt.WindowType.WindowCloseButtonHint)
 
         self.resize(800, 600)
-        Hbox = QHBoxLayout(self)
-        Hbox.setContentsMargins(0, 0, 0, 0)
-        Hbox.addWidget(self.view)
-        self.setLayout(Hbox)
+        # Hbox = QHBoxLayout(self)
+        # Hbox.setContentsMargins(0, 0, 0, 0)
+        # Hbox.addWidget(self.view)
+        # self.setLayout(Hbox)
+        self.setCentralWidget(self.view)
+        self.addToolBar(self.toolbar)
         pass
 
     def saveAsGroupReviewCondition(self):
@@ -419,6 +427,7 @@ class Grapher(QDialog):
             self.gviewdata: "Optional[GViewData]" = None
             self._node_dict: "Optional[dict[str,Optional[Grapher.Entity.Node]]]" = {}
             self._edge_dict: "Optional[dict[str,dict[str,Optional[Grapher.ItemEdge]]]]" = {}
+            self.currentSelectedEdge: "list[Grapher.ItemEdge]" = []
 
         @property
         def node_dict(self) -> 'dict[str,Grapher.Entity.Node]':
@@ -430,7 +439,9 @@ class Grapher(QDialog):
                 return
             for pair in pair_li:
                 self._node_dict[pair.card_id] = self.Node(pair)
-            self.updateNodeDueAll()
+            if not common_tools.G.ISLOCALDEBUG:
+                self.updateNodeDueAll()
+
         def updateNodeDue(self, card_id):
             last_, next_ = funcs.CardOperation.getLastNextRev(card_id)
             self.node_dict[card_id].due = next_ <= datetime.datetime.now()
@@ -551,18 +562,15 @@ class Grapher(QDialog):
                 if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
                     choose1 = len(self.superior.scene.selectedItems()) == 1
                     if isinstance(self.draw_line_start_item, Grapher.ItemRect) and choose1:
-                        self.draw_line_end_item = self.itemAt(event.pos())
-                        line = self.Auxiliary_line.line()
-                        p1 = line.p1()#self.draw_line_start_item.mapToScene(self.draw_line_start_item.rect().center())
-                        p2 = self.mapToScene(event.pos())
-                        rect = self.draw_line_start_item.mapRectToScene(self.draw_line_start_item.rect())
-                        # self.draw_line_start_item.mapRectToScene()
-                        # p1_1 = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rect)
-                        # if p1_1 is not None:
-                        #     p1 = p1_1
-                        line.setP2(p2)
-                        line.setP1(p1)
-                        self.Auxiliary_line.setLine(line)
+                        self.moveLine(event.pos())
+                        # self.draw_line_end_item = self.itemAt(event.pos())
+                        # line = self.Auxiliary_line.line()
+                        # p1 = line.p1()  # self.draw_line_start_item.mapToScene(self.draw_line_start_item.rect().center())
+                        # p2 = self.mapToScene(event.pos())
+                        # rect = self.draw_line_start_item.mapRectToScene(self.draw_line_start_item.rect())
+                        # line.setP2(p2)
+                        # line.setP1(p1)
+                        # self.Auxiliary_line.setLine(line)
                         # print(f"p1={p1}")
                         return
 
@@ -570,35 +578,40 @@ class Grapher(QDialog):
 
         def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
             self.superior.data.mouse_moved = False
-
+            if self.itemAt(event.pos()) is None:
+                self.clearSelection()
             if event.buttons() == Qt.MouseButton.LeftButton:
                 self.superior.data.mouse_left_clicked = True
                 self.superior.data.mouse_right_clicked = False
                 if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
                     select_1 = len(self.superior.scene.selectedItems()) == 1
                     if isinstance(self.itemAt(event.pos()), Grapher.ItemRect) and select_1:
-                        self.draw_line_start_item: "Grapher.ItemRect" = self.itemAt(event.pos())
-                        startItemCenter = self.draw_line_start_item.mapToScene(self.draw_line_start_item.rect().center())
-                        self.Auxiliary_line.setLine(QLineF(startItemCenter, startItemCenter))
-                        # print(self.Auxiliary_line.line().p1())
-                        self.superior.scene.addItem(self.Auxiliary_line)
+                        self.startLine(event.pos())
+                        # self.draw_line_start_item: "Grapher.ItemRect" = self.itemAt(event.pos())
+                        # startItemCenter = self.draw_line_start_item.mapToScene(self.draw_line_start_item.rect().center())
+                        # self.Auxiliary_line.setLine(QLineF(startItemCenter, startItemCenter))
+                        # # print(self.Auxiliary_line.line().p1())
+                        # self.superior.scene.addItem(self.Auxiliary_line)
             elif event.buttons() == Qt.MouseButton.RightButton:
                 self.superior.data.mouse_left_clicked = False
                 self.superior.data.mouse_right_clicked = True
-
+                self.setDragMode(common_tools.compatible_import.DragMode.RubberBandDrag)
                 pass
 
-            if event.buttons() == Qt.MouseButton.RightButton:
-                self.setDragMode(common_tools.compatible_import.DragMode.RubberBandDrag)
+            # if event.buttons() == Qt.MouseButton.RightButton:
+
 
             super().mousePressEvent(event)
+            print("view mousepressevent")
+
 
         def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
-            self.superior.scene.removeItem(self.Auxiliary_line)
-            end_item, begin_item = self.draw_line_end_item, self.draw_line_start_item
-            if isinstance(end_item, Grapher.ItemRect) and begin_item != end_item:
-                add_bilink = self.superior.data.graph_mode == GraphMode.normal
-                self.superior.add_edge(begin_item.pair.card_id, end_item.pair.card_id, add_bilink=add_bilink)
+            # self.superior.scene.removeItem(self.Auxiliary_line)
+            # end_item, begin_item = self.draw_line_end_item, self.draw_line_start_item
+            # if isinstance(end_item, Grapher.ItemRect) and begin_item != end_item:
+            #     add_bilink = self.superior.data.graph_mode == GraphMode.normal
+            #     self.superior.add_edge(begin_item.pair.card_id, end_item.pair.card_id, add_bilink=add_bilink)
+            self.makeLine()
             if not self.itemAt(event.pos()) \
                     and not self.superior.data.mouse_moved \
                     and self.superior.data.mouse_right_clicked:
@@ -607,9 +620,42 @@ class Grapher(QDialog):
             super().mouseReleaseEvent(event)
             self.setDragMode(common_tools.compatible_import.DragMode.ScrollHandDrag)
             self.superior.update()
+            # self.superior.data.mouse_right_clicked = False
+            # self.superior.data.mouse_left_clicked = False
+            # self.superior.data.mouse_moved = False
+            # self.Auxiliary_line.hide()
+            # self.superior.scene.removeItem(self.Auxiliary_line)
+
+        def moveLine(self, pos):
+            self.draw_line_end_item = self.itemAt(pos)
+            line = self.Auxiliary_line.line()
+            p1 = line.p1()  # self.draw_line_start_item.mapToScene(self.draw_line_start_item.rect().center())
+            p2 = self.mapToScene(pos)
+            rect = self.draw_line_start_item.mapRectToScene(self.draw_line_start_item.rect())
+            line.setP2(p2)
+            line.setP1(p1)
+            self.Auxiliary_line.setLine(line)
+            pass
+
+        def startLine(self, pos):
+            self.draw_line_start_item: "Grapher.ItemRect" = self.itemAt(pos)
+            startItemCenter = self.draw_line_start_item.mapToScene(self.draw_line_start_item.rect().center())
+            self.Auxiliary_line.setLine(QLineF(startItemCenter, startItemCenter))
+            # print(self.Auxiliary_line.line().p1())
+            self.Auxiliary_line.show()
+            self.superior.scene.addItem(self.Auxiliary_line)
+            pass
+
+        def makeLine(self):
+            self.superior.scene.removeItem(self.Auxiliary_line)
+            end_item, begin_item = self.draw_line_end_item, self.draw_line_start_item
+            if isinstance(end_item, Grapher.ItemRect) and begin_item != end_item:
+                add_bilink = self.superior.data.graph_mode == GraphMode.normal
+                self.superior.add_edge(begin_item.pair.card_id, end_item.pair.card_id, add_bilink=add_bilink)
             self.superior.data.mouse_right_clicked = False
             self.superior.data.mouse_left_clicked = False
             self.superior.data.mouse_moved = False
+            self.Auxiliary_line.hide()
 
         def make_context_menu(self, event: QtGui.QMouseEvent):
             pairli = funcs.AnkiLinks.get_card_from_clipboard()
@@ -617,10 +663,15 @@ class Grapher(QDialog):
             menu.addAction(Translate.创建为视图).triggered.connect(lambda: self.superior.create_view(*self.superior.data.node_edge_packup()))
             if len(pairli) > 0:
                 menu.addAction(Translate.粘贴卡片).triggered.connect(lambda: self.superior.insert(pairli))
-            if self.superior.data.graph_mode==GraphMode.view_mode:
+            if self.superior.data.graph_mode == GraphMode.view_mode:
                 menu.addAction(Translate.保存当前视图为群组复习条件).triggered.connect(lambda: self.superior.saveAsGroupReviewCondition())
             pos = event.globalPosition() if common_tools.compatible_import.Anki.isQt6 else event.screenPos()
             menu.exec(pos.toPoint())
+
+        def clearSelection(self):
+            if self.superior.data.currentSelectedEdge:
+                self.superior.data.currentSelectedEdge[0].unsaveSelect()
+            pass
 
         pass
 
@@ -629,6 +680,7 @@ class Grapher(QDialog):
 
     class ItemEdge(common_tools.baseClass.Geometry.ArrowLine):
         highlight_pen = QPen(QColor(255, 215, 0), 8.0, PenStyle.DashLine)
+        selected_pen = QPen(QColor(102, 255, 230), 8.0, PenStyle.DashLine)
         normal_pen = QPen(QColor(127, 127, 127, 160), 8.0, PenStyle.DashLine)
         pdflink_pen = QPen(QColor(255, 255, 127), 6.0, PenStyle.DashLine)
         intextlink_pen = QPen(QColor(255, 255, 127), 6.0, PenStyle.DashLine)
@@ -666,6 +718,8 @@ class Grapher(QDialog):
             self.setZValue(-10)
 
         def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+
+            self.saveSelect()
             if event.buttons() == Qt.MouseButton.RightButton:
                 menu = QMenu()
                 remove_bilink = self.superior.data.graph_mode == GraphMode.normal
@@ -675,8 +729,21 @@ class Grapher(QDialog):
 
                 pos = event.screenPos()  # if common_tools.compatible_import.Anki.isQt6 else event.screenPosition()
                 menu.exec(pos)
-
+                print("menu.exec(pos)")
             super().mousePressEvent(event)
+
+        def saveSelect(self):
+            if self.superior.data.currentSelectedEdge:
+                self.superior.data.currentSelectedEdge[0].unsaveSelect()
+            self.superior.data.currentSelectedEdge = [self]
+            self.setPen(self.selected_pen)
+            self.setZValue(-10)
+
+        def unsaveSelect(self):
+            self.setPen(self.normal_pen)
+            self.superior.data.currentSelectedEdge = []
+            self.setZValue(-1)
+            # self.unhighlight()
 
         pass
 
@@ -783,11 +850,15 @@ class Grapher(QDialog):
             return menu
 
         def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+            if self.superior.data.graph_mode == 2:
+                return
             if event.buttons() == Qt.MouseButton.LeftButton:
                 common_tools.funcs.Dialogs.open_custom_cardwindow(self.pair.card_id)
             super().mouseDoubleClickEvent(event)
 
         def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
+            if self.superior.data.currentSelectedEdge:
+                self.superior.data.currentSelectedEdge[0].unsaveSelect()
 
             if event.buttons() == Qt.MouseButton.RightButton:
                 if event.modifiers() != Qt.KeyboardModifier.ControlModifier:
@@ -815,7 +886,6 @@ class Grapher(QDialog):
 
         # def drawRedDot(self):
 
-
         def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
                   widget: typing.Optional[QWidget] = ...) -> None:
             super().paint(painter, option, widget)
@@ -840,13 +910,72 @@ class Grapher(QDialog):
                 self.setZValue(0)
 
             if self.node.due:
-                print("self.node.due")
                 painter.setPen(QColor(255, 0, 0))
                 painter.setBrush(QBrush(QColor(255, 0, 0)))
-                painter.drawEllipse(header_rect.right()-5,0,5,5)
+                painter.drawEllipse(header_rect.right() - 5, 0, 5, 5)
 
         pass
 
+    class ToolBar(QToolBar):
+        """这是一个工具栏"""
+
+        class Actions:
+            def __init__(self, parent: "Grapher.ToolBar"):
+                self.superior = parent
+                imgDir = common_tools.G.src.ImgDir
+                self.save = QAction(QIcon(imgDir.save), "", parent)
+                self.dueQueue = QAction(QIcon(imgDir.box2), "", parent)
+                self.config = QAction(QIcon(imgDir.config), "", parent)
+                self.help = QAction(QIcon(imgDir.help), "", parent)
+                self.cardDel = QAction(QIcon(imgDir.delete), "", parent)
+                self.cardRename = QAction(QIcon(imgDir.rename), "", parent)
+                self.initUI()
+
+            def initUI(self):
+                [self.li[i].setToolTip(self.tooltips[i]) for i in range(len(self.li))]
+
+            @property
+            def tooltips(self):
+                T = common_tools.language.Translate
+                return [
+                        T.另存视图,
+                        T.保存当前视图为群组复习条件,
+                        T.打开配置表,
+                        "",
+                        T.删除,
+                        T.重命名,
+                ]
+
+            @property
+            def li(self):
+                return [
+                        self.save,
+                        self.dueQueue,
+                        self.config,
+                        self.help,
+                        self.cardDel,
+                        self.cardRename
+                ]
+
+        def __init__(self, parent: "Grapher"):
+            super().__init__(parent)
+            self.superior = parent
+            self.act = self.Actions(self)
+            self.setIconSize(QSize(16, 16))
+            self.initUI()
+            self.initEvent()
+
+        def initUI(self):
+            self.addActions(self.act.li[0:4])
+            self.addSeparator()
+            self.addActions(self.act.li[4:])
+            self.act.cardDel.setDisabled(True)
+            self.act.cardRename.setDisabled(True)
+            pass
+
+        def initEvent(self):
+            pass
+            # self.actionGroupReviewSave = QAction(QIcon(imgDir.save),"",self)
     # class Item(QGraphicsItem):
     #     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem', widget: typing.Optional[QWidget] = ...) -> None:
     #     pass
@@ -881,7 +1010,7 @@ class GViewAdmin(QDialog):
                 [self.model.itemChanged, self.on_model_item_changed_handle],
                 [self.view.doubleClicked, self.on_view_doubleclicked_handle],
                 [self.view.customContextMenuRequested, self.on_view_contextmenu_handle],
-
+                [common_tools.G.signals.on_card_answerd, self.on_display_changed],
                 # [self.view.horizontalHeader().clicked,self.on_horizontal_header_clicked_handle],
         ]).bind()
 
@@ -905,6 +1034,8 @@ class GViewAdmin(QDialog):
     def on_view_doubleclicked_handle(self, index: "QModelIndex"):
         # noinspection PyTypeChecker
         item: "GViewAdmin.Item" = self.model.itemFromIndex(index)
+        if item.column() != 0:
+            item = self.model.item(item.row(), 0)
         data: "GViewData" = funcs.GviewOperation.load(gviewdata=item.data(Qt.UserRole))
         if data is None:
             tooltip(Translate.请点击叶结点)
@@ -967,6 +1098,7 @@ class GViewAdmin(QDialog):
         else:
             self.build_list()
         self.view.expandAll()
+        # self.view.setColumnWidth(0,400)
 
     def on_rename(self, it=None):
         """由于有两个不同的display所以需要弹出窗口让同学修改"""
@@ -1002,11 +1134,12 @@ class GViewAdmin(QDialog):
         pass
 
     def init_UI(self):
-        self.model.setHorizontalHeaderLabels(["view name"])
+
+        # self.view.setHorizontalHeaderLabels(["view name","due count"])
         self.setWindowTitle("gview manager")
         self.setContentsMargins(0, 0, 0, 0)
         self.setWindowIcon(QIcon(src.ImgDir.gview_admin))
-        self.resize(300, 400)
+        self.resize(400, 600)
         self.view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         g_layout = QGridLayout(self)
         g_layout.setContentsMargins(0, 0, 0, 0)
@@ -1022,7 +1155,7 @@ class GViewAdmin(QDialog):
 
     def init_model(self):
         self.model.clear()
-        self.model.setHorizontalHeaderLabels(["view name"])
+        self.model.setHorizontalHeaderLabels(["view name", "due count"])
 
     def build_tree(self):
         """
@@ -1040,7 +1173,8 @@ class GViewAdmin(QDialog):
                 nodename = original_name.pop(0)
                 if nodename not in parent.children:
                     item = self.Item(nodename, data=None if original_name else data)
-                    parent.item.appendRow([item])
+                    dueCountItem = QStandardItem(f"{common_tools.funcs.GviewOperation.getDueCount(data)}")
+                    parent.item.appendRow([item, dueCountItem])
                     parent.children[nodename] = Struct.TreeNode(item=item, children={})
                 parent = parent.children[nodename]
         pass
@@ -1050,7 +1184,8 @@ class GViewAdmin(QDialog):
         for data in self.data.values():
             if isinstance(data, GViewData):
                 item = self.Item(data.name, data=data)
-                self.model.appendRow([item])
+                dueCountItem = QStandardItem(f"{common_tools.funcs.GviewOperation.getDueCount(data)}")
+                self.model.appendRow([item, dueCountItem])
 
         pass
 
@@ -1059,7 +1194,7 @@ class GViewAdmin(QDialog):
         funcs.G.GViewAdmin_window = None
 
     class Model(QStandardItemModel):
-        def addRow(self, data: GViewData):
+        def addRow(self, data: GViewData):  # 这个函数没有用的地方
             item = GViewAdmin.Item(data)
             self.appendRow(item)
 
@@ -1085,6 +1220,8 @@ class GViewAdmin(QDialog):
             self.setSelectionMode(common_tools.compatible_import.QAbstractItemViewSelectMode.SingleSelection)
             self.setDragDropMode(common_tools.compatible_import.DragDropMode.NoDragDrop)
             self.setAcceptDrops(False)
+            self.header().setSectionResizeMode(common_tools.compatible_import.QHeaderView.ResizeMode.ResizeToContents)
+            # self.setColumnWidth(0,400)
 
     class Bottom(QWidget):
         def __init__(self, superior: 'GViewAdmin'):

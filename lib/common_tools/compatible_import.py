@@ -34,7 +34,7 @@ class Utils:
 
         if ISDEBUG and ISLOCALDEBUG:
             print("调试阶段可自己选择anki版本")
-            return True
+            return False
 
         try:
             import PyQt6
@@ -249,6 +249,10 @@ else:
     QLineF.IntersectionType.NoIntersection = QLineF.NoIntersection
     QLineF.IntersectionType.BoundedIntersection = QLineF.BoundedIntersection
     QLineF.IntersectionType.UnboundedIntersection = QLineF.UnboundedIntersection
+    QHeaderView.ResizeMode.Interactive = QHeaderView.Interactive
+    QHeaderView.ResizeMode.Fixed = QHeaderView.Fixed
+    QHeaderView.ResizeMode.Stretch = QHeaderView.Stretch
+    QHeaderView.ResizeMode.ResizeToContents = QHeaderView.ResizeToContents
 
 
     class PenStyle:

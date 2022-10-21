@@ -2,6 +2,7 @@
 from datetime import date, datetime
 import time
 from typing import Optional
+
 from ..imports import *
 
 from anki.lang import _
@@ -124,8 +125,11 @@ if not ISLOCAL:
             self.bottom_layout_all = QGridLayout()
             self.bottom_tools_widget = QWidget()
             self.bottom_tools_widget_layout = QHBoxLayout()
-            self.revWidget = common_tools.widgets.ReviewButtonForCardPreviewer(self)
+            self.showBoth = QCheckBox("双面展示")
+            self.revWidget = common_tools.widgets.ReviewButtonForCardPreviewer(self,self.bottom_layout_all)
             super().__init__(*args, **kwargs)
+            common_tools.G.signals.onCardSwitchBothSide.connect(self.handleBothSideEmit)
+            self.handleBothSideEmit(common_tools.G.customPreviewerBothSide,init=True)
 
         def card(self) -> Card:
             return self._card
@@ -145,40 +149,75 @@ if not ISLOCAL:
             restoreGeom(self, "preview")
             self.bottombar = QHBoxLayout()
 
-            self._other_side = QPushButton("answer")
+            self._other_side = QPushButton(QIcon(common_tools.G.src.ImgDir.right_direction),"")
+            # self._other_side.setIcon()
+            # self.browser_button = QPushButton("show in browser")
+            self.edit_button = QPushButton(QIcon(common_tools.G.src.ImgDir.edit),"")
+
             self._other_side.setAutoDefault(False)
             self._other_side.clicked.connect(self._on_other_side)
 
             # buttons
+            # self.browser_button.clicked.connect(self._on_browser_button)
+            # self.browser_button.setText("show in browser")
 
-            self.browser_button = QPushButton("show in browser")
-            self.browser_button.clicked.connect(self._on_browser_button)
-            self.browser_button.setText("show in browser")
-            self.edit_button = QPushButton("edit")
             self.edit_button.clicked.connect(self._on_edit_button)
-
-            self.bottom_tools_widget_layout.addWidget(self.browser_button)
+            self.showBoth.clicked.connect(self.onShowBothClicked)
+            # self.bottom_tools_widget_layout.addWidget(self.browser_button)
+            self.bottom_tools_widget_layout.addWidget(self.showBoth)
             self.bottom_tools_widget_layout.addWidget(self.edit_button)
             self.bottom_tools_widget_layout.addWidget(self._other_side)
             self.bottom_tools_widget.setLayout(self.bottom_tools_widget_layout)
-            self.bottom_layout_all.addWidget(self.revWidget.due_info_widget, 0, 0, 1, 1)
-            self.bottom_layout_all.addWidget(self.revWidget.review_buttons, 0, 0, 1, 1)
-            self.bottom_layout_all.addWidget(self.bottom_tools_widget, 0, 1, 1, 1)
+            self.bottom_layout_all.addWidget(self.bottom_tools_widget,0,1,1,1)
             self.vbox.addLayout(self.bottom_layout_all)
             self.vbox.setStretch(0, 1)
             self.vbox.setStretch(1, 0)
 
-        def _on_other_side(self):
-            if self._state == "question":
+        def handleBothSideEmit(self,value,init=False):
+            if value:
+                self._state = "answer"
+            else:
+                self._state = "question"
+
+            if init:
+                self._show_both_sides=value
+            else:
+                self._on_show_both_sides(value)
+            self.showBoth.blockSignals(True)
+            self.showBoth.setChecked(value)
+            self.showBoth.blockSignals(False)
+
+        def onShowBothClicked(self):
+            if self.showBoth.isChecked():
                 self._state = "answer"
                 self._on_show_both_sides(True)
-                # self.forClickToAnswer_button.setEnabled(True)
+                common_tools.G.customPreviewerBothSide = True
             else:
-                # self.forClickToAnswer_button.setEnabled(False)
                 self._state = "question"
-                self._show_both_sides = False
+                self._on_show_both_sides(False)
+                common_tools.G.customPreviewerBothSide = False
             self.render_card()
-            self.revWidget.switch_to_due_info_widget()
+            # 需要全局更新checkbox
+            common_tools.G.signals.onCardSwitchBothSide.emit(self.showBoth.isChecked())
+
+        def _on_other_side(self):
+            if not self.showBoth.isChecked():
+                if self._state == "question":
+                    self._state = "answer"
+                    self._on_show_both_sides(True)
+                else:
+                    self._state = "question"
+
+                    self._on_show_both_sides(False)
+
+            self.render_card()
+            self.switchSideDirection()
+
+        def switchSideDirection(self):
+            if self._state == "question":
+                self._other_side.setIcon(QIcon(common_tools.G.src.ImgDir.right_direction))
+            else:
+                self._other_side.setIcon(QIcon(common_tools.G.src.ImgDir.left_direction))
 
         def card_changed(self):
             return True
@@ -196,6 +235,7 @@ if not ISLOCAL:
             # common_tools.funcs.PDFprev_close(self.card().id, all=True)
 
 
+
     class SingleCardPreviewerMod(SingleCardPreviewer):
 
         def _on_bridge_cmd(self, cmd):
@@ -205,6 +245,7 @@ if not ISLOCAL:
             # common_tools.funcs.PDFprev_close(self.card().id, all=True)
             # addonName = BaseInfo().dialogName
             common_tools.G.mw_card_window[str(self.card().id)] = None
+            # common_tools.G.customPreviewerBothSide.disconnect(self.handleBothSideEmit)
             # card_window = aqt.mw.__dict__[addonName]["card_window"]
             # card_window[str(self.card().id)]=None
             # print(all_objs.mw_card_window)
@@ -229,3 +270,21 @@ if not ISLOCAL:
             d.open()
             common_tools.G.mw_card_window[card_id] = d
         return common_tools.G.mw_card_window[card_id]
+
+
+    class GrapherMultiCardPreviewer(MultiCardPreviewer):
+
+
+        def __init__(
+                self, parent, mw: "AnkiQt", on_close: Callable[[], None]
+        ) -> None:
+            super().__init__(parent=parent, mw=mw, on_close=on_close)
+            from .linkdata_grapher import Grapher
+            last_card_id = 0
+            parent: Optional["Grapher"]
+            self.bottom_layout = QGridLayout()
+            self.bottom_layout_all = QGridLayout()
+            self.reviewWidget = common_tools.widgets.ReviewButtonForCardPreviewer(self, self.bottom_layout_all)
+
+        pass
+
