@@ -189,7 +189,7 @@ class Geometry:
             p1 = v.p2() # 单位向量的终点
             p2 = n.p2() # 法向量的终点
             p3 = n2.p2() # 第二个法向量的终点
-            self.triangle = [p1,p2,p3]
+            self.triangle = [v.p2(),n.p2(),n2.p2()]
             painter.drawLine(line)
             painter.drawPolygon(p1, p2, p3)
 

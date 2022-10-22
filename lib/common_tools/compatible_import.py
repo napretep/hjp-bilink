@@ -253,7 +253,7 @@ else:
     QHeaderView.ResizeMode.Fixed = QHeaderView.Fixed
     QHeaderView.ResizeMode.Stretch = QHeaderView.Stretch
     QHeaderView.ResizeMode.ResizeToContents = QHeaderView.ResizeToContents
-
+    QGraphicsLineItem.GraphicsItemFlag.ItemIsSelectable = QGraphicsLineItem.ItemIsSelectable
 
     class PenStyle:
         SolidLine = Qt.SolidLine
@@ -291,7 +291,9 @@ else:
 
     class ViewportUpdateMode:
         FullViewportUpdate = QGraphicsView.FullViewportUpdate
-
+        BoundingRectViewportUpdate = QGraphicsView.BoundingRectViewportUpdate
+        SmartViewportUpdate = QGraphicsView.SmartViewportUpdate
+        MinimalViewportUpdate = QGraphicsView.MinimalViewportUpdate
 
     class QGraphicsRectItemFlags:
         ItemIsMovable = QGraphicsRectItem.ItemIsMovable

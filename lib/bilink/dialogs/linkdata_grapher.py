@@ -128,6 +128,10 @@ class Grapher(QMainWindow):
             common_tools.G.mw_gview[self.data.gviewdata.uuid] = None
             # common_tools.G.GViewAdmin_window
 
+    def close(self):
+        self.scene.blockSignals(True)
+        super().close()
+
     def reject(self) -> None:
         self.close()
         super().reject()
@@ -259,15 +263,21 @@ class Grapher(QMainWindow):
 
     def del_selected_node(self):
         item_li: "list[Grapher.ItemRect]" = self.selected_nodes()
-        card_id_li = list(self.data.node_dict.keys())
-        edges = self.data.edge_dict
+        # card_id_li = list(self.data.node_dict.keys())
+        # edges = self.data.edge_dict
         for item in item_li:
-            card_idA = item.pair.card_id
-            for card_idB in card_id_li:
-                if card_idA in edges and card_idB in edges[card_idA]:
-                    self.remove_edge(card_idA, card_idB)
-            self.scene.removeItem(item)
-            self.data.node_dict.pop(card_idA)
+            self.remove_node(item)
+            # card_idA = item.pair.card_id
+            # for card_idB in card_id_li:
+            #     if card_idB == card_idA: continue
+            #     if card_idA in edges and card_idB in edges[card_idA]:
+            #         print(f"self.remove_edge({card_idA}, {card_idB})")
+            #         self.remove_edge(card_idA, card_idB)
+            #     if card_idB in edges and card_idA in edges[card_idB]:
+            #         print(f"self.remove_edge({card_idB}, {card_idA})")
+            #         self.remove_edge(card_idB, card_idA)
+            # self.scene.removeItem(item)
+            # self.data.node_dict.pop(card_idA)
 
         pass
 
@@ -306,7 +316,7 @@ class Grapher(QMainWindow):
 
     def switch_edge_highlight(self):
         # noinspection PyTypeChecker
-        item_li: "list[Grapher.ItemRect]" = self.scene.selectedItems()
+        item_li: "list[Grapher.ItemRect]" = self.selected_nodes()  # item for item in self.scene.selectedItems() if isinstance(item,Grapher.ItemRect)]
         card_li: "list[str]" = [item.pair.card_id for item in item_li]
         edges = self.data.edge_dict
         modified = set()
@@ -323,7 +333,9 @@ class Grapher(QMainWindow):
                 modified.add(edge)
 
     def add_edge(self, card_idA: "str", card_idB: "str", add_bilink=False):
-        """A->B, 反过来不成立"""
+        """A->B, 反过来不成立
+        add_bilink 用来判断是否要修改全局链接.
+        """
         edges = self.data.edge_dict
         if card_idA in edges and card_idB in edges[card_idA] and edges[card_idA][card_idB] is not None:
             return
@@ -342,26 +354,43 @@ class Grapher(QMainWindow):
 
         pass
 
-    def remove_edge(self, card_idA, card_idB, remove_bilink=False):
+    def remove_edge(self, card_idA, card_idB, remove_globalLink=False):
+        """
+        remove_globalLink 用来判断是否要修改全局链接.
+        """
         edges = self.data.edge_dict
         nodes = self.data.node_dict
         edge = edges[card_idA][card_idB]
-        self.scene.removeItem(edge)
-        nodes[card_idA].edges.remove(edge)
-        edge.hide()
+        if edge:
+            self.scene.removeItem(edge)
+            nodes[card_idA].edges.remove(edge)
+            edge.hide()
         # nodes[card_idB].edges.remove(edge)
         edges[card_idA][card_idB] = None
-        if remove_bilink:
-            self.remove_bilink(card_idA, card_idB)
-        print("edge removed")
+        if remove_globalLink:
+            self.remove_globalLink(card_idA, card_idB)
         pass
 
     # bilink
+    def remove_node(self,item:"Grapher.ItemRect"):
+        card_id_li = self.data.node_dict.keys()
+        edges = self.data.edge_dict
+        card_idA = item.pair.card_id
+        for card_idB in card_id_li:
+            if card_idB == card_idA: continue
+            if card_idA in edges and card_idB in edges[card_idA]:
+                print(f"self.remove_edge({card_idA}, {card_idB})")
+                self.remove_edge(card_idA, card_idB)
+            if card_idB in edges and card_idA in edges[card_idB]:
+                print(f"self.remove_edge({card_idB}, {card_idA})")
+                self.remove_edge(card_idB, card_idA)
+        self.scene.removeItem(item)
+        self.data.node_dict.pop(card_idA)
 
-    def remove_bilink(self, card_idA, card_idB):
+    def remove_globalLink(self, card_idA, card_idB):
         common_tools.funcs.LinkDataOperation.unbind(card_idA, card_idB)
         common_tools.funcs.LinkPoolOperation.both_refresh()
-        print("remove_bilink")
+        print("remove_globalLink")
         pass
 
     def add_bilink(self, card_idA, card_idB):
@@ -408,6 +437,9 @@ class Grapher(QMainWindow):
         # self.setLayout(Hbox)
         self.setCentralWidget(self.view)
         self.addToolBar(self.toolbar)
+
+        self.scene.selectionChanged.connect(self.toolbar.checkAction)
+
         pass
 
     def saveAsGroupReviewCondition(self):
@@ -578,8 +610,8 @@ class Grapher(QMainWindow):
 
         def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
             self.superior.data.mouse_moved = False
-            if self.itemAt(event.pos()) is None:
-                self.clearSelection()
+            # if self.itemAt(event.pos()) is None:
+            #     self.clearSelection()
             if event.buttons() == Qt.MouseButton.LeftButton:
                 self.superior.data.mouse_left_clicked = True
                 self.superior.data.mouse_right_clicked = False
@@ -600,10 +632,7 @@ class Grapher(QMainWindow):
 
             # if event.buttons() == Qt.MouseButton.RightButton:
 
-
             super().mousePressEvent(event)
-            print("view mousepressevent")
-
 
         def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
             # self.superior.scene.removeItem(self.Auxiliary_line)
@@ -612,9 +641,7 @@ class Grapher(QMainWindow):
             #     add_bilink = self.superior.data.graph_mode == GraphMode.normal
             #     self.superior.add_edge(begin_item.pair.card_id, end_item.pair.card_id, add_bilink=add_bilink)
             self.makeLine()
-            if not self.itemAt(event.pos()) \
-                    and not self.superior.data.mouse_moved \
-                    and self.superior.data.mouse_right_clicked:
+            if not self.itemAt(event.pos())  and not self.superior.data.mouse_moved and event.button()==Qt.MouseButton.RightButton:# and self.superior.data.mouse_right_clicked:
                 self.make_context_menu(event)
             self.draw_line_end_item, self.draw_line_start_item = None, None
             super().mouseReleaseEvent(event)
@@ -695,6 +722,7 @@ class Grapher(QMainWindow):
             self.update_line()
             self.setZValue(-10)
             self.setPen(self.normal_pen)
+            self.setFlag(QGraphicsLineItem.GraphicsItemFlag.ItemIsSelectable, True)
 
         def update_line(self):
             p1 = self.itemStart.mapToScene(self.itemStart.boundingRect().center())
@@ -708,6 +736,9 @@ class Grapher(QMainWindow):
             # if pB is not None: p2=pB
             line = QLineF(p1, p2)
             self.setLine(line)
+            self.show()
+            self.setVisible(True)
+            # print(f"self visibility = {self}")
 
         def highlight(self):
             self.setPen(self.highlight_pen)
@@ -718,18 +749,16 @@ class Grapher(QMainWindow):
             self.setZValue(-10)
 
         def mousePressEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-
             self.saveSelect()
             if event.buttons() == Qt.MouseButton.RightButton:
                 menu = QMenu()
-                remove_bilink = self.superior.data.graph_mode == GraphMode.normal
+                remove_globalLink = self.superior.data.graph_mode == GraphMode.normal
                 menu.addAction(Translate.删除边).triggered.connect(
                         lambda: self.superior.remove_edge(self.itemStart.pair.card_id, self.itemEnd.pair.card_id,
-                                                          remove_bilink=remove_bilink))
+                                                          remove_globalLink=remove_globalLink))
 
                 pos = event.screenPos()  # if common_tools.compatible_import.Anki.isQt6 else event.screenPosition()
-                menu.exec(pos)
-                print("menu.exec(pos)")
+                # menu.exec(pos)
             super().mousePressEvent(event)
 
         def saveSelect(self):
@@ -744,6 +773,24 @@ class Grapher(QMainWindow):
             self.superior.data.currentSelectedEdge = []
             self.setZValue(-1)
             # self.unhighlight()
+
+        def shape(self) -> QtGui.QPainterPath:
+            path = super().shape()
+            path.addPolygon(QPolygonF(self.triangle))
+            return path
+
+        #
+        def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
+                  widget: typing.Optional[QWidget] = ...) -> None:
+            option.state &= ~QStyle.State_Selected
+            super().paint(painter, option, widget)
+
+            if self.isSelected():
+                self.setPen(self.selected_pen)
+                self.setZValue(-10)
+            elif not self.isSelected() and not self.superior.scene.selectedItems():
+                self.setPen(self.normal_pen)
+                self.setZValue(-1)
 
         pass
 
@@ -819,7 +866,7 @@ class Grapher(QMainWindow):
             # noinspection PyUnresolvedReferences
             menu.addAction(Translate.修改描述).triggered.connect(lambda: self.superior.card_edit_desc(self))
 
-            pair_li: "list[LinkDataPair]" = [item.pair for item in self.scene().selectedItems()]
+            pair_li: "list[LinkDataPair]" = [item.pair for item in self.superior.selected_nodes()]
             common_tools.menu.maker(common_tools.menu.T.grapher_node_context)(pair_li, menu, self.superior,
                                                                               needPrefix=False)
 
@@ -939,7 +986,7 @@ class Grapher(QMainWindow):
                 T = common_tools.language.Translate
                 return [
                         T.另存视图,
-                        T.保存当前视图为群组复习条件,
+                        T.打开复习队列,
                         T.打开配置表,
                         "",
                         T.删除,
@@ -956,6 +1003,8 @@ class Grapher(QMainWindow):
                         self.cardDel,
                         self.cardRename
                 ]
+
+
 
         def __init__(self, parent: "Grapher"):
             super().__init__(parent)
@@ -974,8 +1023,99 @@ class Grapher(QMainWindow):
             pass
 
         def initEvent(self):
+            [self.act.li[i].triggered.connect(self.slots[i]) for i in range(len(self.slots))]
+            # self.act.cardDel.triggered.connect(self.deleteItem)
+            # self.act.cardRename.triggered.connect(self.renameItem)
+            pass
+
+        def checkAction(self):
+            """判断删除项目的按钮是否应当激活
+            1 多选卡片和多选边都能批量删除, 如果同时多选了卡片和边, 则批量删除卡片, 忽略边的删除,因为删除卡片的时候会删掉一些边,变得不好处理
+            """
+
+            if len(self.superior.scene.selectedItems())>0:
+                items = self.superior.scene.selectedItems()
+                if len(items)==1 and isinstance(items[0], Grapher.ItemRect):
+                    self.act.cardRename.setDisabled(False)
+                else:
+                    self.act.cardRename.setDisabled(True)
+                self.act.cardDel.setDisabled(False)
+            else:
+                self.act.cardDel.setDisabled(True)
+                self.act.cardRename.setDisabled(True)
+
+        def deleteEdgeItem(self, item: "Grapher.ItemEdge"):
+            cardA = item.itemStart.pair.card_id
+            cardB = item.itemEnd.pair.card_id
+            modifyGlobalLink = self.superior.data.graph_mode == GraphMode.normal
+            self.superior.remove_edge(cardA,cardB,modifyGlobalLink)
+            pass
+
+        def deleteRectItem(self, item: "Grapher.ItemRect"):
+            self.superior.remove_node(item)
+            pass
+
+        def renameItem(self):
+            item:"Grapher.ItemRect" = self.superior.scene.selectedItems()[0]
+            self.superior.card_edit_desc(item)
+            pass
+
+        def deleteItem(self):  # 0=rect,1=line
+            rectItem:"list[Grapher.ItemRect]" =list(filter(lambda item:isinstance(item, Grapher.ItemRect), self.superior.scene.selectedItems()))
+            lineItem:"list[Grapher.ItemEdge]" =list(filter(lambda item:isinstance(item, Grapher.ItemEdge), self.superior.scene.selectedItems()))
+            if len(rectItem)>0:
+                for item in rectItem:
+                    self.deleteRectItem(item)
+            elif len(lineItem)>0:
+                for item in lineItem:
+                    self.deleteEdgeItem(item)
+
+            # item = self.superior.scene.selectedItems()[0]
+            # if isinstance(item, Grapher.ItemRect):
+            #     self.deleteRectItem(item)
+            # elif isinstance(item, Grapher.ItemEdge):
+            #     self.deleteEdgeItem(item)
             pass
             # self.actionGroupReviewSave = QAction(QIcon(imgDir.save),"",self)
+
+        def saveAsNewGview(self):
+            self.superior.create_view(*self.superior.data.node_edge_packup())
+            pass
+
+        def registGviewAsGroupReview(self):
+            self.superior.saveAsGroupReviewCondition()
+            pass
+
+        def openDueQueue(self):
+            """这是个大工程, 需要
+            1一个算法计算队列,
+            2一个多卡片窗口,
+            3一个队列创跨
+            """
+            pass
+        def openConfig(self):
+            """这个功能需要配合新的数据库配置表才行"""
+            # common_tools.funcs.Utils.tooltip("not implement yet")
+            pass
+        def helpFunction(self):
+            """一个默认弹窗即可"""
+            zh="""
+            你可以左键拖拽卡片, 左键拖拽画布, 右键拖拽框选对象. 卡片和链接都可以选中删除. 修改卡片描述需要先取消描述与字段同步, 否则不会生效.
+            You can drag and drop cards with the left click, drag and drop the canvas with the left click, and drag and drop boxed objects with the right click. Both cards and links can be selected for deletion. To change the card description, you need to unsync the description with the field first, otherwise it will not take effect
+            """
+            showInfo(zh)
+            pass
+
+        @property
+        def slots(self):
+            return [
+                self.saveAsNewGview,
+                self.openDueQueue,
+                self.openConfig,
+                self.helpFunction,
+                self.deleteItem,
+                self.renameItem,
+            ]
     # class Item(QGraphicsItem):
     #     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem', widget: typing.Optional[QWidget] = ...) -> None:
     #     pass

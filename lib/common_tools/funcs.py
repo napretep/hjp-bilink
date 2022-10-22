@@ -319,8 +319,9 @@ class Utils(object):
 
     @staticmethod
     def tooltip(s):
-        if G.ISDEBUG:
+        if G.ISDEBUG and not G.ISLOCALDEBUG:
             tooltip(s)
+
 
     @staticmethod
     def showInfo(s):
@@ -674,6 +675,8 @@ class LinkDataOperation:
         data = LinkDataOperation.read_from_db(pair.card_id)
         data.self_data.desc = pair.desc
         data.save_to_DB()
+        if pair.get_desc_from == G.objs.LinkDescFrom.Field:
+            tooltip(Translate.描述已修改但是___,period=6000)
 
     @staticmethod
     def bind(card_idA: 'Union[str,LinkDataJSONInfo]', card_idB: 'Union[str,LinkDataJSONInfo]', needsave=True):

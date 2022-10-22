@@ -204,11 +204,13 @@ def rosetta(text: str = ""):
         "插入pdf链接":"insert pdf link",
         "临时视图":"temp graph for outext link",
         "即将开始群组复习,点是确认执行,点否仅复习当前卡片":'To start the group review, tap Yes to confirm the execution, or No to review only the current card.',
-        "保存当前视图为群组复习条件":"make view as group review condition",
+        "保存当前视图为群组复习条件":"regist view as group review condition",
         "下次到期":"next due",
         "提前复习": "review in advance",
         "开始复习": "click to review",
-        "另存视图":"save as new view"
+        "另存视图":"save as new view",
+            "描述已修改,但是你不会看到修改结果,因为这张卡保持着描述与字段同步":"The description has been modified, but you will not see the result of the modification because the card keeps the description synchronized with the field"
+            ,"打开复习队列":"open due queue"
     }
     ZHdict = {
         "gview_admin_default_display":"视图管理器默认显示",
@@ -379,6 +381,8 @@ class Translate:
     提前复习:str=rosetta("提前复习")
     开始复习:str=rosetta("开始复习")
     另存视图:str=rosetta("另存视图")
+    描述已修改但是___ :str=rosetta("描述已修改,但是你不会看到修改结果,因为这张卡保持着描述与字段同步")
+    打开复习队列:str = rosetta("打开复习队列")
 
 if __name__ == "__main__":
     print(Translate.打开配置表)
