@@ -1365,6 +1365,7 @@ class ReviewButtonForCardPreviewer:
     def realDue(self):
         # 由于card.due落后,所以直接从数据库去取
         """由于 card.due受各种因素影响, 因此 他不能被正确地记录, 因此我需要用别的东西来替代."""
+
         return funcs.CardOperation.getLastNextRev(self.card().id)
 
     def _answerCard(self, ease):

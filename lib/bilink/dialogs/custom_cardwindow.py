@@ -119,17 +119,24 @@ if not ISLOCAL:
     # print, _1 = clipper_imports.funcs.logger(__name__)
 
     class SingleCardPreviewer(Previewer):
-        def __init__(self, card: Card, *args, **kwargs):
+        """这个东西的card必须不为空否则一些功能运行不了
+        当你把它作为Qwidget打开时, 注意先运行open()
+        """
+
+        def __init__(self, card: Card, superior=None, *args, **kwargs):
             self._card = card
-            self.card().start_timer()
+
+            self.superior = superior
+            if card:
+                self.card().start_timer()
             self.bottom_layout_all = QGridLayout()
             self.bottom_tools_widget = QWidget()
             self.bottom_tools_widget_layout = QHBoxLayout()
-            self.showBoth = QCheckBox("双面展示")
-            self.revWidget = common_tools.widgets.ReviewButtonForCardPreviewer(self,self.bottom_layout_all)
+            self.showBoth = QCheckBox(common_tools.language.Translate.双面展示)
+            self.revWidget = common_tools.widgets.ReviewButtonForCardPreviewer(self, self.bottom_layout_all)
             super().__init__(*args, **kwargs)
             common_tools.G.signals.onCardSwitchBothSide.connect(self.handleBothSideEmit)
-            self.handleBothSideEmit(common_tools.G.customPreviewerBothSide,init=True)
+            self.handleBothSideEmit(common_tools.G.customPreviewerBothSide, init=True)
 
         def card(self) -> Card:
             return self._card
@@ -143,20 +150,20 @@ if not ISLOCAL:
             self.silentlyClose = True
             self.vbox = QVBoxLayout()
             self.vbox.setContentsMargins(0, 0, 0, 0)
-            self._web = AnkiWebView(title="previewer")
+            self._web = AnkiWebView(title="independent previewer")
             self.vbox.addWidget(self._web)
             self.setLayout(self.vbox)
-            restoreGeom(self, "preview")
+            restoreGeom(self, "independent preview")
             self.bottombar = QHBoxLayout()
 
-            self._other_side = QPushButton(QIcon(common_tools.G.src.ImgDir.right_direction),"")
+            self._other_side = QPushButton(QIcon(common_tools.G.src.ImgDir.right_direction), "")
             # self._other_side.setIcon()
             # self.browser_button = QPushButton("show in browser")
-            self.edit_button = QPushButton(QIcon(common_tools.G.src.ImgDir.edit),"")
+            self.edit_button = QPushButton(QIcon(common_tools.G.src.ImgDir.edit), "")
 
             self._other_side.setAutoDefault(False)
             self._other_side.clicked.connect(self._on_other_side)
-
+            self.setWindowTitle("independent preview")
             # buttons
             # self.browser_button.clicked.connect(self._on_browser_button)
             # self.browser_button.setText("show in browser")
@@ -168,19 +175,19 @@ if not ISLOCAL:
             self.bottom_tools_widget_layout.addWidget(self.edit_button)
             self.bottom_tools_widget_layout.addWidget(self._other_side)
             self.bottom_tools_widget.setLayout(self.bottom_tools_widget_layout)
-            self.bottom_layout_all.addWidget(self.bottom_tools_widget,0,1,1,1)
+            self.bottom_layout_all.addWidget(self.bottom_tools_widget, 0, 1, 1, 1)
             self.vbox.addLayout(self.bottom_layout_all)
             self.vbox.setStretch(0, 1)
             self.vbox.setStretch(1, 0)
 
-        def handleBothSideEmit(self,value,init=False):
+        def handleBothSideEmit(self, value, init=False):
             if value:
                 self._state = "answer"
             else:
                 self._state = "question"
 
             if init:
-                self._show_both_sides=value
+                self._show_both_sides = value
             else:
                 self._on_show_both_sides(value)
             self.showBoth.blockSignals(True)
@@ -234,10 +241,6 @@ if not ISLOCAL:
             # aqt.QDialog.reject(self)
             # common_tools.funcs.PDFprev_close(self.card().id, all=True)
 
-
-
-    class SingleCardPreviewerMod(SingleCardPreviewer):
-
         def _on_bridge_cmd(self, cmd):
             super()._on_bridge_cmd(cmd)
 
@@ -250,6 +253,15 @@ if not ISLOCAL:
             # card_window[str(self.card().id)]=None
             # print(all_objs.mw_card_window)
 
+        def loadNewCard(self, card):
+            self._card = card
+            self.render_card()
+            self.revWidget.update_info()
+            self.handleBothSideEmit(common_tools.G.customPreviewerBothSide, init=True)
+            self.switchSideDirection()
+    #
+    # class SingleCardPreviewerMod(SingleCardPreviewer):
+    #
 
     def unregister(card_id, *args, **kwargs):
         # addonName = common_tools.G.addonName
@@ -258,7 +270,7 @@ if not ISLOCAL:
         common_tools.G.mw_card_window[card_id] = None
 
 
-    def external_card_dialog(card) -> 'Optional[SingleCardPreviewerMod]':
+    def external_card_dialog(card) -> 'Optional[SingleCardPreviewer]':
         """请自己做好卡片存在性检查,这一层不检查"""
         card_id = str(card.id)
         if card_id not in common_tools.G.mw_card_window:
@@ -266,25 +278,7 @@ if not ISLOCAL:
         if common_tools.G.mw_card_window[card_id] is not None:
             common_tools.G.mw_card_window[card_id].activateWindow()
         else:
-            d = SingleCardPreviewerMod(card=card, parent=aqt.mw, mw=aqt.mw, on_close=lambda: unregister(card_id))
+            d = SingleCardPreviewer(card=card, parent=aqt.mw, mw=aqt.mw, on_close=lambda: unregister(card_id))
             d.open()
             common_tools.G.mw_card_window[card_id] = d
         return common_tools.G.mw_card_window[card_id]
-
-
-    class GrapherMultiCardPreviewer(MultiCardPreviewer):
-
-
-        def __init__(
-                self, parent, mw: "AnkiQt", on_close: Callable[[], None]
-        ) -> None:
-            super().__init__(parent=parent, mw=mw, on_close=on_close)
-            from .linkdata_grapher import Grapher
-            last_card_id = 0
-            parent: Optional["Grapher"]
-            self.bottom_layout = QGridLayout()
-            self.bottom_layout_all = QGridLayout()
-            self.reviewWidget = common_tools.widgets.ReviewButtonForCardPreviewer(self, self.bottom_layout_all)
-
-        pass
-

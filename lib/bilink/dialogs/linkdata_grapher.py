@@ -58,6 +58,8 @@ class Grapher(QMainWindow):
         self.view = self.View(self)
         self.scene = self.Scene(self)
         self.view.setScene(self.scene)
+        self.roaming:"Optional[GrapherRoamingPreviewer]" = None
+
         # self.toolBar
         self.toolbar = self.ToolBar(self)
 
@@ -460,6 +462,7 @@ class Grapher(QMainWindow):
             self._node_dict: "Optional[dict[str,Optional[Grapher.Entity.Node]]]" = {}
             self._edge_dict: "Optional[dict[str,dict[str,Optional[Grapher.ItemEdge]]]]" = {}
             self.currentSelectedEdge: "list[Grapher.ItemEdge]" = []
+            self.state=Grapher.Entity.State()
 
         @property
         def node_dict(self) -> 'dict[str,Grapher.Entity.Node]':
@@ -536,6 +539,16 @@ class Grapher(QMainWindow):
             def as_card(self) -> 'set':
                 return set([int(item.pair.card_id) for item in self.nodes])
 
+        @dataclass
+        class State:
+            mouseIsMoving:bool=False
+            mouseIsMovingAndRightClicked:bool=False
+            mouseIsMovingAndLeftClicked: bool = False
+            mouseRightClicked:bool=False
+            mouseLeftClicked:bool=False
+
+
+
     class View(QGraphicsView):
         def __init__(self, parent: "Grapher"):
             super().__init__(parent)
@@ -587,8 +600,8 @@ class Grapher(QMainWindow):
             y_scroll.setValue(y_scroll.value() + y)
 
         def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
-            self.superior.data.mouse_moved = True
             if event.buttons() == Qt.MouseButton.LeftButton:
+                self.superior.data.state.mouseIsMovingAndLeftClicked=True
                 if self.superior.scene.selectedItems() and self.itemAt(event.pos()):
                     self.superior.update_all_edges_posi()
                 if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
@@ -605,16 +618,17 @@ class Grapher(QMainWindow):
                         # self.Auxiliary_line.setLine(line)
                         # print(f"p1={p1}")
                         return
-
+            elif event.buttons() == Qt.MouseButton.RightButton:
+                self.superior.data.state.mouseIsMovingAndRightClicked=True
             super().mouseMoveEvent(event)
 
         def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
-            self.superior.data.mouse_moved = False
+
             # if self.itemAt(event.pos()) is None:
             #     self.clearSelection()
             if event.buttons() == Qt.MouseButton.LeftButton:
-                self.superior.data.mouse_left_clicked = True
-                self.superior.data.mouse_right_clicked = False
+                self.superior.data.state.mouseLeftClicked = True
+                self.superior.data.state.mouseRightClicked = False
                 if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
                     select_1 = len(self.superior.scene.selectedItems()) == 1
                     if isinstance(self.itemAt(event.pos()), Grapher.ItemRect) and select_1:
@@ -625,8 +639,8 @@ class Grapher(QMainWindow):
                         # # print(self.Auxiliary_line.line().p1())
                         # self.superior.scene.addItem(self.Auxiliary_line)
             elif event.buttons() == Qt.MouseButton.RightButton:
-                self.superior.data.mouse_left_clicked = False
-                self.superior.data.mouse_right_clicked = True
+                self.superior.data.state.mouseLeftClicked = False
+                self.superior.data.state.mouseRightClicked = True
                 self.setDragMode(common_tools.compatible_import.DragMode.RubberBandDrag)
                 pass
 
@@ -641,14 +655,20 @@ class Grapher(QMainWindow):
             #     add_bilink = self.superior.data.graph_mode == GraphMode.normal
             #     self.superior.add_edge(begin_item.pair.card_id, end_item.pair.card_id, add_bilink=add_bilink)
             self.makeLine()
-            if not self.itemAt(event.pos())  and not self.superior.data.mouse_moved and event.button()==Qt.MouseButton.RightButton:# and self.superior.data.mouse_right_clicked:
+            if not self.itemAt(event.pos()) \
+                    and not self.superior.data.state.mouseIsMovingAndLeftClicked \
+                    and not self.superior.data.state.mouseIsMovingAndRightClicked\
+                    and event.button()==Qt.MouseButton.RightButton:  # and not self.superior.data.mouse_moved and event.button()==Qt.MouseButton.RightButton:# and self.superior.data.mouse_right_clicked:
                 self.make_context_menu(event)
             self.draw_line_end_item, self.draw_line_start_item = None, None
             super().mouseReleaseEvent(event)
             self.setDragMode(common_tools.compatible_import.DragMode.ScrollHandDrag)
             self.superior.update()
-            # self.superior.data.mouse_right_clicked = False
-            # self.superior.data.mouse_left_clicked = False
+            self.superior.data.state.mouseLeftClicked = False
+            self.superior.data.state.mouseRightClicked = False
+            self.superior.data.state.mouseIsMovingAndLeftClicked = False
+            self.superior.data.state.mouseIsMovingAndRightClicked = False
+
             # self.superior.data.mouse_moved = False
             # self.Auxiliary_line.hide()
             # self.superior.scene.removeItem(self.Auxiliary_line)
@@ -679,9 +699,7 @@ class Grapher(QMainWindow):
             if isinstance(end_item, Grapher.ItemRect) and begin_item != end_item:
                 add_bilink = self.superior.data.graph_mode == GraphMode.normal
                 self.superior.add_edge(begin_item.pair.card_id, end_item.pair.card_id, add_bilink=add_bilink)
-            self.superior.data.mouse_right_clicked = False
-            self.superior.data.mouse_left_clicked = False
-            self.superior.data.mouse_moved = False
+            self.superior.data.state.mouseIsMoving = False
             self.Auxiliary_line.hide()
 
         def make_context_menu(self, event: QtGui.QMouseEvent):
@@ -986,7 +1004,7 @@ class Grapher(QMainWindow):
                 T = common_tools.language.Translate
                 return [
                         T.另存视图,
-                        T.打开复习队列,
+                        T.开始漫游复习,
                         T.打开配置表,
                         "",
                         T.删除,
@@ -1032,17 +1050,19 @@ class Grapher(QMainWindow):
             """判断删除项目的按钮是否应当激活
             1 多选卡片和多选边都能批量删除, 如果同时多选了卡片和边, 则批量删除卡片, 忽略边的删除,因为删除卡片的时候会删掉一些边,变得不好处理
             """
-
-            if len(self.superior.scene.selectedItems())>0:
-                items = self.superior.scene.selectedItems()
-                if len(items)==1 and isinstance(items[0], Grapher.ItemRect):
-                    self.act.cardRename.setDisabled(False)
+            try:
+                if len(self.superior.scene.selectedItems())>0:
+                    items = self.superior.scene.selectedItems()
+                    if len(items)==1 and isinstance(items[0], Grapher.ItemRect):
+                        self.act.cardRename.setDisabled(False)
+                    else:
+                        self.act.cardRename.setDisabled(True)
+                    self.act.cardDel.setDisabled(False)
                 else:
+                    self.act.cardDel.setDisabled(True)
                     self.act.cardRename.setDisabled(True)
-                self.act.cardDel.setDisabled(False)
-            else:
-                self.act.cardDel.setDisabled(True)
-                self.act.cardRename.setDisabled(True)
+            except:
+                return None
 
         def deleteEdgeItem(self, item: "Grapher.ItemEdge"):
             cardA = item.itemStart.pair.card_id
@@ -1086,12 +1106,15 @@ class Grapher(QMainWindow):
             self.superior.saveAsGroupReviewCondition()
             pass
 
-        def openDueQueue(self):
+        def openRoaming(self):
             """这是个大工程, 需要
             1一个算法计算队列,
             2一个多卡片窗口,
             3一个队列创跨
             """
+            p = GrapherRoamingPreviewer(self.superior)
+            p.show()
+            p.listView.selectRow(3)
             pass
         def openConfig(self):
             """这个功能需要配合新的数据库配置表才行"""
@@ -1100,8 +1123,8 @@ class Grapher(QMainWindow):
         def helpFunction(self):
             """一个默认弹窗即可"""
             zh="""
-            你可以左键拖拽卡片, 左键拖拽画布, 右键拖拽框选对象. 卡片和链接都可以选中删除. 修改卡片描述需要先取消描述与字段同步, 否则不会生效.
-            You can drag and drop cards with the left click, drag and drop the canvas with the left click, and drag and drop boxed objects with the right click. Both cards and links can be selected for deletion. To change the card description, you need to unsync the description with the field first, otherwise it will not take effect
+            你可以左键拖拽卡片, 左键拖拽画布, 右键拖拽框选对象, 在一个卡片上按下且保持ctrl+左键,再移动鼠标可以拖出一条线, 在另一张卡片上松开左键就能建立两张卡片的链接. 卡片和链接都可以选中删除. 修改卡片描述需要先取消描述与字段同步, 否则不会生效.
+            You can drag a card with left click, drag canvas with left click, drag a boxed object with right click, press and hold ctrl+left click on a card and move the mouse to create a line, and release the left click on another card to create a link between the two cards. Both cards and links can be selected and deleted. To change the card description, you need to un-sync the description with the field, otherwise it will not work.
             """
             showInfo(zh)
             pass
@@ -1110,7 +1133,7 @@ class Grapher(QMainWindow):
         def slots(self):
             return [
                 self.saveAsNewGview,
-                self.openDueQueue,
+                self.openRoaming,
                 self.openConfig,
                 self.helpFunction,
                 self.deleteItem,
@@ -1313,7 +1336,7 @@ class GViewAdmin(QDialog):
                 nodename = original_name.pop(0)
                 if nodename not in parent.children:
                     item = self.Item(nodename, data=None if original_name else data)
-                    dueCountItem = QStandardItem(f"{common_tools.funcs.GviewOperation.getDueCount(data)}")
+                    dueCountItem = self.Item(f"{common_tools.funcs.GviewOperation.getDueCount(data)}",data=None if original_name else data)
                     parent.item.appendRow([item, dueCountItem])
                     parent.children[nodename] = Struct.TreeNode(item=item, children={})
                 parent = parent.children[nodename]
@@ -1324,7 +1347,7 @@ class GViewAdmin(QDialog):
         for data in self.data.values():
             if isinstance(data, GViewData):
                 item = self.Item(data.name, data=data)
-                dueCountItem = QStandardItem(f"{common_tools.funcs.GviewOperation.getDueCount(data)}")
+                dueCountItem = self.Item(f"{common_tools.funcs.GviewOperation.getDueCount(data)}",data=data)
                 self.model.appendRow([item, dueCountItem])
 
         pass
@@ -1386,6 +1409,139 @@ class GViewAdmin(QDialog):
             list(map(lambda x: x[0].setToolTip(x[1]), zip(button_li, tooltip_li)))
 
             self.setLayout(h_layout)
+
+class GrapherRoamingPreviewer(QMainWindow):
+    """
+    点击侧边栏的复习队列上的卡片, 则渲染对应预览卡片, 回答该卡片则刷新侧边栏卡片, 刷新卡片则要自动选中第一张卡片,
+    如果侧边栏是空的, 则不显示预览
+    同时要保持侧边栏更新(当在其他视图里回答了相关卡片,刷新)
+    漫游复习模式按钮禁用条件: 没有满足的复习队列
+    漫游复习列表为空时: 弹出提示, 点击确定后关闭漫游复习, 为空时预览窗停留在最后一张卡片.
+    编辑卡片时,需要同步更新, 先做出来看看吧
+    2022年10月25日05:49:12
+    当漫游复习开启后, 需要记录当前的实例
+    """
+
+    def __init__(self, superior):
+        from .custom_cardwindow import SingleCardPreviewer
+        super().__init__()
+        self.superior: "Grapher"=superior
+        self.dueQueue = [card_id for card_id in self.superior.data.gviewdata.nodes] # 这个需要排序获取 比如从grapher那里搞个
+        initCard = common_tools.funcs.CardOperation.GetCard(self.dueQueue[0])
+        self.listView = self.List(self)
+        self.cardView:"SingleCardPreviewer" = SingleCardPreviewer(initCard,parent=self,mw=mw,on_close=lambda:None)
+        self.container = QWidget()
+        self.initUI()
+        self.initEvent()
+
+        # QTimer.singleShot(1000,lambda :self.listView.selectRow(2))
+        # QTimer.singleShot(1500,lambda :self.cardView.loadNewCard(self.readCard(self.listView.getCurrCardId())))
+
+
+    def readCard(self,card_id):
+        return common_tools.funcs.CardOperation.GetCard(card_id)
+
+    def nextCard(self):
+        row = self.listView.currentIndex().row()
+        self.listView.removeCurrentItem()
+        self.listView.selectRow(row)
+
+    def initEvent(self):
+        # def wrapper(fun):
+        #     def answer(ease):
+        #         fun(ease)
+        #
+        #     return answer
+        btns = self.cardView.revWidget.ease_button
+        [btns[i].clicked.connect(self.nextCard) for i in btns]
+
+        pass
+    def initUI(self):
+        self.cardView.open()
+        layoutH = QHBoxLayout()
+        layoutH.addWidget(self.listView)
+        layoutH.addWidget(self.cardView)
+        self.container.setLayout(layoutH)
+        self.setCentralWidget(self.container)
+        self.setWindowTitle(f"roaming review for view of {self.superior.data.gviewdata.name} ")
+        self.setMinimumHeight(600)
+
+    class List(QListView):
+        def __init__(self, superior):
+            super().__init__()
+            self.superior: "GrapherRoamingPreviewer"= superior
+            self.tempModel = QStandardItemModel()
+            self.setModel(self.tempModel)
+            self.initUI()
+            self.initData()
+            self.initEvent()
+
+        def initEvent(self,):
+            self.selectionModel().selectionChanged.connect(self.handleSelectionChanged)
+            pass
+
+        def handleSelectionChanged(self, selected: "QItemSelection", deselected: "QItemSelection"):
+            if selected.indexes():
+
+                card_id = self.tempModel.itemFromIndex(selected.indexes()[0]).data()
+                self.superior.cardView.loadNewCard(common_tools.funcs.CardOperation.GetCard(card_id))
+                item =self.superior.superior.data.node_dict[card_id].item
+                self.superior.superior.scene.clearSelection()
+                item.setSelected(True)
+                self.superior.superior.view.centerOn(item=item)
+                # self.superior.superior.load_node()
+
+        def initUI(self):
+            self.setMaximumWidth(300)
+            self.setSelectionMode(common_tools.compatible_import.QAbstractItemViewSelectMode.ExtendedSelection)
+            self.setSelectionBehavior(common_tools.compatible_import.QAbstractItemView.SelectRows)
+            self.setEditTriggers(common_tools.compatible_import.QAbstractItemView.NoEditTriggers)
+            # self.setCurrentIndex(self.tempModel.index(1,0))
+            # self.selectRow(2)
+
+            pass
+
+        def initData(self):
+            self.buildData()
+
+            pass
+
+        def buildQueue(self):
+            pass
+
+        def buildData(self):
+            for card_id in self.superior.dueQueue:
+                desc = self.superior.superior.data.node_dict[card_id].pair.desc
+                item = QStandardItem(desc)
+                item.setData(card_id)
+                self.tempModel.appendRow([item])
+
+        def selectRow(self, rownum):
+            # row = [self.tempModel.index(rownum, 0),self.tempModel.index(rownum, 1)]
+            row = self.tempModel.index(rownum, 0)
+            self.setCurrentIndex(row)
+            self.selectionModel().clearSelection()
+            self.selectionModel().select(self.currentIndex(), QItemSelectionModel.Select)
+            # self.printCurrentRow()
+            # self.selectionModel()
+            # self.selectionModel().select(row,  QItemSelectionModel.Select)
+        def getCurrCardId(self):
+            item = self.tempModel.itemFromIndex(self.currentIndex())
+            if item:
+                return item.data()
+            else:
+                showInfo("finished!")
+                return self.superior.cardView.card().id.__str__()
+
+        def printCurrentRow(self):
+            item = self.tempModel.itemFromIndex(self.currentIndex())
+            print(f"current row = {item.row()}")
+
+        def removeCurrentItem(self):
+            item = self.tempModel.itemFromIndex(self.currentIndex())
+            if item:
+                self.tempModel.takeRow(item.row())
+    pass
 
 
 if __name__ == "__main__":

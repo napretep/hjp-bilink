@@ -36,7 +36,7 @@ from . import G, compatible_import
 from .language import Translate, rosetta
 from .objs import LinkDataPair, LinkDataJSONInfo
 if not ISLOCAL:
-    from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
+    from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewer
 from .configsModel import ConfigModel, AnswerInfoInterface, GroupReviewDictInterface, GViewData, GraphMode, \
     ConfigModelItem, CustomConfigItemView
 from . import widgets
@@ -516,11 +516,12 @@ class Config:
 
     @staticmethod
     def make_widget(configitem: "ConfigModelItem"):
+        """这里制作配置表中的每一项"""
         value, validate, widgetType = configitem.value, configitem.validate, configitem.component
         typ = ConfigModel.Widget
         tipbutton = QToolButton()
         tipbutton.setIcon(QIcon(G.src.ImgDir.help))
-        tipbutton.clicked.connect(lambda: tooltip("<br>".join(configitem.instruction), period=7000))
+        tipbutton.clicked.connect(lambda: showInfo("<br>".join(configitem.instruction)))
         container = QWidget()
         layout = QHBoxLayout()
         w = None
@@ -1127,7 +1128,8 @@ class CardOperation:
         return cid
 
     @staticmethod
-    def GetCard(card_id):
+    def GetCard(card_id_):
+        card_id = CardOperation.get_correct_id(card_id_)
         if pointVersion() > 46:
             return mw.col.get_card(card_id)
         else:
@@ -1898,7 +1900,9 @@ class Dialogs:
             layout: QFormLayout = dataclasses.field(default_factory=QFormLayout)
 
         dialog = QDialog()
-        dialog.resize(800, 600)
+        # s = QApplication().desktop()
+        # dialog.resize(s.width()*0.8, 600)
+
         layout = QHBoxLayout()
         tab = QTabWidget()
         cfg = Config.get()
@@ -1914,9 +1918,13 @@ class Dialogs:
         for name, value in tab_dict.items():
             value.widget.setLayout(value.layout)
             tab.addTab(value.widget, name)
-
-        layout.addWidget(tab)
+        scrollArea = QScrollArea()
+        scrollArea.setWidget(tab)
+        scrollArea.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(scrollArea)
         dialog.setLayout(layout)
+        dialog.resize(int(tab.width()*1.1),500)
+        dialog.setContentsMargins(0,0,0,0)
         dialog.setWindowIcon(QIcon(G.src.ImgDir.config))
         dialog.setWindowTitle("配置表/configuration")
         dialog.closeEvent = lambda x: Config.save(cfg)
