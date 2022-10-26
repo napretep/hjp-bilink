@@ -280,8 +280,8 @@ class GviewOperation:
         from .configsModel import GViewData
         g:GViewData = gview
         now = now = datetime.now()
-        return sum(1 for i in Filter.do(Map.do(g.nodes.keys(),lambda x:CardOperation.getLastNextRev(x)),
-                        lambda y:y[1]<=now))
+        return sum(1 for i in Filter.do(Map.do(g.nodes.keys(),lambda x:CardOperation.getLastNextRev(x)),lambda due:due[1]<=now))
+
 
 class Utils(object):
     @dataclasses.dataclass

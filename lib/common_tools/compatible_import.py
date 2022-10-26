@@ -192,6 +192,12 @@ if Anki.isQt6:
         AlignAbsolute = Qt.AlignmentFlag.AlignAbsolute
         AlignBaseline = Qt.AlignmentFlag.AlignBaseline
 else:
+    # TODO: 'Qt.UserRole' will stop working. Please use 'Qt.ItemDataRole.UserRole' instead.
+    # TODO: isWin is deprecated: please use 'is_win'
+    # TODO: Qt.WA_DeleteOnClose' will stop working. Please use 'Qt.WidgetAttribute.WA_DeleteOnClose' instead.
+    # todo: 'QAbstractItemView.SelectRows' will stop working. Please use 'QAbstractItemView.SelectionBehavior.SelectRows' instead.
+    # TODO: 'QAbstractItemView.NoEditTriggers' will stop working. Please use 'QAbstractItemView.EditTrigger.NoEditTriggers' instead.
+    # todo: :'QItemSelectionModel.Select' will stop working. Please use 'QItemSelectionModel.SelectionFlag.Select' instead.
     # from PyQt5 import Qt
     from PyQt5 import QtGui, QtCore
     from PyQt5.QtCore import *

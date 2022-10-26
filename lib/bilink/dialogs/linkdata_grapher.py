@@ -41,7 +41,11 @@ src = common_tools.G.src
 
 
 class Grapher(QMainWindow):
-    """所有的个性化数据都储存在Entity对象中"""
+    """所有的个性化数据都储存在Entity对象中
+    TODO 图中图Item设计, 边可加描述
+    TODO CTRL+A全选,CTRL+F查找
+    TODO 漫游复习遇到视图，可以选择跳过，也可以选择加载视图中的卡片，可递归加载
+    """
     on_card_updated = pyqtSignal(object)
 
     # on_card_reviewed = pyqtSignal(str)
@@ -982,7 +986,10 @@ class Grapher(QMainWindow):
         pass
 
     class ToolBar(QToolBar):
-        """这是一个工具栏"""
+        """这是一个工具栏
+        TODO 插入卡片,新建卡片,插入视图,新建视图,查找对象
+
+        """
 
         class Actions:
             def __init__(self, parent: "Grapher.ToolBar"):
@@ -1145,7 +1152,10 @@ class Grapher(QMainWindow):
 
 
 class GViewAdmin(QDialog):
-    """视图管理器,实现改名,复制链接,删除,打开"""
+    """视图管理器,实现改名,复制链接,删除,打开
+    TODO:
+        实现视图按名称排序, 按访问频率排序, 正序逆序都要有, 以及自由排序, 自动保存展开状态, 视图管理器可以直接创建空的视图
+    """
 
     class DisplayState:
         as_tree = 0
@@ -1415,11 +1425,15 @@ class GrapherRoamingPreviewer(QMainWindow):
     点击侧边栏的复习队列上的卡片, 则渲染对应预览卡片, 回答该卡片则刷新侧边栏卡片, 刷新卡片则要自动选中第一张卡片,
     如果侧边栏是空的, 则不显示预览
     同时要保持侧边栏更新(当在其他视图里回答了相关卡片,刷新)
-    漫游复习模式按钮禁用条件: 没有满足的复习队列
     漫游复习列表为空时: 弹出提示, 点击确定后关闭漫游复习, 为空时预览窗停留在最后一张卡片.
-    编辑卡片时,需要同步更新, 先做出来看看吧
     2022年10月25日05:49:12
-    当漫游复习开启后, 需要记录当前的实例
+    TODO:
+        漫游复习模式按钮禁用条件: 没有满足的复习队列
+        当漫游复习开启后, 视图需要记录当前的实例, 再次点击时若已经打开则激活对应的窗口
+        当点击视图中的卡片时, 如果这个卡片也存在于漫游复习中, 则在漫游复习中打开他.
+        关闭视图时, 关闭对应的漫游
+        编辑卡片时,需要同步更新, 先做出来看看吧
+    Done 2022年10月26日14:42:20: 当其他地方复习了卡片, 需要监听并且更新, 方法是订阅回答事件
     """
 
     def __init__(self, superior):
@@ -1429,13 +1443,10 @@ class GrapherRoamingPreviewer(QMainWindow):
         self.dueQueue = [card_id for card_id in self.superior.data.gviewdata.nodes] # 这个需要排序获取 比如从grapher那里搞个
         initCard = common_tools.funcs.CardOperation.GetCard(self.dueQueue[0])
         self.listView = self.List(self)
-        self.cardView:"SingleCardPreviewer" = SingleCardPreviewer(initCard,parent=self,mw=mw,on_close=lambda:None)
+        self.cardView:"SingleCardPreviewer" = SingleCardPreviewer(initCard,superior=self,parent=self,mw=mw,on_close=lambda:None)
         self.container = QWidget()
         self.initUI()
         self.initEvent()
-
-        # QTimer.singleShot(1000,lambda :self.listView.selectRow(2))
-        # QTimer.singleShot(1500,lambda :self.cardView.loadNewCard(self.readCard(self.listView.getCurrCardId())))
 
 
     def readCard(self,card_id):
@@ -1543,6 +1554,19 @@ class GrapherRoamingPreviewer(QMainWindow):
                 self.tempModel.takeRow(item.row())
     pass
 
+class GrapherConfig(QDialog):
+    """
+
+    TODO:    配置表是一个窗口, 依附于某个视图
+    TODO:    配置表的数据是一个独立于视图的东西, 要独立建数据库表, 然后写应用到哪些视图上
+    TODO:        配置表数据:名称,uuid,应用视图的范围,
+        漫游复习
+    TODO:        选择卡片的方法: 全部卡片, 到期卡片, 选中的卡片, 选中的路径
+    TODO:        漫游卡片的方法: 广度优先, 深度优先, 拓扑排序, 到期时间排序, 随机顺序,
+    TODO:        漫游卡片的起点: 给定或随机, 可以右键选择
+    TODO:    设置为群组复习(通常设置为群组复习后就没有必要再开启他们的漫游复习)
+    TODO:    应用当前配置到其他视图
+    """
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

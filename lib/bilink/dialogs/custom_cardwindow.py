@@ -73,15 +73,19 @@ if not ISLOCAL:
                 print("uncaught cmd", cmd)
 
 
-    class EditNoteWindowFromThisLinkAddon(QDialog):
+    class NoteEditorDialog(QDialog):
+        """
+        TODO: note更新后要同步到对应的previewer
+        """
 
-        def __init__(self, mw, note):
+        def __init__(self, superior, mw, note:"common_tools.compatible_import.Anki.notes.Note"):
             QDialog.__init__(self, None, Qt.Window)
             mw.setupDialogGC(self)
+            self.superior=superior
             self.mw = mw
             self.form = aqt.forms.editcurrent.Ui_Dialog()
             self.form.setupUi(self)
-            self.setWindowTitle(_("Anki: Edit underlying note (add-on window)"))
+            self.setWindowTitle(f"editor of {note.card_ids()[0]}")
             self.setMinimumHeight(400)
             self.setMinimumWidth(250)
             self.form.buttonBox.button(QDialogButtonBox.Close).setShortcut(
@@ -89,8 +93,8 @@ if not ISLOCAL:
             self.editor = aqt.editor.Editor(self.mw, self.form.fieldsArea, self)
             self.editor.setNote(note, focusTo=0)
             restoreGeom(self, "note_edit")
-            self.show()
-            self.activateWindow()
+            # self.show()
+            # self.activateWindow()
             self.mw.progress.timer(100, lambda: self.editor.web.setFocus(), False)
 
         def reject(self):
@@ -111,9 +115,9 @@ if not ISLOCAL:
             self.editor.saveNow(callback)
 
 
-    def external_note_dialog(nid):
-        d = EditNoteWindowFromThisLinkAddon(aqt.mw, nid)
-        d.show()
+    # def external_note_dialog(nid):
+    #     d = NoteEditorDialog(aqt.mw, nid)
+    #     d.show()
 
 
     # print, _1 = clipper_imports.funcs.logger(__name__)
@@ -121,11 +125,12 @@ if not ISLOCAL:
     class SingleCardPreviewer(Previewer):
         """这个东西的card必须不为空否则一些功能运行不了
         当你把它作为Qwidget打开时, 注意先运行open()
+
         """
 
         def __init__(self, card: Card, superior=None, *args, **kwargs):
             self._card = card
-
+            self.editor: "Optional[NoteEditorDialog]" =None
             self.superior = superior
             if card:
                 self.card().start_timer()
@@ -135,10 +140,16 @@ if not ISLOCAL:
             self.showBoth = QCheckBox(common_tools.language.Translate.双面展示)
             self.revWidget = common_tools.widgets.ReviewButtonForCardPreviewer(self, self.bottom_layout_all)
             super().__init__(*args, **kwargs)
-            common_tools.G.signals.onCardSwitchBothSide.connect(self.handleBothSideEmit)
+
+            self.initEvent()
             self.handleBothSideEmit(common_tools.G.customPreviewerBothSide, init=True)
 
+        def initEvent(self):
+            common_tools.G.signals.onCardSwitchBothSide.connect(self.handleBothSideEmit)
+
+
         def card(self) -> Card:
+            # self._card.id.__str__()
             return self._card
 
         def _create_gui(self):
@@ -153,7 +164,7 @@ if not ISLOCAL:
             self._web = AnkiWebView(title="independent previewer")
             self.vbox.addWidget(self._web)
             self.setLayout(self.vbox)
-            restoreGeom(self, "independent preview")
+            restoreGeom(self, "independent previewer")
             self.bottombar = QHBoxLayout()
 
             self._other_side = QPushButton(QIcon(common_tools.G.src.ImgDir.right_direction), "")
@@ -163,7 +174,7 @@ if not ISLOCAL:
 
             self._other_side.setAutoDefault(False)
             self._other_side.clicked.connect(self._on_other_side)
-            self.setWindowTitle("independent preview")
+            self.setWindowTitle("independent previewer")
             # buttons
             # self.browser_button.clicked.connect(self._on_browser_button)
             # self.browser_button.setText("show in browser")
@@ -236,8 +247,8 @@ if not ISLOCAL:
             browser.onSearchActivated()
 
         def _on_edit_button(self):
-            note = self.mw.col.getNote(self.card().nid)
-            external_note_dialog(note)
+            self.editor = NoteEditorDialog(self,aqt.mw, self.mw.col.getNote(self.card().nid))
+            self.editor.show()
             # aqt.QDialog.reject(self)
             # common_tools.funcs.PDFprev_close(self.card().id, all=True)
 
@@ -259,6 +270,8 @@ if not ISLOCAL:
             self.revWidget.update_info()
             self.handleBothSideEmit(common_tools.G.customPreviewerBothSide, init=True)
             self.switchSideDirection()
+
+
     #
     # class SingleCardPreviewerMod(SingleCardPreviewer):
     #

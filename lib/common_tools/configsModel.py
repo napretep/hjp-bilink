@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass, field
 from enum import unique, Enum
 from functools import reduce
-from typing import List, Any, Union, Callable
+from typing import List, Any, Union, Callable, Optional
 
 from .language import Translate
 from .src_admin import MAXINT, MININT, src
@@ -63,7 +63,7 @@ class GViewData:
     name: str
     nodes: 'dict[str,list[Union[float,int],Union[float,int]]]'  # key=card_id,value=pos
     edges: 'list[list[str,str]]'  # 在取出时就应该保证边的唯一性,而且主要用来存json字符串,所以不用set
-
+    config:'str' = None  # TODO: 记录配置表uuid, 需要用的时候读取
     def to_html_repr(self):
         return f"uuid={self.uuid}<br>" \
                f"name={self.name}<br>" \
@@ -165,6 +165,8 @@ class ConfigModel:
     这个用来读取配置表的json文件,使之形成对应,这意味着我需要实现几个方法
     第一, 填入json格式的数据要能准确转化.
     第二, 要能保存写入到对应的文件
+    TODO:
+        翻译instruction
     """
 
     @dataclass

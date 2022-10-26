@@ -21,6 +21,7 @@ from . import configsModel
 
 from .compatible_import import *
 from . import funcs, baseClass
+
 # from ..bilink.dialogs.linkdata_grapher import Grapher
 
 if __name__ == "__main__":
@@ -1312,12 +1313,28 @@ class ConfigWidget:
 
 
 class ReviewButtonForCardPreviewer:
-    def __init__(self, papa: "Previewer",layout:"QGridLayout"):
-        self.papa: "Previewer" = papa
+    def __init__(self, papa:"SingleCardPreviewer", layout: "QGridLayout"):
+        from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewer
+        self.papa: "SingleCardPreviewer" = papa
         self.ease_button: "dict[int,QPushButton]" = {}
         self.review_buttons = self._create_review_buttons()
         self.due_info = self._create_due_info_widget()
-        layout.addWidget(self.due_info,0,0,1,1)
+        layout.addWidget(self.due_info, 0, 0, 1, 1)
+        self.initEvent()
+
+    def initEvent(self):
+        G.signals.on_card_answerd.connect(self.handle_on_card_answerd)
+        pass
+
+    def handle_on_card_answerd(self, answer: "configsModel.AnswerInfoInterface"):
+        from ..bilink.dialogs.linkdata_grapher import GrapherRoamingPreviewer
+
+        notself,equalId,isRoaming = answer.platform != self , answer.card_id == self.card().id, isinstance(self.papa.superior, GrapherRoamingPreviewer)
+        print(f"handle_on_card_answerd,{notself},{equalId},{isRoaming}")
+        if notself and equalId and isRoaming:
+            print("handle_on_card_answerd>if>ok")
+            self.papa.superior.nextCard()
+        pass
 
     def card(self):
         return self.papa.card()
@@ -1416,8 +1433,6 @@ class ReviewButtonForCardPreviewer:
         for button in self.ease_button.values():
             button.setEnabled(True)
         tooltip(Translate.已解冻)
-
-
 
 
 if __name__ == "__main__":

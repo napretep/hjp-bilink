@@ -1,3 +1,7 @@
+"""
+DONE: 存在webview右键不显示菜单的问题
+"""
+
 import time
 from dataclasses import dataclass
 from typing import Union, List
@@ -305,7 +309,7 @@ def maker(atype):
 
         if atype == T.webview:
             focus_on_mw = args[0].title == "main webview" and mw.state == "review" and mw.isActiveWindow()
-            focus_on_prev = args[0].title == "previewer"
+            focus_on_prev = args[0].title == "independent previewer"
             if not focus_on_mw and not focus_on_prev:
                 # showInfo("return")
                 return
