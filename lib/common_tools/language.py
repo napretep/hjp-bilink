@@ -387,6 +387,18 @@ class Translate:
     打开复习队列:str = rosetta("打开复习队列")
     双面展示:str=rosetta("双面展示")
     开始漫游复习:str=rosetta("开始漫游复习")
+    全部卡片:str=rosetta("全部卡片")
+    到期卡片:str=rosetta("到期卡片")
+    选中的卡片:str=rosetta("选中的卡片")
+    选中卡片的连通集:str=rosetta("选中卡片的连通集")
+    广度优先: str = rosetta("广度优先")
+    深度优先: str = rosetta("深度优先")
+    拓扑排序: str = rosetta("拓扑排序")
+    随机排序: str = rosetta("随机排序")
+    到期时间升序:str = rosetta("到期时间升序")
+    到期时间降序: str = rosetta("到期时间降序")
+    随机选择卡片开始:str=rosetta("随机选择卡片开始")
+    手动选择卡片开始:str = rosetta("手动选择卡片开始")
 
 if __name__ == "__main__":
     print(Translate.打开配置表)

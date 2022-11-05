@@ -6,6 +6,7 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/7/30 9:09'
 """
+import abc
 import dataclasses
 import logging
 import shutil
@@ -35,10 +36,11 @@ from bs4 import BeautifulSoup, element
 from . import G, compatible_import
 from .language import Translate, rosetta
 from .objs import LinkDataPair, LinkDataJSONInfo
+from . import objs
 if not ISLOCAL:
     from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewer
 from .configsModel import ConfigModel, AnswerInfoInterface, GroupReviewDictInterface, GViewData, GraphMode, \
-    ConfigModelItem, CustomConfigItemView
+    ConfigModelItem, CustomConfigItemView,BaseConfigModel
 from . import widgets
 
 
@@ -448,8 +450,147 @@ class GroupReview(object):
         tooltip("已添加到群组复习条件列表: " + condition)
 
 
-class Config:
+class BaseConfig(metaclass = abc.ABCMeta):
+    """一切配置表的基类
+    TODO 把Config中可以抽象的功能提升到这里来
+    """
+    @staticmethod
+    def get_validate(item: "ConfigModelItem"):
 
+        w = ConfigModel.Widget
+        d = {  # 不写在这的必须要有自己的validate
+                w.spin     : lambda x, itemSelf: type(x) == int and itemSelf.limit[0] <= x <= itemSelf.limit[1],
+                w.radio    : lambda x, itemSelf: type(x) == bool,
+                w.line     : lambda x, itemSelf: type(x) == str,
+                w.label    : lambda x, itemSelf: type(x) == str,
+                w.text     : lambda x, itemSelf: type(x) == str,
+                w.combo    : lambda x, itemSelf: x in itemSelf.limit,
+                w.customize: lambda x, itemSelf: True
+        }
+
+        if item.validate(item.value, item) is None:
+            # write_to_log_file(str(item.validate(item.value, item)))
+            return d[item.component]
+        else:
+            return item.validate
+
+    @staticmethod
+    def makeConfigRow(configitem: "ConfigModelItem"):
+        """这里制作配置表中的每一项"""
+        value, validate, widgetType = configitem.value, configitem.validate, configitem.component
+        typ = ConfigModel.Widget
+        tipbutton = QToolButton()
+        tipbutton.setIcon(QIcon(G.src.ImgDir.help))
+        tipbutton.clicked.connect(lambda: showInfo("<br>".join(configitem.instruction)))
+        container = QWidget()
+        layout = QHBoxLayout()
+        w = None
+        if widgetType == typ.spin:
+            w = QSpinBox(container)
+            w.setRange(configitem.limit[0], configitem.limit[1])
+            w.setValue(value)
+            w.valueChanged.connect(lambda x: configitem.setValue(x))
+        elif widgetType == typ.line:
+            w = QLineEdit()
+            w.setText(value)
+            w.textChanged.connect(lambda: configitem.setValue(w.text()))
+        elif widgetType == typ.combo:
+            w = QComboBox(container)
+            list(map(lambda x: w.addItem(x.name, x.value), configitem.limit))
+            w.setCurrentIndex(w.findData(value))
+            w.currentIndexChanged.connect(lambda x: configitem.setValue(w.currentData(role=Qt.UserRole)))
+        elif widgetType == typ.radio:
+            w = QRadioButton(container)
+            w.setChecked(value)
+            w.clicked.connect(lambda: configitem.setValue(w.isChecked()))
+        # elif widgetType == typ.list:
+        #     w = Config.List(configitem)
+        elif widgetType == typ.label:
+            w = QLabel(container)
+            w.setText(configitem.display(value))
+        elif widgetType == typ.text:
+            w = QTextEdit(container)
+            w.setContentsMargins(0, 0, 0, 0)
+            w.setText(value)
+        elif widgetType == typ.customize:
+            w = configitem.customizeComponent()(configitem, container).View  # 这个地方的警告去不掉, 很烦人.
+
+        if w is None:
+            return False
+        layout.addWidget(w)
+        layout.addWidget(tipbutton)
+        container.setLayout(layout)
+        return container
+    @staticmethod
+    def makeConfigDialog(cfg:"BaseConfigModel",onclose:"Callable"):
+        """TODO:这里的内容要整理到Config的父类中
+        onclose 接受一个高阶函数: Callable[cfg,Callable[]] 这个高阶函数的参数是本函数的第一个参数cfg
+        """
+        # from .configsModel import BaseConfigModel
+        @dataclasses.dataclass()
+        class TabDictItem:
+            widget: QWidget = dataclasses.field(default_factory=QWidget)
+            layout: QFormLayout = dataclasses.field(default_factory=QFormLayout)
+
+        dialog = QDialog()
+
+        layout = QHBoxLayout()
+        tab = QTabWidget()
+        # cfg:"BaseConfigModel" = cfg
+
+        tab_dict: "dict[Any,TabDictItem]" = {}
+        for name, value in cfg.get_editable_config().items():
+            if value.component == ConfigModel.Widget.none:
+                continue
+            if value.tab_at not in tab_dict:
+                tab_dict[value.tab_at]: 'TabDictItem' = TabDictItem()
+            item = BaseConfig.makeConfigRow(value)
+            tab_dict[value.tab_at].layout.addRow(rosetta(name), item)
+        for name, value in tab_dict.items():
+            value.widget.setLayout(value.layout)
+            tab.addTab(value.widget, name)
+        scrollArea = QScrollArea()
+        scrollArea.setWidget(tab)
+        scrollArea.setContentsMargins(0, 0, 0, 0)
+        scrollArea.setMinimumHeight(500)
+        layout.addWidget(scrollArea)
+        dialog.setLayout(layout)
+        dialog.resize(int(tab.width()*1.1),500)
+        dialog.setContentsMargins(0,0,0,0)
+        dialog.setWindowIcon(QIcon(G.src.ImgDir.config))
+        dialog.setWindowTitle("配置表/configuration")
+        if onclose:
+            dialog.closeEvent = onclose(cfg)
+        return dialog
+
+class GviewConfigOperation(BaseConfig):
+
+    @staticmethod
+    def readModelFromDB(uuid=None):
+        """这里可以当uuid为空表示新建一个配置"""
+        Logic = objs.Logic
+        DB=G.DB.go(G.DB.table_GviewConfig)
+
+        result:"objs.Record.GviewConfig" = DB.select(Logic.EQ(uuid=uuid)).return_all().zip_up().to_givenformat_data(objs.Record.GviewConfig,multiArgs=True)
+        return result
+
+    # @staticmethod
+    # def save(config:"objs.Record.GviewConfig"):
+    #
+    #
+    #     pass
+
+    # @staticmethod
+    # def
+
+    @staticmethod
+    def create(name):
+        """创建一个视图配置"""
+        return objs.Record.GviewConfig(name=name)
+
+
+class Config(BaseConfig):
+    """TODO 这里需要抽象出一个父类, 实现widget继承"""
     @staticmethod
     def read(cfg: ConfigModel, data: "dict"):
         for key, value in data.items():
@@ -462,25 +603,6 @@ class Config:
                     continue
                 cfg[key].value = value
 
-    @staticmethod
-    def get_validate(item: "ConfigModelItem"):
-
-        w = ConfigModel.Widget
-        d = {  # 不写在这的必须要有自己的validate
-                w.spin     : lambda x, item: type(x) == int and item.limit[0] <= x <= item.limit[1],
-                w.radio    : lambda x, item: type(x) == bool,
-                w.line     : lambda x, item: type(x) == str,
-                w.label    : lambda x, item: type(x) == str,
-                w.text     : lambda x, item: type(x) == str,
-                w.combo    : lambda x, item: x in item.limit,
-                w.customize: lambda x, item: True
-        }
-
-        if item.validate(item.value, item) is None:
-            # write_to_log_file(str(item.validate(item.value, item)))
-            return d[item.component]
-        else:
-            return item.validate
 
     @staticmethod
     def get() -> ConfigModel:
@@ -514,117 +636,7 @@ class Config:
         template.save_to_file(path)
         G.CONFIG = template
 
-    @staticmethod
-    def make_widget(configitem: "ConfigModelItem"):
-        """这里制作配置表中的每一项"""
-        value, validate, widgetType = configitem.value, configitem.validate, configitem.component
-        typ = ConfigModel.Widget
-        tipbutton = QToolButton()
-        tipbutton.setIcon(QIcon(G.src.ImgDir.help))
-        tipbutton.clicked.connect(lambda: showInfo("<br>".join(configitem.instruction)))
-        container = QWidget()
-        layout = QHBoxLayout()
-        w = None
-        if widgetType == typ.spin:
-            w = QSpinBox(container)
-            w.setRange(configitem.limit[0], configitem.limit[1])
-            w.setValue(value)
-            w.valueChanged.connect(lambda x: configitem.setValue(x))
-        elif widgetType == typ.line:
-            w = QLineEdit()
-            w.setText(value)
-            w.textChanged.connect(lambda: configitem.setValue(w.text()))
-        elif widgetType == typ.combo:
-            w = QComboBox(container)
-            list(map(lambda x: w.addItem(x.name, x.value), configitem.limit))
-            w.setCurrentIndex(w.findData(value))
-            w.currentIndexChanged.connect(lambda x: configitem.setValue(w.currentData(role=Qt.UserRole)))
-        elif widgetType == typ.radio:
-            w = QRadioButton(container)
-            w.setChecked(value)
-            w.clicked.connect(lambda: configitem.setValue(w.isChecked()))
-        elif widgetType == typ.list:
-            w = Config.List(configitem)
-        elif widgetType == typ.label:
-            w = QLabel(container)
-            w.setText(configitem.display(value))
-        elif widgetType == typ.text:
-            w = QTextEdit(container)
-            w.setContentsMargins(0, 0, 0, 0)
-            w.setText(value)
-        elif widgetType == typ.customize:
-            w = configitem.customizeComponent()(configitem, container).View  # 这个地方的警告去不掉, 很烦人.
 
-        if w is None:
-            return False
-        layout.addWidget(w)
-        layout.addWidget(tipbutton)
-        container.setLayout(layout)
-        return container
-
-    class List(QWidget):
-        def __init__(self, configitem: "ConfigModelItem"):
-            super().__init__()
-            self.item = configitem
-            self.list = QListWidget(self)
-            self.G_Layout = QGridLayout()
-            self.add_button = QToolButton(self)
-            self.del_button = QToolButton(self)
-            self.init_UI()
-            self.init_data()
-            self.all_event = G.objs.AllEventAdmin([
-                    [self.add_button.clicked, self.on_add_button_clicked_handle],
-                    [self.del_button.clicked, self.on_del_button_clicked_handle]
-            ]).bind()
-
-        def on_add_button_clicked_handle(self):
-            while True:
-                value, submitted = QInputDialog.getText(self, "input", "", QLineEdit.Normal, "")
-                if not submitted:
-                    return
-                if not Config.get_validate(self.item)(value):
-                    tooltip("invalid input")
-                else:
-                    self.item.value.append(value)
-                    self.init_data()
-                    break
-            G.signals.on_group_review_search_string_changed.emit()
-
-        def on_del_button_clicked_handle(self):
-            idx = self.list.selectedIndexes()
-            if not idx:
-                return
-            item = self.list.itemFromIndex(idx[0])
-            self.item.value.remove(item.text())
-            self.init_data()
-            G.signals.on_group_review_search_string_changed.emit()
-
-        def init_UI(self):
-            # self.setMaximumHeight(300)
-            self.setMinimumHeight(100)
-            self.list.setMaximumHeight(300)
-            V_layout = QVBoxLayout()
-            self.add_button.setIcon(QIcon(G.src.ImgDir.item_plus))
-            self.del_button.setIcon(QIcon(G.src.ImgDir.delete))
-            V_layout.addWidget(self.add_button)
-            V_layout.addWidget(self.del_button)
-            self.G_Layout.addWidget(self.list, 0, 0, 5, 1)
-            self.G_Layout.addLayout(V_layout, 0, 1, 1, 1, alignment=Qt.AlignTop)
-            self.G_Layout.setContentsMargins(0, 0, 0, 0)
-            self.list.setContentsMargins(0, 0, 0, 0)
-            self.setLayout(self.G_Layout)
-            pass
-
-        def init_data(self):
-            self.list.clear()
-            for data in self.item.value:
-                if re.search("\S", data):
-                    self.list.addItem(data)
-            pass
-
-        def init_events(self):
-
-            pass
 
 
 class GrapherOperation:
@@ -1894,41 +1906,11 @@ class Dialogs:
 
     @staticmethod
     def open_configuration():
-        @dataclasses.dataclass()
-        class TabDictItem:
-            widget: QWidget = dataclasses.field(default_factory=QWidget)
-            layout: QFormLayout = dataclasses.field(default_factory=QFormLayout)
+        """ 这里的内容要整理到Config的父类中"""
+        dialog = Config.makeConfigDialog(Config.get(),onclose=lambda x:lambda y:Config.save(x)) #save的参数是经过修正的cfg
 
-        dialog = QDialog()
-        # s = QApplication().desktop()
-        # dialog.resize(s.width()*0.8, 600)
+        dialog.exec()
 
-        layout = QHBoxLayout()
-        tab = QTabWidget()
-        cfg = Config.get()
-
-        tab_dict: "dict[Any,TabDictItem]" = {}
-        for name, value in cfg.get_editable_config().items():
-            if value.component == ConfigModel.Widget.none:
-                continue
-            if value.tab_at not in tab_dict:
-                tab_dict[value.tab_at]: 'TabDictItem' = TabDictItem()
-            item = Config.make_widget(value)
-            tab_dict[value.tab_at].layout.addRow(rosetta(name), item)
-        for name, value in tab_dict.items():
-            value.widget.setLayout(value.layout)
-            tab.addTab(value.widget, name)
-        scrollArea = QScrollArea()
-        scrollArea.setWidget(tab)
-        scrollArea.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(scrollArea)
-        dialog.setLayout(layout)
-        dialog.resize(int(tab.width()*1.1),500)
-        dialog.setContentsMargins(0,0,0,0)
-        dialog.setWindowIcon(QIcon(G.src.ImgDir.config))
-        dialog.setWindowTitle("配置表/configuration")
-        dialog.closeEvent = lambda x: Config.save(cfg)
-        dialog.exec_()
     @staticmethod
     def open_clipper(pairs_li=None, clipboxlist=None, **kwargs):
         if platform.system() in {"Darwin", "Linux"}:
@@ -1964,7 +1946,7 @@ class Dialogs:
         elif isinstance(FROM, BrowserPreviewer):
             card_id = FROM.card().id
             pass
-        elif isinstance(FROM, SingleCardPreviewerMod):
+        elif isinstance(FROM, SingleCardPreviewer):
             card_id = FROM.card().id
         else:
             TypeError("未能找到card_id")

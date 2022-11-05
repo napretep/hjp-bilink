@@ -9,6 +9,8 @@ __time__ = '2021/8/1 16:48'
 import os
 import re
 import urllib
+from abc import ABC
+
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
 from datetime import datetime
@@ -1000,29 +1002,33 @@ def message_box_for_time_up(seconds):
 
 class ConfigWidget:
     class PDFUrlLinkBooklist(baseClass.ConfigTableView):
-        colnames = ["PDFpath", "name", "style", "showPage"]
+        colnames = ["PDFpath", "name", "style", "showPage"]  # 就是表有几个列,分别叫什么
+        defaultRowData = ["", "", "", False]
 
-        def NewRow(self):
+        def NewRow(self):  # 新增一行的函数
             w = self.NewRowFormWidget(self)
             w.widget.exec()
-            self.AppendRow(w.colItems)
-            self.SaveDataToConfigModel()
+            if w.ok:
+                self.AppendRow(w.colItems)
 
         def ShowRowEditor(self, row: "list[ConfigWidget.PDFUrlLinkBooklist.TableItem]"):
-            # dialog = QDialog()
-            # dialog.resize(300, 600)
-            layout = QFormLayout()
-            textItemList = list(map(lambda col: QTextEdit(col.text()), row[0:3]))
-
-            list(map(lambda idx: textItemList[idx].textChanged.connect(
-                    lambda: row[idx].setData(textItemList[idx].toPlainText(), ItemDataRole.DisplayRole)
-            ), range(3)))
-            funcs.Map.do(range(3), lambda idx: layout.addRow(self.colnames[idx], textItemList[idx]))
-            layout.addRow(self.colnames[3], row[3].ShowAsWidget())
-            self.rowEditor.setLayout(layout)
-            self.rowEditor.exec()
+            w = self.NewRowFormWidget(self, row)
+            w.widget.exec()
+            if w.ok:
+                w.setValueToTableRowFromForm()
+            # layout = QFormLayout()
+            # textItemList = list(map(lambda col: QTextEdit(col.text()), row[0:3]))
+            #
+            # list(map(lambda idx: textItemList[idx].textChanged.connect(
+            #         lambda: row[idx].setData(textItemList[idx].toPlainText(), ItemDataRole.DisplayRole)
+            # ), range(3)))
+            # funcs.Map.do(range(3), lambda idx: layout.addRow(self.colnames[idx], textItemList[idx]))
+            # layout.addRow(self.colnames[3], row[3].ShowAsWidget())
+            # self.rowEditor.setLayout(layout)
+            # self.rowEditor.exec()
 
         def SaveDataToConfigModel(self):
+
             newConfigItem = []
             for row in range(self.model.rowCount()):
                 line = []
@@ -1039,7 +1045,7 @@ class ConfigWidget:
                         line.append(item.text())
                 if len(line) > 0:
                     newConfigItem.append(line)
-            self.Item.setValue(newConfigItem)
+            self.ConfigModelItem.setValue(newConfigItem)
             pass
 
         def GetRowFromData(self, data: "list[str]"):
@@ -1074,14 +1080,39 @@ class ConfigWidget:
             def __init__(self, superior: "ConfigWidget.PDFUrlLinkBooklist", colItems: "list[ConfigWidget.PDFUrlLinkBooklist.TableItem]" = None):
                 if not colItems:
                     colItems = funcs.Map.do(superior.defaultRowData, lambda unit: superior.TableItem(superior, unit))
+                # self.col0: "QTextEdit" = QTextEdit()
+                # self.col1: "QTextEdit" = QTextEdit()
+                # self.col2: "QTextEdit" = QTextEdit()
+                # self.col3: "QRadioButton" = QRadioButton()
+                self.colWidgets=[QTextEdit(),
+                                 QTextEdit(),
+                                 QTextEdit(),
+                                 QRadioButton()]
+                self.colItems = colItems
                 super().__init__(superior, colItems)
+                # funcs.Map.do(range(3), lambda idx: self.colWidgets[idx].textChanged.connect(lambda: self.colItems[idx].setText(self.__dict__[idx""].toPlainText())))
+                # self.colWidgets[3].clicked.connect(lambda: self.colItems[3].setText(str(self.colWidgets[3].isChecked())))
+
+            def SetupWidget(self):
+                self.colWidgets[0].setText(self.colItems[0].text())
+                self.colWidgets[1].setText(self.colItems[1].text())
+                self.colWidgets[2].setText(self.colItems[2].text())
+                self.colWidgets[3].setChecked(self.colItems[3].text() == "True")
+                pass
 
             def SetupEvent(self):
-                funcs.Map.do(range(3), lambda idx: self.colWidgets[idx].textChanged.connect(lambda: self.colItems[idx].setText(self.colWidgets[idx].toPlainText())))
-                self.colWidgets[3].clicked.connect(lambda: self.colItems[3].setText(str(self.colWidgets[3].isChecked())))
+                pass
+
+            def setValueToTableRowFromForm(self):
+                self.colItems[0].SetValue(self.colWidgets[0].toPlainText(), self.colWidgets[0].toPlainText())
+                self.colItems[1].SetValue(self.colWidgets[1].toPlainText(), self.colWidgets[1].toPlainText())
+                self.colItems[2].SetValue(self.colWidgets[2].toPlainText(), self.colWidgets[2].toPlainText())
+                self.colItems[3].SetValue(f"{self.colWidgets[3].isChecked()}", self.colWidgets[3].isChecked())
 
     class DescExtractPresetTable(baseClass.ConfigTableView):
-        """模板Id:combo, field:受模板影响显示可选combo, length为spinbox, regexp为字符串用textedit
+        """
+        提取描述方式预设表
+        模板Id:combo, field:受模板影响显示可选combo, length为spinbox, regexp为字符串用textedit
 
         """
         colnames = ["templateName", "fieldName", "length", "regexp", "autoUpdateDesc"]
@@ -1094,12 +1125,13 @@ class ConfigWidget:
             autoUpdateDesc = 5
 
         defaultRowData = [(-1, "ALL_TEMPLATES", colEnum.template),
-                          ((-1, -1), "ALL_FIELDS", colEnum.field),
+                          ((-1, -1), "ALL_FIELDS", colEnum.field),  # (dataformat.templateId, dataformat.fieldId), dataformat.fieldName, colType.field)
                           (32, "32", colEnum.length),
                           ("", "", colEnum.regexp),
                           (True, "True", colEnum.autoUpdateDesc)]
 
         def GetRowFromData(self, data: "list[str]"):
+            """这里data是一行对象"""
             if len(data) < len(self.colnames):
                 data += self.defaultRowData[len(data):]
             dataformat = self.DataFormat(*data)
@@ -1113,13 +1145,17 @@ class ConfigWidget:
             ]
 
         def NewRow(self):
-            w = self.RowFormWidget(self)
+            w = self.NewRowFormWidget(self)
             w.widget.exec()
-            self.AppendRow(w.colItems)
+            if w.ok:
+                self.AppendRow(w.colItems)
 
         def ShowRowEditor(self, row: "list[ConfigWidget.DescExtractPresetTable.TableItem]"):
-            self.RowFormWidget(self, row).widget.exec()
-            self.SaveDataToConfigModel()
+            w = self.NewRowFormWidget(self, colItems=row)
+            w.widget.exec()
+            if w.ok:
+                w.setValueToTableRowFromForm()
+                self.SaveDataToConfigModel()
 
         def OnTemplateComboBoxChanged(self, item: "ConfigWidget.DescExtractPresetTable.TableItem", templateId):
             row = self.model.indexFromItem(item).row()
@@ -1137,10 +1173,12 @@ class ConfigWidget:
                     value = item.GetValue()
                     rowdata.append(value)
                 data.append(rowdata)
-            self.Item.setValue(data)
+            self.ConfigModelItem.setValue(data)
             pass
 
         class TableItem(baseClass.ConfigTableView.TableItem):
+            """他是大表的项"""
+
             def __init__(self, superior, value, name, valueType):
                 super().__init__(superior, name)
                 self.superior: "ConfigWidget.DescExtractPresetTable" = superior
@@ -1150,24 +1188,30 @@ class ConfigWidget:
             def SetupFieldCombo(self, templateId: "int", fieldId: "int" = None):
                 """text=字段的名字, value=[模板id,字段id]"""
                 colType = self.superior.colEnum
-
+                print("call: SetupFieldCombo")
                 if self.valueType == colType.field:
                     for i in range(self.innerWidget.count()):
                         self.innerWidget.removeItem(i)
                     self.innerWidget.clear()
-                    print("self.valueType == colType.field,templateId=" + templateId.__str__() + " clear()")
+                    # print("self.valueType == colType.field,templateId=" + templateId.__str__() + " clear()")
 
                     if templateId > 0:
                         fields = funcs.CardTemplateOperation.GetModelFromId(templateId)["flds"]
                         self.innerWidget.addItem("ALL_FIELDS", (templateId, -1))
                         for _field in fields:
+                            print(f"templateId={templateId}, fieldId={_field['ord']}")
                             self.innerWidget.addItem(_field["name"], (templateId, _field["ord"]))
-                        idx = fieldId if fieldId else 0
+                            # self.innerWidget
+                        idx = sum([i + 1 if self.innerWidget.itemData(i, role=ItemDataRole.UserRole) == (templateId, fieldId) else 0 for i in range(self.innerWidget.count())]) - 1 if fieldId is not None else 0
+                        print(f"templateId > 0, fieldId={fieldId},idx={idx}")
                     else:
                         self.innerWidget.addItem("ALL_FIELDS", (-1, -1))
                         self.innerWidget.addItem("front", (-1, -2))
                         self.innerWidget.addItem("back", (-1, -3))
-                        idx = self.innerWidget.findData((-1, fieldId), ItemDataRole.UserRole) if fieldId else 0
+                        idx = sum([i + 1 if self.innerWidget.itemData(i, role=ItemDataRole.UserRole) == (-1, fieldId) else 0 for i in range(self.innerWidget.count())]) - 1 if fieldId is not None else 0
+                        if idx == -1:
+                            idx = 0
+                        print(f"templateId <= 0, fieldId={fieldId},idx={idx}")
                     self.innerWidget.setCurrentIndex(idx)
 
                     return
@@ -1188,9 +1232,9 @@ class ConfigWidget:
                 self.innerWidget.addItem("ALL_TEMPLATES", -1)
                 for template in templates:
                     self.innerWidget.addItem(template["name"], template["id"])
-                idx = self.innerWidget.findData(data, ItemDataRole.UserRole)
+                idx = self.innerWidget.findData(data)
                 self.innerWidget.setCurrentIndex(idx)
-                # self.innerWidget.currentIndexChanged.connect(lambda Idx: CurIndexChanged(Idx))
+
                 return
 
             def ShowAsWidget(self):
@@ -1199,6 +1243,7 @@ class ConfigWidget:
                 layout = QVBoxLayout()
                 colType = self.superior.colEnum
                 data = self.data(ItemDataRole.UserRole)
+                print(f"ShowAsWidget: data={data},self.valueType={self.valueType},self.text={self.text()}")
                 if self.valueType in [colType.field, colType.template]:
                     self.innerWidget = QComboBox()
                     if self.valueType == colType.field:
@@ -1216,14 +1261,14 @@ class ConfigWidget:
                 else:
                     if self.valueType == colType.length:
                         self.innerWidget = QSpinBox()
-                        self.innerWidget.setValue(data)
+                        self.innerWidget.setValue(int(data))
                         # self.innerWidget.valueChanged.connect(lambda val: self.setText(str(val)))
                     elif self.valueType == colType.regexp:
                         self.innerWidget = QTextEdit()
                         self.innerWidget.setText(data)
                     else:
                         self.innerWidget = QRadioButton()
-                        self.innerWidget.setChecked(data)
+                        self.innerWidget.setChecked(data == "True")
                         # self.innerWidget.textChanged.connect(lambda : self.setText(self.innerWidget.toPlainText()))
                 # layout.addWidget(self.innerWidget)
                 # self.widget.setLayout(layout)
@@ -1232,15 +1277,19 @@ class ConfigWidget:
             def GetValue(self):
                 colType = self.superior.colEnum
                 if self.valueType == colType.field:
-                    return self.data(ItemDataRole.UserRole)[1]
+                    return self.data(ItemDataRole.UserRole)[1]  # 1表示保存field id
                 elif self.valueType == colType.template:
-                    return self.data(ItemDataRole.UserRole)
+                    return self.data(ItemDataRole.UserRole)  # template id
                 elif self.valueType == colType.regexp:
                     return self.text()
                 elif self.valueType == colType.autoUpdateDesc:
                     return self.text() == "True"
                 else:
                     return int(self.text())
+
+        class RowItem:
+            def __init__(self, itemLi: "list[ConfigWidget.DescExtractPresetTable.TableItem]"):
+                pass
 
         class DataFormat:
             templateId: "int"
@@ -1273,47 +1322,275 @@ class ConfigWidget:
                 self.length = length
                 self.regexp = regexp
 
-        class RowFormWidget(baseClass.ConfigTableNewRowFormView):
-            def __init__(self, superior, colItems: "list[ConfigWidget.DescExtractPresetTable.TableItem]" = None):
+        class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
+            def __init__(self, superior: "ConfigWidget.DescExtractPresetTable", colItems: "list[ConfigWidget.DescExtractPresetTable.TableItem]" = None):
+
                 if not colItems:
                     colItems = funcs.Map.do(superior.defaultRowData, lambda data: superior.TableItem(superior, *data))
+
+                self.colItems = colItems
+                # self.colWidgets: "list[QWidget]" = funcs.Map.do(self.colItems, lambda item: item.ShowAsWidget())
+                # self.col0: "QComboBox" = QComboBox()  # self.colWidgets[0]
+                # self.col1: "QComboBox" = QComboBox()  # self.colWidgets[1]
+                # self.col2: "QSpinBox" = QSpinBox()  # self.colWidgets[2]
+                # self.col3: "QTextEdit" = QTextEdit()  # self.colWidgets[3]
+                # self.col4: "QRadioButton" = QRadioButton()  # self.colWidgets[4]
+                self.colWidgets = [ QComboBox(),
+                                    QComboBox(),
+                                    QSpinBox(),
+                                    QTextEdit(),
+                                    QRadioButton()
+                                    ]
+                super().__init__(superior, colItems)
+
+            def SetupWidget(self):
+                self.SetupTemplateCombox()
+                self.SetupFieldCombox()
+                self.SetupLengthSpinbox()
+                self.SetupRegexTextedit()
+                self.SetupSyncRadiobutton()
+
+            # def SetupUI(self):
+            #     from . import G
+            #     hlayout = QHBoxLayout()
+            #     self.okbtn.setIcon(QIcon(G.src.ImgDir.correct))
+            #
+            #     self.mainLayout.addLayout(self.layout)
+            #     hlayout.addWidget(self.okbtn)
+            #     self.mainLayout.addLayout(hlayout)
+            #     self.mainLayout.setAlignment(Qt.AlignRight)
+            #     self.widget.setLayout(self.mainLayout)
+            #     funcs.Map.do(range(len(self.superior.colnames)), lambda i: self.layout.addRow(self.superior.colnames[i], self.__dict__[f"col{i}"]))
+
+            def SetupTemplateCombox(self):
+                templateId = self.colItems[0].data(role=ItemDataRole.UserRole)
+
+                templates = funcs.CardTemplateOperation.GetAllTemplates()
+                self.colWidgets[0].addItem("ALL_TEMPLATES", -1)
+                for template in templates:
+                    self.colWidgets[0].addItem(template["name"], template["id"])
+                idx = self.colWidgets[0].findData(templateId)
+                self.colWidgets[0].setCurrentIndex(idx)
+                pass
+
+            def SetupFieldCombox(self, templateId=None, fieldId=None):
+                templateId = self.colItems[0].data(role=ItemDataRole.UserRole) if templateId is None else templateId
+                fieldId = self.colItems[1].data(role=ItemDataRole.UserRole)[1] if fieldId is None else fieldId
+                self.colWidgets[1].clear()
+
+                if templateId > 0:
+                    fields = funcs.CardTemplateOperation.GetModelFromId(templateId)["flds"]
+                    self.colWidgets[1].addItem("ALL_FIELDS", (templateId, -1))
+                    for _field in fields:
+                        print(f"templateId={templateId}, fieldId={_field['ord']}")
+                        self.colWidgets[1].addItem(_field["name"], (templateId, _field["ord"]))
+                        # self.innerWidget
+                    idx = sum([i + 1 if self.colWidgets[1].itemData(i, role=ItemDataRole.UserRole) == (templateId, fieldId) else 0 for i in range(self.colWidgets[1].count())]) - 1 if fieldId is not None else 0
+                    print(f"templateId > 0, fieldId={fieldId},idx={idx}")
+                else:
+                    self.colWidgets[1].addItem("ALL_FIELDS", (-1, -1))
+                    self.colWidgets[1].addItem("front", (-1, -2))
+                    self.colWidgets[1].addItem("back", (-1, -3))
+                    idx = sum([i + 1 if self.colWidgets[1].itemData(i, role=ItemDataRole.UserRole) == (-1, fieldId) else 0 for i in range(self.colWidgets[1].count())]) - 1 if fieldId is not None else 0
+                    if idx == -1:
+                        idx = 0
+                    print(f"templateId <= 0, fieldId={fieldId},idx={idx}")
+                self.colWidgets[1].setCurrentIndex(idx)
+
+                pass
+
+            def SetupLengthSpinbox(self):
+                self.colWidgets[2].setValue(self.colItems[2].data(role=ItemDataRole.UserRole))
+                pass
+
+            def SetupRegexTextedit(self):
+                self.colWidgets[3].setText(self.colItems[3].data(role=ItemDataRole.UserRole))
+                pass
+
+            def SetupSyncRadiobutton(self):
+                self.colWidgets[4].setChecked(self.colItems[4].data(role=ItemDataRole.UserRole))
+                pass
+
+            def SetupEvent(self):
+                self.okbtn.clicked.connect(self.OnOkClicked)
+                self.colWidgets[0].currentIndexChanged.connect(lambda idx: self.SetupFieldCombox(self.colWidgets[0].currentData(), -1))
+                pass
+
+            def setValueToTableRowFromForm(self):
+                self.colItems[0].SetValue(self.colWidgets[0].currentText(), self.colWidgets[0].currentData(ItemDataRole.UserRole))
+                self.colItems[1].SetValue(self.colWidgets[1].currentText(), self.colWidgets[1].currentData(ItemDataRole.UserRole))
+                self.colItems[2].SetValue(self.colWidgets[2].text(), self.colWidgets[2].value())
+                self.colItems[3].SetValue(self.colWidgets[3].toPlainText(), self.colWidgets[3].toPlainText())
+                self.colItems[4].SetValue(f"{self.colWidgets[4].isChecked()}", self.colWidgets[4].isChecked())
+
+    class GviewConfigApplyTable(baseClass.ConfigTableView):
+        """TODO 完成GviewConfig整体框架后, 再把这里设计好
+        TODO 需要的功能: 增删改gview的uuid和名字列表
+
+        """
+        def NewRow(self):
+            w = self.NewRowFormWidget(self)
+            w.widget.exec()
+            if w.ok:
+                self.AppendRow(w.colItems)
+
+        colnames = ["name", "id"]
+        defaultRowData = [()]
+
+        def ShowRowEditor(self, row: "list[ConfigWidget.GviewConfigApplyTable.TableItem]"):
+            w = self.NewRowFormWidget(self)
+            w.widget.exec()
+            if w.ok:
+                w.setValueToTableRowFromForm()
+
+        def SaveDataToConfigModel(self):
+
+            newConfigItem = []
+            for row in range(self.model.rowCount()):
+                item = self.model.item(row, 1)
+                newConfigItem.append(item.text())
+            self.ConfigModelItem.setValue(newConfigItem)
+            pass
+
+        def GetRowFromData(self, data: "list[str]"):
+            # return [for itemname in data]
+            return list(map(lambda itemname: ConfigWidget.GviewConfigApplyTable.TableItem(self, itemname), data))
+
+        class TableItem(baseClass.ConfigTableView.TableItem):
+
+            def __init__(self, superior, name):
+                self.isBool = False
+                if type(name) != str:
+                    name = str(name)
+                    self.isBool = True
+                super().__init__(superior, name)
+                self.superior: "ConfigWidget.GviewConfigApplyTable" = superior
+
+            def ShowAsWidget(self):
+                if self.isBool:
+                    widget = QRadioButton()
+                    widget.setChecked(self.text() == "True")
+                else:
+                    widget = QTextEdit()
+                    widget.setText(self.text())
+                return widget
+
+            def GetValue(self):
+                return self.text()
+
+            pass
+
+        class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
+            """TODO 行编辑器需要有一个搜索框, 从输入第一个字开始搜索, 要模糊搜索, 选中或双击搜索结果添加到本地"""
+            def GetColWidgets(self) -> list[QWidget]:
+                pass
+
+            def SetupWidget(self):
+                pass
+
+            def setValueToTableRowFromForm(self): # TODO 实现这个函数
+                # self.colItems =
+                pass
+
+            def __init__(self, superior: "ConfigWidget.GviewConfigApplyTable", colItems: "list[ConfigWidget.GviewConfigApplyTable.TableItem]" = None):
+                if not colItems:
+                    colItems = funcs.Map.do(superior.defaultRowData, lambda unit: superior.TableItem(superior, unit))
                 super().__init__(superior, colItems)
 
             def SetupEvent(self):
-                col0: "QComboBox" = self.colWidgets[0]
-                col1: "QComboBox" = self.colWidgets[1]
-                col2: "QSpinBox" = self.colWidgets[2]
-                col3: "QTextEdit" = self.colWidgets[3]
-                col4: "QRadioButton" = self.colWidgets[4]
-                col0.currentIndexChanged.connect(lambda idx: OnCol0CurrentIndexChanged(idx))
-                col1.currentIndexChanged.connect(lambda idx: OnCol1CurrentIndexChanged(idx))
-                col2.valueChanged.connect(lambda val: self.colItems[2].setText(str(val)))
-                col3.textChanged.connect(lambda: self.colItems[3].setText(col3.toPlainText()))
-                col4.clicked.connect(lambda: self.colItems[4].setText(col4.isChecked().__str__()))
+                funcs.Map.do(range(3), lambda idx: self.colWidgets[idx].textChanged.connect(lambda: self.colItems[idx].setText(self.colWidgets[idx].toPlainText())))
+                self.colWidgets[3].clicked.connect(lambda: self.colItems[3].setText(str(self.colWidgets[3].isChecked())))
 
-                def OnCol0CurrentIndexChanged(idx):
-                    self.colItems[0].setData(col0.currentData(ItemDataRole.UserRole), ItemDataRole.UserRole)
-                    self.colItems[0].setText(col0.currentText())
-                    InitCol1(col0.currentData(ItemDataRole.UserRole))
+    class GroupReviewConditionList(baseClass.ConfigTableView):
+        """"""
+        colnames = ["searchString"]
+        defaultRowData = [("",)]
 
-                def OnCol1CurrentIndexChanged(idx):
-                    self.colItems[1].setData(col1.currentData(ItemDataRole.UserRole), ItemDataRole.UserRole)
-                    self.colItems[1].setText(col1.currentText())
+        def NewRow(self):
+            print("NewRow(self)")
+            w = self.NewRowFormWidget(self)
+            w.widget.exec()
+            if w.ok:
+                self.AppendRow(w.colItems)
 
-                def InitCol1(tmplId):
-                    col1.clear()
-                    idx = 0
-                    if tmplId > 0:
-                        fields = funcs.CardTemplateOperation.GetModelFromId(tmplId)["flds"]
-                        funcs.Map.do(fields, lambda _field: col1.addItem(_field["name"], (tmplId, _field["ord"])))
-                        col1.addItem("ALL_FIELDS", (tmplId, -1))
-                    else:
-                        funcs.Map.do([("ALL_FIELDS", (-1, -1)), ("FRONT", (-1, -2)), ("BACK", (-1, -3))], lambda col1data: col1.addItem(col1data[0], col1data[1]))
-                    col1.setCurrentIndex(idx)
+            pass
+
+        def ShowRowEditor(self, row: "list[baseClass.ConfigTableView.Item]"):
+            w = self.NewRowFormWidget(self,row)
+            w.widget.exec()
+            # if w.ok:
+            #     w.setValueToTableRowFromForm()
+            pass
+
+        def SaveDataToConfigModel(self):
+            v = []
+            [v.append(self.model.item(i, 0).text()) for i in range(self.model.rowCount())]
+            self.ConfigModelItem.setValue(v)
+            pass
+
+        def SetupData(self):
+            """重载这个函数是因为List没有二维数据只有string, 而父类是以二维数据的形式工作, 所以要手动添加一个[row]"""
+            self.model.setHorizontalHeaderLabels(self.colnames)
+            self.viewTable.setModel(self.model)
+            raw_data = self.ConfigModelItem.value
+            list(map(lambda row: self.AppendRow(self.GetRowFromData([row])), raw_data))
+
+        class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
+            """输入文本即可,如果是gview开头则要检查是否存在"""
+
+            # def GetColWidgets(self) -> list[QWidget]:
+            #     return [self.col0]
+            #     pass
+
+            def __init__(self, superior: "ConfigWidget.GroupReviewConditionList", colItems: "list[ConfigWidget.GroupReviewConditionList.TableItem]" = None):
+                """注意,defaultRowData需要考虑superior.TableItem(superior, data)载入是否正确"""
+                if not colItems:
+                    colItems = funcs.Map.do(superior.defaultRowData, lambda data: superior.TableItem(superior, *data))
+                self.col0: "QTextEdit" = QTextEdit()  # self.colWidgets[0]
+                self.colItems = colItems
+                self.colWidgets=[QTextEdit()]
+                super().__init__(superior, colItems)
+
+            def SetupWidget(self):
+                self.colWidgets[0].setText(self.colItems[0].text())
+                pass
+
+            def setValueToTableRowFromForm(self):
+                self.colItems[0].SetValue(self.colWidgets[0].toPlainText(),self.colWidgets[0].toPlainText())
+                pass
+
+            def SetupEvent(self):
+                pass
+                # funcs.Map.do(range(len(self.superior.colnames)), lambda idx: self.colWidgets[idx].textChanged.connect(lambda: self.colItems[idx].setText(self.colWidgets[idx].toPlainText())))
+                # self.colWidgets[3].clicked.connect(lambda: self.colItems[3].setText(str(self.colWidgets[3].isChecked())))
+
+        class TableItem(baseClass.ConfigTableView.TableItem):
+
+            def __init__(self, superior, name):
+                self.isBool = False
+                if type(name) != str:
+                    name = str(name)
+                    self.isBool = True
+                super().__init__(superior, name)
+                self.superior: "ConfigWidget.GroupReviewConditionList" = superior
+
+            def ShowAsWidget(self):
+                if self.isBool:
+                    widget = QRadioButton()
+                    widget.setChecked(self.text() == "True")
+                else:
+                    widget = QTextEdit()
+                    widget.setText(self.text())
+                return widget
+
+            def GetValue(self):
+                return self.text()
+
+            pass
 
 
 class ReviewButtonForCardPreviewer:
-    def __init__(self, papa:"SingleCardPreviewer", layout: "QGridLayout"):
+    def __init__(self, papa, layout: "QGridLayout"):
         from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewer
         self.papa: "SingleCardPreviewer" = papa
         self.ease_button: "dict[int,QPushButton]" = {}
@@ -1329,7 +1606,7 @@ class ReviewButtonForCardPreviewer:
     def handle_on_card_answerd(self, answer: "configsModel.AnswerInfoInterface"):
         from ..bilink.dialogs.linkdata_grapher import GrapherRoamingPreviewer
 
-        notself,equalId,isRoaming = answer.platform != self , answer.card_id == self.card().id, isinstance(self.papa.superior, GrapherRoamingPreviewer)
+        notself, equalId, isRoaming = answer.platform != self, answer.card_id == self.card().id, isinstance(self.papa.superior, GrapherRoamingPreviewer)
         print(f"handle_on_card_answerd,{notself},{equalId},{isRoaming}")
         if notself and equalId and isRoaming:
             print("handle_on_card_answerd>if>ok")

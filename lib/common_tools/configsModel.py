@@ -21,7 +21,7 @@ from .language import Translate
 from .src_admin import MAXINT, MININT, src
 from . import widgets, terms, baseClass
 from .compatible_import import *
-from .compatible_import import tooltip,  isMac, isWin
+from .compatible_import import tooltip, isMac, isWin
 from typing import TYPE_CHECKING
 
 
@@ -61,9 +61,10 @@ class CustomConfigItemView:
 class GViewData:
     uuid: str
     name: str
-    nodes: 'dict[str,list[Union[float,int],Union[float,int]]]'  # key=card_id,value=pos
-    edges: 'list[list[str,str]]'  # 在取出时就应该保证边的唯一性,而且主要用来存json字符串,所以不用set
-    config:'str' = None  # TODO: 记录配置表uuid, 需要用的时候读取
+    nodes: 'dict[str,list[Union[float,int],Union[float,int]]]'  # TODO key=card_id,value=[posx,posy,priority,accesstimes]
+    edges: 'list[list[str,str]]'  # 在取出时就应该保证边的唯一性,而且主要用来存json字符串,所以不用set TODO #[fromNode, toNode, desc]
+    config: 'str' = ""  # TODO: 记录配置表uuid, 需要用的时候读取
+
     def to_html_repr(self):
         return f"uuid={self.uuid}<br>" \
                f"name={self.name}<br>" \
@@ -72,10 +73,11 @@ class GViewData:
 
     def to_DB_format(self):
         return {
-                "uuid" : self.uuid,
-                "name" : self.name,
-                "nodes": f"{json.dumps(self.nodes)}",
-                "edges": f"{json.dumps(self.edges)}"
+                "uuid"  : self.uuid,
+                "name"  : self.name,
+                "nodes" : f"{json.dumps(self.nodes)}",
+                "edges" : f"{json.dumps(self.edges)}",
+                "config": self.config
         }
 
     def __hash__(self):
@@ -86,7 +88,7 @@ class GViewData:
 class GraphMode:
     normal: int = 0
     view_mode: int = 1
-    debug_mode :int=2
+    debug_mode: int = 2
 
 
 @dataclass
@@ -160,13 +162,9 @@ class ComboItem:
 
 
 @dataclass
-class ConfigModel:
+class BaseConfigModel:
     """
-    这个用来读取配置表的json文件,使之形成对应,这意味着我需要实现几个方法
-    第一, 填入json格式的数据要能准确转化.
-    第二, 要能保存写入到对应的文件
-    TODO:
-        翻译instruction
+    为了防止以后看不懂, 说明一下用法, 这个类是定制模板, 先实例化之后再修改模板的默认值.
     """
 
     @dataclass
@@ -183,6 +181,69 @@ class ConfigModel:
         text = 9
         customize = 10
 
+    def save_to_file(self, path):
+        json.dump(self.get_dict(), open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=4)
+
+    def get_dict(self):
+        d = {}
+        for key, value in self.__dict__.items():
+            if isinstance(value, ConfigModelItem):
+                d[key] = value.value
+            else:
+                d[key] = value
+        return d
+
+    def to_json_string(self):
+        return json.dumps(self.get_dict(), ensure_ascii=False, indent=4)
+
+    @staticmethod
+    def json_load(source):
+        raise NotImplementedError("")
+
+    @staticmethod
+    def readData(fromData: "dict", ConfigModel):
+        todata: dict = {}
+        for k, v in fromData.items():
+            todata[k] = ConfigModelItem(**v)
+        config = ConfigModel(**todata)
+        return config
+
+    def get_editable_config(self):
+        d = {}
+        for key, value in self.__dict__.items():
+
+            if type(value).__name__ != ConfigModelItem.__name__ or value.hide:
+                continue
+            d[key] = value
+        return d
+
+    def __setitem__(self, key, value):
+        self.__dict__[key].value = value
+
+    def __iter__(self):
+        return self.__dict__.items().__iter__()
+
+    def __getitem__(self, item):
+        return self.__dict__[item]
+
+    def __contains__(self, item):
+        return item in self.__dict__.keys()
+
+
+@dataclass
+class ConfigModel(BaseConfigModel):
+    """
+
+    TODO:
+        翻译instruction
+    """
+
+    @staticmethod
+    def json_load(path) -> "ConfigModel":
+        """从path读取,立即保存到path,是因为有可能这里的版本更高级,有新功能"""
+        fromdata: dict = json.load(open(path, "r", encoding="utf-8"))
+        return ConfigModel.readData(fromdata, ConfigModel)
+
     @staticmethod
     def pdfurl_default_system_cmd():
         """因为不同的系统需要的命令不同,所以要这个东西来确定"""
@@ -194,7 +255,7 @@ class ConfigModel:
         return ""
 
     gview_admin_default_display: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["默认的视图管理器展示视图的方式"],
+            instruction=["默认的视图管理器展示视图的方式", "The default way the Gview manager presents the Gview"],
             value=0,
             component=ConfigModel.Widget.none,
             validate=lambda x, item: x in item.limit,
@@ -216,18 +277,17 @@ class ConfigModel:
     # ))
 
     time_up_buzzer: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["该项如果设为大于0的值,比如10,则在10秒后弹出提示框,提醒你已经看了10秒卡片",
-                         "提示框有三个按钮可选, 取消,重新计时,继续, 第一个表示什么都不做, 第二个表示再次计时, 第三个表示执行自动操作",
-                         "如果设为0,则表示关闭该功能"
+            instruction=["""该项如果设为大于0的值,比如10,则在10秒后弹出提示框,提醒你已经看了10秒卡片,提示框有三个按钮可选, 取消,重新计时,继续, 第一个表示什么都不做, 第二个表示再次计时, 第三个表示执行自动操作,如果设为0,则表示关闭该功能""",
+                         "This item if set to a value greater than 0, such as 10, then after 10 seconds pop-up box to remind you have looked at the card for 10 seconds, the alert box has three buttons to choose from, cancel, retime, continue, the first means do nothing, the second means time again, the third means the implementation of automatic operations, if set to 0, it means that the function is closed"
                          ],
             value=0,
             component=ConfigModel.Widget.spin,
             tab_at=Translate.复习相关,
     ))
     time_up_auto_action: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["该项设置复习时间到后, 选择'继续'按钮所对应的自动操作,可选以下几种自动操作:",
-                         "no action, again, hard, good, easy, delay 1 day, delay 3 days, delay 1 week, delay 1 month, customize delay,just show answer",
-                         "其中delay表示推迟卡片, 推迟不会有复习记录, customize delay可以在时间到了后手动填写推迟天数"],
+            instruction=[
+                    """该项设置复习时间到后, 选择'继续'按钮所对应的自动操作,可选以下几种自动操作:no action, again, hard, good, easy, delay 1 day, delay 3 days, delay 1 week, delay 1 month, customize delay,just show answer,其中delay表示推迟卡片, 推迟不会有复习记录, customize delay可以在时间到了后手动填写推迟天数""",
+                    "This item sets the automatic action corresponding to the 'Continue' button when the review time is up, you can choose the following automatic actions: no action, again, hard, good, easy, delay 1 day, delay 3 days, delay 1 week, delay 1 month, customize delay, just show answer, where delay means postpone the card, there will be no review record for delay, customize delay can be filled in manually after the time has come to postpone the number of days"],
             value=0,
             component=ConfigModel.Widget.combo,
             limit=[ComboItem(Translate.不操作, 0), ComboItem(Translate.忘记, 1), ComboItem(Translate.困难, 2),
@@ -237,7 +297,7 @@ class ConfigModel:
             tab_at=Translate.复习相关,
     ))
     time_up_skip_click: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["如果想复习时间到了,跳过选择按钮的环节,直接执行自动操作,请勾选本项"],
+            instruction=["如果你想复习时间到了, 直接跳过提示按钮选择的环节,执行自动预设操作,请勾选本项", "If you want to skip the prompt button selection and perform the automatic preset operation when the review time is up, please check this box"],
             value=False,
             component=ConfigModel.Widget.radio,
             tab_at=Translate.复习相关,
@@ -245,7 +305,7 @@ class ConfigModel:
     freeze_review: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
                     "开启后,当到达显示答案的状态时,会冻结复习按钮一段时间,以防止你不假思索地复习卡片",
-                    "English Instruction Maybe later"
+                    "When turned on, the review button will freeze for a period of time when it reaches the state where the answer is displayed, to prevent you from reviewing the card without thinking."
             ],
             value=False,
             component=ConfigModel.Widget.radio,
@@ -254,7 +314,7 @@ class ConfigModel:
     freeze_review_interval: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
                     "阻止你在这个时间结束之前点击复习按钮.单位毫秒",
-                    "English Instruction Maybe later"
+                    "Prevents you from clicking the review button before this time expires. Unit milliseconds"
             ],
             value=10000,
             component=ConfigModel.Widget.spin,
@@ -263,7 +323,7 @@ class ConfigModel:
     too_fast_warn: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
                     "开启后,如果你复习间隔太快,他会提示你, 这个功能只在reviewer中有效",
-                    "English Instruction Maybe later"
+                    "After you turn it on, if you review the interval too fast, he will prompt you, this function is only effective in the reviewer"
             ],
             value=False,
             component=ConfigModel.Widget.radio,
@@ -272,7 +332,7 @@ class ConfigModel:
     too_fast_warn_interval: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
                     "提示你复习过快的最小间隔,单位是毫秒",
-                    "English Instruction Maybe later"
+                    "The minimum interval that prompts you to review too quickly, in milliseconds"
             ],
             value=2000,
             component=ConfigModel.Widget.spin,
@@ -280,9 +340,8 @@ class ConfigModel:
     ))
     too_fast_warn_everycard: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
-                    "当你连续复习X张卡片,并且每两张之间的间隔均小于配置表设定的最小间隔时,才会提示你复习过快",
-                    "这里的X, 就是本字段设定的值",
-                    "English Instruction Maybe later"
+                    "当你连续复习X张卡片,并且每两张之间的间隔均小于配置表设定的最小间隔时,才会提示你复习过快 ,这里的X, 就是本字段设定的值",
+                    "When you review X cards in a row, and the interval between each two cards is less than the minimum interval set in the configuration table, then you will be prompted to review too fast, where X, is the value set in this field"
             ],
             value=3,
             component=ConfigModel.Widget.spin,
@@ -290,9 +349,8 @@ class ConfigModel:
     ))
     group_review: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
-                    "假设某个搜索条件下有多张卡,你复习其中一张卡,那么其余卡片也会用相同的选项自动进行复习",
-                    "开启后,在 group_review_search_string 中输入搜索词(就像你在搜索栏中做的那样),即可对同属于这个搜索结果的卡片执行同步复习",
-                    "English Instruction Maybe later"
+                    "假设某个搜索条件下有多张卡,你复习其中一张卡,那么其余卡片也会用相同的选项自动进行复习,开启后,在 group_review_search_string 中输入搜索词(就像你在搜索栏中做的那样),即可对同属于这个搜索结果的卡片执行同步复习",
+                    "Suppose there are multiple cards in a certain search condition, and you review one of them, then the rest of the cards will be reviewed automatically with the same options, and when you turn it on, enter the search term in the group_review_search_string (as you did in the search field) to perform a simultaneous review of the cards belonging to the same search result"
             ],
             value=True,
             component=ConfigModel.Widget.radio,
@@ -328,8 +386,7 @@ class ConfigModel:
     ))
     group_review_search_string: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
-                    "这里填群组复习的条件,列表的每一项为一个完整搜索条件",
-                    "如果不会填,有更简单操作,点击browser界面菜单栏->hjp_bilink->群组复习操作->保存当前搜索条件为群组复习条件,即可",
+                    "这里填群组复习的条件,列表的每一项为一个完整搜索条件,如果不会填,有更简单操作,点击browser界面菜单栏->hjp_bilink->群组复习操作->保存当前搜索条件为群组复习条件,即可",
                     "English Instruction Maybe later"
             ],
             value=[],
@@ -337,7 +394,8 @@ class ConfigModel:
             (re.search(r"\S", text) and text not in item.value) if type(text) == str
             else reduce(lambda x, y: x and y, map(lambda x: re.search(r"\S", x), text), True) if type(text) == list
             else False,
-            component=ConfigModel.Widget.list,
+            component=ConfigModel.Widget.customize,
+            customizeComponent=lambda: widgets.ConfigWidget.GroupReviewConditionList,
             tab_at=Translate.复习相关
     ))
     length_of_desc: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
@@ -606,51 +664,72 @@ text-decoration:none;""",
     #     instruction=[""],
     #     value="",
     # ))
-    def save_to_file(self, path):
-        json.dump(self.get_dict(), open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=4)
 
-    def get_dict(self):
-        d = {}
-        for key, value in self.__dict__.items():
-            if isinstance(value, ConfigModelItem):
-                d[key] = value.value
-            else:
-                d[key] = value
-        return d
 
-    def to_json_string(self):
-        return json.dumps(self.get_dict(), ensure_ascii=False, indent=4)
+@dataclass
+class GviewConfigModel(BaseConfigModel):
 
     @staticmethod
-    def json_load(path):
-        """从path读取,立即保存到path,是因为有可能这里的版本更高级,有新功能"""
-        fromdata: dict = json.load(open(path, "r", encoding="utf-8"))
-        todata: dict = {}
-        for k, v in fromdata.items():
-            todata[k] = ConfigModelItem(**v)
-        config = ConfigModel(**todata)
-        return config
+    def json_load(source: "dict"):
+        """TODO: 设计json数据的读取,保存在objs.Record.GviewConfig.data中"""
+        template = GviewConfigModel()
+        for k, v in source.items():
+            template[k].value = v
+        return template
 
-    def get_editable_config(self):
-        d = {}
-        for key, value in self.__dict__.items():
+    def ViewExist(self, uuid):
+        from . import funcs
+        return funcs.GviewOperation.exists(uuid=uuid)
 
-            if type(value).__name__ != ConfigModelItem.__name__ or value.hide:
-                continue
-            d[key] = value
-        return d
+    name: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=["视图配置的名字"],
+            value="new gview config",
+            component=ConfigModel.Widget.line,
+            tab_at="main",
+            validate=lambda value, item: re.search("\S", value)
+    ))
 
-    def __setitem__(self, key, value):
-        self.__dict__[key].value = value
+    chooseCards: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=["选择要复习卡片的方式, 其中'选中卡片的连通集'意思是你选择的卡片连通的所有卡片 "],
+            value=0,
+            component=ConfigModel.Widget.combo,
+            tab_at="main",
+            limit=[ComboItem(Translate.到期卡片, 0), ComboItem(Translate.全部卡片, 1),
+                   ComboItem(Translate.选中的卡片, 2), ComboItem(Translate.选中卡片的连通集, 3)],
+    ))
+    roamingRoute: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=["选择漫游复习的路径,也就是漫游复习队列的排序"],
+            value=0,
+            component=ConfigModel.Widget.combo,
+            tab_at="main",
+            limit=[ComboItem(Translate.广度优先, 0), ComboItem(Translate.深度优先, 1),
+                   ComboItem(Translate.拓扑排序, 2), ComboItem(Translate.到期时间升序, 3),
+                   ComboItem(Translate.到期时间降序, 4), ComboItem(Translate.随机排序, 5)],
 
-    def __iter__(self):
-        return self.__dict__.items().__iter__()
+    ))
+    roamingStart: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=["指定漫游的起点"],
+            value=0,
+            component=ConfigModel.Widget.combo,
+            tab_at="main",
+            limit=[ComboItem(Translate.随机选择卡片开始, 0), ComboItem(Translate.手动选择卡片开始, 1), ]
+    ))
+    groupReview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=["是否对使用本配置的视图开启群组复习,提示:开启群组复习后,最好就别再使用漫游复习,因为会一下子复习掉所有卡片,毫无漫游的意义"],
+            value=False,
+            component=ConfigModel.Widget.radio,
+            tab_at="main",
 
-    def __getitem__(self, item):
-        return self.__dict__[item]
-
-    def __contains__(self, item):
-        return item in self.__dict__.keys()
+    ))
+    appliedGview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=["设定本视图配置所应用的视图们"],
+            value=[],
+            tab_at="main",
+            component=ConfigModel.Widget.customize,
+            customizeComponent=lambda: widgets.ConfigWidget.GviewConfigApplyTable,
+            validate=lambda value, item: sum([0 if GviewConfigModel.ViewExist(uuid) else 1 for uuid in value]) == 0
+    ))
+    pass
 
 
 if __name__ == '__main__':

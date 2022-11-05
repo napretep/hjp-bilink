@@ -44,7 +44,8 @@ class Grapher(QMainWindow):
     """所有的个性化数据都储存在Entity对象中
     TODO 图中图Item设计, 边可加描述
     TODO CTRL+A全选,CTRL+F查找
-    TODO 漫游复习遇到视图，可以选择跳过，也可以选择加载视图中的卡片，可递归加载
+    TODO 漫游复习遇到视图，可以选择跳过，也可以选择加载视图中的卡片, 加载视图的代表卡片, 递归加载视图(可指定哪些视图进行递归加载)
+    TODO 卡片优先级, 浏览次数, 自定义排序
     """
     on_card_updated = pyqtSignal(object)
 
@@ -1126,6 +1127,12 @@ class Grapher(QMainWindow):
         def openConfig(self):
             """这个功能需要配合新的数据库配置表才行"""
             # common_tools.funcs.Utils.tooltip("not implement yet")
+            configs = common_tools.funcs.GviewConfig.readModelFromDB(self.superior.data.gviewdata.uuid)
+            if len(configs)==0:
+                config = common_tools.funcs.GviewConfig.create(self.superior.data.gviewdata.name+"_config")
+            else:
+                config = configs[0]
+            common_tools.funcs.GviewConfig.makeWidget(config) #TODO 这里要继续写他如何打开
             pass
         def helpFunction(self):
             """一个默认弹窗即可"""
@@ -1427,12 +1434,12 @@ class GrapherRoamingPreviewer(QMainWindow):
     同时要保持侧边栏更新(当在其他视图里回答了相关卡片,刷新)
     漫游复习列表为空时: 弹出提示, 点击确定后关闭漫游复习, 为空时预览窗停留在最后一张卡片.
     2022年10月25日05:49:12
-    TODO:
-        漫游复习模式按钮禁用条件: 没有满足的复习队列
-        当漫游复习开启后, 视图需要记录当前的实例, 再次点击时若已经打开则激活对应的窗口
-        当点击视图中的卡片时, 如果这个卡片也存在于漫游复习中, 则在漫游复习中打开他.
-        关闭视图时, 关闭对应的漫游
-        编辑卡片时,需要同步更新, 先做出来看看吧
+
+    TODO:    漫游复习模式按钮禁用条件: 没有满足的复习队列
+    TODO:    当漫游复习开启后, 视图需要记录当前的实例, 再次点击时若已经打开则激活对应的窗口
+    TODO:    当点击视图中的卡片时, 如果这个卡片也存在于漫游复习中, 则在漫游复习中打开他.
+    TODO:    关闭视图时, 关闭对应的漫游
+    TODO:    编辑卡片时,需要同步更新, 先做出来看看吧
     Done 2022年10月26日14:42:20: 当其他地方复习了卡片, 需要监听并且更新, 方法是订阅回答事件
     """
 

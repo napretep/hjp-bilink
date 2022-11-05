@@ -14,8 +14,6 @@ from enum import Enum
 from typing import Any, Union
 from urllib.parse import unquote
 from .compatible_import import *
-
-
 @dataclass
 class descExtractTable:
     templateId:"int"
@@ -379,10 +377,10 @@ class LinkDataJSONInfo:
 
 
 
-class NoRepeatShortcut(QShortcut):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setAutoRepeat(False)
+# class NoRepeatShortcut(QShortcut):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.setAutoRepeat(False)
 
 
 class AllEventAdmin(object):
@@ -426,6 +424,7 @@ class DB_admin(object):
     table_linkinfo = 2
     table_Gview=3
     table_GviewCard=4
+    table_GviewConfig=5
 
     sqlstr_TABLE_CREATE = """create table if not exists {tablename} ({fields})"""
 
@@ -508,105 +507,6 @@ class DB_admin(object):
         value = list(kwargs.values())
         return DB_admin.BOX(string, value)
 
-    ######################## 下面是表结构设计 ##############################
-    @dataclass
-    class linkinfo_fields:
-        tablename: "str" = "CARD_LINK_INFO"
-        card_id: "str" = "varchar primary key not null unique"
-        data: "str" = "text not null"
-
-        def get_dict(self):
-            d = self.__dict__.copy()
-            d.pop("tablename")
-            return d
-
-    @dataclass
-    class pdfinfo_fields:
-        tablename: "str" = "PDF_INFO_TABLE"
-        uuid: "str" = "varchar primary key not null unique"
-        pdf_path: "str" = "varchar not null"
-        ratio: "float" = "float not null"
-        offset: "int" = "integer not null"
-
-        def get_dict(self):
-            d = self.__dict__.copy()
-            d.pop("tablename")
-            return d
-
-    @dataclass
-    class clipbox_fields:
-        tablename: "str" = "CLIPBOX_INFO_TABLE"
-        uuid: "str" = "varchar(8) primary key not null unique"
-        x: "str" = "float not null"
-        y: "str" = "float not null"
-        w: "str" = "float not null"
-        h: "str" = "float not null"
-        QA: "str" = "integer not null"
-        comment: "str" = "text"
-        commentQA: "str" = "integer not null"
-        card_id: "str" = "varchar not null"
-        ratio: "str" = "float not null"
-        pagenum: "str" = "integer not null"
-        pdfuuid: "str" = "varchar not null"
-
-        def get_dict(self):
-            d = self.__dict__.copy()
-            d.pop("tablename")
-            return d
-
-    @dataclass
-    class Gview_fields:
-        """grapher的固定视图,G代表graph, 目前想到的串有,uuid,name,member_info_json, 需要根据卡片id反查所属view时,查找"""
-        tablename: "str"="GRAPH_VIEW_TABLE"
-        uuid: "str" = "varchar(8) primary key not null unique"
-        name: "str" = "varchar not null"
-        nodes:"str" = "text"
-        edges:"str" = "text"
-        def get_dict(self):
-            d = self.__dict__.copy()
-            d.pop("tablename")
-            return d
-
-    @dataclass
-    class GviewCard_fields:
-        tablename: "str" = "GRAPH_VIEW_CARD_TABLE"
-        card_id: "str" = "varchar primary key not null unique"
-        views: "str" = "text"
-        default_views: "str" = "text"
-
-    linkinfo_constrain = {
-        "string": ["data"],
-        "number": ["card_id"]
-    }
-
-    clipbox_constrain = {
-        "number": ["commentQA", "QA", "x", "y", "w", "h", "ratio", "pagenum"],
-        "string": ["uuid", "card_id", "comment", "pdfuuid"]
-    }
-
-    pdfinfo_constrain = {
-        "string": ["uuid", "pdf_path"],
-        "number": ["ratio", "offset"]
-    }
-
-    Gview_constrain={
-        "string":["uuid","name","nodes","edges"],
-        "number":[]
-    }
-
-    GviewCard_constrain={
-        "string": ["card_id", "views", "default_views",],
-        "number": []
-    }
-
-    table_swtich = {
-        table_clipbox: (clipbox_fields(), clipbox_constrain),
-        table_pdfinfo: (pdfinfo_fields(), pdfinfo_constrain),
-        table_linkinfo: (linkinfo_fields(), linkinfo_constrain),
-        table_Gview:(Gview_fields(),Gview_constrain),
-        table_GviewCard:(GviewCard_fields(),GviewCard_constrain),
-    }
-
     def __init__(self):
         # self.tab_name = Get._().dir_clipboxTable_name
         if __name__ == "__main__":
@@ -625,7 +525,9 @@ class DB_admin(object):
         """确保字段对齐,如果不对齐,则要增加字段,字段可以增加,一般不重命名和删除"""
         pragma = self.pragma().return_all()
         table_fields = set([i[1] for i in pragma])
-        compare_fields = set(self.table_swtich[self.curr_tabtype][0].get_dict().keys())
+        print(table_fields)
+        compare_fields = set(Table.switch[self.curr_tabtype].get_dict().keys())
+        print(compare_fields)
         need_add_fields = list(compare_fields - table_fields)
         if need_add_fields:
             # print("update table fields")
@@ -639,7 +541,7 @@ class DB_admin(object):
         return self
 
     def alter_add_col(self, colname):
-        all_column_names = self.table_swtich[self.curr_tabtype][0].get_dict()
+        all_column_names = Table.switch[self.curr_tabtype].get_dict()
         s = self.sqlstr_TABLE_ALTER.format(tablename=self.tab_name, colname=colname,
                                            define=all_column_names[colname])
         self.excute_queue.append(s)
@@ -653,6 +555,7 @@ class DB_admin(object):
             table_linkinfo = 2
             table_Gview=3
         """
+        print(curr_tabtype)
         if not curr_tabtype:
             curr_tabtype = self.table_clipbox
         self.excute_queue = []
@@ -660,7 +563,8 @@ class DB_admin(object):
         self.connection = sqlite3.connect(self.db_dir)
         self.cursor = self.connection.cursor()
         self.curr_tabtype = curr_tabtype
-        self.tab_name = self.table_swtich[curr_tabtype][0].tablename
+        # self.tab_name = Table.switch[curr_tabtype][0]
+        self.tab_name = Table.switch[curr_tabtype].tablename
         self.table_ifEmpty_create().commit()
         self.table_fields_align()
         return self
@@ -702,7 +606,8 @@ class DB_admin(object):
 
     def create_table(self):
         # make fields
-        d = self.table_swtich[self.curr_tabtype][0].get_dict()
+        # d = Table.switch[self.curr_tabtype][()
+        d = Table.switch[self.curr_tabtype].get_dict()
         fields = ""
         for k, v in d.items():
             fields += f"\n{k} {v},"
@@ -711,18 +616,19 @@ class DB_admin(object):
         return s
 
     def exists(self, box: "DB_admin.BOX"):
+        """平时用这个比较好"""
         result = self.exists_check(box).return_all()
         return result[0][0] > 0
 
     # 存在性检查
     def exists_check(self, box: "DB_admin.BOX"):
-
+        """这个检查需要提交commit,不建议使用"""
         s = self.sqlstr_RECORD_EXIST.format(tablename=self.tab_name, where=box.string)
         self.excute_queue.append([s, box.values])
         return self
 
     def valCheck(self, k: "str", v: "str"):
-        constrain = self.table_swtich[self.curr_tabtype][1]
+        constrain = Table.switch[self.curr_tabtype].constrain()
         if k in constrain["string"]:
             return f""" "{v}"  """
         else:
@@ -741,7 +647,7 @@ class DB_admin(object):
             where = f""" {colname} like "{vals}" """
         else:
             b = values["BOOL"] if "BOOL" in values else " AND "
-            all_column_names = self.table_swtich[self.curr_tabtype][0].__dict__
+            all_column_names = Table.switch[self.curr_tabtype].get_dict()
             for k, v in values.items():
                 if v is not None and k in all_column_names:
                     where += f""" {k}={self.valCheck(k, v)} {b}"""
@@ -754,7 +660,7 @@ class DB_admin(object):
         """尽管输入 key=value的形式即可"""
         string = ""
         val = []
-        all_column_names = self.table_swtich[self.curr_tabtype][0].get_dict()
+        all_column_names = Table.switch[self.curr_tabtype].get_dict()
         for k, v in values.items():
             if k in all_column_names:
                 string += f""" {k}=? ,"""
@@ -779,7 +685,7 @@ class DB_admin(object):
     def replace(self,**values):
         cols = ""
         vals = ""
-        all_column_names = self.table_swtich[self.curr_tabtype][0].get_dict()
+        all_column_names = Table.switch[self.curr_tabtype].get_dict()
         entity = []
         for k, v in values.items():
             if k not in all_column_names:
@@ -807,7 +713,7 @@ class DB_admin(object):
         """insert 很简单, 不必走 box, 例子: insert(A=a,B=b,C=c)"""
         cols = ""
         vals = ""
-        all_column_names = self.table_swtich[self.curr_tabtype][0].get_dict()
+        all_column_names = Table.switch[self.curr_tabtype].get_dict()
         entity = []
         for k, v in values.items():
             if k not in all_column_names:
@@ -838,7 +744,7 @@ class DB_admin(object):
                 result = self.cursor.execute(s[0], s[1]).fetchall()
             else:
                 result = self.cursor.execute(s).fetchall()
-            all_column_names = self.table_swtich[self.curr_tabtype][0].get_dict()
+            all_column_names = Table.switch[self.curr_tabtype].get_dict().keys()
             return DBResults(result, all_column_names, self.curr_tabtype)
 
 
@@ -864,6 +770,187 @@ class DB_admin(object):
         self.connection.commit()
         self.end()
 
+
+class Logic:
+    class BOX:
+        """仅用作传输,不作别的处理, BOX之间可以用 and,or,not,+等运算符 连续拼接字符串, 采用安全的参数输入方法"""
+
+        def __init__(self, string, values):
+            self.string: str = string
+            self.values: list = values
+
+        def __and__(self, other: "DB_admin.BOX"):
+            string = f""" ( {self.string} ) AND ({other.string}) """
+            values = self.values + other.values
+            return DB_admin.BOX(string, values)
+
+        def __or__(self, other: "DB_admin.BOX"):
+            string = f""" ( {self.string} ) OR ({other.string}) """
+            values = self.values + other.values
+            return DB_admin.BOX(string, values)
+
+        def __invert__(self):
+            string = f""" NOT ({self.string})"""
+            values = self.values
+            return DB_admin.BOX(string, values)
+
+        def __add__(self, other: "DB_admin.BOX"):
+            string = f"""( {self.string} ) {other.string}"""
+            values = self.values + other.values
+            return DB_admin.BOX(string, values)
+
+    @staticmethod
+    def IN(colname, *value):
+        """
+        *value: 多个值
+        """
+        Q = ("?," * len(value))[:-1]
+        string = colname + f" IN ({Q}) "
+        return Logic.BOX(string, list(value))
+
+    @staticmethod
+    def LIKE(colname, value):
+        """需要自己加%进行模糊匹配"""
+        return Logic.BOX(colname + " LIKE (?) ", [value])
+
+    @staticmethod
+    def EQ(LOGIC="AND", **kwargs):
+        string = ""
+        values = []
+        for k, v in kwargs.items():
+            string += f" {k}=? {LOGIC} "
+            values.append(v)
+        string = re.sub(f"{LOGIC}\s+$", "", string)
+        return Logic.BOX(string, values)
+
+    @staticmethod
+    def LIMIT(count, offset=0):
+        value = []
+        string = f"LIMIT {count} OFFSET {offset}"
+        return Logic.BOX(string, value)
+
+    @staticmethod
+    def LET(**kwargs):
+        """
+        a=?,b=?,c=?
+        确保插入的都是数据库字段, 不然就等着报错吧!,
+        VALUEEQ与EQ的区别:
+            VALUEEQ得到的形式是string: a=?,b=?,c=?, value:[av,bv,cv], 主要用来赋值
+            EQ的形式是: string: a=av and b=bv ... 主要用来比较
+        """
+        string = ",".join([k + "=? " for k in list(kwargs.keys())])
+        value = list(kwargs.values())
+        return Logic.BOX(string, value)
+
+
+class Table:
+    @dataclass
+    class BaseFields:
+        @property
+        def tablename(self):
+            return self.__class__.__name__
+
+        def get_dict(self):
+            d = self.__dict__.copy()
+            return d
+
+        def constrain(self):
+            raise NotImplementedError("")
+
+        pass
+    @dataclass
+    class CARD_LINK_INFO(BaseFields):
+        card_id: "str" = "varchar primary key not null unique"
+        data: "str" = "text not null"
+        def constrain(self):
+            return  {
+        "string": ["data"],
+        "number": ["card_id"]
+    }
+    @dataclass
+    class PDF_INFO_TABLE(BaseFields):
+        uuid: "str" = "varchar primary key not null unique"
+        pdf_path: "str" = "varchar not null"
+        ratio: "float" = "float not null"
+        offset: "int" = "integer not null"
+        def constrain(self):
+            return  {
+        "string": ["uuid", "pdf_path"],
+        "number": ["ratio", "offset"]
+    }
+    @dataclass
+    class CLIPBOX_INFO_TABLE(BaseFields):
+        uuid: "str" = "varchar(8) primary key not null unique"
+        x: "str" = "float not null"
+        y: "str" = "float not null"
+        w: "str" = "float not null"
+        h: "str" = "float not null"
+        QA: "str" = "integer not null"
+        comment: "str" = "text"
+        commentQA: "str" = "integer not null"
+        card_id: "str" = "varchar not null"
+        ratio: "str" = "float not null"
+        pagenum: "str" = "integer not null"
+        pdfuuid: "str" = "varchar not null"
+        def constrain(self):
+            return {
+                    "number": ["commentQA", "QA", "x", "y", "w", "h", "ratio", "pagenum"],
+                    "string": ["uuid", "card_id", "comment", "pdfuuid"]
+            }
+    @dataclass
+    class GRAPH_VIEW_TABLE(BaseFields):
+        """grapher的固定视图,G代表graph, 目前想到的串有,uuid,name,member_info_json, 需要根据卡片id反查所属view时,查找"""
+        uuid: "str" = "varchar(8) primary key not null unique"
+        name: "str" = "varchar not null"
+        nodes:"str" = "text"
+        edges:"str" = "text"
+        config:"str" = "varchar"
+        def constrain(self):
+            return {
+        "string":["uuid","name","nodes","edges","config"],
+        "number":[]
+    }
+    @dataclass
+    class GRAPH_VIEW_CARD_TABLE(BaseFields):  # 这个表没用
+        card_id: "str" = "varchar primary key not null unique"
+        views: "str" = "text"
+        default_views: "str" = "text"
+        def constrain(self):
+            return {
+                "string": ["card_id", "views", "default_views",],
+                "number": []
+            }
+
+    @dataclass
+    class GRAPH_VIEW_CONFIG(BaseFields):
+        uuid: "str" = "varchar(8) primary key not null unique"
+        name: "str" = "varchar not null"
+        data:"str" = "text"
+        def constrain(self):
+            return {
+                    "string": ["uuid", "name", "data", ],
+                    "number": []
+            }
+
+    class Const:
+        clipbox = DB_admin.table_clipbox
+        pdfinfo = DB_admin.table_pdfinfo
+        linkinfo = DB_admin.table_linkinfo
+        Gview = DB_admin.table_Gview
+        GviewCard = DB_admin.table_GviewCard
+        GviewConfig = DB_admin.table_GviewConfig
+
+    switch = {
+        Const.clipbox  : CLIPBOX_INFO_TABLE(),
+        Const.pdfinfo  : PDF_INFO_TABLE(),
+        Const.linkinfo  : CARD_LINK_INFO(),
+        Const.Gview  : GRAPH_VIEW_TABLE(),
+        Const.GviewCard  : GRAPH_VIEW_CARD_TABLE(),
+        Const.GviewConfig : GRAPH_VIEW_CONFIG()
+    }
+
+
+
 class DBResults(object):
     """这个对象只读不写,是DB返回结果的容器的简单包装"""
 
@@ -878,7 +965,7 @@ class DBResults(object):
 
         for row in self.results:
             record = self.DBdata()
-            step1 = list(zip(self.all_column_names.keys(), row))
+            step1 = list(zip(self.all_column_names, row))
             for col in (step1):
                 record[col[0]] = col[1]
             new_results.append(record)
@@ -926,11 +1013,60 @@ class DBResults(object):
             return [GviewRecord(**i) for i in self]
 
         def to_givenformat_data(self, _format,multiArgs=False):
+            """
+            multiArgs 的意思是传入的是一个多个key的字典, 而传入的_format接受多个参数,为了key对应参数, 因此要解包
+            也可以根据_format需要的参数格式来选择是否要multiArgs
+            """
             if multiArgs:
                 return [_format(**i) for i in self]
             else:
                 return [_format(i) for i in self]
 
+
+
+class Record:
+    @dataclass
+    class GviewConfig:
+
+        def __init__(self,uuid=None, name=None, _data=None):
+            """这里的读取就是dict"""
+            from . import  funcs,configsModel
+            self.uuid = uuid if uuid else funcs.UUID.by_random()
+            self.name = name if name else "graph config"
+            self.data = self.initData(json.loads(_data)) if _data else self.initData({})
+
+        def initData(self,_data:"dict"):
+            from .configsModel import GviewConfigModel
+            template = GviewConfigModel()
+            for k,v in _data.items():
+                template[k]=v
+            return template
+
+        def getDict(self):
+            d = self.__dict__.copy()
+            d["data"] = json.dumps(self.data.get_dict(),ensure_ascii=False)
+            return d
+
+        def saveModelToDB(self):
+            from . import G
+            G.DB.go(G.DB.table_GviewConfig)
+            self.name = self.data.name
+            if G.DB.exists_check(Logic.EQ(uuid=self.uuid)):
+                G.DB.update(values=Logic.LET(**self.getDict()),where=Logic.EQ(uuid=self.uuid)).commit()
+            else:
+                G.DB.insert(**self.getDict()).commit()
+
+        @staticmethod
+        def readModelFromDB(uuid=None):
+            """这里可以当uuid为空表示新建一个配置"""
+
+            if uuid:
+                from . import G
+                DB = G.DB.go(G.DB.table_GviewConfig)
+                result: "Record.GviewConfig" = DB.select(Logic.EQ(uuid=uuid)).return_all().zip_up().to_givenformat_data(Record.GviewConfig, multiArgs=True)
+            else:
+                result: "Record.GviewConfig" = Record.GviewConfig()
+            return result
 
 
 @dataclass
@@ -944,8 +1080,7 @@ class GviewRecord:
     name:str
     nodes:str
     edges:str
-
-
+    config:str
 
 @dataclass
 class PDFinfoRecord:
@@ -1028,16 +1163,16 @@ if __name__ == "__main__":
     # DB.go(DB.table_linkinfo).update2(values=record2,where={"card_id":card_id}).commit2(print)
     # a=DB.select(card_id="2").return_all().zip_up()[0]
     # print(a)
-    DB = DB_admin()
-    DB.go(DB.table_linkinfo)
-    DB.delete(DB.EQ(card_id=card_id)).commit(print)
-    DB.insert(**record).commit(print)
-    x = DB.go(DB.table_linkinfo).select(DB.EQ(card_id=card_id)).return_all(print).zip_up()
-    print(x)
+    # DB = DB_admin()
+    # DB.go(DB.table_linkinfo)
     # DB.delete(DB.EQ(card_id=card_id)).commit(print)
-    DB.update(values=DB.VALUEEQ(data=record2["data"]), where=DB.EQ(card_id=card_id)).commit(print)
-    x = DB.select(DB.EQ(card_id=card_id)).return_all().zip_up()
-    print(x)
+    # DB.insert(**record).commit(print)
+    # x = DB.go(DB.table_linkinfo).select(DB.EQ(card_id=card_id)).return_all(print).zip_up()
+    # print(x)
+    # # DB.delete(DB.EQ(card_id=card_id)).commit(print)
+    # DB.update(values=DB.VALUEEQ(data=record2["data"]), where=DB.EQ(card_id=card_id)).commit(print)
+    # x = DB.select(DB.EQ(card_id=card_id)).return_all().zip_up()
+    # print(x)
 
     # x=DB.go(DB.table_clipbox).select2(
     #      (DB.EQ(pdfuuid="fbe0cb0e-8eba-39e9-8cc7-a6eb7c18763c")
