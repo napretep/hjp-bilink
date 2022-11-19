@@ -34,7 +34,7 @@ else:
 LinkDataPair = common_tools.objs.LinkDataPair
 GraphMode = common_tools.configsModel.GraphMode
 GViewData = common_tools.configsModel.GViewData
-Translate = common_tools.language.Translate
+译 = Translate = common_tools.language.Translate
 Struct = common_tools.objs.Struct
 funcs = common_tools.funcs
 src = common_tools.G.src
@@ -63,7 +63,7 @@ class Grapher(QMainWindow):
         self.view = self.View(self)
         self.scene = self.Scene(self)
         self.view.setScene(self.scene)
-        self.roaming:"Optional[GrapherRoamingPreviewer]" = None
+        self.roaming: "Optional[GrapherRoamingPreviewer]" = None
 
         # self.toolBar
         self.toolbar = self.ToolBar(self)
@@ -124,7 +124,9 @@ class Grapher(QMainWindow):
             common_tools.G.mw_grapher = None
         elif mode == GraphMode.view_mode:
             node, edge = self.data.node_edge_packup()
-            data = GViewData(self.data.gviewdata.uuid, self.data.gviewdata.name, node, edge)
+            self.data.gviewdata.nodes = node
+
+            data = GViewData(self.data.gviewdata.uuid, self.data.gviewdata.name, node, edge, self.data.gviewdata.config)
             if funcs.GviewOperation.exists(data):
                 funcs.GviewOperation.save(data)
             else:
@@ -379,7 +381,7 @@ class Grapher(QMainWindow):
         pass
 
     # bilink
-    def remove_node(self,item:"Grapher.ItemRect"):
+    def remove_node(self, item: "Grapher.ItemRect"):
         card_id_li = self.data.node_dict.keys()
         edges = self.data.edge_dict
         card_idA = item.pair.card_id
@@ -467,7 +469,7 @@ class Grapher(QMainWindow):
             self._node_dict: "Optional[dict[str,Optional[Grapher.Entity.Node]]]" = {}
             self._edge_dict: "Optional[dict[str,dict[str,Optional[Grapher.ItemEdge]]]]" = {}
             self.currentSelectedEdge: "list[Grapher.ItemEdge]" = []
-            self.state=Grapher.Entity.State()
+            self.state = Grapher.Entity.State()
 
         @property
         def node_dict(self) -> 'dict[str,Grapher.Entity.Node]':
@@ -496,7 +498,7 @@ class Grapher(QMainWindow):
 
         def node_edge_packup(self) -> "dict[str,list[Union[float,int],Union[float,int]]],tuple[list[list[str,str]],]":
             """
-
+            这是为了获取边与顶点的最新信息
             """
 
             def get_edgeinfo_list() -> "list[list[str,str]]":
@@ -546,13 +548,11 @@ class Grapher(QMainWindow):
 
         @dataclass
         class State:
-            mouseIsMoving:bool=False
-            mouseIsMovingAndRightClicked:bool=False
+            mouseIsMoving: bool = False
+            mouseIsMovingAndRightClicked: bool = False
             mouseIsMovingAndLeftClicked: bool = False
-            mouseRightClicked:bool=False
-            mouseLeftClicked:bool=False
-
-
+            mouseRightClicked: bool = False
+            mouseLeftClicked: bool = False
 
     class View(QGraphicsView):
         def __init__(self, parent: "Grapher"):
@@ -606,7 +606,7 @@ class Grapher(QMainWindow):
 
         def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
             if event.buttons() == Qt.MouseButton.LeftButton:
-                self.superior.data.state.mouseIsMovingAndLeftClicked=True
+                self.superior.data.state.mouseIsMovingAndLeftClicked = True
                 if self.superior.scene.selectedItems() and self.itemAt(event.pos()):
                     self.superior.update_all_edges_posi()
                 if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
@@ -624,7 +624,7 @@ class Grapher(QMainWindow):
                         # print(f"p1={p1}")
                         return
             elif event.buttons() == Qt.MouseButton.RightButton:
-                self.superior.data.state.mouseIsMovingAndRightClicked=True
+                self.superior.data.state.mouseIsMovingAndRightClicked = True
             super().mouseMoveEvent(event)
 
         def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
@@ -662,8 +662,8 @@ class Grapher(QMainWindow):
             self.makeLine()
             if not self.itemAt(event.pos()) \
                     and not self.superior.data.state.mouseIsMovingAndLeftClicked \
-                    and not self.superior.data.state.mouseIsMovingAndRightClicked\
-                    and event.button()==Qt.MouseButton.RightButton:  # and not self.superior.data.mouse_moved and event.button()==Qt.MouseButton.RightButton:# and self.superior.data.mouse_right_clicked:
+                    and not self.superior.data.state.mouseIsMovingAndRightClicked \
+                    and event.button() == Qt.MouseButton.RightButton:  # and not self.superior.data.mouse_moved and event.button()==Qt.MouseButton.RightButton:# and self.superior.data.mouse_right_clicked:
                 self.make_context_menu(event)
             self.draw_line_end_item, self.draw_line_start_item = None, None
             super().mouseReleaseEvent(event)
@@ -1030,8 +1030,6 @@ class Grapher(QMainWindow):
                         self.cardRename
                 ]
 
-
-
         def __init__(self, parent: "Grapher"):
             super().__init__(parent)
             self.superior = parent
@@ -1059,9 +1057,9 @@ class Grapher(QMainWindow):
             1 多选卡片和多选边都能批量删除, 如果同时多选了卡片和边, 则批量删除卡片, 忽略边的删除,因为删除卡片的时候会删掉一些边,变得不好处理
             """
             try:
-                if len(self.superior.scene.selectedItems())>0:
+                if len(self.superior.scene.selectedItems()) > 0:
                     items = self.superior.scene.selectedItems()
-                    if len(items)==1 and isinstance(items[0], Grapher.ItemRect):
+                    if len(items) == 1 and isinstance(items[0], Grapher.ItemRect):
                         self.act.cardRename.setDisabled(False)
                     else:
                         self.act.cardRename.setDisabled(True)
@@ -1076,7 +1074,7 @@ class Grapher(QMainWindow):
             cardA = item.itemStart.pair.card_id
             cardB = item.itemEnd.pair.card_id
             modifyGlobalLink = self.superior.data.graph_mode == GraphMode.normal
-            self.superior.remove_edge(cardA,cardB,modifyGlobalLink)
+            self.superior.remove_edge(cardA, cardB, modifyGlobalLink)
             pass
 
         def deleteRectItem(self, item: "Grapher.ItemRect"):
@@ -1084,17 +1082,17 @@ class Grapher(QMainWindow):
             pass
 
         def renameItem(self):
-            item:"Grapher.ItemRect" = self.superior.scene.selectedItems()[0]
+            item: "Grapher.ItemRect" = self.superior.scene.selectedItems()[0]
             self.superior.card_edit_desc(item)
             pass
 
         def deleteItem(self):  # 0=rect,1=line
-            rectItem:"list[Grapher.ItemRect]" =list(filter(lambda item:isinstance(item, Grapher.ItemRect), self.superior.scene.selectedItems()))
-            lineItem:"list[Grapher.ItemEdge]" =list(filter(lambda item:isinstance(item, Grapher.ItemEdge), self.superior.scene.selectedItems()))
-            if len(rectItem)>0:
+            rectItem: "list[Grapher.ItemRect]" = list(filter(lambda item: isinstance(item, Grapher.ItemRect), self.superior.scene.selectedItems()))
+            lineItem: "list[Grapher.ItemEdge]" = list(filter(lambda item: isinstance(item, Grapher.ItemEdge), self.superior.scene.selectedItems()))
+            if len(rectItem) > 0:
                 for item in rectItem:
                     self.deleteRectItem(item)
-            elif len(lineItem)>0:
+            elif len(lineItem) > 0:
                 for item in lineItem:
                     self.deleteEdgeItem(item)
 
@@ -1124,21 +1122,104 @@ class Grapher(QMainWindow):
             p.show()
             p.listView.selectRow(3)
             pass
+
         def openConfig(self):
-            """这个功能需要配合新的数据库配置表才行"""
-            # common_tools.funcs.Utils.tooltip("not implement yet")
-            configs = common_tools.funcs.GviewConfig.readModelFromDB(self.superior.data.gviewdata.uuid)
-            if len(configs)==0:
-                config = common_tools.funcs.GviewConfig.create(self.superior.data.gviewdata.name+"_config")
+            """ TODO 设计一个新的容器, 把原来的配置表包裹进来,同时新增一个替换配置的按钮
+
+            """
+            布局, 组件, 子代, 描述 = funcs.G.objs.Bricks.四元组
+            视图模型 = funcs.GviewOperation.load(self.superior.data.gviewdata.uuid)
+            配置类 = common_tools.objs.Record.GviewConfig
+            self.superior.data.gviewdata.config = 视图模型.config
+            if 视图模型.config != "" and 配置类.静态_存在于数据库中(视图模型.config):
+                配置模型 = 配置类.readModelFromDB(视图模型.config)
             else:
-                config = configs[0]
-            common_tools.funcs.GviewConfig.makeWidget(config) #TODO 这里要继续写他如何打开
+                tooltip(f"创建新配置")
+                配置模型 = 配置类()
+                配置模型.saveModelToDB()
+                funcs.GviewConfigOperation.指定视图配置(视图模型, 配置模型)
+                self.superior.data.gviewdata.config = 配置模型.uuid
+
+            配置组件 = common_tools.funcs.GviewConfigOperation.makeConfigDialog(调用者=self ,数据=配置模型.data, 关闭时回调=lambda x: lambda y: 配置模型.saveModelToDB())
+            配置组件布局: "QVBoxLayout" = 配置组件.layout()
+
+            def 从当前配置窗的应用视图表中移除本视图():
+                模型: "common_tools.configsModel.GviewConfigModel" = 配置组件.参数模型
+                值: "list[str]" = 模型.appliedGview.value
+                视图标识 = self.superior.data.gviewdata.uuid
+                if 视图标识 in 值:
+                    值.remove(self.superior.data.gviewdata.uuid)
+                    模型.appliedGview.设值到组件(值)
+                    if len(值)==0:
+                        配置模型.元信息.确定保存到数据库=False
+
+
+            def 打开配置选取窗():
+                输入框 = funcs.组件定制.单行输入框(占位符=译.输入关键词并点击查询)
+                结果表 = funcs.组件定制.表格()
+
+                def 搜索关键词():
+                    关键词 = 输入框.text()
+                    搜索结果 = funcs.GviewConfigOperation.据关键词同时搜索视图与配置数据库表(关键词)
+                    结果表模型 = funcs.组件定制.模型(["类型/type", "名称/name"])
+                    项 = common_tools.baseClass.Standard.Item
+                    [结果表模型.appendRow([项(类型), 项(名字, data=标识)]) for 类型, 名字, 标识 in 搜索结果 if (类型==译.配置 and 标识!=配置模型.uuid) or (类型==译.视图 and 标识 not in 配置模型.data.appliedGview.value)]
+                    结果表.setModel(结果表模型)
+                    if 结果表模型.rowCount()==0:
+                        tooltip("搜索结果为空/empty result")
+
+                def 开始更换配置():
+                    if 结果表.selectedIndexes():
+                        模型: "QStandardItemModel" = 结果表.model()
+                        选中行: "list[QStandardItem]" = [模型.itemFromIndex(索引) for 索引 in 结果表.selectedIndexes()]
+                        类型, 标识 = 选中行[0].text(), 选中行[1].data()
+                        最终标识 = 标识 if 类型 == 译.配置 else funcs.GviewOperation.load(uuid=标识).config
+                        新配置模型 = 配置类.readModelFromDB(最终标识)
+                        funcs.GviewConfigOperation.指定视图配置(self.superior.data.gviewdata, 新配置模型)
+                        self.superior.data.gviewdata = funcs.GviewOperation.load(self.superior.data.gviewdata.uuid)
+                        从当前配置窗的应用视图表中移除本视图()
+                        总组件.close()
+                        配置组件.close()
+                        self.openConfig()
+
+                搜索按钮 = funcs.组件定制.按钮(funcs.G.src.ImgDir.open, "", 触发函数=搜索关键词)
+                确认按钮 = funcs.组件定制.按钮(funcs.G.src.ImgDir.correct, "", 触发函数=开始更换配置)
+                说明 = funcs.组件定制.文本框(文本=译.说明_同时搜索配置与视图的配置, 开启自动换行=True)
+                布局树 = {布局: QVBoxLayout(), 子代: [{布局: QHBoxLayout(), 子代: [{组件: 输入框}, {组件: 搜索按钮}]}, {组件: 结果表}, {组件: 确认按钮}, {组件: 说明}]}
+                总组件 = funcs.Utils.组件组合(布局树, 容器=funcs.组件定制.对话窗口(标题=译.搜索并选择配置))
+                总组件.exec()
+                pass
+
+            def 触发新建配置():
+                funcs.GviewConfigOperation.指定视图配置(视图模型, None)
+                从当前配置窗的应用视图表中移除本视图()
+                配置组件.close()
+                self.openConfig()
+
+            更换配置说明 = funcs.组件定制.文本框(Translate.说明_视图配置与视图的区别, 开启自动换行=True)
+            更换配置按钮 = funcs.组件定制.按钮(common_tools.G.src.ImgDir.refresh, 译.更换本视图的配置, 触发函数=打开配置选取窗)
+            新建配置按钮 = funcs.组件定制.按钮(common_tools.G.src.ImgDir.item_plus, 译.新建配置, 触发函数=触发新建配置)
+            配置组件的底部组件 = funcs.Utils.组件组合({布局: QVBoxLayout(), 子代: [{布局: QHBoxLayout(), 子代: [{组件: 更换配置按钮}, {组件: 新建配置按钮}]}, {组件: 更换配置说明}]})
+            配置组件布局.addWidget(配置组件的底部组件)
+            配置组件.setLayout(配置组件布局)
+            配置组件.exec()
             pass
+
         def helpFunction(self):
             """一个默认弹窗即可"""
-            zh="""
-            你可以左键拖拽卡片, 左键拖拽画布, 右键拖拽框选对象, 在一个卡片上按下且保持ctrl+左键,再移动鼠标可以拖出一条线, 在另一张卡片上松开左键就能建立两张卡片的链接. 卡片和链接都可以选中删除. 修改卡片描述需要先取消描述与字段同步, 否则不会生效.
-            You can drag a card with left click, drag canvas with left click, drag a boxed object with right click, press and hold ctrl+left click on a card and move the mouse to create a line, and release the left click on another card to create a link between the two cards. Both cards and links can be selected and deleted. To change the card description, you need to un-sync the description with the field, otherwise it will not work.
+            zh = """
+如何选中卡片: 左键点击卡片,
+如何选中边:  左键点击边,
+如何移动卡片: 拖放选中的卡片即可,
+如何移动画布: 先点击画布以取消物品选中, 此时即可用左键来拖动画布
+如何多选卡片: 先点击画布以取消物品选中, 用右键在画布上拖动, 会出现矩形, 矩形覆盖到的卡片都会被选中.
+如何链接卡片: 先选中卡片, 保持左键并按下ctrl不动, 再拖动鼠标, 就可拖出一条跟着鼠标走的线, 将其拖动到另一张卡片上, 最后松开左键, 就能建立两张卡片的链接.
+How to select a card: Left click on the card,
+How to select an edge: Left click on the edge,
+How to move a card: Drag and drop the selected card,
+How to move the canvas: First click on the canvas to unselect the item, then you can drag the canvas with the left button
+How to select more cards: First click on the canvas to unselect the items, then drag the right click on the canvas, a rectangle will appear and all the cards covered by the rectangle will be selected.
+How to link cards: First select a card, hold the left button and press ctrl, then drag the mouse to create a line that follows the mouse, drag it to another card, and finally release the left button to create a link between the two cards.
             """
             showInfo(zh)
             pass
@@ -1146,12 +1227,12 @@ class Grapher(QMainWindow):
         @property
         def slots(self):
             return [
-                self.saveAsNewGview,
-                self.openRoaming,
-                self.openConfig,
-                self.helpFunction,
-                self.deleteItem,
-                self.renameItem,
+                    self.saveAsNewGview,
+                    self.openRoaming,
+                    self.openConfig,
+                    self.helpFunction,
+                    self.deleteItem,
+                    self.renameItem,
             ]
     # class Item(QGraphicsItem):
     #     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem', widget: typing.Optional[QWidget] = ...) -> None:
@@ -1353,7 +1434,7 @@ class GViewAdmin(QDialog):
                 nodename = original_name.pop(0)
                 if nodename not in parent.children:
                     item = self.Item(nodename, data=None if original_name else data)
-                    dueCountItem = self.Item(f"{common_tools.funcs.GviewOperation.getDueCount(data)}",data=None if original_name else data)
+                    dueCountItem = self.Item(f"{common_tools.funcs.GviewOperation.getDueCount(data)}", data=None if original_name else data)
                     parent.item.appendRow([item, dueCountItem])
                     parent.children[nodename] = Struct.TreeNode(item=item, children={})
                 parent = parent.children[nodename]
@@ -1364,7 +1445,7 @@ class GViewAdmin(QDialog):
         for data in self.data.values():
             if isinstance(data, GViewData):
                 item = self.Item(data.name, data=data)
-                dueCountItem = self.Item(f"{common_tools.funcs.GviewOperation.getDueCount(data)}",data=data)
+                dueCountItem = self.Item(f"{common_tools.funcs.GviewOperation.getDueCount(data)}", data=data)
                 self.model.appendRow([item, dueCountItem])
 
         pass
@@ -1427,6 +1508,7 @@ class GViewAdmin(QDialog):
 
             self.setLayout(h_layout)
 
+
 class GrapherRoamingPreviewer(QMainWindow):
     """
     点击侧边栏的复习队列上的卡片, 则渲染对应预览卡片, 回答该卡片则刷新侧边栏卡片, 刷新卡片则要自动选中第一张卡片,
@@ -1440,23 +1522,22 @@ class GrapherRoamingPreviewer(QMainWindow):
     TODO:    当点击视图中的卡片时, 如果这个卡片也存在于漫游复习中, 则在漫游复习中打开他.
     TODO:    关闭视图时, 关闭对应的漫游
     TODO:    编辑卡片时,需要同步更新, 先做出来看看吧
-    Done 2022年10月26日14:42:20: 当其他地方复习了卡片, 需要监听并且更新, 方法是订阅回答事件
+
     """
 
     def __init__(self, superior):
         from .custom_cardwindow import SingleCardPreviewer
         super().__init__()
-        self.superior: "Grapher"=superior
-        self.dueQueue = [card_id for card_id in self.superior.data.gviewdata.nodes] # 这个需要排序获取 比如从grapher那里搞个
+        self.superior: "Grapher" = superior
+        self.dueQueue = [card_id for card_id in self.superior.data.gviewdata.nodes]  # 这个需要排序获取 比如从grapher那里搞个
         initCard = common_tools.funcs.CardOperation.GetCard(self.dueQueue[0])
         self.listView = self.List(self)
-        self.cardView:"SingleCardPreviewer" = SingleCardPreviewer(initCard,superior=self,parent=self,mw=mw,on_close=lambda:None)
+        self.cardView: "SingleCardPreviewer" = SingleCardPreviewer(initCard, superior=self, parent=self, mw=mw, on_close=lambda: None)
         self.container = QWidget()
         self.initUI()
         self.initEvent()
 
-
-    def readCard(self,card_id):
+    def readCard(self, card_id):
         return common_tools.funcs.CardOperation.GetCard(card_id)
 
     def nextCard(self):
@@ -1474,6 +1555,7 @@ class GrapherRoamingPreviewer(QMainWindow):
         [btns[i].clicked.connect(self.nextCard) for i in btns]
 
         pass
+
     def initUI(self):
         self.cardView.open()
         layoutH = QHBoxLayout()
@@ -1487,23 +1569,22 @@ class GrapherRoamingPreviewer(QMainWindow):
     class List(QListView):
         def __init__(self, superior):
             super().__init__()
-            self.superior: "GrapherRoamingPreviewer"= superior
+            self.superior: "GrapherRoamingPreviewer" = superior
             self.tempModel = QStandardItemModel()
             self.setModel(self.tempModel)
             self.initUI()
             self.initData()
             self.initEvent()
 
-        def initEvent(self,):
+        def initEvent(self, ):
             self.selectionModel().selectionChanged.connect(self.handleSelectionChanged)
             pass
 
         def handleSelectionChanged(self, selected: "QItemSelection", deselected: "QItemSelection"):
             if selected.indexes():
-
                 card_id = self.tempModel.itemFromIndex(selected.indexes()[0]).data()
                 self.superior.cardView.loadNewCard(common_tools.funcs.CardOperation.GetCard(card_id))
-                item =self.superior.superior.data.node_dict[card_id].item
+                item = self.superior.superior.data.node_dict[card_id].item
                 self.superior.superior.scene.clearSelection()
                 item.setSelected(True)
                 self.superior.superior.view.centerOn(item=item)
@@ -1543,6 +1624,7 @@ class GrapherRoamingPreviewer(QMainWindow):
             # self.printCurrentRow()
             # self.selectionModel()
             # self.selectionModel().select(row,  QItemSelectionModel.Select)
+
         def getCurrCardId(self):
             item = self.tempModel.itemFromIndex(self.currentIndex())
             if item:
@@ -1559,7 +1641,9 @@ class GrapherRoamingPreviewer(QMainWindow):
             item = self.tempModel.itemFromIndex(self.currentIndex())
             if item:
                 self.tempModel.takeRow(item.row())
+
     pass
+
 
 class GrapherConfig(QDialog):
     """
@@ -1573,7 +1657,9 @@ class GrapherConfig(QDialog):
     TODO:        漫游卡片的起点: 给定或随机, 可以右键选择
     TODO:    设置为群组复习(通常设置为群组复习后就没有必要再开启他们的漫游复习)
     TODO:    应用当前配置到其他视图
+    TODO:    为当前视图选择另一个配置
     """
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

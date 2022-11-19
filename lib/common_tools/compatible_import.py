@@ -34,7 +34,7 @@ class Utils:
 
         if ISDEBUG and ISLOCALDEBUG:
             print("调试阶段可自己选择anki版本")
-            return False
+            return True
 
         try:
             import PyQt6
@@ -78,17 +78,7 @@ isMac = sys.platform.startswith("darwin")
 isWin = sys.platform.startswith("win32")
 # also covers *BSD
 isLin = not isMac and not isWin
-from aqt.utils import  saveGeom, restoreGeom, tr
-from aqt import dialogs, AnkiQt,gui_hooks
-from aqt.browser import Browser,SidebarItem, SidebarItemType, SidebarTreeView
-from aqt.browser.previewer import \
-    BrowserPreviewer, Previewer, MultiCardPreviewer
-from aqt.editor import Editor,EditorWebView
-from aqt.addcards import AddCards
-from aqt.operations.card import set_card_deck
-from aqt.reviewer import Reviewer, RefreshNeeded,V3CardInfo
-from aqt.webview import AnkiWebView
-from aqt.operations.scheduling import answer_card
+
 
 if ISDEBUG and ISLOCALDEBUG:
     mw = None
@@ -98,7 +88,17 @@ else:
     mw = Anki.aqt.mw
     from aqt.utils import tooltip, showInfo
     # from anki.utils import is_mac as isMac, is_win as isWin
-
+    from aqt.utils import saveGeom, restoreGeom, tr
+    from aqt import dialogs, AnkiQt, gui_hooks
+    from aqt.browser import Browser, SidebarItem, SidebarItemType, SidebarTreeView
+    from aqt.browser.previewer import \
+        BrowserPreviewer, Previewer, MultiCardPreviewer
+    from aqt.editor import Editor, EditorWebView
+    from aqt.addcards import AddCards
+    from aqt.operations.card import set_card_deck
+    from aqt.reviewer import Reviewer, RefreshNeeded, V3CardInfo
+    from aqt.webview import AnkiWebView
+    from aqt.operations.scheduling import answer_card
 
 # 兼容格式: classEnum.Name
 if Anki.isQt6:
@@ -204,7 +204,7 @@ else:
     from PyQt5.QtWidgets import *
     from PyQt5.QtGui import *
     from PyQt5.QtWebEngineWidgets import QWebEngineView
-
+    # if not ISLOCALDEBUG:
     QSettings_NativeFormat = QSettings.NativeFormat
     QPainter.RenderHint.Antialiasing = QPainter.Antialiasing
     QPainter.RenderHint.TextAntialiasing = QPainter.TextAntialiasing

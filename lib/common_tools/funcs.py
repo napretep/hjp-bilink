@@ -35,6 +35,7 @@ from anki.notes import Note
 from bs4 import BeautifulSoup, element
 from . import G, compatible_import
 from .language import Translate, rosetta
+译 = Translate
 from .objs import LinkDataPair, LinkDataJSONInfo
 from . import objs
 if not ISLOCAL:
@@ -123,7 +124,7 @@ class GviewOperation:
             if exclude is not None:
                 prepare_data.pop(exclude)
             with G.DB.go(G.DB.table_Gview) as DB:
-                DB.replace(**prepare_data).commit(need_commit=False)
+                DB.replace(**prepare_data).commit()
 
             return
         elif data_li:
@@ -132,7 +133,7 @@ class GviewOperation:
                     prepare_data = data.to_DB_format()
                     if exclude is not None:
                         prepare_data.pop(exclude)
-                    DB.replace(**prepare_data).commit(need_commit=False)
+                    DB.replace(**prepare_data).commit()
             return
 
     @staticmethod
@@ -152,18 +153,19 @@ class GviewOperation:
     @staticmethod
     def load(uuid=None, gviewdata: "GViewData" = None, pairli=None):
         """"""
+        # print("uuid=",uuid)
         data = None
         if uuid is not None:
             DB = G.DB
             DB.go(DB.table_Gview)
             data1 = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_data()[0]
             data = GViewData(uuid=data1.uuid, name=data1.name, nodes=json.loads(data1.nodes),
-                             edges=json.loads(data1.edges))
+                             edges=json.loads(data1.edges),config=data1.config)
         elif gviewdata is not None:
             with G.DB.go(G.DB.table_Gview) as DB:
                 data1 = DB.select(DB.EQ(uuid=gviewdata.uuid)).return_all().zip_up().to_gview_data()[0]
             data = GViewData(uuid=data1.uuid, name=data1.name, nodes=json.loads(data1.nodes),
-                             edges=json.loads(data1.edges))
+                             edges=json.loads(data1.edges),config=data1.config)
         elif pairli is not None:
             data = GviewOperation.find_by_card(pairli)
 
@@ -353,6 +355,86 @@ class Utils(object):
             else:
                 print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs)
 
+    @staticmethod
+    def 组件组合(组件树数据:"dict",容器:"QWidget"=None):
+        if not 容器: 容器 = QWidget()
+        基 = G.objs.Bricks
+        布局, 组件, 子代 = 基.三元组
+        def 子组合(组件树:"dict"):
+            if 布局 in 组件树:
+                the_layout: "QHBoxLayout|QVBoxLayout|QGridLayout" = 组件树[布局]
+                for 孩子 in 组件树[子代]:
+                    子组件 = 子组合(孩子)
+                    if 布局 in 子组件:
+                        the_layout.addLayout(子组件[布局])
+                    else:
+                        the_layout.addWidget(子组件[组件])
+            return 组件树
+        容器.setLayout(子组合(组件树数据)[布局])
+        return 容器
+
+class 组件定制:
+
+    @staticmethod
+    def 表格(单行选中=True,不可修改=True):
+        组件 = QTableView()
+        if 单行选中:
+            组件.setSelectionMode(QAbstractItemView.SingleSelection)
+            组件.setSelectionBehavior(QAbstractItemView.SelectRows)
+        if 不可修改:
+            组件.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        组件.horizontalHeader().setStretchLastSection(True)
+        return 组件
+    @staticmethod
+    def 模型(行标签:"list[str]"=None):
+        组件 = QStandardItemModel()
+        if 行标签:
+            组件.setHorizontalHeaderLabels(行标签)
+        return 组件
+
+    @staticmethod
+    def 单行输入框(占位符=None):
+        组件 = QLineEdit()
+        if 占位符:
+            组件.setPlaceholderText(占位符)
+        return 组件
+    @staticmethod
+    def 对话窗口(标题=None,图标=None):
+        组件=QDialog()
+        if 标题:
+            组件.setWindowTitle(标题)
+        if 图标:
+            组件.setWindowIcon(图标)
+        return 组件
+    @staticmethod
+    def 文本框(文本="",开启自动换行=None):
+        组件 = QLabel(文本)
+        if 开启自动换行:
+            组件.setWordWrap(True)
+        return 组件
+
+
+    @staticmethod
+    def 按钮(图标地址=None,文本=None,触发函数=None):
+        组件 = QPushButton()
+        if 图标地址:
+            组件.setIcon(QIcon(图标地址))
+        if 文本:
+            组件.setText(文本)
+        if 触发函数:
+            组件.clicked.connect(触发函数)
+        return 组件
+    # @staticmethod
+    # def 批量布局(布局:"QVBoxLayout|QHBoxLayout|QFormLayout",布局组件表:"list"):
+    #     if isinstance(布局,QFormLayout):
+    #         for 描述,组件 in 布局组件表:
+    #             布局.addRow(描述,组件)
+    #     else:
+    #         for 组件 in 布局组件表:
+    #             布局.addWidget()
+
+
+
 class GroupReview(object):
     """这是一套性能优化方案, GroupReview由于每次回答都要去数据库查询一遍,因此我们想了一招来更新缓存
     1,监听卡片的变化,
@@ -475,104 +557,167 @@ class BaseConfig(metaclass = abc.ABCMeta):
             return item.validate
 
     @staticmethod
-    def makeConfigRow(configitem: "ConfigModelItem"):
+    def makeConfigRow(配置项名,配置项: "ConfigModelItem", 上级: "baseClass.Standard.配置表容器"):
         """这里制作配置表中的每一项"""
-        value, validate, widgetType = configitem.value, configitem.validate, configitem.component
+        value, validate, widgetType = 配置项.value, 配置项.validate, 配置项.component
         typ = ConfigModel.Widget
         tipbutton = QToolButton()
         tipbutton.setIcon(QIcon(G.src.ImgDir.help))
-        tipbutton.clicked.connect(lambda: showInfo("<br>".join(configitem.instruction)))
-        container = QWidget()
+        tipbutton.clicked.connect(lambda: showInfo("<br>".join(配置项.instruction)))
+        container = QWidget(parent=上级)
         layout = QHBoxLayout()
         w = None
         if widgetType == typ.spin:
             w = QSpinBox(container)
-            w.setRange(configitem.limit[0], configitem.limit[1])
+            w.setRange(配置项.limit[0], 配置项.limit[1])
             w.setValue(value)
-            w.valueChanged.connect(lambda x: configitem.setValue(x))
+            w.valueChanged.connect(lambda x: 配置项.setValue(x))
+            配置项.设值到组件 = lambda 值:w.setValue(值)
         elif widgetType == typ.line:
             w = QLineEdit()
             w.setText(value)
-            w.textChanged.connect(lambda: configitem.setValue(w.text()))
+            w.textChanged.connect(lambda: 配置项.setValue(w.text()))
+            配置项.设值到组件 = lambda 值: w.setText(值)
         elif widgetType == typ.combo:
             w = QComboBox(container)
-            list(map(lambda x: w.addItem(x.name, x.value), configitem.limit))
+            list(map(lambda x: w.addItem(x.name, x.value), 配置项.limit))
             w.setCurrentIndex(w.findData(value))
-            w.currentIndexChanged.connect(lambda x: configitem.setValue(w.currentData(role=Qt.UserRole)))
+            w.currentIndexChanged.connect(lambda x: 配置项.setValue(w.currentData(role=Qt.UserRole)))
+            配置项.设值到组件 = lambda 值: w.setCurrentIndex(w.findData(值))
         elif widgetType == typ.radio:
             w = QRadioButton(container)
             w.setChecked(value)
-            w.clicked.connect(lambda: configitem.setValue(w.isChecked()))
-        # elif widgetType == typ.list:
-        #     w = Config.List(configitem)
+            w.clicked.connect(lambda: 配置项.setValue(w.isChecked()))
+            配置项.设值到组件 = lambda 值: w.setChecked(值)
         elif widgetType == typ.label:
             w = QLabel(container)
-            w.setText(configitem.display(value))
+            w.setText(配置项.display(value))
+            配置项.设值到组件 = lambda 值: w.setText(值)
         elif widgetType == typ.text:
             w = QTextEdit(container)
             w.setContentsMargins(0, 0, 0, 0)
             w.setText(value)
+            配置项.设值到组件 = lambda 值: w.setText(值)
         elif widgetType == typ.customize:
-            w = configitem.customizeComponent()(configitem, container).View  # 这个地方的警告去不掉, 很烦人.
-
-        if w is None:
-            return False
+            x = 配置项.customizeComponent()(配置项, container)  # 这个地方的警告去不掉, 很烦人.
+            配置项.设值到组件 = lambda 值: x.SetupData(值)
+            w=x.View
+        else:
+            raise ValueError(f"配置项:{配置项名},未知组件方案")
+        配置项.widget = w
         layout.addWidget(w)
         layout.addWidget(tipbutton)
         container.setLayout(layout)
         return container
     @staticmethod
-    def makeConfigDialog(cfg:"BaseConfigModel",onclose:"Callable"):
+    def makeConfigDialog(调用者, 数据:"BaseConfigModel",关闭时回调:"Callable"):
         """TODO:这里的内容要整理到Config的父类中
         onclose 接受一个高阶函数: Callable[cfg,Callable[]] 这个高阶函数的参数是本函数的第一个参数cfg
         """
         # from .configsModel import BaseConfigModel
         @dataclasses.dataclass()
-        class TabDictItem:
+        class 分页字典项:
             widget: QWidget = dataclasses.field(default_factory=QWidget)
             layout: QFormLayout = dataclasses.field(default_factory=QFormLayout)
 
-        dialog = QDialog()
 
-        layout = QHBoxLayout()
-        tab = QTabWidget()
-        # cfg:"BaseConfigModel" = cfg
 
-        tab_dict: "dict[Any,TabDictItem]" = {}
-        for name, value in cfg.get_editable_config().items():
-            if value.component == ConfigModel.Widget.none:
+        容器 = baseClass.Standard.配置表容器(调用者,数据)
+
+        总布局 = QVBoxLayout()
+        分栏 = QTabWidget()
+
+        分栏字典: "dict[Any,分页字典项]" = {}
+        for 名, 值 in 数据.get_editable_config().items():
+            if 值.component == ConfigModel.Widget.none:
                 continue
-            if value.tab_at not in tab_dict:
-                tab_dict[value.tab_at]: 'TabDictItem' = TabDictItem()
-            item = BaseConfig.makeConfigRow(value)
-            tab_dict[value.tab_at].layout.addRow(rosetta(name), item)
-        for name, value in tab_dict.items():
-            value.widget.setLayout(value.layout)
-            tab.addTab(value.widget, name)
-        scrollArea = QScrollArea()
-        scrollArea.setWidget(tab)
-        scrollArea.setContentsMargins(0, 0, 0, 0)
-        scrollArea.setMinimumHeight(500)
-        layout.addWidget(scrollArea)
-        dialog.setLayout(layout)
-        dialog.resize(int(tab.width()*1.1),500)
-        dialog.setContentsMargins(0,0,0,0)
-        dialog.setWindowIcon(QIcon(G.src.ImgDir.config))
-        dialog.setWindowTitle("配置表/configuration")
-        if onclose:
-            dialog.closeEvent = onclose(cfg)
-        return dialog
+            if 值.tab_at not in 分栏字典:
+                分栏字典[值.tab_at]: '分页字典项' = 分页字典项()
+            item = BaseConfig.makeConfigRow(名,值,容器)
+            分栏字典[值.tab_at].layout.addRow(rosetta(名), item)
+        for 名, 值 in 分栏字典.items():
+            值.widget.setLayout(值.layout)
+            分栏.addTab(值.widget, 名)
+        滚动组件 = QScrollArea()
+        滚动组件.setWidget(分栏)
+        滚动组件.setContentsMargins(0, 0, 0, 0)
+        滚动组件.setMinimumHeight(500)
+        总布局.addWidget(滚动组件)
+        容器.setLayout(总布局)
+        容器.resize(int(分栏.width()*1.1),500)
+        容器.setContentsMargins(0,0,0,0)
+        容器.setWindowIcon(QIcon(G.src.ImgDir.config))
+        容器.setWindowTitle("配置表/configuration")
+        if 关闭时回调:
+            容器.rejected.connect(lambda: 关闭时回调(数据))
+            容器.closeEvent = 关闭时回调(数据)
+
+        return 容器
 
 class GviewConfigOperation(BaseConfig):
 
     @staticmethod
-    def readModelFromDB(uuid=None):
-        """这里可以当uuid为空表示新建一个配置"""
-        Logic = objs.Logic
-        DB=G.DB.go(G.DB.table_GviewConfig)
+    def 从数据库读(标识):
+        return objs.Record.GviewConfig.readModelFromDB(标识)
+    @staticmethod
+    def 从数据库删除(标识):
+        G.DB.go(G.DB.table_GviewConfig).delete(objs.Logic.EQ(uuid=标识)).commit()
 
-        result:"objs.Record.GviewConfig" = DB.select(Logic.EQ(uuid=uuid)).return_all().zip_up().to_givenformat_data(objs.Record.GviewConfig,multiArgs=True)
-        return result
+    @staticmethod
+    def 指定视图配置(视图模型:"GViewData",新配置模型:"objs.Record.GviewConfig"=None):
+        def 删除前配置中的当前视图():
+            前配置模型 = GviewConfigOperation.从数据库读(视图模型.config)
+            应用前配置的视图表: "list[str]" = 前配置模型.data.appliedGview.value
+            if 视图模型.uuid in 应用前配置的视图表:
+                应用前配置的视图表.remove(视图模型.uuid)
+                if len(应用前配置的视图表) == 0:
+                    GviewConfigOperation.从数据库删除(前配置模型.uuid)
+                else:
+                    前配置模型.data.appliedGview.setValue(应用前配置的视图表)
+                    前配置模型.saveModelToDB()
+
+        if 视图模型.config and objs.Record.GviewConfig.静态_存在于数据库中(视图模型.config):
+            删除前配置中的当前视图()
+
+        if 新配置模型:
+            if 视图模型.uuid not in 新配置模型.data.appliedGview.value:
+                新配置模型.data.appliedGview.value.append(视图模型.uuid)
+            新配置模型.saveModelToDB()
+            视图模型.config = 新配置模型.uuid
+        else:
+            视图模型.config = ""
+
+        GviewOperation.save(视图模型)
+
+
+    @staticmethod
+    def 移除视图配置(视图标识:"str",配置标识:"str"):
+        视图模型 = GviewOperation.load(uuid=视图标识)
+        视图模型.config = ""
+        GviewOperation.save(视图模型)
+
+    @staticmethod
+    def 据关键词同时搜索视图与配置数据库表(关键词:"str")->"list[tuple[str,str,str]]":
+        """返回一个列表,里面是[类型,名称,uuid]三元组
+        """
+
+        G.DB.go(G.DB.table_GviewConfig).excute_queue.append(f"""
+        select "{译.视图}",name,uuid from GRAPH_VIEW_TABLE  where name like "%{关键词}%" and config != ""
+        union 
+        select "{译.配置}",name,uuid from GRAPH_VIEW_CONFIG where name like "%{关键词}%"
+        order by name
+        """)
+        result = G.DB.commit()
+        return list(result)
+    pass
+    # @staticmethod
+    # def readModelFromDB(uuid=None):
+    #     """这里可以当uuid为空表示新建一个配置"""
+    #     Logic = objs.Logic
+    #     DB=G.DB.go(G.DB.table_GviewConfig)
+    #
+    #     result:"objs.Record.GviewConfig" = DB.select(Logic.EQ(uuid=uuid)).return_all().zip_up().to_givenformat_data(objs.Record.GviewConfig,multiArgs=True)
+    #     return result
 
     # @staticmethod
     # def save(config:"objs.Record.GviewConfig"):
@@ -583,10 +728,10 @@ class GviewConfigOperation(BaseConfig):
     # @staticmethod
     # def
 
-    @staticmethod
-    def create(name):
-        """创建一个视图配置"""
-        return objs.Record.GviewConfig(name=name)
+    # @staticmethod
+    # def create(name):
+    #     """创建一个视图配置"""
+    #     return objs.Record.GviewConfig(name=name)
 
 
 class Config(BaseConfig):
@@ -1041,7 +1186,7 @@ class CardOperation:
         # from ..bilink.dialogs.linkdata_grapher import Grapher
 
 
-        print("card refreshed")
+        # print("card refreshed")
 
     @staticmethod
     def exists(id):
@@ -1096,7 +1241,7 @@ class CardOperation:
         else:
             datainfo = LinkDataOperation.read_from_db(card_id)
             if datainfo.self_data.get_desc_from == objs.LinkDescFrom.DB:
-                print("--------=--=-=-=-=       desc  from DB       ")
+                # print("--------=--=-=-=-=       desc  from DB       ")
                 return datainfo.self_data.desc
             else:
                 if ins.sync:
@@ -1290,6 +1435,8 @@ class Media:
             # showInfo("截图已更新")
             os.remove(pngdir)
         pixmap.save(pngdir)
+
+
 
 
 class LinkPoolOperation:
@@ -1907,7 +2054,7 @@ class Dialogs:
     @staticmethod
     def open_configuration():
         """ 这里的内容要整理到Config的父类中"""
-        dialog = Config.makeConfigDialog(Config.get(),onclose=lambda x:lambda y:Config.save(x)) #save的参数是经过修正的cfg
+        dialog = Config.makeConfigDialog(None, Config.get(),关闭时回调=lambda x:lambda y:Config.save(x)) #save的参数是经过修正的cfg
 
         dialog.exec()
 
@@ -2744,10 +2891,10 @@ def desc_extract(card_id=None, fromField=False):
     if note is not None:
         if fromField or cfg.desc_sync.value:  # 分成这两段, 是因为一个循环引用.
             desc = get_desc_from_field(note)
-            Utils.print(f"fromField={fromField},desc_sync={cfg.desc_sync.value},desc={desc}")
+            # Utils.print(f"fromField={fromField},desc_sync={cfg.desc_sync.value},desc={desc}")
         else:
             desc = linkdata_admin.read_card_link_info(str(cid)).self_data.desc
-            Utils.print("desc fromDB =" + desc)
+            # Utils.print("desc fromDB =" + desc)
             if desc == "":
                 desc = get_desc_from_field(note)
     return desc

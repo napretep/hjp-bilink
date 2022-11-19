@@ -91,7 +91,7 @@ def on_js_message(handled, url: str, context):
         else:
             cmd = re.sub(f"{{{terms.PDFLink.path}}}", pdfpath, cmd)
         cmd = re.sub(f"{{{terms.PDFLink.page}}}", pagenum, cmd)
-        print(cmd)
+        # print(cmd)
         # tooltip(cmd)
         os.system(cmd)
     return handled

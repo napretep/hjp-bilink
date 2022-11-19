@@ -25,7 +25,7 @@ def on_card_will_show(htmltext, card, kind):
 def on_reviewer_did_show_question(card:"Card"):
     # showInfo("show question!")
     starttime=funcs.G.cardChangedTime=time.time()
-    print(f"show question at time={starttime}")
+    # print(f"show question at time={starttime}")
     if funcs.Config.get().time_up_buzzer.value>0:
         funcs.ReviewerOperation.time_up_buzzer(card,starttime)
 

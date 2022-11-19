@@ -240,7 +240,7 @@ class deck_chooser(QDialog):
         DeckId = funcs.Compatible.DeckId()
         new_deck_name = self.get_full_deck_name(item)
         mw.col.decks.rename(DeckId(item.deck_id), new_deck_name)
-        print(item.deck_name)
+        # print(item.deck_name)
 
     def on_view_clicked_handle(self, index):
         item: deck_chooser.Item = self.model.itemFromIndex(index)
@@ -390,13 +390,6 @@ class deck_chooser(QDialog):
         deck: "str"
         ID: "int"
 
-
-# if __name__ == "__main__":
-#     app = QApplication(sys.argv)
-#     p = deck_chooser()
-#     p.exec()
-#     sys.exit(app.exec_())
-#     pass
 
 class tag_chooser(QDialog):
     """添加后需要更新内容, 用 init_data_left方法"""
@@ -1084,10 +1077,10 @@ class ConfigWidget:
                 # self.col1: "QTextEdit" = QTextEdit()
                 # self.col2: "QTextEdit" = QTextEdit()
                 # self.col3: "QRadioButton" = QRadioButton()
-                self.colWidgets=[QTextEdit(),
-                                 QTextEdit(),
-                                 QTextEdit(),
-                                 QRadioButton()]
+                self.colWidgets = [QTextEdit(),
+                                   QTextEdit(),
+                                   QTextEdit(),
+                                   QRadioButton()]
                 self.colItems = colItems
                 super().__init__(superior, colItems)
                 # funcs.Map.do(range(3), lambda idx: self.colWidgets[idx].textChanged.connect(lambda: self.colItems[idx].setText(self.__dict__[idx""].toPlainText())))
@@ -1188,7 +1181,7 @@ class ConfigWidget:
             def SetupFieldCombo(self, templateId: "int", fieldId: "int" = None):
                 """text=字段的名字, value=[模板id,字段id]"""
                 colType = self.superior.colEnum
-                print("call: SetupFieldCombo")
+                # print("call: SetupFieldCombo")
                 if self.valueType == colType.field:
                     for i in range(self.innerWidget.count()):
                         self.innerWidget.removeItem(i)
@@ -1199,11 +1192,11 @@ class ConfigWidget:
                         fields = funcs.CardTemplateOperation.GetModelFromId(templateId)["flds"]
                         self.innerWidget.addItem("ALL_FIELDS", (templateId, -1))
                         for _field in fields:
-                            print(f"templateId={templateId}, fieldId={_field['ord']}")
+                            # print(f"templateId={templateId}, fieldId={_field['ord']}")
                             self.innerWidget.addItem(_field["name"], (templateId, _field["ord"]))
                             # self.innerWidget
                         idx = sum([i + 1 if self.innerWidget.itemData(i, role=ItemDataRole.UserRole) == (templateId, fieldId) else 0 for i in range(self.innerWidget.count())]) - 1 if fieldId is not None else 0
-                        print(f"templateId > 0, fieldId={fieldId},idx={idx}")
+                        # print(f"templateId > 0, fieldId={fieldId},idx={idx}")
                     else:
                         self.innerWidget.addItem("ALL_FIELDS", (-1, -1))
                         self.innerWidget.addItem("front", (-1, -2))
@@ -1211,7 +1204,7 @@ class ConfigWidget:
                         idx = sum([i + 1 if self.innerWidget.itemData(i, role=ItemDataRole.UserRole) == (-1, fieldId) else 0 for i in range(self.innerWidget.count())]) - 1 if fieldId is not None else 0
                         if idx == -1:
                             idx = 0
-                        print(f"templateId <= 0, fieldId={fieldId},idx={idx}")
+                        # print(f"templateId <= 0, fieldId={fieldId},idx={idx}")
                     self.innerWidget.setCurrentIndex(idx)
 
                     return
@@ -1221,12 +1214,12 @@ class ConfigWidget:
                 data = self.data(ItemDataRole.UserRole)
 
                 def CurIndexChanged(idx: "int"):
-                    print(f"currentIndexChanged={idx}")
+                    # print(f"currentIndexChanged={idx}")
                     self.setData(self.innerWidget.itemData(idx, ItemDataRole.UserRole), ItemDataRole.UserRole)
                     self.setText(self.innerWidget.itemText(idx))
                     newTemplateId = self.innerWidget.itemData(idx, ItemDataRole.UserRole)
                     self.superior.OnTemplateComboBoxChanged(self, newTemplateId)
-                    print(f"{newTemplateId}")
+                    # print(f"{newTemplateId}")
 
                 templates = funcs.CardTemplateOperation.GetAllTemplates()
                 self.innerWidget.addItem("ALL_TEMPLATES", -1)
@@ -1243,7 +1236,7 @@ class ConfigWidget:
                 layout = QVBoxLayout()
                 colType = self.superior.colEnum
                 data = self.data(ItemDataRole.UserRole)
-                print(f"ShowAsWidget: data={data},self.valueType={self.valueType},self.text={self.text()}")
+                # print(f"ShowAsWidget: data={data},self.valueType={self.valueType},self.text={self.text()}")
                 if self.valueType in [colType.field, colType.template]:
                     self.innerWidget = QComboBox()
                     if self.valueType == colType.field:
@@ -1335,12 +1328,12 @@ class ConfigWidget:
                 # self.col2: "QSpinBox" = QSpinBox()  # self.colWidgets[2]
                 # self.col3: "QTextEdit" = QTextEdit()  # self.colWidgets[3]
                 # self.col4: "QRadioButton" = QRadioButton()  # self.colWidgets[4]
-                self.colWidgets = [ QComboBox(),
-                                    QComboBox(),
-                                    QSpinBox(),
-                                    QTextEdit(),
-                                    QRadioButton()
-                                    ]
+                self.colWidgets = [QComboBox(),
+                                   QComboBox(),
+                                   QSpinBox(),
+                                   QTextEdit(),
+                                   QRadioButton()
+                                   ]
                 super().__init__(superior, colItems)
 
             def SetupWidget(self):
@@ -1382,11 +1375,10 @@ class ConfigWidget:
                     fields = funcs.CardTemplateOperation.GetModelFromId(templateId)["flds"]
                     self.colWidgets[1].addItem("ALL_FIELDS", (templateId, -1))
                     for _field in fields:
-                        print(f"templateId={templateId}, fieldId={_field['ord']}")
+                        # print(f"templateId={templateId}, fieldId={_field['ord']}")
                         self.colWidgets[1].addItem(_field["name"], (templateId, _field["ord"]))
                         # self.innerWidget
                     idx = sum([i + 1 if self.colWidgets[1].itemData(i, role=ItemDataRole.UserRole) == (templateId, fieldId) else 0 for i in range(self.colWidgets[1].count())]) - 1 if fieldId is not None else 0
-                    print(f"templateId > 0, fieldId={fieldId},idx={idx}")
                 else:
                     self.colWidgets[1].addItem("ALL_FIELDS", (-1, -1))
                     self.colWidgets[1].addItem("front", (-1, -2))
@@ -1394,7 +1386,6 @@ class ConfigWidget:
                     idx = sum([i + 1 if self.colWidgets[1].itemData(i, role=ItemDataRole.UserRole) == (-1, fieldId) else 0 for i in range(self.colWidgets[1].count())]) - 1 if fieldId is not None else 0
                     if idx == -1:
                         idx = 0
-                    print(f"templateId <= 0, fieldId={fieldId},idx={idx}")
                 self.colWidgets[1].setCurrentIndex(idx)
 
                 pass
@@ -1424,31 +1415,42 @@ class ConfigWidget:
                 self.colItems[4].SetValue(f"{self.colWidgets[4].isChecked()}", self.colWidgets[4].isChecked())
 
     class GviewConfigApplyTable(baseClass.ConfigTableView):
-        """TODO 完成GviewConfig整体框架后, 再把这里设计好
-        TODO 需要的功能: 增删改gview的uuid和名字列表
+        """
+        2022年11月20日05:10:28 Done: 完成GviewConfig整体框架后, 再把GviewConfigApplyTable设计好
+        TODO: 需要的功能: 增删改gview的uuid和名字列表
+        TODO: 保存的时候要保存item.data(), 展示时, 展示为item.text()要分开
+        TODO: 当应用表中点击删除项的时候, 如果是最后一项了, 也就是说删了以后, 表空了, 则立即将当前配置删除, 并将视图的config置空, 重新载入
+        TODO: 当应用表中点击删除项的时候, 如果点击的是视图本身, 则立即发动视图的config置空, 重新载入配置表
 
         """
+        colnames = ["name"]
+        defaultRowData = [("",)]
+        IsList = True
+
         def NewRow(self):
             w = self.NewRowFormWidget(self)
             w.widget.exec()
-            if w.ok:
+            if w.ok and w.判断已选中:
+                w.setValueToTableRowFromForm()
                 self.AppendRow(w.colItems)
 
-        colnames = ["name", "id"]
-        defaultRowData = [()]
+        def AppendRow(self, row: "list[ConfigTableView.Item]"):
+            self.model.appendRow(row)
+            self.SaveDataToConfigModel()
+            pass
 
         def ShowRowEditor(self, row: "list[ConfigWidget.GviewConfigApplyTable.TableItem]"):
-            w = self.NewRowFormWidget(self)
+            w = self.NewRowFormWidget(self, row)
             w.widget.exec()
-            if w.ok:
+            if w.ok and w.判断已选中:
                 w.setValueToTableRowFromForm()
 
         def SaveDataToConfigModel(self):
-
+            """ """
             newConfigItem = []
             for row in range(self.model.rowCount()):
-                item = self.model.item(row, 1)
-                newConfigItem.append(item.text())
+                item = self.model.item(row, 0)
+                newConfigItem.append(item.data())
             self.ConfigModelItem.setValue(newConfigItem)
             pass
 
@@ -1458,22 +1460,15 @@ class ConfigWidget:
 
         class TableItem(baseClass.ConfigTableView.TableItem):
 
-            def __init__(self, superior, name):
-                self.isBool = False
-                if type(name) != str:
-                    name = str(name)
-                    self.isBool = True
+            def __init__(self, superior, uuid: "str"):
+                """
+                uuid: gviewUuid
+                """
+                from . import funcs
+                name = funcs.GviewOperation.load(uuid=uuid).name
                 super().__init__(superior, name)
                 self.superior: "ConfigWidget.GviewConfigApplyTable" = superior
-
-            def ShowAsWidget(self):
-                if self.isBool:
-                    widget = QRadioButton()
-                    widget.setChecked(self.text() == "True")
-                else:
-                    widget = QTextEdit()
-                    widget.setText(self.text())
-                return widget
+                self.setData(uuid)
 
             def GetValue(self):
                 return self.text()
@@ -1481,33 +1476,128 @@ class ConfigWidget:
             pass
 
         class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
-            """TODO 行编辑器需要有一个搜索框, 从输入第一个字开始搜索, 要模糊搜索, 选中或双击搜索结果添加到本地"""
+            """
+
+            """
+
             def GetColWidgets(self) -> list[QWidget]:
                 pass
 
             def SetupWidget(self):
+                self.widget.setWindowTitle("choose a graph view")
+                self.MakeInnerWidget()
                 pass
 
-            def setValueToTableRowFromForm(self): # TODO 实现这个函数
+            def MakeInnerWidget(self):
+                """
+                TODO 搜索栏(QlineEdit) 搜索按钮(QTOOLBUTTON) 搜索结果(QTABLEVIEW)
+                TODO 设计一个layout
+                """
+                B = G.objs.Bricks
+                L = self.layout_dict
+                layout, widget, kids = B.triple
+                tableView: "baseClass.Standard.TableView" = L[kids][1][widget]
+                searchStr: "QLineEdit" = L[kids][0][kids][0][widget]
+                searchBtn: "QToolButton" = L[kids][0][kids][1][widget]
+                searchBtn.setIcon(QIcon(G.src.ImgDir.open))
+                searchStr.setPlaceholderText(Translate.由视图名搜索视图)
+                return widget
+
+            @property
+            def 判断已选中(self):
+                B = G.objs.Bricks
+                L = self.layout_dict
+                layout, widget, kids = B.triple
+                tableView: "baseClass.Standard.TableView" = L[kids][1][widget]
+                return len(tableView.selectedIndexes()) > 0
+
+            def setValueToTableRowFromForm(self):
+                """
+                2022年11月20日05:13:34 Done: 添加时, 需要把视图从其他配置表中去除. 具体而言: 将 视图原先配置表.uuid  从 视图.config中删除, 将 本 uuid 绑定到givew.config,
+                """
                 # self.colItems =
+
+                选中项: "QStandardItem" = self.tableModel.itemFromIndex(self.tableView.selectedIndexes()[0])
+                视图名, 视图标识 = 选中项.text(), 选中项.data(ItemDataRole.UserRole)
+
+                现配置模型: "configsModel.GviewConfigModel" = self.superior.上级.参数模型
+                funcs.GviewConfigOperation.指定视图配置(视图标识,现配置模型.uuid.value)
+
+                视图配置表的项 = self.superior.TableItem(self.superior, 视图名)
+                视图配置表的项.setData(视图标识, ItemDataRole.UserRole)
+                self.colItems = [视图配置表的项]
+
                 pass
 
             def __init__(self, superior: "ConfigWidget.GviewConfigApplyTable", colItems: "list[ConfigWidget.GviewConfigApplyTable.TableItem]" = None):
-                if not colItems:
-                    colItems = funcs.Map.do(superior.defaultRowData, lambda unit: superior.TableItem(superior, unit))
+                """处理单行打开的情况"""
+                B = G.objs.Bricks
+                layout, widget, kids = B.triple
+                # if not colItems:
+                #     colItems = funcs.Map.do(superior.defaultRowData, lambda data: superior.TableItem(superior, *data))
+                self.tableView: "baseClass.Standard.TableView" = baseClass.Standard.TableView(title_name="123")
+                self.tableModel: "QStandardItemModel" = QStandardItemModel()
+                self.searchStr: "QLineEdit" = QLineEdit()
+                self.searchBtn: "QToolButton" = QToolButton()
+
+                self.layout_dict = {layout: QVBoxLayout(), kids: [
+                        {layout: QHBoxLayout(),
+                         kids  : [
+                                 {widget: self.searchStr},
+                                 {widget: self.searchBtn}
+                         ]},
+                        {widget: self.tableView}
+                ]}
+
+                B = G.objs.Bricks
+                L = self.layout_dict
+                layout, widget, kids = B.triple
+
+                self.layoutTree = self.InitLayout(self.layout_dict)[layout]
+                self.containerWidget = QWidget()
+                self.containerWidget.setLayout(self.layoutTree)
+                self.colWidgets = [self.containerWidget]
                 super().__init__(superior, colItems)
 
+                self.SetupWidget()
+                self.SetupEvent()
+
+                pass
+
             def SetupEvent(self):
-                funcs.Map.do(range(3), lambda idx: self.colWidgets[idx].textChanged.connect(lambda: self.colItems[idx].setText(self.colWidgets[idx].toPlainText())))
-                self.colWidgets[3].clicked.connect(lambda: self.colItems[3].setText(str(self.colWidgets[3].isChecked())))
+                """
+                laterDO: 在搜索框中按回车触发搜索事件 (这个好像不是很重要)
+                laterDO: 用于选取结果的table其表头需要写上特定的文字, 现在显示为 1 很怪异, 但不是很重要
+                TODO: 展示结果应该去掉已经绑定的视图,
+                """
+
+                def onClick(searchString: "str"):
+                    if searchString == "":
+                        return
+                    if not re.search(r"\S", searchString):
+                        return
+                    likeString = "%".join(searchString)
+                    G.DB.go(G.DB.table_Gview)
+                    datas = G.DB.select(G.objs.Logic.LIKE("name", f"%{likeString}%")).return_all().zip_up().to_gview_data()
+                    self.tableModel = QStandardItemModel()
+                    for data in datas:
+                        self.tableModel.appendRow([baseClass.Standard.Item(data.name, data=data.uuid)])
+                    self.tableView.setModel(self.tableModel)
+
+                self.tableView.setModel(self.tableModel)
+
+                self.searchBtn.clicked.connect(lambda: onClick(self.searchStr.text()))
+                # self.containerWidget.show()
+                pass
 
     class GroupReviewConditionList(baseClass.ConfigTableView):
         """"""
         colnames = ["searchString"]
+        IsList = True
         defaultRowData = [("",)]
 
         def NewRow(self):
-            print("NewRow(self)")
+            # print("NewRow(self)")
             w = self.NewRowFormWidget(self)
             w.widget.exec()
             if w.ok:
@@ -1516,7 +1606,7 @@ class ConfigWidget:
             pass
 
         def ShowRowEditor(self, row: "list[baseClass.ConfigTableView.Item]"):
-            w = self.NewRowFormWidget(self,row)
+            w = self.NewRowFormWidget(self, row)
             w.widget.exec()
             # if w.ok:
             #     w.setValueToTableRowFromForm()
@@ -1528,12 +1618,12 @@ class ConfigWidget:
             self.ConfigModelItem.setValue(v)
             pass
 
-        def SetupData(self):
-            """重载这个函数是因为List没有二维数据只有string, 而父类是以二维数据的形式工作, 所以要手动添加一个[row]"""
-            self.model.setHorizontalHeaderLabels(self.colnames)
-            self.viewTable.setModel(self.model)
-            raw_data = self.ConfigModelItem.value
-            list(map(lambda row: self.AppendRow(self.GetRowFromData([row])), raw_data))
+        # def SetupData(self):
+        #     """重载这个函数是因为List没有二维数据只有string, 而父类是以二维数据的形式工作, 所以要手动添加一个[row]"""
+        #     self.model.setHorizontalHeaderLabels(self.colnames)
+        #     self.viewTable.setModel(self.model)
+        #     raw_data = self.ConfigModelItem.value
+        #     list(map(lambda row: self.AppendRow(self.GetRowFromData([row])), raw_data))
 
         class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
             """输入文本即可,如果是gview开头则要检查是否存在"""
@@ -1543,12 +1633,14 @@ class ConfigWidget:
             #     pass
 
             def __init__(self, superior: "ConfigWidget.GroupReviewConditionList", colItems: "list[ConfigWidget.GroupReviewConditionList.TableItem]" = None):
-                """注意,defaultRowData需要考虑superior.TableItem(superior, data)载入是否正确"""
+                """注意,defaultRowData需要考虑superior.TableItem(superior, data)载入是否正确
+
+                """
                 if not colItems:
                     colItems = funcs.Map.do(superior.defaultRowData, lambda data: superior.TableItem(superior, *data))
                 self.col0: "QTextEdit" = QTextEdit()  # self.colWidgets[0]
                 self.colItems = colItems
-                self.colWidgets=[QTextEdit()]
+                self.colWidgets = [QTextEdit()]
                 super().__init__(superior, colItems)
 
             def SetupWidget(self):
@@ -1556,7 +1648,7 @@ class ConfigWidget:
                 pass
 
             def setValueToTableRowFromForm(self):
-                self.colItems[0].SetValue(self.colWidgets[0].toPlainText(),self.colWidgets[0].toPlainText())
+                self.colItems[0].SetValue(self.colWidgets[0].toPlainText(), self.colWidgets[0].toPlainText())
                 pass
 
             def SetupEvent(self):
@@ -1607,9 +1699,9 @@ class ReviewButtonForCardPreviewer:
         from ..bilink.dialogs.linkdata_grapher import GrapherRoamingPreviewer
 
         notself, equalId, isRoaming = answer.platform != self, answer.card_id == self.card().id, isinstance(self.papa.superior, GrapherRoamingPreviewer)
-        print(f"handle_on_card_answerd,{notself},{equalId},{isRoaming}")
+        # print(f"handle_on_card_answerd,{notself},{equalId},{isRoaming}")
         if notself and equalId and isRoaming:
-            print("handle_on_card_answerd>if>ok")
+            # print("handle_on_card_answerd>if>ok")
             self.papa.superior.nextCard()
         pass
 

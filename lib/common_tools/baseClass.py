@@ -40,6 +40,7 @@ class ConfigTableNewRowFormView:
         self.SetupEvent()
 
     def SetupUI(self):
+        """在这里,每一列按照QFormLayout以名字-组件的方式添加,最后加上ok按钮"""
         from . import G
         hlayout = QHBoxLayout()
         self.okbtn.setIcon(QIcon(G.src.ImgDir.correct))
@@ -73,12 +74,29 @@ class ConfigTableNewRowFormView:
         """将值保存到行(self.colItems)中,他需要重载的原因是不同的表提取保存的数据类型形式各有不同"""
         pass
 
+    def InitLayout(self, d: "dict"):
+        """
+
+        """
+        from . import G
+        B = G.objs.Bricks
+        layout, widget, kids = B.triple
+        if layout in d:
+            the_layout: "QHBoxLayout|QVBoxLayout|QGridLayout" = d[layout]
+            for kid in d[kids]:
+                d1 = self.InitLayout(kid)
+                if layout in d1:
+                    the_layout.addLayout(d1[layout])
+                else:
+                    the_layout.addWidget(d1[widget])
+        return d
+
     # @abc.abstractmethod
     # def GetColWidgets(self) -> list[QWidget]:
     #     pass
 
 
-class CustomConfigItemView:
+class CustomConfigItemView(metaclass=abc.ABCMeta):
     """提供了最基础的功能, 即访问父类,访问对应的配置项,以及访问UI组件"""
 
     @property
@@ -89,13 +107,20 @@ class CustomConfigItemView:
     def Item(self, value: "ConfigModelItem"):
         self._item = value
 
-    @property
-    def Parent(self):
-        return self._parent
+    # @abc.abstractmethod
+    # def 值替换(self, 值):
+    #     pass
+    # @property
+    # def Parent(self):
+    #     return self._parent
+    #
+    # @Parent.setter
+    # def Parent(self, value):
+    #     self._parent = value
+    @abc.abstractmethod
+    def SetupData(self, raw_data):
 
-    @Parent.setter
-    def Parent(self, value):
-        self._parent = value
+        pass
 
     @property
     def View(self) -> "QWidget":
@@ -105,21 +130,21 @@ class CustomConfigItemView:
     def View(self, value: "QWidget"):
         self._view = value
 
-    def __init__(self, configItem: "ConfigModelItem" = None, parent: "QWidget" = None, *args, **kwargs):
+    def __init__(self, configItem: "ConfigModelItem" = None, 上级: "Standard.配置表容器"  = None, *args, **kwargs):
         self.ConfigModelItem: "ConfigModelItem" = configItem
-        self.Parent: "QWidget" = parent
-        self.View: "QWidget" = QWidget(parent)
+        self.上级: "Standard.配置表容器" = 上级
+        self.View: "QWidget" = QWidget(上级)
 
 
-class ConfigTableView(CustomConfigItemView):
+class ConfigTableView(CustomConfigItemView,metaclass=abc.ABCMeta):
     """只提供基础的表格功能, 双击修改行, 点加号增加空记录, 点减号减去对应行
     这个类自定义了配置表的基本功能, 把很多设置提前设置好减少代码量
     """
     colnames = []
     defaultRowData = [] # 默认行数据用来新建行,  (dataformat.templateId, dataformat.fieldId), dataformat.fieldName, colType.field)
-
-    def __init__(self, configItem: "ConfigModelItem" = None, parent: "QWidget" = None, *args, **kwargs):
-        super().__init__(configItem, parent)
+    IsList = False #如果是列表, 则要改造成二维表实现表格.
+    def __init__(self, configItem: "ConfigModelItem" = None, 上级: "Standard.配置表容器" = None, *args, **kwargs):
+        super().__init__(configItem, 上级)
         self.viewTable = QTableView(self.View)
         self.model = QStandardItemModel()
         self.modelRoot = self.model.invisibleRootItem()
@@ -130,9 +155,14 @@ class ConfigTableView(CustomConfigItemView):
         self.rowEditor = QDialog()
         self.rowEditor.resize(300, 600)
 
-        self.SetupData()
+        self.SetupData(self.ConfigModelItem.value)
         self.SetupView()
         self.SetupEvent()
+
+    # def 值替换(self, 值):
+    #     """直接换一套值, 通常发生在参数模型改变的情况下"""
+    #
+    #     pass
 
     def SetupView(self):
         self.SetupLayout()
@@ -155,14 +185,21 @@ class ConfigTableView(CustomConfigItemView):
         viewLayout.setStretch(1, 0)
         self.View.setLayout(viewLayout)
 
-    def SetupData(self):
+    def SetupData(self,raw_data):
 
         self.model.setHorizontalHeaderLabels(self.colnames)
         self.viewTable.setModel(self.model)
-        raw_data = self.ConfigModelItem.value
-        list(map(lambda row: self.AppendRow(self.GetRowFromData(row)), raw_data))
+        self.model.clear()
+        # raw_data = self.ConfigModelItem.value
+        # print("uuid_list=",raw_data)
+        if self.IsList:
+            list(map(lambda row: self.AppendRow(self.GetRowFromData([row])), raw_data))
+        else:
+            list(map(lambda row: self.AppendRow(self.GetRowFromData(row)), raw_data))
 
         pass
+
+
 
     def SetupEvent(self):
         self.btnAdd.clicked.connect(lambda: self.NewRow())
@@ -188,7 +225,8 @@ class ConfigTableView(CustomConfigItemView):
 
     def GetRowFromData(self, data: "list[str]"):
         """根据所获取的数据生成行, 由于这个组件通常用于列表类型的配置, 因此data通常是list结构"""
-        return list(map(lambda itemname: self.TableItem(self, itemname), data))
+        # return list(map(lambda itemname: self.TableItem(self, itemname), data))
+        return [self.TableItem(self, 项名) for 项名 in data]
 
     @abc.abstractmethod
     def NewRow(self):
@@ -230,8 +268,38 @@ class ConfigTableView(CustomConfigItemView):
             self.setToolTip(text)
             self.setData(value, role=ItemDataRole.UserRole)
 
+class Standard:
+    class TableView(QTableView):
+        def __init__(self,itemIsmovable=False,editable=False,itemIsselectable=False,title_name=""):
+            super().__init__()
+            if not editable:
+                self.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-# class ConfigListView
+
+            self.horizontalHeader().setStretchLastSection(True)
+
+            # if title_name:
+            #     model =QStandardItemModel()
+            #     self.horizontalHeader().setModel(model)
+            #     self.horizontalHeader().model().setHeaderData(0,Qt.Horizontal,title_name)
+
+    class Item(QStandardItem):
+        def __init__(self,name,data=None,movable=False,editable=False,selectable=False):
+            super().__init__(name)
+            if data:
+                self.setData(data)
+
+    class 配置表容器(QDialog):
+
+        def __init__(我,调用者, 配置参数模型: "BaseConfigModel"):
+            我.参数模型 = 配置参数模型
+            我.调用者 = 调用者
+            super().__init__()
+
+
+    # class Model(QStandardItemModel):
+    #     def __init__(self,title_name=""):
+    #         super().__init__()
 
 
 class Geometry:

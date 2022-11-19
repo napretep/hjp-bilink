@@ -7,6 +7,7 @@ __email__ = '564298339@qq.com'
 __time__ = '2021/11/15 1:34'
 这是一个比较底层的模块, 尽量不要直接引用其他模块, 用lambda表达式的方式推迟引用
 """
+import abc
 import datetime
 import json
 import os
@@ -16,7 +17,7 @@ from dataclasses import dataclass, field
 from enum import unique, Enum
 from functools import reduce
 from typing import List, Any, Union, Callable, Optional
-
+from .baseClass import CustomConfigItemView
 from .language import Translate
 from .src_admin import MAXINT, MININT, src
 from . import widgets, terms, baseClass
@@ -25,40 +26,44 @@ from .compatible_import import tooltip, isMac, isWin
 from typing import TYPE_CHECKING
 
 
-class CustomConfigItemView:
-
-    @property
-    def Item(self) -> "ConfigModelItem":
-        return self._item
-
-    @Item.setter
-    def Item(self, value: "ConfigModelItem"):
-        self._item = value
-
-    @property
-    def Parent(self):
-        return self._parent
-
-    @Parent.setter
-    def Parent(self, value):
-        self._parent = value
-
-    @property
-    def View(self) -> "QWidget":
-        return self._view
-
-    @View.setter
-    def View(self, value: "QWidget"):
-        self._view = value
-
-    def __init__(self, configItem: "ConfigModelItem" = None, parent: "QWidget" = None, *args, **kwargs):
-        self.Item: "ConfigModelItem" = configItem
-        self.Parent: "QWidget" = parent
-        self.View: "QWidget" = QWidget(parent)
+# class CustomConfigItemView(metaclass=abc.ABCMeta):
+#
+#     @property
+#     def Item(self) -> "ConfigModelItem":
+#         return self._item
+#
+#     @Item.setter
+#     def Item(self, value: "ConfigModelItem"):
+#         self._item = value
+#
+#     @property
+#     def Parent(self):
+#         return self._parent
+#
+#     @Parent.setter
+#     def Parent(self, value):
+#         self._parent = value
+#
+#     # @property
+#     # def View(self) -> "QWidget":
+#     #     return self._view
+#     #
+#     # @View.setter
+#     # def View(self, value: "QWidget"):
+#     #     self._view = value
+#
+#
+#     def __init__(self, configItem: "ConfigModelItem" = None, parent: "QWidget" = None, *args, **kwargs):
+#         self.Item: "ConfigModelItem" = configItem
+#         self.Parent: "QWidget" = parent
+#         self.View: "QWidget" = QWidget(parent)
 
 
 @dataclass
 class GViewData:
+    """视图数据类
+    警告:当你要修改数据类的结构时,请你务必检查所有的调用方是否正确调用了这个类
+    """
     uuid: str
     name: str
     nodes: 'dict[str,list[Union[float,int],Union[float,int]]]'  # TODO key=card_id,value=[posx,posy,priority,accesstimes]
@@ -141,12 +146,23 @@ class ConfigModelItem:
     limit: "list" = field(default_factory=lambda: [0, MAXINT])
     customizeComponent: "Callable[[],CustomConfigItemView.__class__]" = lambda: CustomConfigItemView  # 这个组件的第一个参数必须接受
     _id: "int" = 0  # 0表示无特殊信息
+    widget:"QWidget" = None
+    设值到组件: "Callable[[Any],Any]"=None
+    def setValue(self, 值):
+        self.value = 值
+        if self.设值到组件:
+            self.设值到组件(值)
 
-    def setValue(self, value):
-        self.value = value
 
     def to_dict(self):
         return {"value": self.value}
+
+    # def 组件类型与组件值修改函数映射(self):
+    #     w= BaseConfigModel.Widget
+    #     return {
+    #         w.spin:lambda 值:self.widget.setValue(值),
+    #         w.line:lambda 值:self.widget.setText(值),
+    #     }
 
 
 @dataclass
@@ -180,6 +196,7 @@ class BaseConfigModel:
         label = 8
         text = 9
         customize = 10
+
 
     def save_to_file(self, path):
         json.dump(self.get_dict(), open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=4)
@@ -681,12 +698,18 @@ class GviewConfigModel(BaseConfigModel):
         from . import funcs
         return funcs.GviewOperation.exists(uuid=uuid)
 
+    uuid: ConfigModelItem = field(default_factory=lambda:ConfigModelItem(
+            instruction=["只读"],
+            value="",
+            component=ConfigModel.Widget.none,
+            tab_at="main",
+    ))
     name: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["视图配置的名字"],
             value="new gview config",
             component=ConfigModel.Widget.line,
             tab_at="main",
-            validate=lambda value, item: re.search("\S", value)
+            validate=lambda value, item: re.search(r"\S", value)
     ))
 
     chooseCards: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
@@ -722,7 +745,7 @@ class GviewConfigModel(BaseConfigModel):
 
     ))
     appliedGview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["设定本视图配置所应用的视图们"],
+            instruction=["设定该配置所应用的视图们, 如果你删掉了表中的全部视图, 那么会导致该配置被删除, 并且为当前的视图立即新建一个配置"],
             value=[],
             tab_at="main",
             component=ConfigModel.Widget.customize,

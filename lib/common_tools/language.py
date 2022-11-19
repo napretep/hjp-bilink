@@ -212,7 +212,9 @@ def rosetta(text: str = ""):
             "描述已修改,但是你不会看到修改结果,因为这张卡保持着描述与字段同步":"The description has been modified, but you will not see the result of the modification because the card keeps the description synchronized with the field"
             ,"打开复习队列":"open due queue",
             "双面展示":"both side",
-            "开始漫游复习":"start roaming review"
+            "开始漫游复习":"start roaming review",
+            "由视图名搜索视图":"search graph by name",
+            "视图配置与视图是两个独立的对象, 一个视图配置可以应用到多个视图上":"The view configuration and the view are two separate objects, and a view configuration can be applied to multiple views"
     }
     ZHdict = {
         "gview_admin_default_display":"视图管理器默认显示",
@@ -269,7 +271,7 @@ class Translate:
     lang = currentLang
     surrport = ["zh-CN", "zh_TW", "en", "en-GB"]
     打开配置表:str = rosetta("打开配置表")
-    打开anchor:str  = rosetta("打开卡片元信息")
+    打开anchor:str = rosetta("打开卡片元信息")
     文内链接:str = rosetta("文内链接")
     html链接:str = rosetta("html链接")
     markdown链接:str = rosetta("markdown链接")
@@ -399,6 +401,14 @@ class Translate:
     到期时间降序: str = rosetta("到期时间降序")
     随机选择卡片开始:str=rosetta("随机选择卡片开始")
     手动选择卡片开始:str = rosetta("手动选择卡片开始")
-
+    由视图名搜索视图:str = rosetta("由视图名搜索视图")
+    更换本视图的配置:str = rosetta("更换本视图的配置")
+    说明_视图配置与视图的区别:str = rosetta("视图配置与视图是两个独立的对象, 一个视图配置可以应用到多个视图上, 如果一个视图配置没有对应的视图, 则该视图配置会被删除")
+    输入关键词并点击查询:str = rosetta("输入关键词并点击查询")
+    搜索并选择配置:str = rosetta("搜索并选择配置")
+    说明_同时搜索配置与视图的配置:str = rosetta("你输入的关键词会同时匹配视图名与配置名, 若你选择的是配置则直接加载这个配置, 若你选择的是视图则会加载这个视图对应的配置. 若你没有做出选择, 点击确认不会有反应")
+    新建配置:str = rosetta("新建配置")
+    配置:str = rosetta("配置")
+    视图:str = rosetta("视图")
 if __name__ == "__main__":
     print(Translate.打开配置表)

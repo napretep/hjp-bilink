@@ -430,6 +430,7 @@ class DB_admin(object):
 
     sqlstr_TABLE_PRAGMA = """PRAGMA table_info({tablename})"""
     sqlstr_TABLE_ALTER = """alter table {tablename} add column {colname} {define}"""
+    SQL_移除表字段 = """alter table {表名} drop column {字段名}"""
     sqlstr_TABLE_EXIST = """select count(*) from sqlite_master where type="table" and name ="{tablename}" """
     sqlstr_RECORD_EXIST = """select count(*) from {tablename} where {where} """
     sqlstr_RECORD_SELECT = """select * from {tablename} where {where} """
@@ -525,14 +526,19 @@ class DB_admin(object):
         """确保字段对齐,如果不对齐,则要增加字段,字段可以增加,一般不重命名和删除"""
         pragma = self.pragma().return_all()
         table_fields = set([i[1] for i in pragma])
-        print(table_fields)
+        # print(table_fields)
         compare_fields = set(Table.switch[self.curr_tabtype].get_dict().keys())
-        print(compare_fields)
+        # print(compare_fields)
         need_add_fields = list(compare_fields - table_fields)
+        需要移除字段 = list(table_fields - compare_fields)
         if need_add_fields:
             # print("update table fields")
             for field in need_add_fields:
                 self.alter_add_col(field).commit()
+        if 需要移除字段:
+            for 字段 in 需要移除字段:
+                self.移除字段(字段).commit()
+
 
     def pragma(self):
         """返回字段结构"""
@@ -547,6 +553,11 @@ class DB_admin(object):
         self.excute_queue.append(s)
         return self
 
+    def 移除字段(self,字段名):
+        s = self.SQL_移除表字段.format(表名=self.tab_name, 字段名=字段名)
+        self.excute_queue.append(s)
+        return self
+        pass
     def go(self, curr_tabtype=None):
         """go是DB开始的入口,end是结束的标志,必须要调用end结束
         curr_tabtype:
@@ -555,7 +566,7 @@ class DB_admin(object):
             table_linkinfo = 2
             table_Gview=3
         """
-        print(curr_tabtype)
+        # print(curr_tabtype)
         if not curr_tabtype:
             curr_tabtype = self.table_clipbox
         self.excute_queue = []
@@ -618,11 +629,13 @@ class DB_admin(object):
     def exists(self, box: "DB_admin.BOX"):
         """平时用这个比较好"""
         result = self.exists_check(box).return_all()
-        return result[0][0] > 0
+        return result[0][0] > 0 # 第一条记录的第一个字段
 
     # 存在性检查
     def exists_check(self, box: "DB_admin.BOX"):
-        """这个检查需要提交commit,不建议使用"""
+        """
+        原理是 select count(*) from table  where box
+        这个检查需要提交commit,不建议使用"""
         s = self.sqlstr_RECORD_EXIST.format(tablename=self.tab_name, where=box.string)
         self.excute_queue.append([s, box.values])
         return self
@@ -1027,15 +1040,32 @@ class DBResults(object):
 class Record:
     @dataclass
     class GviewConfig:
-
-        def __init__(self,uuid=None, name=None, _data=None):
+        class 元信息:
+            确定保存到数据库 = True
+        def __init__(self,uuid=None, name=None, data=None):
             """这里的读取就是dict"""
             from . import  funcs,configsModel
+            if uuid is not None and data is None:
+                raise ValueError("有 uuid 但没有 data , 你是不是想读取Config? 读取请用 readModelFromDB")
             self.uuid = uuid if uuid else funcs.UUID.by_random()
             self.name = name if name else "graph config"
-            self.data = self.initData(json.loads(_data)) if _data else self.initData({})
+            self.data = self.initData(json.loads(data)) if data else self.initData({})
+            self.一致性检查()
+            # self.确定保存到数据库=True
+
+        def 一致性检查(self):
+            from . import funcs
+            应用该配置的视图表:"list[str]" = self.data.appliedGview.value
+            新值 = 应用该配置的视图表.copy()
+            for 视图标识 in 应用该配置的视图表:
+                视图模型 = funcs.GviewOperation.load(视图标识)
+                if 视图模型.config!=self.uuid:
+                    新值.remove(视图标识)
+            self.data.appliedGview.setValue(新值)
+            self.saveModelToDB()
 
         def initData(self,_data:"dict"):
+            _data["uuid"] = self.uuid
             from .configsModel import GviewConfigModel
             template = GviewConfigModel()
             for k,v in _data.items():
@@ -1048,24 +1078,30 @@ class Record:
             return d
 
         def saveModelToDB(self):
-            from . import G
-            G.DB.go(G.DB.table_GviewConfig)
-            self.name = self.data.name
-            if G.DB.exists_check(Logic.EQ(uuid=self.uuid)):
-                G.DB.update(values=Logic.LET(**self.getDict()),where=Logic.EQ(uuid=self.uuid)).commit()
-            else:
-                G.DB.insert(**self.getDict()).commit()
+            if self.元信息.确定保存到数据库:
+                from . import G
+                G.DB.go(G.DB.table_GviewConfig)
+                self.name = self.data.name.value
+                if G.DB.exists(Logic.EQ(uuid=self.uuid)):
+                    G.DB.update(values=Logic.LET(**self.getDict()),where=Logic.EQ(uuid=self.uuid)).commit()
+                else:
+                    G.DB.insert(**self.getDict()).commit()
 
         @staticmethod
-        def readModelFromDB(uuid=None):
-            """这里可以当uuid为空表示新建一个配置"""
+        def 静态_存在于数据库中(uuid):
+            from . import G
+            DB = G.DB.go(G.DB.table_GviewConfig)
+            return DB.exists(Logic.EQ(uuid=uuid))
 
-            if uuid:
-                from . import G
-                DB = G.DB.go(G.DB.table_GviewConfig)
-                result: "Record.GviewConfig" = DB.select(Logic.EQ(uuid=uuid)).return_all().zip_up().to_givenformat_data(Record.GviewConfig, multiArgs=True)
-            else:
-                result: "Record.GviewConfig" = Record.GviewConfig()
+        @staticmethod
+        def readModelFromDB(uuid):
+            """这里可以当uuid为空表示新建一个配置"""
+            if not uuid: raise ValueError(f" '{uuid}' 为非法标识, 请输入合法的标识!")
+
+            from . import G
+            DB = G.DB.go(G.DB.table_GviewConfig)
+            result: "Record.GviewConfig" = DB.select(Logic.EQ(uuid=uuid)).return_all().zip_up().to_givenformat_data(Record.GviewConfig, multiArgs=True)[0]
+
             return result
 
 
@@ -1076,11 +1112,12 @@ class Pair:
 
 @dataclass
 class GviewRecord:
+    """视图数据库记录类"""
     uuid:str
     name:str
     nodes:str
     edges:str
-    config:str
+    config:str = ""
 
 @dataclass
 class PDFinfoRecord:
@@ -1108,6 +1145,57 @@ class ClipboxRecord:
     def to_dict(self):
         return self.__dict__.copy()
 
+
+
+@dataclass
+class Bricks:
+    布局=layout=0
+    组件=widget=1
+    子代=kids=2
+    描述=3
+    triple = [layout,widget,kids]
+    三元组 = [布局,组件,子代]
+    四元组 = [布局,组件,子代,描述]
+
+    @staticmethod
+    def build(b:"dict"):
+        """
+        {
+            layout:Vbox,
+            kids:[
+                {
+                layout:Hbox,
+                kids:[
+                    {widget:lineEdit},
+                    {widget:button}
+                ]
+                },
+                {
+                widget:View
+                }
+            ]
+        }
+        """
+        layout, widget, kids = Bricks.triple
+
+        kidsStack:"list[dict]"=[b]
+
+
+
+
+@dataclass
+class WidgetsBrick:
+    def __init__(self,layout=None,widget=None,kids=None):
+        self.kids:"list[WidgetsBrick]" = kids if kids else []
+        self.layout:"QHBoxLayout|QVBoxLayout|QGridLayout"=layout
+        self.widget:"QWidget" = widget
+        print(self.kids,type(self.layout) if not self.layout else None,type(self.widget) if not self.widget else None)
+        if layout:
+            for w in self.kids:
+                if w.widget:
+                    self.layout.addWidget(w.widget)
+                elif w.layout:
+                    self.layout.addLayout(w.layout)
 
 if __name__ == "__main__":
     data = """
