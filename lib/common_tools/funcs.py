@@ -35,13 +35,15 @@ from anki.notes import Note
 from bs4 import BeautifulSoup, element
 from . import G, compatible_import
 from .language import Translate, rosetta
+
 译 = Translate
 from .objs import LinkDataPair, LinkDataJSONInfo
 from . import objs
+
 if not ISLOCAL:
     from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewer
 from .configsModel import ConfigModel, AnswerInfoInterface, GroupReviewDictInterface, GViewData, GraphMode, \
-    ConfigModelItem, CustomConfigItemView,BaseConfigModel
+    ConfigModelItem, CustomConfigItemView, BaseConfigModel,GviewConfigModel
 from . import widgets
 
 
@@ -89,10 +91,12 @@ class Map:
     @staticmethod
     def do(li: "iter", func: "callable"):
         return list(map(func, li))
+
+
 class Filter:
     @staticmethod
-    def do(li:"iter",func:"callable"):
-        return list(filter(func,li))
+    def do(li: "iter", func: "callable"):
+        return list(filter(func, li))
 
 
 class MenuMaker:
@@ -160,12 +164,12 @@ class GviewOperation:
             DB.go(DB.table_Gview)
             data1 = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_data()[0]
             data = GViewData(uuid=data1.uuid, name=data1.name, nodes=json.loads(data1.nodes),
-                             edges=json.loads(data1.edges),config=data1.config)
+                             edges=json.loads(data1.edges), config=data1.config)
         elif gviewdata is not None:
             with G.DB.go(G.DB.table_Gview) as DB:
                 data1 = DB.select(DB.EQ(uuid=gviewdata.uuid)).return_all().zip_up().to_gview_data()[0]
             data = GViewData(uuid=data1.uuid, name=data1.name, nodes=json.loads(data1.nodes),
-                             edges=json.loads(data1.edges),config=data1.config)
+                             edges=json.loads(data1.edges), config=data1.config)
         elif pairli is not None:
             data = GviewOperation.find_by_card(pairli)
 
@@ -282,9 +286,9 @@ class GviewOperation:
     def getDueCount(gview):
         """用于统计未复习数量"""
         from .configsModel import GViewData
-        g:GViewData = gview
+        g: GViewData = gview
         now = now = datetime.now()
-        return sum(1 for i in Filter.do(Map.do(g.nodes.keys(),lambda x:CardOperation.getLastNextRev(x)),lambda due:due[1]<=now))
+        return sum(1 for i in Filter.do(Map.do(g.nodes.keys(), lambda x: CardOperation.getLastNextRev(x)), lambda due: due[1] <= now))
 
 
 class Utils(object):
@@ -326,7 +330,6 @@ class Utils(object):
         if G.ISDEBUG and not G.ISLOCALDEBUG:
             tooltip(s)
 
-
     @staticmethod
     def showInfo(s):
         if G.ISDEBUG:
@@ -350,17 +353,18 @@ class Utils(object):
             else:
                 ts = ""
             if need_logFile:
-                f= open(G.src.path.logtext, "a", encoding="utf-8")
+                f = open(G.src.path.logtext, "a", encoding="utf-8")
                 print(ts, *args, **kwargs, file=f)
             else:
                 print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs)
 
     @staticmethod
-    def 组件组合(组件树数据:"dict",容器:"QWidget"=None):
+    def 组件组合(组件树数据: "dict", 容器: "QWidget" = None):
         if not 容器: 容器 = QWidget()
         基 = G.objs.Bricks
         布局, 组件, 子代 = 基.三元组
-        def 子组合(组件树:"dict"):
+
+        def 子组合(组件树: "dict"):
             if 布局 in 组件树:
                 the_layout: "QHBoxLayout|QVBoxLayout|QGridLayout" = 组件树[布局]
                 for 孩子 in 组件树[子代]:
@@ -370,13 +374,15 @@ class Utils(object):
                     else:
                         the_layout.addWidget(子组件[组件])
             return 组件树
+
         容器.setLayout(子组合(组件树数据)[布局])
         return 容器
+
 
 class 组件定制:
 
     @staticmethod
-    def 表格(单行选中=True,不可修改=True):
+    def 表格(单行选中=True, 不可修改=True):
         组件 = QTableView()
         if 单行选中:
             组件.setSelectionMode(QAbstractItemView.SingleSelection)
@@ -385,8 +391,9 @@ class 组件定制:
             组件.setEditTriggers(QAbstractItemView.NoEditTriggers)
         组件.horizontalHeader().setStretchLastSection(True)
         return 组件
+
     @staticmethod
-    def 模型(行标签:"list[str]"=None):
+    def 模型(行标签: "list[str]" = None):
         组件 = QStandardItemModel()
         if 行标签:
             组件.setHorizontalHeaderLabels(行标签)
@@ -398,24 +405,25 @@ class 组件定制:
         if 占位符:
             组件.setPlaceholderText(占位符)
         return 组件
+
     @staticmethod
-    def 对话窗口(标题=None,图标=None):
-        组件=QDialog()
+    def 对话窗口(标题=None, 图标=None):
+        组件 = QDialog()
         if 标题:
             组件.setWindowTitle(标题)
         if 图标:
             组件.setWindowIcon(图标)
         return 组件
+
     @staticmethod
-    def 文本框(文本="",开启自动换行=None):
+    def 文本框(文本="", 开启自动换行=None):
         组件 = QLabel(文本)
         if 开启自动换行:
             组件.setWordWrap(True)
         return 组件
 
-
     @staticmethod
-    def 按钮(图标地址=None,文本=None,触发函数=None):
+    def 按钮(图标地址=None, 文本=None, 触发函数=None):
         组件 = QPushButton()
         if 图标地址:
             组件.setIcon(QIcon(图标地址))
@@ -432,7 +440,6 @@ class 组件定制:
     #     else:
     #         for 组件 in 布局组件表:
     #             布局.addWidget()
-
 
 
 class GroupReview(object):
@@ -532,10 +539,11 @@ class GroupReview(object):
         tooltip("已添加到群组复习条件列表: " + condition)
 
 
-class BaseConfig(metaclass = abc.ABCMeta):
+class BaseConfig(metaclass=abc.ABCMeta):
     """一切配置表的基类
     TODO 把Config中可以抽象的功能提升到这里来
     """
+
     @staticmethod
     def get_validate(item: "ConfigModelItem"):
 
@@ -557,7 +565,7 @@ class BaseConfig(metaclass = abc.ABCMeta):
             return item.validate
 
     @staticmethod
-    def makeConfigRow(配置项名,配置项: "ConfigModelItem", 上级: "baseClass.Standard.配置表容器"):
+    def makeConfigRow(配置项名, 配置项: "ConfigModelItem", 上级: "baseClass.Standard.配置表容器"):
         """这里制作配置表中的每一项"""
         value, validate, widgetType = 配置项.value, 配置项.validate, 配置项.component
         typ = ConfigModel.Widget
@@ -572,7 +580,7 @@ class BaseConfig(metaclass = abc.ABCMeta):
             w.setRange(配置项.limit[0], 配置项.limit[1])
             w.setValue(value)
             w.valueChanged.connect(lambda x: 配置项.setValue(x))
-            配置项.设值到组件 = lambda 值:w.setValue(值)
+            配置项.设值到组件 = lambda 值: w.setValue(值)
         elif widgetType == typ.line:
             w = QLineEdit()
             w.setText(value)
@@ -599,9 +607,9 @@ class BaseConfig(metaclass = abc.ABCMeta):
             w.setText(value)
             配置项.设值到组件 = lambda 值: w.setText(值)
         elif widgetType == typ.customize:
-            x = 配置项.customizeComponent()(配置项, container)  # 这个地方的警告去不掉, 很烦人.
+            x = 配置项.customizeComponent()(配置项, 上级)  # 这个地方的警告去不掉, 很烦人.
             配置项.设值到组件 = lambda 值: x.SetupData(值)
-            w=x.View
+            w = x.View
         else:
             raise ValueError(f"配置项:{配置项名},未知组件方案")
         配置项.widget = w
@@ -609,20 +617,23 @@ class BaseConfig(metaclass = abc.ABCMeta):
         layout.addWidget(tipbutton)
         container.setLayout(layout)
         return container
+
     @staticmethod
-    def makeConfigDialog(调用者, 数据:"BaseConfigModel",关闭时回调:"Callable"):
-        """TODO:这里的内容要整理到Config的父类中
+    def makeConfigDialog(调用者, 数据: "BaseConfigModel", 关闭时回调: "Callable[[BaseConfigModel],None]"=None):
+        """
+        关闭时回调
+        TODO:这里的内容要整理到Config的父类中
         onclose 接受一个高阶函数: Callable[cfg,Callable[]] 这个高阶函数的参数是本函数的第一个参数cfg
         """
+
         # from .configsModel import BaseConfigModel
+        print(f"in makeConfigDialog data={数据}")
         @dataclasses.dataclass()
         class 分页字典项:
             widget: QWidget = dataclasses.field(default_factory=QWidget)
             layout: QFormLayout = dataclasses.field(default_factory=QFormLayout)
 
-
-
-        容器 = baseClass.Standard.配置表容器(调用者,数据)
+        容器 = baseClass.Standard.配置表容器(数据, 调用者=调用者)
 
         总布局 = QVBoxLayout()
         分栏 = QTabWidget()
@@ -633,7 +644,7 @@ class BaseConfig(metaclass = abc.ABCMeta):
                 continue
             if 值.tab_at not in 分栏字典:
                 分栏字典[值.tab_at]: '分页字典项' = 分页字典项()
-            item = BaseConfig.makeConfigRow(名,值,容器)
+            item = BaseConfig.makeConfigRow(名, 值, 容器)
             分栏字典[值.tab_at].layout.addRow(rosetta(名), item)
         for 名, 值 in 分栏字典.items():
             值.widget.setLayout(值.layout)
@@ -644,60 +655,81 @@ class BaseConfig(metaclass = abc.ABCMeta):
         滚动组件.setMinimumHeight(500)
         总布局.addWidget(滚动组件)
         容器.setLayout(总布局)
-        容器.resize(int(分栏.width()*1.1),500)
-        容器.setContentsMargins(0,0,0,0)
+        容器.resize(int(分栏.width() * 1.1), 500)
+        容器.setContentsMargins(0, 0, 0, 0)
         容器.setWindowIcon(QIcon(G.src.ImgDir.config))
         容器.setWindowTitle("配置表/configuration")
         if 关闭时回调:
-            容器.rejected.connect(lambda: 关闭时回调(数据))
-            容器.closeEvent = 关闭时回调(数据)
+            容器.rejected.connect(lambda :关闭时回调(数据))
 
         return 容器
+
 
 class GviewConfigOperation(BaseConfig):
 
     @staticmethod
     def 从数据库读(标识):
         return objs.Record.GviewConfig.readModelFromDB(标识)
-    @staticmethod
-    def 从数据库删除(标识):
-        G.DB.go(G.DB.table_GviewConfig).delete(objs.Logic.EQ(uuid=标识)).commit()
 
     @staticmethod
-    def 指定视图配置(视图模型:"GViewData",新配置模型:"objs.Record.GviewConfig"=None):
+    def 从数据库删除(标识:str):
+        if type(标识)!=str:
+            raise  ValueError("类型不匹配")
+        G.DB.go(G.DB.table_GviewConfig).delete(objs.Logic.EQ(uuid=标识)).commit(callback=print)
+
+    @staticmethod
+    def 指定视图配置(视图记录: "GViewData|str", 新配置记录: "objs.Record.GviewConfig|str|None" = None):
+        print(f" assign view config function begin ")
+        if type(视图记录) == str:
+            视图记录 = GviewOperation.load(视图记录)
+
+        if 新配置记录 is None:
+            新配置记录 = objs.Record.GviewConfig()
+        elif type(新配置记录)==str:
+            新配置记录 = objs.Record.GviewConfig.readModelFromDB(新配置记录)
+
         def 删除前配置中的当前视图():
-            前配置模型 = GviewConfigOperation.从数据库读(视图模型.config)
-            应用前配置的视图表: "list[str]" = 前配置模型.data.appliedGview.value
-            if 视图模型.uuid in 应用前配置的视图表:
-                应用前配置的视图表.remove(视图模型.uuid)
+            前配置记录 = GviewConfigOperation.从数据库读(视图记录.config)
+            应用前配置的视图表: "list[str]" = 前配置记录.data.appliedGview.value
+            print(f"former model applied config table, before append={应用前配置的视图表}")
+            if 视图记录.uuid in 应用前配置的视图表:
+                应用前配置的视图表.remove(视图记录.uuid)
                 if len(应用前配置的视图表) == 0:
-                    GviewConfigOperation.从数据库删除(前配置模型.uuid)
+                    GviewConfigOperation.从数据库删除(前配置记录.uuid)
                 else:
-                    前配置模型.data.appliedGview.setValue(应用前配置的视图表)
-                    前配置模型.saveModelToDB()
+                    前配置记录.data.appliedGview.setValue(应用前配置的视图表)
+                    前配置记录.saveModelToDB()
+            print(f"former model applied config table, after append={应用前配置的视图表}")
 
-        if 视图模型.config and objs.Record.GviewConfig.静态_存在于数据库中(视图模型.config):
+        def 将当前视图添加到现配置的支配表中():
+            应用配置视图表: "list[str]" = 新配置记录.data.appliedGview.value
+            print(f"new model uuid={新配置记录.uuid}, appliedGview before append =  {应用配置视图表}")
+
+            if 视图记录.uuid not in 应用配置视图表:
+                应用配置视图表.append(视图记录.uuid)
+                新配置记录.data.appliedGview.setValue(应用配置视图表)
+            视图记录.config = 新配置记录.uuid
+            GviewOperation.save(视图记录)
+            新配置记录.data.元信息.确定保存到数据库=True
+            新配置记录.saveModelToDB()
+            print(f"new model uuid={新配置记录.uuid}, appliedGview after append =  {应用配置视图表}, gview.config = {视图记录.config}")
+
+        if 视图记录.config and objs.Record.GviewConfig.静态_存在于数据库中(视图记录.config):
             删除前配置中的当前视图()
 
-        if 新配置模型:
-            if 视图模型.uuid not in 新配置模型.data.appliedGview.value:
-                新配置模型.data.appliedGview.value.append(视图模型.uuid)
-            新配置模型.saveModelToDB()
-            视图模型.config = 新配置模型.uuid
-        else:
-            视图模型.config = ""
+        将当前视图添加到现配置的支配表中()
 
-        GviewOperation.save(视图模型)
-
+        GviewOperation.save(视图记录)
+        print("assign view over ")
 
     @staticmethod
-    def 移除视图配置(视图标识:"str",配置标识:"str"):
+    def 移除视图配置(视图标识: "str", 配置标识: "str"):
         视图模型 = GviewOperation.load(uuid=视图标识)
         视图模型.config = ""
         GviewOperation.save(视图模型)
 
     @staticmethod
-    def 据关键词同时搜索视图与配置数据库表(关键词:"str")->"list[tuple[str,str,str]]":
+    def 据关键词同时搜索视图与配置数据库表(关键词: "str") -> "list[tuple[str,str,str]]":
         """返回一个列表,里面是[类型,名称,uuid]三元组
         """
 
@@ -709,6 +741,7 @@ class GviewConfigOperation(BaseConfig):
         """)
         result = G.DB.commit()
         return list(result)
+
     pass
     # @staticmethod
     # def readModelFromDB(uuid=None):
@@ -736,6 +769,7 @@ class GviewConfigOperation(BaseConfig):
 
 class Config(BaseConfig):
     """TODO 这里需要抽象出一个父类, 实现widget继承"""
+
     @staticmethod
     def read(cfg: ConfigModel, data: "dict"):
         for key, value in data.items():
@@ -747,7 +781,6 @@ class Config(BaseConfig):
                     # write_to_log_file(f"{key}={value}\n"+str(Config.get_validate(item)(value,item)),need_timestamp=True)
                     continue
                 cfg[key].value = value
-
 
     @staticmethod
     def get() -> ConfigModel:
@@ -782,8 +815,6 @@ class Config(BaseConfig):
         G.CONFIG = template
 
 
-
-
 class GrapherOperation:
 
     @staticmethod
@@ -792,24 +823,24 @@ class GrapherOperation:
         if isinstance(G.mw_grapher, Grapher):
             G.mw_grapher.on_card_updated.emit(None)
         for gviewName in G.mw_gview.keys():
-            if isinstance(G.mw_gview[gviewName],Grapher):
+            if isinstance(G.mw_gview[gviewName], Grapher):
                 G.mw_gview[gviewName].on_card_updated.emit(None)
 
     @staticmethod
-    def updateDue(card_id:str):
+    def updateDue(card_id: str):
         from ..bilink.dialogs.linkdata_grapher import Grapher
 
         if isinstance(G.mw_grapher, Grapher):
             if card_id in G.mw_grapher.data.node_dict.keys():
                 G.mw_grapher.data.updateNodeDue(card_id)
-        
+
         for gviewName in G.mw_gview.keys():
-            if isinstance(G.mw_gview[gviewName],Grapher):
+            if isinstance(G.mw_gview[gviewName], Grapher):
                 if card_id in G.mw_gview[gviewName].data.node_dict.keys():
                     G.mw_gview[gviewName].data.updateNodeDue(card_id)
 
-
         # return sum(filter(g.data.node_dict.keys()))
+
 
 class LinkDataOperation:
     """针对链接数据库的操作,
@@ -834,7 +865,7 @@ class LinkDataOperation:
         data.self_data.desc = pair.desc
         data.save_to_DB()
         if pair.get_desc_from == G.objs.LinkDescFrom.Field:
-            tooltip(Translate.描述已修改但是___,period=6000)
+            tooltip(Translate.描述已修改但是___, period=6000)
 
     @staticmethod
     def bind(card_idA: 'Union[str,LinkDataJSONInfo]', card_idB: 'Union[str,LinkDataJSONInfo]', needsave=True):
@@ -991,7 +1022,7 @@ class BrowserOperation:
     @staticmethod
     def search(s) -> "Browser":
         """注意,如果你是自动搜索,需要自己激活窗口"""
-        if ISLOCALDEBUG :
+        if ISLOCALDEBUG:
             return
         browser: "Browser" = BrowserOperation.get_browser()
         # if browser is not None:
@@ -1123,9 +1154,10 @@ class CardOperation:
                 time.sleep(0.2)
                 continue
         GrapherOperation.updateDue(f"{card.id}")
+
     @staticmethod
     def create(model_id: "int" = None, deck_id: "int" = None, failed_callback: "Callable" = None):
-        if ISLOCALDEBUG :
+        if ISLOCALDEBUG:
             return "1234567890"
         if model_id is not None and not (type(model_id)) == int:
             model_id = int(model_id)
@@ -1184,7 +1216,6 @@ class CardOperation:
                 prev_refresh(v)
         GrapherOperation.refresh()
         # from ..bilink.dialogs.linkdata_grapher import Grapher
-
 
         # print("card refreshed")
 
@@ -1398,11 +1429,12 @@ class CardOperation:
             last_date = datetime.now()  # (Y,M,D,H,M,S,MS)
         # today = datetime.today()  # (Y,M,D,H,M,S,MS)
 
-        return last_date,next_date
+        return last_date, next_date
 
 
 class Media:
     """"""
+
     @staticmethod
     def clipbox_png_save(clipuuid):
         if platform.system() in {"Darwin", "Linux"}:
@@ -1411,7 +1443,7 @@ class Media:
         else:
             from ..clipper2.exports import fitz
         if ISLOCALDEBUG:
-            mediafolder=r"D:\png"
+            mediafolder = r"D:\png"
         else:
             mediafolder = os.path.join(mw.pm.profileFolder(), "collection.media")
         DB = G.DB
@@ -1435,8 +1467,6 @@ class Media:
             # showInfo("截图已更新")
             os.remove(pngdir)
         pixmap.save(pngdir)
-
-
 
 
 class LinkPoolOperation:
@@ -1654,7 +1684,7 @@ class ModelOperation:
     def get_all():
         data = []
         if ISLOCALDEBUG:
-            data=[{"id":123456,"name":"hello"}]
+            data = [{"id": 123456, "name": "hello"}]
             return data
         model = mw.col.models.all_names_and_ids()
         for i in model:
@@ -1667,7 +1697,7 @@ class DeckOperation:
     def get_all():
         data = []
         if ISLOCALDEBUG:
-            data=[{"id":123456,"name":"hello"}]
+            data = [{"id": 123456, "name": "hello"}]
             return data
 
         deck = mw.col.decks.all_names_and_ids()
@@ -1757,6 +1787,7 @@ class MonkeyPatch:
             # buf加了绝对路径,所以要去掉
             # 有时候需要判断一下
             tooltip(buf)
+
             def handle_opencard(id):
                 if CardOperation.exists(id):
                     Dialogs.open_custom_cardwindow(id).activateWindow()
@@ -1780,13 +1811,13 @@ class MonkeyPatch:
             Utils.LOG.file_write(buf, True)
             cmd_dict = {
                     # 下面的是1版命令格式
-                    f"{ankilink.Cmd.opencard}"                          : handle_opencard,
-                    f"{ankilink.Cmd.openbrowser_search}"                : handle_openbrowser,
-                    f"{ankilink.Cmd.opengview}"                         : handle_opengview,
+                    f"{ankilink.Cmd.opencard}"                           : handle_opencard,
+                    f"{ankilink.Cmd.openbrowser_search}"                 : handle_openbrowser,
+                    f"{ankilink.Cmd.opengview}"                          : handle_opengview,
                     # 下面的是2版命令格式
-                    f"{ankilink.Cmd.open}?{ankilink.Key.card}"          : handle_opencard,
-                    f"{ankilink.Cmd.open}?{ankilink.Key.gview}"         : handle_opengview,
-                    f"{ankilink.Cmd.open}?{ankilink.Key.browser_search}": handle_openbrowser,
+                    f"{ankilink.Cmd.open}?{ankilink.Key.card}"           : handle_opencard,
+                    f"{ankilink.Cmd.open}?{ankilink.Key.gview}"          : handle_opengview,
+                    f"{ankilink.Cmd.open}?{ankilink.Key.browser_search}" : handle_openbrowser,
                     # ANKI关闭时的模式
                     f"{ankilink.Cmd.open}/?{ankilink.Key.card}"          : handle_opencard,
                     f"{ankilink.Cmd.open}/?{ankilink.Key.gview}"         : handle_opengview,
@@ -1872,7 +1903,7 @@ class MonkeyPatch:
                 super().__init__(parent=parent, mw=mw, on_close=on_close)
                 self.bottom_layout = QGridLayout()
                 self.bottom_layout_all = QGridLayout()
-                self.reviewWidget = widgets.ReviewButtonForCardPreviewer(self,self.bottom_layout_all)
+                self.reviewWidget = widgets.ReviewButtonForCardPreviewer(self, self.bottom_layout_all)
 
             def card(self) -> Optional[Card]:
                 if self._parent.singleCard:
@@ -1880,10 +1911,8 @@ class MonkeyPatch:
                 else:
                     return None
 
-
             def render_card(self) -> None:
                 super().render_card()
-
 
             def _create_gui(self):
                 super()._create_gui()
@@ -1923,7 +1952,7 @@ class MonkeyPatch:
                     self.render_card()
                 else:
                     self._on_prev_card()
-                QTimer.singleShot(100, lambda: self.reviewWidget.update_info() )
+                QTimer.singleShot(100, lambda: self.reviewWidget.update_info())
 
             def _on_next(self) -> None:
                 if self._state == "question":
@@ -1931,12 +1960,13 @@ class MonkeyPatch:
                     self.render_card()
                 else:
                     self._on_next_card()
-                QTimer.singleShot(100, lambda: self.reviewWidget.update_info() )
+                QTimer.singleShot(100, lambda: self.reviewWidget.update_info())
 
     else:
         class BrowserPreviewer:
             def __init__(self):
                 raise Exception("not support in this env")
+
 
 class Dialogs:
     """打开对话框的函数,而不是对话框本身"""
@@ -2050,11 +2080,10 @@ class Dialogs:
         elif mode == GraphMode.debug_mode:
             Grapher(pair_li=pair_li, mode=mode, gviewdata=gviewdata).show()
 
-
     @staticmethod
     def open_configuration():
         """ 这里的内容要整理到Config的父类中"""
-        dialog = Config.makeConfigDialog(None, Config.get(),关闭时回调=lambda x:lambda y:Config.save(x)) #save的参数是经过修正的cfg
+        dialog = Config.makeConfigDialog(None, Config.get(), 关闭时回调=lambda 数据: Config.save(数据))  # save的参数是经过修正的cfg
 
         dialog.exec()
 
@@ -2079,6 +2108,7 @@ class Dialogs:
             # all_objs.mw_win_clipper.show()
             G.mw_win_clipper.activateWindow()
             # print("just activate")
+
     @staticmethod
     def open_PDFprev(pdfuuid, pagenum, FROM):
         if platform.system() in {"Darwin", "Linux"}:
@@ -2118,6 +2148,7 @@ class Dialogs:
 
         pass
 
+
 class AnchorOperation:
     @staticmethod
     def if_empty_then_remove(html_str: "str"):
@@ -2142,7 +2173,6 @@ class UUID:
     @staticmethod
     def by_hash(s):
         return str(uuid.uuid3(uuid.NAMESPACE_URL, s))
-
 
 
 class HTML:
@@ -2180,11 +2210,10 @@ class HTML:
         else:
             return htmltext
 
-
     @staticmethod
-    def cardHTMLShadowDom(innerHTML:"str", HostId="",insertSelector="#qa", insertPlace="afterBegin"):
+    def cardHTMLShadowDom(innerHTML: "str", HostId="", insertSelector="#qa", insertPlace="afterBegin"):
         if HostId == "":
-            HostId = G.src.addon_name+"_host"
+            HostId = G.src.addon_name + "_host"
         innerHTML2 = innerHTML
         script = BeautifulSoup(f"""<script> 
         (()=>{{
@@ -2242,6 +2271,7 @@ class HTML:
             L0.append(body_L1)
             anchor_el.append(L0)
         return anchor_el  # 已经传入了root,因此不必传出.
+
     @staticmethod
     def clipbox_exists(html, card_id=None):
         """任务:
@@ -2276,11 +2306,12 @@ class HTML:
 
         card_id = data["card_id"]
         desc = data["desc"]
-        h = BeautifulSoup("","html.parser")
+        h = BeautifulSoup("", "html.parser")
         b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor intext button",
                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
         b.string = desc
         return b.__str__()
+
 
 def button_icon_clicked_switch(button: QToolButton, old: list, new: list, callback: "callable" = None):
     if button.text() == old[0]:

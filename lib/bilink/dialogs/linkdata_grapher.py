@@ -53,7 +53,7 @@ class Grapher(QMainWindow):
 
     def __init__(self, pair_li: "list[LinkDataPair]" = None, mode=GraphMode.normal, gviewdata: "GViewData" = None):
         super().__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose, on=True)
+        self.setAttribute(Qt.WA_DeleteOnClose, on=True) # TODO: 'Qt.WA_DeleteOnClose' will stop working. Please use 'Qt.WidgetAttribute.WA_DeleteOnClose' instead.
         self.data = self.Entity(self)
         self.data.gviewdata = gviewdata
         self.data.node_dict = pair_li
@@ -1125,22 +1125,25 @@ class Grapher(QMainWindow):
 
         def openConfig(self):
             """ TODO 设计一个新的容器, 把原来的配置表包裹进来,同时新增一个替换配置的按钮
-
             """
+            print("open config begin")
             布局, 组件, 子代, 描述 = funcs.G.objs.Bricks.四元组
-            视图模型 = funcs.GviewOperation.load(self.superior.data.gviewdata.uuid)
+            视图记录 = funcs.GviewOperation.load(self.superior.data.gviewdata.uuid)
             配置类 = common_tools.objs.Record.GviewConfig
-            self.superior.data.gviewdata.config = 视图模型.config
-            if 视图模型.config != "" and 配置类.静态_存在于数据库中(视图模型.config):
-                配置模型 = 配置类.readModelFromDB(视图模型.config)
+            print(f"the gview data.config = {视图记录.config}")
+            self.superior.data.gviewdata.config = 视图记录.config
+            if 视图记录.config != "" and 配置类.静态_存在于数据库中(视图记录.config) and 配置类.静态_含有某视图(视图记录.uuid,视图记录.config):
+                print("config exists then open it ")
+                配置记录 = 配置类.readModelFromDB(视图记录.config)
             else:
                 tooltip(f"创建新配置")
-                配置模型 = 配置类()
-                配置模型.saveModelToDB()
-                funcs.GviewConfigOperation.指定视图配置(视图模型, 配置模型)
-                self.superior.data.gviewdata.config = 配置模型.uuid
-
-            配置组件 = common_tools.funcs.GviewConfigOperation.makeConfigDialog(调用者=self ,数据=配置模型.data, 关闭时回调=lambda x: lambda y: 配置模型.saveModelToDB())
+                print("config not exists then create it ")
+                配置记录 = 配置类()
+                funcs.GviewConfigOperation.指定视图配置(视图记录, 配置记录)
+                视图记录.config = 配置记录.uuid
+            配置记录 = 配置类.readModelFromDB(配置记录.uuid)
+            print(f"we get config model = {配置记录}")
+            配置组件 = common_tools.funcs.GviewConfigOperation.makeConfigDialog(调用者=self ,数据=配置记录.data,关闭时回调=lambda 闲置参数:配置记录.saveModelToDB())
             配置组件布局: "QVBoxLayout" = 配置组件.layout()
 
             def 从当前配置窗的应用视图表中移除本视图():
@@ -1151,7 +1154,7 @@ class Grapher(QMainWindow):
                     值.remove(self.superior.data.gviewdata.uuid)
                     模型.appliedGview.设值到组件(值)
                     if len(值)==0:
-                        配置模型.元信息.确定保存到数据库=False
+                        配置记录.data.元信息.确定保存到数据库=False
 
 
             def 打开配置选取窗():
@@ -1163,21 +1166,23 @@ class Grapher(QMainWindow):
                     搜索结果 = funcs.GviewConfigOperation.据关键词同时搜索视图与配置数据库表(关键词)
                     结果表模型 = funcs.组件定制.模型(["类型/type", "名称/name"])
                     项 = common_tools.baseClass.Standard.Item
-                    [结果表模型.appendRow([项(类型), 项(名字, data=标识)]) for 类型, 名字, 标识 in 搜索结果 if (类型==译.配置 and 标识!=配置模型.uuid) or (类型==译.视图 and 标识 not in 配置模型.data.appliedGview.value)]
+                    [结果表模型.appendRow([项(类型), 项(名字, data=标识)]) for 类型, 名字, 标识 in 搜索结果 if (类型==译.配置 and 标识!=配置记录.uuid) or (类型==译.视图 and 标识 not in 配置记录.data.appliedGview.value)]
                     结果表.setModel(结果表模型)
                     if 结果表模型.rowCount()==0:
                         tooltip("搜索结果为空/empty result")
 
                 def 开始更换配置():
+                    """TODO: 这里有bug, 我暂时没找出来, 更换配置后, 没有添加到对应配置的应用本配置视图表中"""
                     if 结果表.selectedIndexes():
                         模型: "QStandardItemModel" = 结果表.model()
                         选中行: "list[QStandardItem]" = [模型.itemFromIndex(索引) for 索引 in 结果表.selectedIndexes()]
                         类型, 标识 = 选中行[0].text(), 选中行[1].data()
                         最终标识 = 标识 if 类型 == 译.配置 else funcs.GviewOperation.load(uuid=标识).config
                         新配置模型 = 配置类.readModelFromDB(最终标识)
+
                         funcs.GviewConfigOperation.指定视图配置(self.superior.data.gviewdata, 新配置模型)
                         self.superior.data.gviewdata = funcs.GviewOperation.load(self.superior.data.gviewdata.uuid)
-                        从当前配置窗的应用视图表中移除本视图()
+                        配置记录.data.元信息.确定保存到数据库=False
                         总组件.close()
                         配置组件.close()
                         self.openConfig()
@@ -1191,10 +1196,19 @@ class Grapher(QMainWindow):
                 pass
 
             def 触发新建配置():
-                funcs.GviewConfigOperation.指定视图配置(视图模型, None)
-                从当前配置窗的应用视图表中移除本视图()
+                funcs.GviewConfigOperation.指定视图配置(视图记录, None)
+                配置记录.data.元信息.确定保存到数据库=False
                 配置组件.close()
                 self.openConfig()
+
+            def 装饰_关闭(函数):
+                def 新函数(*args):
+                    print("when close config , saving config to DB")
+                    配置记录.saveModelToDB()
+                    函数(*args)
+
+
+                return 新函数
 
             更换配置说明 = funcs.组件定制.文本框(Translate.说明_视图配置与视图的区别, 开启自动换行=True)
             更换配置按钮 = funcs.组件定制.按钮(common_tools.G.src.ImgDir.refresh, 译.更换本视图的配置, 触发函数=打开配置选取窗)
@@ -1202,6 +1216,7 @@ class Grapher(QMainWindow):
             配置组件的底部组件 = funcs.Utils.组件组合({布局: QVBoxLayout(), 子代: [{布局: QHBoxLayout(), 子代: [{组件: 更换配置按钮}, {组件: 新建配置按钮}]}, {组件: 更换配置说明}]})
             配置组件布局.addWidget(配置组件的底部组件)
             配置组件.setLayout(配置组件布局)
+            # 配置组件.reject = 装饰_关闭(配置组件.reject)
             配置组件.exec()
             pass
 
@@ -1468,7 +1483,7 @@ class GViewAdmin(QDialog):
             super().__init__(name)
             self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsSelectable & ~Qt.ItemFlag.ItemIsEditable)
             if data:
-                self.setData(data, role=Qt.UserRole)  # 当不设置的时候,返回的是空
+                self.setData(data, role=common_tools.compatible_import.ItemDataRole.UserRole)  # 当不设置的时候,返回的是空
                 self.setFlags(self.flags() | Qt.ItemFlag.ItemIsSelectable)
 
     class Tree(QTreeView):

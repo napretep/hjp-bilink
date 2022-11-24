@@ -1416,7 +1416,6 @@ class ConfigWidget:
 
     class GviewConfigApplyTable(baseClass.ConfigTableView):
         """
-        2022年11月20日05:10:28 Done: 完成GviewConfig整体框架后, 再把GviewConfigApplyTable设计好
         TODO: 需要的功能: 增删改gview的uuid和名字列表
         TODO: 保存的时候要保存item.data(), 展示时, 展示为item.text()要分开
         TODO: 当应用表中点击删除项的时候, 如果是最后一项了, 也就是说删了以后, 表空了, 则立即将当前配置删除, 并将视图的config置空, 重新载入
@@ -1434,7 +1433,18 @@ class ConfigWidget:
                 w.setValueToTableRowFromForm()
                 self.AppendRow(w.colItems)
 
-        def AppendRow(self, row: "list[ConfigTableView.Item]"):
+        # def RemoveRow(self):
+        #     项 = super().RemoveRow()
+        #     被删除视图标识 = 项.data()
+            #
+            # 调用者:Grapher.ToolBar = self.上级.调用者
+            # 调用者视图标识 = 调用者.superior.data.gviewdata.uuid
+            # if 调用者视图标识 == 被删除视图标识 or self.model.rowCount()==0:
+            #     self.上级.close()
+            #     调用者.openConfig()
+            pass
+
+        def AppendRow(self, row: "list[baseClass.ConfigTableView.TableItem]"):
             self.model.appendRow(row)
             self.SaveDataToConfigModel()
             pass
@@ -1444,6 +1454,33 @@ class ConfigWidget:
             w.widget.exec()
             if w.ok and w.判断已选中:
                 w.setValueToTableRowFromForm()
+
+        def RemoveRow(self):
+            print("RemoveRow begin")
+            from ..bilink.dialogs.linkdata_grapher import Grapher
+            idx = self.viewTable.selectedIndexes()
+            if len(idx) == 0:
+                return
+            取出的项 = self.model.takeRow(idx[0].row())[0]
+            被删的视图标识:str = 取出的项.data()
+            # * Done:2022年11月21日23:21:42 AttributeError: 'QWidget' object has no attribute '调用者'
+            上级的配置模型:"GviewConfigModel"= self.上级.参数模型
+            调用者: Grapher.ToolBar = self.上级.调用者
+            调用者视图标识 = 调用者.superior.data.gviewdata.uuid
+            需要重启=False
+            funcs.GviewConfigOperation.指定视图配置(被删的视图标识)
+            if 调用者视图标识 == 被删的视图标识:
+                需要重启 = True
+
+            if not funcs.objs.Record.GviewConfig.静态_存在于数据库中(上级的配置模型.uuid.value):
+                # * Done:2022年11月21日23:21:29 实现在这里删除数据库记录
+                需要重启 = True
+                pass
+            if 需要重启:
+                self.上级.close()
+                调用者.openConfig()
+
+            print("delete end")
 
         def SaveDataToConfigModel(self):
             """ """
@@ -1490,8 +1527,8 @@ class ConfigWidget:
 
             def MakeInnerWidget(self):
                 """
-                TODO 搜索栏(QlineEdit) 搜索按钮(QTOOLBUTTON) 搜索结果(QTABLEVIEW)
-                TODO 设计一个layout
+                * Done:2022年11月21日02:36:13 搜索栏(QlineEdit) 搜索按钮(QTOOLBUTTON) 搜索结果(QTABLEVIEW)
+                * Done:2022年11月21日02:32:45 设计一个layout
                 """
                 B = G.objs.Bricks
                 L = self.layout_dict
@@ -1513,7 +1550,6 @@ class ConfigWidget:
 
             def setValueToTableRowFromForm(self):
                 """
-                2022年11月20日05:13:34 Done: 添加时, 需要把视图从其他配置表中去除. 具体而言: 将 视图原先配置表.uuid  从 视图.config中删除, 将 本 uuid 绑定到givew.config,
                 """
                 # self.colItems =
 
@@ -1536,7 +1572,7 @@ class ConfigWidget:
                 # if not colItems:
                 #     colItems = funcs.Map.do(superior.defaultRowData, lambda data: superior.TableItem(superior, *data))
                 self.tableView: "baseClass.Standard.TableView" = baseClass.Standard.TableView(title_name="123")
-                self.tableModel: "QStandardItemModel" = QStandardItemModel()
+                self.tableModel: "QStandardItemModel" = funcs.组件定制.模型(["视图名/name of view"])
                 self.searchStr: "QLineEdit" = QLineEdit()
                 self.searchBtn: "QToolButton" = QToolButton()
 
@@ -1567,8 +1603,7 @@ class ConfigWidget:
             def SetupEvent(self):
                 """
                 laterDO: 在搜索框中按回车触发搜索事件 (这个好像不是很重要)
-                laterDO: 用于选取结果的table其表头需要写上特定的文字, 现在显示为 1 很怪异, 但不是很重要
-                TODO: 展示结果应该去掉已经绑定的视图,
+                * Done:2022年11月21日02:31:11 展示结果应该去掉已经绑定的视图,
                 """
 
                 def onClick(searchString: "str"):
@@ -1578,10 +1613,10 @@ class ConfigWidget:
                         return
                     likeString = "%".join(searchString)
                     G.DB.go(G.DB.table_Gview)
-                    datas = G.DB.select(G.objs.Logic.LIKE("name", f"%{likeString}%")).return_all().zip_up().to_gview_data()
-                    self.tableModel = QStandardItemModel()
-                    for data in datas:
-                        self.tableModel.appendRow([baseClass.Standard.Item(data.name, data=data.uuid)])
+                    模糊搜索得到的视图表 = G.DB.select(G.objs.Logic.LIKE("name", f"%{likeString}%")).return_all().zip_up().to_gview_data()
+                    self.tableModel = funcs.组件定制.模型(["视图名/name of view"])
+                    采用本配置的视图表 = self.superior.ConfigModelItem.value
+                    [self.tableModel.appendRow([baseClass.Standard.Item(视图数据.name, data=视图数据.uuid)]) for 视图数据 in 模糊搜索得到的视图表 if 视图数据.uuid not in 采用本配置的视图表]
                     self.tableView.setModel(self.tableModel)
 
                 self.tableView.setModel(self.tableModel)

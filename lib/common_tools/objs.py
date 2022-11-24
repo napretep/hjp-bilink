@@ -1037,23 +1037,30 @@ class DBResults(object):
 
 
 
-class Record:
+class Record(QObject):
     @dataclass
-    class GviewConfig:
-        class 元信息:
-            确定保存到数据库 = True
+    class GviewConfig(QObject):
+        """要区分 GviewConfig和GviewConfigModel, 前者服务于数据库记录,可以叫做记录, 后者服务于UI模型,就叫模型"""
+
+
         def __init__(self,uuid=None, name=None, data=None):
             """这里的读取就是dict"""
+            super().__init__()
             from . import  funcs,configsModel
             if uuid is not None and data is None:
                 raise ValueError("有 uuid 但没有 data , 你是不是想读取Config? 读取请用 readModelFromDB")
             self.uuid = uuid if uuid else funcs.UUID.by_random()
             self.name = name if name else "graph config"
-            self.data = self.initData(json.loads(data)) if data else self.initData({})
+            self.data = self.initData(json.loads(data)) if data else self.initData({}) # 这个是模型
+            # self.信号 =
             self.一致性检查()
+            print(f"initilizing gview config={self} ")
+            if self.静态_存在于数据库中(self.uuid):
+                self.saveModelToDB()
             # self.确定保存到数据库=True
 
         def 一致性检查(self):
+            """本配置应用表中的视图应与对应视图的配置一致"""
             from . import funcs
             应用该配置的视图表:"list[str]" = self.data.appliedGview.value
             新值 = 应用该配置的视图表.copy()
@@ -1062,7 +1069,7 @@ class Record:
                 if 视图模型.config!=self.uuid:
                     新值.remove(视图标识)
             self.data.appliedGview.setValue(新值)
-            self.saveModelToDB()
+
 
         def initData(self,_data:"dict"):
             _data["uuid"] = self.uuid
@@ -1078,20 +1085,31 @@ class Record:
             return d
 
         def saveModelToDB(self):
-            if self.元信息.确定保存到数据库:
+            if self.data.元信息.确定保存到数据库:
+                # self.一致性检查()
                 from . import G
                 G.DB.go(G.DB.table_GviewConfig)
                 self.name = self.data.name.value
+                print(f"gview config={self.uuid} going to save data = {self.getDict()}")
                 if G.DB.exists(Logic.EQ(uuid=self.uuid)):
                     G.DB.update(values=Logic.LET(**self.getDict()),where=Logic.EQ(uuid=self.uuid)).commit()
                 else:
                     G.DB.insert(**self.getDict()).commit()
+
+        def 从数据库中删除(self):
+            from . import G
+            G.DB.go(G.DB.table_GviewConfig).delete(Logic.EQ(uuid=self.uuid)).commit()
 
         @staticmethod
         def 静态_存在于数据库中(uuid):
             from . import G
             DB = G.DB.go(G.DB.table_GviewConfig)
             return DB.exists(Logic.EQ(uuid=uuid))
+
+        @staticmethod
+        def 静态_含有某视图(视图标识,配置标识):
+            配置模型 = Record.GviewConfig.readModelFromDB(配置标识)
+            return 视图标识 in 配置模型.data.appliedGview.value
 
         @staticmethod
         def readModelFromDB(uuid):
@@ -1104,6 +1122,11 @@ class Record:
 
             return result
 
+        def __repr__(self):
+            return self.data.__repr__()
+
+        def __str__(self):
+            return self.data.__str__()
 
 @dataclass
 class Pair:

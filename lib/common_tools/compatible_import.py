@@ -8,7 +8,7 @@ __time__ = '2021/8/9 11:46'
 为了考虑兼容性而统一处理他们
 目前2022年6月29日02:32:11,49版没有问题.用的是3.8的Python
 54的Qt6和5版用的都是3.9.7的python
-
+TODO:'Qt.UserRole' will stop working. Please use 'Qt.ItemDataRole.UserRole' instead
 """
 import sys
 from ..debugState import *
@@ -260,6 +260,9 @@ else:
     QHeaderView.ResizeMode.Stretch = QHeaderView.Stretch
     QHeaderView.ResizeMode.ResizeToContents = QHeaderView.ResizeToContents
     QGraphicsLineItem.GraphicsItemFlag.ItemIsSelectable = QGraphicsLineItem.ItemIsSelectable
+    QAbstractItemView.ScrollMode.ScrollPerPixel = QAbstractItemView.ScrollPerPixel
+
+
 
     class PenStyle:
         SolidLine = Qt.SolidLine

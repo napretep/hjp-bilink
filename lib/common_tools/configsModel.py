@@ -136,6 +136,7 @@ class AnswerInfoInterface:
 
 @dataclass
 class ConfigModelItem:
+
     instruction: "List[str]"
     value: "Any"
     component: "int"
@@ -182,7 +183,8 @@ class BaseConfigModel:
     """
     为了防止以后看不懂, 说明一下用法, 这个类是定制模板, 先实例化之后再修改模板的默认值.
     """
-
+    class 元信息:
+        确定保存到数据库 = True
     @dataclass
     class Widget:
         spin = 0
@@ -245,6 +247,16 @@ class BaseConfigModel:
 
     def __contains__(self, item):
         return item in self.__dict__.keys()
+
+    def __repr__(self):
+        d = {}
+        for k,v in self.__dict__.items():
+            if isinstance(v,ConfigModelItem):
+                d[k]=v.value
+        return d.__str__()
+
+    def __str__(self):
+        return self.__repr__()
 
 
 @dataclass
@@ -752,7 +764,16 @@ class GviewConfigModel(BaseConfigModel):
             customizeComponent=lambda: widgets.ConfigWidget.GviewConfigApplyTable,
             validate=lambda value, item: sum([0 if GviewConfigModel.ViewExist(uuid) else 1 for uuid in value]) == 0
     ))
-    pass
+
+    def __repr__(self):
+        d = {}
+        for k, v in self.__dict__.items():
+            if isinstance(v, ConfigModelItem):
+                d[k] = v.value
+        return d.__str__()
+
+    def __str__(self):
+        return self.__repr__()
 
 
 if __name__ == '__main__':

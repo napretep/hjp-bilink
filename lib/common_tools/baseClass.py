@@ -99,13 +99,7 @@ class ConfigTableNewRowFormView:
 class CustomConfigItemView(metaclass=abc.ABCMeta):
     """提供了最基础的功能, 即访问父类,访问对应的配置项,以及访问UI组件"""
 
-    @property
-    def Item(self) -> "ConfigModelItem":
-        return self._item
 
-    @Item.setter
-    def Item(self, value: "ConfigModelItem"):
-        self._item = value
 
     # @abc.abstractmethod
     # def 值替换(self, 值):
@@ -130,7 +124,7 @@ class CustomConfigItemView(metaclass=abc.ABCMeta):
     def View(self, value: "QWidget"):
         self._view = value
 
-    def __init__(self, configItem: "ConfigModelItem" = None, 上级: "Standard.配置表容器"  = None, *args, **kwargs):
+    def __init__(self, configItem: "ConfigModelItem" = None, 上级: "Standard.配置表容器" = None, *args, **kwargs):
         self.ConfigModelItem: "ConfigModelItem" = configItem
         self.上级: "Standard.配置表容器" = 上级
         self.View: "QWidget" = QWidget(上级)
@@ -167,9 +161,9 @@ class ConfigTableView(CustomConfigItemView,metaclass=abc.ABCMeta):
     def SetupView(self):
         self.SetupLayout()
         self.viewTable.verticalHeader().setHidden(True)
-        self.viewTable.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        self.viewTable.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel) # TODO: 'QAbstractItemView.ScrollPerPixel' will stop working. Please use 'QAbstractItemView.ScrollMode.ScrollPerPixel' instead.
         self.viewTable.horizontalHeader().setStretchLastSection(True)
-        self.viewTable.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.viewTable.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive) # TODO: 'QHeaderView.Interactive' will stop working. Please use 'QHeaderView.ResizeMode.Interactive' instead.
         self.viewTable.setSelectionMode(QAbstractItemViewSelectMode.SingleSelection)
         self.viewTable.setSelectionBehavior(QAbstractItemViewSelectionBehavior.SelectRows)
         pass
@@ -217,11 +211,13 @@ class ConfigTableView(CustomConfigItemView,metaclass=abc.ABCMeta):
         pass
 
     def RemoveRow(self):
+        print("我被调用了")
         idx = self.viewTable.selectedIndexes()
         if len(idx) == 0:
             return
-        self.model.removeRow(idx[0].row(), idx[0].parent())
-        self.SaveDataToConfigModel()
+        # data = self.model.takeRow(idx[0].row())
+        self.model.removeRow(idx[0].row(),idx[0].parent())
+        # self.SaveDataToConfigModel()
 
     def GetRowFromData(self, data: "list[str]"):
         """根据所获取的数据生成行, 由于这个组件通常用于列表类型的配置, 因此data通常是list结构"""
@@ -291,7 +287,7 @@ class Standard:
 
     class 配置表容器(QDialog):
 
-        def __init__(我,调用者, 配置参数模型: "BaseConfigModel"):
+        def __init__(我, 配置参数模型: "BaseConfigModel",调用者=None):
             我.参数模型 = 配置参数模型
             我.调用者 = 调用者
             super().__init__()
