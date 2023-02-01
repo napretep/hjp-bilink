@@ -34,6 +34,8 @@ if __name__ == "__main__":
 else:
     from ..imports import common_tools
 
+import collections 
+
 LinkDataPair = common_tools.objs.LinkDataPair
 GraphMode = common_tools.configsModel.GraphMode
 GViewData = common_tools.configsModel.GViewData
@@ -1237,7 +1239,7 @@ class Grapher(QMainWindow):
 
         def create_view(self):
             视图索引 = common_tools.funcs.GviewOperation.create()
-            self.superior.load_node([视图索引], 视图结点类型=枚举_视图结点类型.视图)
+            self.superior.load_node([视图索引], 参数_视图结点类型=枚举_视图结点类型.视图)
             pass
 
         def initEvent(self):
@@ -1822,7 +1824,7 @@ class GrapherRoamingPreviewer(QMainWindow):
         self.导航按钮组 = self.导航组件(self)
         self.listView = self.List(self)
         self.cardView: "SingleCardPreviewer" = SingleCardPreviewer(initCard, superior=self, parent=self, mw=mw, on_close=lambda: None)
-        self.复习_视图展示组件= self.复习对象_视图(self)
+        self.复习_视图结点展示组件= self.复习对象_视图结点(self)
         self.container = QWidget()
         self.initUI()
         self.initEvent()
@@ -1873,11 +1875,6 @@ class GrapherRoamingPreviewer(QMainWindow):
         return self.listView.tempModel.rowCount()>1
 
     def initEvent(self):
-        # def wrapper(fun):
-        #     def answer(ease):
-        #         fun(ease
-        #
-        #     return answer
         btns = self.cardView.revWidget.ease_button
         [btns[i].clicked.connect(self.item_finish) for i in btns]
 
@@ -1892,10 +1889,10 @@ class GrapherRoamingPreviewer(QMainWindow):
         layoutH.addWidget(self.listView,stretch=0)
         layoutH.addWidget(self.导航按钮组,stretch=0,alignment=AlignmentFlag.AlignBottom)
         layoutH.addWidget(self.cardView,stretch=1)
-        layoutH.addWidget(self.复习_视图展示组件,stretch=1)
+        layoutH.addWidget(self.复习_视图结点展示组件, stretch=1)
         layoutH.setContentsMargins(0,0,0,0)
         self.cardView.hide()
-        self.复习_视图展示组件.hide()
+        self.复习_视图结点展示组件.hide()
         self.container.setLayout(layoutH)
         self.setCentralWidget(self.container)
         self.setWindowTitle(f"roaming review for view of {self.superior.data.gviewdata.name} ")
@@ -1903,16 +1900,16 @@ class GrapherRoamingPreviewer(QMainWindow):
 
     def 同时隐藏卡片与视图展示组件(self):
         self.cardView.hide()
-        self.复习_视图展示组件.hide()
+        self.复习_视图结点展示组件.hide()
 
     def 切换到视图组件(self):
         self.cardView.hide()
-        self.复习_视图展示组件.show()
+        self.复习_视图结点展示组件.show()
         pass
 
     def 切换到卡片组件(self):
         self.cardView.show()
-        self.复习_视图展示组件.hide()
+        self.复习_视图结点展示组件.hide()
         pass
 
     class 导航组件(QWidget):
@@ -1957,21 +1954,58 @@ class GrapherRoamingPreviewer(QMainWindow):
         def 更换收起展开按钮图标(self):
             self.按钮_收起展开.setIcon(QIcon(self.获取收起展开的图标()))
 
-    class 复习对象_视图(QWidget):
+    class 复习对象_视图结点(QWidget):
         def __init__(self,上级:"GrapherRoamingPreviewer"):
             super().__init__()
             self.上级=上级
+            
             self.按钮1_完成复习 = QPushButton("finish")
             self.按钮2_打开视图 = QPushButton("open")
-            self.按钮3_上一张 = QPushButton("<")
-            self.按钮4_下一张 = QPushButton(">")
             self.按钮2_打开视图.clicked.connect(lambda:funcs.Dialogs.open_grapher(
                     gviewdata=funcs.GviewOperation.load(uuid=self.上级.获取当前结点的编码())))
             self.按钮1_完成复习.clicked.connect(self.上级.item_finish)
+            self.组件_视图信息=QWidget()
+            self.视图信息组件_内容 = self.视图信息组件的内容(self)
+            self.表单布局 = QFormLayout()
+            self.垂直布局 = QVBoxLayout()
+            self.垂直布局.addWidget(self.组件_视图信息)
             Hbox = QHBoxLayout()
             Hbox.addWidget(self.按钮1_完成复习)
             Hbox.addWidget(self.按钮2_打开视图)
-            self.setLayout(Hbox)
+            self.垂直布局.addLayout(Hbox)
+            self.setLayout(self.垂直布局)
+            self.初始化UI()
+
+        def 初始化UI(self):
+
+            for 信息,组件 in self.视图信息组件_内容.有序信息.items():
+                self.表单布局.addRow(信息,组件)
+            self.组件_视图信息.setLayout(self.表单布局)
+
+
+        def 读取视图信息(self):
+            视图编号= self.上级.获取当前结点的编码()
+            视图数据= funcs.GviewOperation.load(uuid=视图编号)
+            self.视图信息组件_内容.有序信息[译.视图名].setText(视图数据.name)
+
+            pass
+
+        class 视图信息组件的内容:
+            def __init__(self,上级):
+                self.上级=上级
+                self.有序信息 = collections.OrderedDict()
+                for 信息名称 in [译.视图名,
+                                译.创建时间,
+                                译.上次访问时间,
+                                译.上次编辑时间,
+                                译.上次复习时间,
+                                译.总访问数,
+                                译.结点数,
+                                译.边数,
+                                译.到期卡片数,
+                                译.代表性卡片,]:
+                    self.有序信息[信息名称]=QLabel("")
+
 
     class List(QListView):
         def __init__(self, superior):
@@ -1995,6 +2029,7 @@ class GrapherRoamingPreviewer(QMainWindow):
                     self.superior.切换到卡片组件()
                     self.superior.cardView.loadNewCard(common_tools.funcs.CardOperation.GetCard(编号))
                 else:
+                    self.superior.复习_视图结点展示组件.读取视图信息()
                     self.superior.切换到视图组件()
                     # funcs.Dialogs.open_grapher(gviewdata=funcs.GviewOperation.load(uuid=编号))
                 item = self.superior.superior.data.node_dict[编号].item

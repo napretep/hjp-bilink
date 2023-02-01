@@ -310,6 +310,7 @@ class Translate:
     创建时间 = 翻译(zh="创建时间", en="created")
     上次访问时间=翻译(zh="上次访问时间", en="last visit time")
     上次编辑时间=翻译(zh="上次编辑时间", en="last edit time")
+    上次复习时间=翻译(zh="上次复习时间", en="last review time")
     总访问数 = 翻译(zh="总访问数", en="visit count")
     结点数 = 翻译(zh="结点数", en="nodes count")
     边数 = 翻译(zh="边数", en="edges count")
