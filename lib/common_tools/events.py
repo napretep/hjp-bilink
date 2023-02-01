@@ -57,7 +57,7 @@ def on_add_cards_did_init_handle(addcards:"AddCards"):
 
 def open_grahper_with_newcard(note:"Note"):
     if funcs.G.mw_addcard_to_grapher_on:
-        QTimer.singleShot(100,lambda :funcs.Dialogs.open_grapher(
+        QTimer.singleShot(100,lambda :funcs.Dialogs.open_grapher(pair_li=
             [objs.LinkDataPair(str(note.card_ids()[0]),funcs.CardOperation.desc_extract(note.card_ids()[0]))]
             ,need_activate=False))
 
@@ -80,3 +80,18 @@ def on_browser_sidebar_will_show_context_menu_handle(view:"SidebarTreeView",menu
 
     if item.item_type in {SidebarItemType.TAG,SidebarItemType.DECK}:
         menu.addAction(funcs.Translate.新建视图).triggered.connect(lambda:open_grapher_with_deck_or_tag(item))
+
+
+def 处理_视图中新建卡片(note:"Note"):
+    视图索引 = funcs.G.常量_当前等待新增卡片的视图索引
+    卡片索引 = note.card_ids()[0].__str__()
+    if 视图索引:
+        from ..bilink.dialogs.linkdata_grapher import Grapher
+        视图:Grapher = funcs.G.mw_gview[视图索引]
+        视图.load_node([卡片索引])
+
+    pass
+
+def on_add_cards_did_add_note_handle(note:"Note"):
+    处理_视图中新建卡片(note)
+    pass

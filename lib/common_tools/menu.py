@@ -41,7 +41,7 @@ class PairsLiAdmin(object):
         if isinstance(view, AnkiWebView):
             if view.title == "main webview" and mw.state == "review":
                 cid = mw.reviewer.card.id
-            elif view.title == "previewer" and view.parent() is not None and view.parent().card() is not None:
+            elif view.title == common_tools.baseClass.枚举命名.独立卡片预览器 and view.parent() is not None and view.parent().card() is not None:
                 cid = view.parent().card().id
             if cid != "":
                 cardLi = [str(cid)]
@@ -284,15 +284,17 @@ def make__open_grapher(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
             M2.addAction(Translate.新建视图).triggered.connect(lambda: funcs.GviewOperation.create_from_pair(pair_li))
 
             if len(funcs.GviewOperation.load_all()) > 0:
-                M2.addAction(Translate.插入视图).triggered.connect(lambda: funcs.GviewOperation.insert(pair_li))
+                M2.addAction(Translate.插入视图).triggered.connect(lambda: funcs.GviewOperation.choose_insert(pair_li))
             viewdata_L = Gop.find_by_card(pair_li)
 
             opened_view: "list[str]" = list(filter(lambda x: G.mw_gview.get(x) is not None, list(G.mw_gview.keys())))
             if len(opened_view) > 0:
                 M3 = M2.addMenu(Translate.插入到已打开视图)
-                for uuid in opened_view:
-                    data = funcs.GviewOperation.load(uuid=uuid)
-                    M3.addAction(data.name).triggered.connect(lambda: funcs.Dialogs.open_grapher(pair_li=pair_li, gviewdata=data, mode=GraphMode.view_mode))
+                # for uuid in opened_view:
+                #     data = funcs.GviewOperation.load(uuid=uuid)
+                #     M3.addAction(data.name).triggered.connect(lambda: funcs.Dialogs.open_grapher(pair_li=pair_li, gviewdata=data, mode=GraphMode.view_mode))
+                [M3.addAction(funcs.GviewOperation.load(uuid=uuid).name).triggered.connect(lambda: funcs.Dialogs.open_grapher(pair_li=pair_li, gviewdata=funcs.GviewOperation.load(uuid=uuid), mode=GraphMode.view_mode)) for uuid in opened_view]
+
 
             list(map(lambda x: func_actionMenuConnector(M2, Translate.打开于视图 + ":" + x.name, dlg.open_grapher, pair_li=pair_li,
                                                         mode=GraphMode.view_mode, gviewdata=x), viewdata_L))
@@ -309,7 +311,7 @@ def maker(atype):
 
         if atype == T.webview:
             focus_on_mw = args[0].title == "main webview" and mw.state == "review" and mw.isActiveWindow()
-            focus_on_prev = args[0].title == "independent previewer"
+            focus_on_prev = args[0].title == common_tools.baseClass.枚举命名.独立卡片预览器
             if not focus_on_mw and not focus_on_prev:
                 # showInfo("return")
                 return

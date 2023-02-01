@@ -21,6 +21,7 @@ def rosetta(text: str = ""):
     if not (lang in surrport):
         lang = "en"
     Endict = {
+            "卡片":"card",
         "未知错误": "unknown error",
         "错误信息": "Error info",
         "链接列表渲染失败": "failed in render link list",
@@ -215,6 +216,11 @@ def rosetta(text: str = ""):
             "开始漫游复习":"start roaming review",
             "由视图名搜索视图":"search graph by name",
             "视图配置与视图是两个独立的对象, 一个视图配置可以应用到多个视图上":"The view configuration and the view are two separate objects, and a view configuration can be applied to multiple views"
+        ,
+        "添加卡片":"append card",
+        "添加视图":"append view",
+        "新建":"create",
+        "导入":"import"
     }
     ZHdict = {
         "gview_admin_default_display":"视图管理器默认显示",
@@ -266,10 +272,54 @@ def rosetta(text: str = ""):
     return translateFuncs[lang](text)
 
 
+def 翻译(**kwargs):
+    surrport = ["zh-CN", "zh-TW", "en", "en-GB"]
+    if currentLang in ["zh-CN", "zh-TW"]:
+        return kwargs["zh"]
+    elif currentLang in ["en", "en-GB"] and "en" in kwargs:
+        return kwargs["en"]
+    else:
+        return kwargs["zh"]
+
 # noinspection NonAsciiCharacters
 class Translate:
     lang = currentLang
-    surrport = ["zh-CN", "zh_TW", "en", "en-GB"]
+    导入 = 翻译(zh="导入到视图",en="insert into another view")
+    不存在 = 翻译(zh="不存在",en="do not exist")
+    在此处搜索=翻译(zh="输入关键词,敲击回车搜索", en="Enter something here, hit enter to search")
+    说明_视图管理器的用法: str =翻译(zh="""
+    这是视图管理器窗口, 用于管理视图, 目前提供的操作有: 打开视图, 重命名视图, 切换列表/树状显示, 搜索视图, 选中若干视图插入到另一个视图.
+    打开视图:双击视图即可打开,点击底部栏的按钮也可以打开,
+    重命名视图:选中一个视图, 点击底部对应按钮即可,
+    切换显示方式: 点击底部对应按钮,
+    将视图插入到另一个视图: 选中一个或多个视图, 点击右键选择当前打开的视图插入, 或者选择一个视图插入.
+    搜索视图:可以搜视图的id, 视图的名字, 以及视图中卡片的描述. 
+    注:为了实现搜索视图中卡片的描述, 这个程序会在关闭视图管理器时, 消耗一些时间去建立视图中卡片描述的缓存, 这可能使得关闭视图管理器时出现卡顿的现象, 如果不希望搜索视图中卡片的描述可以在设置中关闭.
+    """,
+    en="""This is the view manager window, used to manage views, currently provides the following actions: open a view, rename a view, switch the list/tree display, search for a view, select a number of views to insert into another view.
+    Open view: Double click on a view to open it, or click on the button in the bottom bar to open it,
+    Rename view: select a view and click on the corresponding button at the bottom,
+    Switching the display: click the corresponding button at the bottom,
+    Insert a view into another view: select one or more views, right-click and select the currently open view to insert, or select a view to insert.
+    Search view: you can search the view id, the name of the view, and the description of the card in the view.
+    Note: In order to search for card descriptions in the view, the program will spend some time to build a cache of card descriptions in the view when closing the view manager, which may cause a lag when closing the view manager, if you do not want to search for card descriptions in the view you can turn it off in the settings.
+"""
+                         )
+
+    视图名 = 翻译(zh="视图名",en="name")
+    创建时间 = 翻译(zh="创建时间", en="created")
+    上次访问时间=翻译(zh="上次访问时间", en="last visit time")
+    上次编辑时间=翻译(zh="上次编辑时间", en="last edit time")
+    总访问数 = 翻译(zh="总访问数", en="visit count")
+    结点数 = 翻译(zh="结点数", en="nodes count")
+    边数 = 翻译(zh="边数", en="edges count")
+    到期卡片数 = 翻译(zh="到期卡片数", en="due count")
+    代表性卡片 = 翻译(zh="代表性卡片", en="representative cards")
+
+    导入到视图 = 翻译(zh="导入到视图",en="Insert them to a view")
+    选择一个视图 = 翻译(zh="选择一个视图",en="Select a view to insert")
+
+    插入到已经打开的视图 = 翻译(zh="插入到已经打开的视图",en="Insert into an opened view")
     打开配置表:str = rosetta("打开配置表")
     打开anchor:str = rosetta("打开卡片元信息")
     文内链接:str = rosetta("文内链接")
@@ -349,6 +399,7 @@ class Translate:
     重命名:str=rosetta("重命名")
     删除:str=rosetta("删除")
     视图:str=rosetta("视图")
+    卡片:str=rosetta("卡片")
     群组复习视图:str=rosetta("群组复习视图")
     反链视图:str=rosetta("含于视图")
     新建视图:str=rosetta("新建视图")
@@ -403,12 +454,18 @@ class Translate:
     手动选择卡片开始:str = rosetta("手动选择卡片开始")
     由视图名搜索视图:str = rosetta("由视图名搜索视图")
     更换本视图的配置:str = rosetta("更换本视图的配置")
-    说明_视图配置与视图的区别:str = rosetta("视图配置与视图是两个独立的对象, 一个视图配置可以应用到多个视图上, 如果一个视图配置没有对应的视图, 则该视图配置会被删除")
+    说明_视图配置与视图的区别:str = rosetta("视图配置表(设置表)与视图是两个独立的对象,两者的关系就像牌组设置与牌组本身, 视图配置可以控制视图的默认行为, 一个视图配置可以应用到多个视图上, 如果一个视图配置没有对应的视图, 则该视图配置会被删除")
     输入关键词并点击查询:str = rosetta("输入关键词并点击查询")
     搜索并选择配置:str = rosetta("搜索并选择配置")
     说明_同时搜索配置与视图的配置:str = rosetta("你输入的关键词会同时匹配视图名与配置名, 若你选择的是配置则直接加载这个配置, 若你选择的是视图则会加载这个视图对应的配置. 若你没有做出选择, 点击确认不会有反应")
+
     新建配置:str = rosetta("新建配置")
     配置:str = rosetta("配置")
-    视图:str = rosetta("视图")
+    添加卡片:str = rosetta("添加卡片")
+    添加视图:str = rosetta("添加视图")
+    新建:str = rosetta("新建")
+    导入:str = rosetta("导入")
+
+
 if __name__ == "__main__":
     print(Translate.打开配置表)

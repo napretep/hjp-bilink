@@ -58,17 +58,79 @@ from typing import TYPE_CHECKING
 #         self.Parent: "QWidget" = parent
 #         self.View: "QWidget" = QWidget(parent)
 
+本 = baseClass.枚举命名
 
 @dataclass
 class GViewData:
     """视图数据类
     警告:当你要修改数据类的结构时,请你务必检查所有的调用方是否正确调用了这个类
+    # TODO 根据调查,
+        data1 = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_data()[0]
+        data = GViewData(uuid=data1.uuid, name=data1.name, nodes=json.loads(data1.nodes), edges=json.loads(data1.edges), config=data1.config)
+        是主要的使用方式, 所以, 根据这个参数特点, 我们再来设计内部结构.
+    # FOCUS 修改GViewData的结构使之能兼容过去和现在的配置
+    edges的结构:
+        {"from_to":{connect:True,desc:"abc"}}
+    20221226之前的结构:
+        nodes:{card_id:[posX,posY]}
+        edges:[[card_from,card_to]]
     """
     uuid: str
     name: str
-    nodes: 'dict[str,list[Union[float,int],Union[float,int]]]'  # TODO key=card_id,value=[posx,posy,priority,accesstimes]
-    edges: 'list[list[str,str]]'  # 在取出时就应该保证边的唯一性,而且主要用来存json字符串,所以不用set TODO #[fromNode, toNode, desc]
-    config: 'str' = ""  # TODO: 记录配置表uuid, 需要用的时候读取
+    # {"card_Id":{"pos":[posx,posy],"priority":int,"accesstimes":int,"dataType":"card/view"}}
+    nodes: 'dict[str,dict[str,Union[list[float],str,int,float]]]'  # * Done:2022年12月27日00:20:35 key=card_id,value=[posx,posy,priority,accesstimes]
+    # * Done:2022年12月29日23:00:10 edges的结构要大改, 改成 {"fromNode,toNode":{desc:""}}
+
+    edges: 'dict[str,dict[str,Any]]'  # 在取出时就应该保证边的唯一性,而且主要用来存json字符串,所以不用set TODO # {"from_to":{connect:True,desc:"abc"}}
+    config: 'str' = ""  # * Done 2022年11月25日22:46:21: 记录配置表uuid, 需要用的时候读取
+
+    def __init__(self,**kwargs):
+        uuid,name,nodes,edges = kwargs["uuid"],kwargs["name"],kwargs["nodes"],kwargs["edges"]
+        if "config" in kwargs:
+            config = kwargs["config"]
+        else:
+            config = ""
+        版本20221226 = False
+        卡片标识=""
+        边标识=""
+        for 标识 in nodes.keys():
+            卡片标识=标识
+            break
+
+        if 卡片标识 !="" and type(nodes[卡片标识])==list and type(edges)==list:
+            版本20221226 = True
+
+        self.uuid = uuid
+        self.name = name
+        self.config = config
+
+        if 版本20221226:
+            self.nodes = {}
+            self.edges = {}
+            for 标识,位置 in nodes.items():
+                self.nodes[标识]= {}
+                self.nodes[标识][本.位置]=位置
+                self.nodes[标识][本.数据类型]=baseClass.视图结点类型.卡片
+            for 对儿 in edges:
+                self.edges[f"{对儿[0]},{对儿[1]}"]={}
+                self.edges[f"{对儿[0]},{对儿[1]}"][本.名字]=""
+        else:
+            if type(nodes)==dict:
+                self.nodes = {}
+                for 标识, 值 in nodes.items():
+                    self.nodes[标识] = {}
+                    self.nodes[标识][本.位置] =值[本.位置]
+                    self.nodes[标识][本.数据类型] = 值[本.数据类型] if  本.数据类型 in 值 else baseClass.视图结点类型.卡片
+            if type(edges)==dict:
+                self.edges = {}
+                for 标识, 值 in edges.items():
+                    self.edges[标识]={}
+                    self.edges[标识][本.名字]="" if 本.名字 not in 值 else 值[本.名字]
+
+    def copy(self):
+        from . import funcs
+        # uuid = funcs.UUID.by_random()
+        return GViewData(uuid=funcs.UUID.by_random(),name=self.name,config=self.config,edges=self.edges.copy(),nodes=self.nodes.copy())
 
     def to_html_repr(self):
         return f"uuid={self.uuid}<br>" \
@@ -88,7 +150,13 @@ class GViewData:
     def __hash__(self):
         return int(self.uuid, 16)
 
-
+    def __eq__(self, other):
+        if isinstance(other,GViewData):
+            return other.uuid==self.uuid
+        elif type(other) == str:
+            return other == self.uuid
+        else:
+            raise  ValueError("未知的比较对象")
 @dataclass
 class GraphMode:
     normal: int = 0
@@ -697,7 +765,7 @@ text-decoration:none;""",
 
 @dataclass
 class GviewConfigModel(BaseConfigModel):
-
+    # TODO 可选择是否总是显示边名
     @staticmethod
     def json_load(source: "dict"):
         """TODO: 设计json数据的读取,保存在objs.Record.GviewConfig.data中"""
@@ -717,7 +785,7 @@ class GviewConfigModel(BaseConfigModel):
             tab_at="main",
     ))
     name: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["视图配置的名字"],
+            instruction=["本项设定次此视图配置的名字"],
             value="new gview config",
             component=ConfigModel.Widget.line,
             tab_at="main",
@@ -725,7 +793,7 @@ class GviewConfigModel(BaseConfigModel):
     ))
 
     chooseCards: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["选择要复习卡片的方式, 其中'选中卡片的连通集'意思是你选择的卡片连通的所有卡片 "],
+            instruction=["本项设定选择要复习卡片的方式, 其中'选中卡片的连通集'意思是你选择的卡片连通的所有卡片 "],
             value=0,
             component=ConfigModel.Widget.combo,
             tab_at="main",
@@ -733,7 +801,7 @@ class GviewConfigModel(BaseConfigModel):
                    ComboItem(Translate.选中的卡片, 2), ComboItem(Translate.选中卡片的连通集, 3)],
     ))
     roamingRoute: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["选择漫游复习的路径,也就是漫游复习队列的排序"],
+            instruction=["本项设定选择漫游复习的路径,也就是漫游复习队列的排序"],
             value=0,
             component=ConfigModel.Widget.combo,
             tab_at="main",
@@ -743,21 +811,21 @@ class GviewConfigModel(BaseConfigModel):
 
     ))
     roamingStart: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["指定漫游的起点"],
+            instruction=["本项设定漫游的起点"],
             value=0,
             component=ConfigModel.Widget.combo,
             tab_at="main",
             limit=[ComboItem(Translate.随机选择卡片开始, 0), ComboItem(Translate.手动选择卡片开始, 1), ]
     ))
     groupReview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["是否对使用本配置的视图开启群组复习,提示:开启群组复习后,最好就别再使用漫游复习,因为会一下子复习掉所有卡片,毫无漫游的意义"],
+            instruction=["本项设定是否对使用本配置的视图开启群组复习,提示:开启群组复习后,最好就别再使用漫游复习,因为会一下子复习掉所有卡片,毫无漫游的意义"],
             value=False,
             component=ConfigModel.Widget.radio,
             tab_at="main",
 
     ))
     appliedGview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["设定该配置所应用的视图们, 如果你删掉了表中的全部视图, 那么会导致该配置被删除, 并且为当前的视图立即新建一个配置"],
+            instruction=["本项设定本配置表所应用的视图们, 如果你删掉了表中的全部视图, 那么会导致该配置被删除, 并且为当前的视图立即新建一个配置"],
             value=[],
             tab_at="main",
             component=ConfigModel.Widget.customize,

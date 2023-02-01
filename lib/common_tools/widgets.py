@@ -1463,7 +1463,7 @@ class ConfigWidget:
                 return
             取出的项 = self.model.takeRow(idx[0].row())[0]
             被删的视图标识:str = 取出的项.data()
-            # * Done:2022年11月21日23:21:42 AttributeError: 'QWidget' object has no attribute '调用者'
+            #
             上级的配置模型:"GviewConfigModel"= self.上级.参数模型
             调用者: Grapher.ToolBar = self.上级.调用者
             调用者视图标识 = 调用者.superior.data.gviewdata.uuid
@@ -1473,7 +1473,7 @@ class ConfigWidget:
                 需要重启 = True
 
             if not funcs.objs.Record.GviewConfig.静态_存在于数据库中(上级的配置模型.uuid.value):
-                # * Done:2022年11月21日23:21:29 实现在这里删除数据库记录
+                #
                 需要重启 = True
                 pass
             if 需要重启:
@@ -1517,7 +1517,7 @@ class ConfigWidget:
 
             """
 
-            def GetColWidgets(self) -> list[QWidget]:
+            def GetColWidgets(self) -> "list[QWidget]":
                 pass
 
             def SetupWidget(self):
@@ -1527,8 +1527,7 @@ class ConfigWidget:
 
             def MakeInnerWidget(self):
                 """
-                * Done:2022年11月21日02:36:13 搜索栏(QlineEdit) 搜索按钮(QTOOLBUTTON) 搜索结果(QTABLEVIEW)
-                * Done:2022年11月21日02:32:45 设计一个layout
+
                 """
                 B = G.objs.Bricks
                 L = self.layout_dict
@@ -1603,7 +1602,7 @@ class ConfigWidget:
             def SetupEvent(self):
                 """
                 laterDO: 在搜索框中按回车触发搜索事件 (这个好像不是很重要)
-                * Done:2022年11月21日02:31:11 展示结果应该去掉已经绑定的视图,
+
                 """
 
                 def onClick(searchString: "str"):
@@ -1613,7 +1612,7 @@ class ConfigWidget:
                         return
                     likeString = "%".join(searchString)
                     G.DB.go(G.DB.table_Gview)
-                    模糊搜索得到的视图表 = G.DB.select(G.objs.Logic.LIKE("name", f"%{likeString}%")).return_all().zip_up().to_gview_data()
+                    模糊搜索得到的视图表 = G.DB.select(G.objs.Logic.LIKE("name", f"%{likeString}%")).return_all().zip_up().to_gview_record()
                     self.tableModel = funcs.组件定制.模型(["视图名/name of view"])
                     采用本配置的视图表 = self.superior.ConfigModelItem.value
                     [self.tableModel.appendRow([baseClass.Standard.Item(视图数据.name, data=视图数据.uuid)]) for 视图数据 in 模糊搜索得到的视图表 if 视图数据.uuid not in 采用本配置的视图表]
@@ -1728,6 +1727,7 @@ class ReviewButtonForCardPreviewer:
 
     def initEvent(self):
         G.signals.on_card_answerd.connect(self.handle_on_card_answerd)
+        self
         pass
 
     def handle_on_card_answerd(self, answer: "configsModel.AnswerInfoInterface"):
@@ -1837,6 +1837,7 @@ class ReviewButtonForCardPreviewer:
         for button in self.ease_button.values():
             button.setEnabled(True)
         tooltip(Translate.已解冻)
+
 
 
 if __name__ == "__main__":

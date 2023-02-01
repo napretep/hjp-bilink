@@ -18,6 +18,18 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .configsModel import *
 
+class 视图结点类型:
+    卡片="card"
+    视图="view"
+
+class 枚举命名:
+    位置 = "位置"  # 用于gviewdata中结点的位置
+    名字 = "名字"  # 用于gviewdata中边名的描述
+    独立卡片预览器 = "independent previewer"
+    数据类型="dataType"
+
+
+
 
 class ConfigTableNewRowFormView:
     """
@@ -302,8 +314,8 @@ class Geometry:
     class ArrowLine(QGraphicsLineItem):
         def __init__(self):
             super().__init__()
-            self.triangle = []
-
+            self.triangle:"list[QPointF]" = []
+            # self.arrowPoint= QPointF()
         def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
                   widget: typing.Optional[QWidget] = ...) -> None:
             super().paint(painter, option, widget)

@@ -46,6 +46,8 @@ from .configsModel import ConfigModel, AnswerInfoInterface, GroupReviewDictInter
     ConfigModelItem, CustomConfigItemView, BaseConfigModel,GviewConfigModel
 from . import widgets
 
+字典键名 = baseClass.枚举命名
+枚举_视图结点类型 = baseClass.视图结点类型
 
 def do_nothing(*args, **kwargs):
     pass
@@ -121,6 +123,70 @@ class MenuMaker:
 class GviewOperation:
 
     @staticmethod
+    def 获取视图结点描述(视图数据:GViewData, 结点编号):
+        视图类型 = 视图数据.nodes[结点编号][字典键名.数据类型]
+        if 视图类型 == 枚举_视图结点类型.卡片:
+            return CardOperation.desc_extract(结点编号)
+        else:
+            return GviewOperation.load(uuid=结点编号).name
+
+        pass
+    @staticmethod
+    def 列出已打开的视图():
+        from ..bilink.dialogs.linkdata_grapher import Grapher
+        return [键 for 键 in G.mw_gview.keys() if isinstance(G.mw_gview[键],Grapher)]
+
+    @staticmethod
+    def 更新缓存():
+        """这个东西, 更新的是一个表, 这个表的每个记录对应一个视图索引,
+        记录的第一列是视图索引, 第二列是视图中全部卡片描述的并集, 用于搜索关键词定位视图
+        流程, 如果存在数据表, 则drop table, 然后生成新的插入
+        """
+        DB = G.DB
+        # DB.go(DB.table_Gview_cache)
+        Utils.tooltip("gview cache begin to rebuild")
+        DB.表删除(DB.table_Gview_cache)
+
+        视图数据表 = GviewOperation.load_all_as_dict()
+        视图缓存字典 = []
+        计数=0
+        for 数据 in 视图数据表.values():
+            结点索引表 = list(数据.nodes.keys())
+            视图缓存字典.append([数据.uuid,""])
+
+            for 结点索引 in 结点索引表:
+                Utils.print(结点索引)
+                if ISLOCALDEBUG:
+                    描述 = "debug"
+                else:
+                    描述 = CardOperation.获取卡片内容与标题(结点索引) if 数据.nodes[结点索引][字典键名.数据类型] == 枚举_视图结点类型.卡片 \
+                        else 视图数据表[结点索引].name
+
+                视图缓存字典[-1][1]+=描述+"\n"
+            视图缓存字典[-1][1] = "'"+视图缓存字典[-1][1]+"'"
+        DB.go(DB.table_Gview_cache).批量插入(视图缓存字典)
+
+        Utils.tooltip("gview cache rebuild end")
+
+    @staticmethod
+    def fuzzy_search(search_string:str):
+        """在GRAPH_VIEW , GRAPH_VIEW_CACHE 两个表中做模糊搜索, 将用户的空格替换成通配符"""
+        关键词正则 = re.sub(r"\s",".*",search_string)
+
+        DB,Logic = G.DB, objs.Logic
+
+        DB.go(DB.table_Gview)
+        DB.excute_queue.append(f"""select * from GRAPH_VIEW_TABLE where name regexp '{关键词正则}' or uuid regexp '{关键词正则}'""")
+        匹配的视图集 =[data.to_GviewData() for data in DB.return_all(callback=Utils.print).zip_up().to_gview_record()]
+        DB.excute_queue.append(f"""select uuid from GRAPH_VIEW_CACHE WHERE cache regexp '{关键词正则}'""")
+        for 行 in DB.return_all().results:
+            if 行[0] not in 匹配的视图集: # 为了保持元素的唯一性
+                匹配的视图集.append(GviewOperation.load(uuid=行[0]))
+        Utils.print(匹配的视图集)
+        return 匹配的视图集
+        pass
+
+    @staticmethod
     def save(data: GViewData = None, data_li: "Iterable[GViewData]" = None, exclude=None):
         """"""
         if data:
@@ -159,20 +225,21 @@ class GviewOperation:
         """"""
         # print("uuid=",uuid)
         data = None
-        if uuid is not None:
+        if GviewOperation.exists(uuid=uuid):
             DB = G.DB
             DB.go(DB.table_Gview)
-            data1 = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_data()[0]
+            data1 = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_record()[0]
             data = GViewData(uuid=data1.uuid, name=data1.name, nodes=json.loads(data1.nodes),
                              edges=json.loads(data1.edges), config=data1.config)
         elif gviewdata is not None:
             with G.DB.go(G.DB.table_Gview) as DB:
-                data1 = DB.select(DB.EQ(uuid=gviewdata.uuid)).return_all().zip_up().to_gview_data()[0]
+                data1 = DB.select(DB.EQ(uuid=gviewdata.uuid)).return_all().zip_up().to_gview_record()[0]
             data = GViewData(uuid=data1.uuid, name=data1.name, nodes=json.loads(data1.nodes),
                              edges=json.loads(data1.edges), config=data1.config)
         elif pairli is not None:
             data = GviewOperation.find_by_card(pairli)
-
+        if data is None:
+            raise ValueError(f"未知的uuid={uuid},或gviewdata={gviewdata}或pairli={pairli}")
         return data
 
     @staticmethod
@@ -180,9 +247,27 @@ class GviewOperation:
         DB = G.DB
         DB.go(DB.table_Gview)
         DB.excute_queue.append(DB.sqlstr_RECORD_SELECT_ALL.format(tablename=DB.tab_name))
-        records = DB.return_all().zip_up().to_gview_data()
+        records = DB.return_all().zip_up().to_gview_record()
         return list(map(lambda data: GViewData(
                 uuid=data.uuid, name=data.name, nodes=json.loads(data.nodes), edges=json.loads(data.edges)), records))
+
+    @staticmethod
+    def load_all_as_dict():
+        DB = G.DB
+        DB.go(DB.table_Gview)
+        DB.excute_queue.append(DB.sqlstr_RECORD_SELECT_ALL.format(tablename=DB.tab_name))
+        记录表 = DB.return_all().zip_up().to_gview_record()
+        结果 = {}
+        [结果.__setitem__(记录.uuid,记录.to_GviewData()) for 记录 in 记录表]
+        return 结果
+
+
+    @staticmethod
+    def 读取全部id():
+        DB = G.DB
+        DB.go(DB.table_Gview)
+        DB.excute_queue.append(DB.sqlstr_RECORD_SELECT_ALL.format(tablename=DB.tab_name))
+        return [记录.uuid for 记录 in DB.return_all().zip_up().to_gview_record()]
 
     @staticmethod
     def find_by_card(pairli: 'list[LinkDataPair]') -> 'set[GViewData]':
@@ -192,7 +277,7 @@ class GviewOperation:
 
         def pair_to_gview(pair):
             card_id = pair.card_id
-            datas = DB.select(DB.LIKE("nodes", f"%\"{card_id}\"%")).return_all().zip_up().to_gview_data()
+            datas = DB.select(DB.LIKE("nodes", f"%\"{card_id}\"%")).return_all().zip_up().to_gview_record()
             return set(map(
                     lambda data: GViewData(
                             uuid=data.uuid, name=data.name, nodes=json.loads(data.nodes), edges=json.loads(data.edges)), datas))
@@ -229,7 +314,7 @@ class GviewOperation:
             return
 
     @staticmethod
-    def get_correct_input(placeholder=""):
+    def get_correct_view_name_input(placeholder=""):
         def view_name_check(name: str, placeholder="") -> bool:
             if name == "" or re.search(r"\s", name) or re.search("::::", name) \
                     or re.search("\s", "".join(name.split("::"))) or "".join(name.split("::")) == "":
@@ -254,15 +339,16 @@ class GviewOperation:
     @staticmethod
     def create(nodes=None, edges=None, name=""):
         if name == "":
-            name, submitted = GviewOperation.get_correct_input()
+            name, submitted = GviewOperation.get_correct_view_name_input()
         else:
             submitted = True
         if not submitted: return
         uuid = UUID.by_random()
-        data = GViewData(uuid, name, nodes, edges)
+        data = GViewData(uuid=uuid, name=name, nodes=nodes if nodes else {}, edges=edges if edges else {})
         # 去检查一下scene变大时,item的scene坐标是否会改变
         GviewOperation.save(data)
         Dialogs.open_grapher(gviewdata=data, mode=GraphMode.view_mode)
+        return uuid
 
     @staticmethod
     def create_from_pair(pairs_li: 'list[G.objs.LinkDataPair]', name=""):
@@ -272,23 +358,46 @@ class GviewOperation:
         GviewOperation.create(nodes, edges, name=name)
 
     @staticmethod
-    def insert(pairs_li: 'list[G.objs.LinkDataPair]'):
+    def choose_insert(pairs_li: 'list[G.objs.LinkDataPair]'=None):
         all_gview = GviewOperation.load_all()
-        check = {}
+        check:dict[str,GViewData] = {}
         list(map(lambda data: check.__setitem__(data.name, data), all_gview))
         # name_li = list()
         viewname, okPressed = QInputDialog.getItem(None, "Get gview", "", set(check.keys()), 0, False)
         if not okPressed:
             return
         Dialogs.open_grapher(pair_li=pairs_li, gviewdata=check[viewname], mode=GraphMode.view_mode)
+        return check[viewname]
 
     @staticmethod
     def getDueCount(gview):
         """用于统计未复习数量"""
         from .configsModel import GViewData
-        g: GViewData = gview
+        g: "GViewData" = gview
+
         now = now = datetime.now()
-        return sum(1 for i in Filter.do(Map.do(g.nodes.keys(), lambda x: CardOperation.getLastNextRev(x)), lambda due: due[1] <= now))
+        return sum(1 for i in Filter.do(Map.do([索引 for 索引 in g.nodes.keys() if CardOperation.exists(索引)],
+                                               lambda x: CardOperation.getLastNextRev(x)) ,
+                                        lambda due: due[1] <= now))
+
+    @staticmethod
+    def 默认卡片结点数据类型模板():
+        return {baseClass.枚举命名.数据类型: baseClass.视图结点类型.卡片,
+                baseClass.枚举命名.位置  : [0, 0]
+                }
+    @staticmethod
+    def 默认视图结点数据类型模板():
+        return {baseClass.枚举命名.数据类型: baseClass.视图结点类型.视图,
+                baseClass.枚举命名.位置  : [0, 0]
+                }
+    @staticmethod
+    def 依参数确定视图结点数据类型模板(参数=baseClass.视图结点类型.卡片):
+        if 参数 == baseClass.视图结点类型.卡片:
+            return GviewOperation.默认卡片结点数据类型模板()
+        elif 参数 == baseClass.视图结点类型.视图:
+            return GviewOperation.默认视图结点数据类型模板()
+        else:
+            raise ValueError("未知的结点数据类型")
 
 
 class Utils(object):
@@ -327,9 +436,10 @@ class Utils(object):
 
     @staticmethod
     def tooltip(s):
-        if G.ISDEBUG and not G.ISLOCALDEBUG:
+        if G.ISLOCALDEBUG:
+            Utils.print(s)
+        else:
             tooltip(s)
-
     @staticmethod
     def showInfo(s):
         if G.ISDEBUG:
@@ -343,8 +453,8 @@ class Utils(object):
     # def output():
 
     @staticmethod
-    def print(*args, need_timestamp=True, need_logFile=True, **kwargs):
-        # print(f"G.ISDEBUG={G.ISDEBUG}")
+    def print(*args, need_timestamp=True, need_logFile=False, **kwargs):
+
         if G.ISDEBUG:
             caller = sys._getframe(1).f_code.co_name
             caller2 = sys._getframe(2).f_code.co_name
@@ -354,9 +464,13 @@ class Utils(object):
                 ts = ""
             if need_logFile:
                 f = open(G.src.path.logtext, "a", encoding="utf-8")
-                print(ts, *args, **kwargs, file=f)
+                print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs, file=f)
             else:
                 print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs)
+
+
+
+class 组件定制:
 
     @staticmethod
     def 组件组合(组件树数据: "dict", 容器: "QWidget" = None):
@@ -377,9 +491,6 @@ class Utils(object):
 
         容器.setLayout(子组合(组件树数据)[布局])
         return 容器
-
-
-class 组件定制:
 
     @staticmethod
     def 表格(单行选中=True, 不可修改=True):
@@ -464,7 +575,11 @@ class GroupReview(object):
             if search == "" or not re.search(r"\S", search):
                 continue
             if search.lower().startswith("gviewid"):
-                cids = Map.do(GviewOperation.load(search[len("gviewid"):]).nodes.keys(), lambda card_id: int(card_id))
+                if GviewOperation.exists(uuid=search[len("gviewid"):]):
+                    cids = Map.do(GviewOperation.load(search[len("gviewid"):]).nodes.keys(), lambda card_id: int(card_id))
+                else:
+                    showInfo(f"{search} 不存在, 请删除\n can't find {search} , please delete it")
+                    cids = []
             else:
                 for_due = "(is:new OR is:due)" if Config.get().group_review_just_due_card.value else ""
                 global_str = f"({Config.get().group_review_global_condition.value})"
@@ -743,29 +858,6 @@ class GviewConfigOperation(BaseConfig):
         return list(result)
 
     pass
-    # @staticmethod
-    # def readModelFromDB(uuid=None):
-    #     """这里可以当uuid为空表示新建一个配置"""
-    #     Logic = objs.Logic
-    #     DB=G.DB.go(G.DB.table_GviewConfig)
-    #
-    #     result:"objs.Record.GviewConfig" = DB.select(Logic.EQ(uuid=uuid)).return_all().zip_up().to_givenformat_data(objs.Record.GviewConfig,multiArgs=True)
-    #     return result
-
-    # @staticmethod
-    # def save(config:"objs.Record.GviewConfig"):
-    #
-    #
-    #     pass
-
-    # @staticmethod
-    # def
-
-    # @staticmethod
-    # def create(name):
-    #     """创建一个视图配置"""
-    #     return objs.Record.GviewConfig(name=name)
-
 
 class Config(BaseConfig):
     """TODO 这里需要抽象出一个父类, 实现widget继承"""
@@ -1084,18 +1176,18 @@ class CustomProtocol:
 
     @staticmethod
     def set():
-        root = QSettings("HKEY_CLASSES_ROOT", QSettings_NativeFormat)
+        root = QSettings("HKEY_CLASSES_ROOT", QSettings.Format.NativeFormat)
         root.beginGroup("ankilink")
         root.setValue("Default", "URL:Ankilink")
         root.setValue("URL Protocol", "")
         root.endGroup()
-        command = QSettings(r"HKEY_CLASSES_ROOT\anki.ankiaddon\shell\open\command", QSettings_NativeFormat)
-        shell_open_command = QSettings(r"HKEY_CLASSES_ROOT\ankilink\shell\open\command", QSettings_NativeFormat)
+        command = QSettings(r"HKEY_CLASSES_ROOT\anki.ankiaddon\shell\open\command", QSettings.Format.NativeFormat)
+        shell_open_command = QSettings(r"HKEY_CLASSES_ROOT\ankilink\shell\open\command", QSettings.Format.NativeFormat)
         shell_open_command.setValue(r"Default", command.value("Default"))
 
     @staticmethod
     def exists():
-        setting = QSettings(r"HKEY_CLASSES_ROOT\ankilink", QSettings_NativeFormat)
+        setting = QSettings(r"HKEY_CLASSES_ROOT\ankilink", QSettings.Format.NativeFormat)
         return len(setting.childGroups()) > 0
 
 
@@ -1227,6 +1319,12 @@ class CardOperation:
     def note_get(id):
         return note_get(id)
 
+    @staticmethod
+    def 获取卡片内容与标题(card_id):
+        note: "Note" = CardOperation.note_get(card_id)
+        卡片内容 = "\n".join(note.fields)
+        卡片标题 = LinkDataOperation.read_from_db(card_id).self_data.desc
+        return 卡片标题+"\n"+卡片内容
     @staticmethod
     def desc_extract(card_id, fromField=False):
         """读取逻辑,
@@ -1709,6 +1807,17 @@ class DeckOperation:
 class MonkeyPatch:
 
     @staticmethod
+
+    def AddCards_closeEvent(funcs):
+        from aqt.addcards import AddCards
+        def 包装器(self:"AddCards", evt: "QCloseEvent"):
+            G.常量_当前等待新增卡片的视图索引 = ""
+            funcs(self,evt)
+            pass
+        return 包装器
+        pass
+
+    @staticmethod
     def mw_closeevent(funcs):
         def wrapper(*args, **kwargs):
             self = args[0]
@@ -2069,10 +2178,10 @@ class Dialogs:
         elif mode == GraphMode.view_mode:
             if (gviewdata.uuid not in G.mw_gview) or (not isinstance(G.mw_gview[gviewdata.uuid], Grapher)):
                 G.mw_gview[gviewdata.uuid] = Grapher(pair_li=pair_li, mode=mode, gviewdata=gviewdata)
-                G.mw_gview[gviewdata.uuid].insert(pair_li)
+                G.mw_gview[gviewdata.uuid].load_node(pair_li)
                 G.mw_gview[gviewdata.uuid].show()
             else:
-                G.mw_gview[gviewdata.uuid].insert(pair_li)
+                G.mw_gview[gviewdata.uuid].load_node(pair_li)
                 # tooltip(f"here G.mw_gview[{gviewdata.uuid}]")
                 if need_activate:
                     G.mw_gview[gviewdata.uuid].show()
@@ -2933,6 +3042,8 @@ def desc_extract(card_id=None, fromField=False):
 
 def card_exists(card_id):
     from . import objs
+    if isinstance(card_id,str) and not card_id.isdigit():
+        return False
     cid = CardOperation.get_correct_id(card_id)
     txt = f"cid:{cid}"
     card_ids = mw.col.find_cards(txt)

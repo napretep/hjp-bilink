@@ -418,6 +418,7 @@ class DB_admin(object):
     数据库操作流程: 1 执行go选择一张表,2 执行select或类似的语句,组成SQL,3commit或return_all执行取得结果,
     其中 2组成SQL的时候会插入队列, 再在3中弹出队列执行,
     执行时会判断你传入的是list还是str, 如果是前者,则认为list的第二个元素是待插入值,第一个元素是字符串,其中的问号是占位符
+    数据库取回的结果, 是二维表, results[][], 第一个索引指定行, 第二个索引指定列
     """
     table_clipbox = 0
     table_pdfinfo = 1
@@ -425,9 +426,10 @@ class DB_admin(object):
     table_Gview=3
     table_GviewCard=4
     table_GviewConfig=5
+    table_Gview_cache=6
 
     sqlstr_TABLE_CREATE = """create table if not exists {tablename} ({fields})"""
-
+    sqlstr_TABLE_DROP = """DROP TABLE IF EXISTS {表名}"""
     sqlstr_TABLE_PRAGMA = """PRAGMA table_info({tablename})"""
     sqlstr_TABLE_ALTER = """alter table {tablename} add column {colname} {define}"""
     SQL_移除表字段 = """alter table {表名} drop column {字段名}"""
@@ -572,6 +574,7 @@ class DB_admin(object):
         self.excute_queue = []
         self.result_queue = []
         self.connection = sqlite3.connect(self.db_dir)
+        self.connection.create_function("regexp",2,self.regexp)
         self.cursor = self.connection.cursor()
         self.curr_tabtype = curr_tabtype
         # self.tab_name = Table.switch[curr_tabtype][0]
@@ -579,6 +582,29 @@ class DB_admin(object):
         self.table_ifEmpty_create().commit()
         self.table_fields_align()
         return self
+
+    def regexp(self,expr,item):
+        """本函数用于注册SQLlite需要的功能,不对外使用"""
+        reg = re.compile(expr)
+        return reg.search(item) is not None
+
+    def 表存在(self,表名索引):
+        表名 = Table.switch[表名索引].tablename
+        self.go(表名索引)
+        self.excute_queue.append(self.sqlstr_TABLE_EXIST.format(tablename=表名))
+        return len(self.return_all().results)>0
+
+        pass
+
+    def 表删除(self, 表名索引):
+        """安全删除, 删除前会检查表是否存在"""
+        表名 = Table.switch[表名索引].tablename
+        self.go(表名索引)
+        self.excute_queue.append(self.sqlstr_TABLE_DROP.format(表名=表名))
+        self.commit()
+        pass
+
+
 
     def end(self):
         if self.connection is not None:
@@ -721,6 +747,8 @@ class DB_admin(object):
         self.excute_queue.append([s, entity])
         return self
 
+
+
     # 增
     def insert(self, **values):
         """insert 很简单, 不必走 box, 例子: insert(A=a,B=b,C=c)"""
@@ -737,7 +765,6 @@ class DB_admin(object):
         s = self.sqlstr_RECORD_INSERT.format(tablename=self.tab_name, cols=cols[0:-1], vals=vals[0:-1])
         self.excute_queue.append([s, entity])
         return self
-
 
 
     def delete(self, where: "DB_admin.BOX"):
@@ -759,7 +786,25 @@ class DB_admin(object):
                 result = self.cursor.execute(s).fetchall()
             all_column_names = Table.switch[self.curr_tabtype].get_dict().keys()
             return DBResults(result, all_column_names, self.curr_tabtype)
+    def 批量插入(self,值):
+        序列_表字段 = list(Table.switch[self.curr_tabtype].get_dict().keys())
+        表名 = Table.switch[self.curr_tabtype].tablename
+        占位符 = ",".join("?"*len(序列_表字段))
+        SQL命令 = f"INSERT INTO {表名} VALUES({占位符});"
+        游标 = self.connection.cursor()
+        游标.executemany(SQL命令,值)
+        self.connection.commit()
 
+    def 批量执行(self, 参数_命令队列=None):
+
+        SQL队列 = 参数_命令队列 if 参数_命令队列 else self.excute_queue
+        while SQL队列:
+            命令 = SQL队列.pop(0)
+            if type(命令)==list:
+                结果 = self.cursor.execute(命令[0], 命令[1])
+            else:
+                结果 = self.cursor.execute(命令)
+        self.connection.commit()
 
     def commit(self, callback=None,need_commit=True):
         s = self.excute_queue.pop(0)
@@ -782,6 +827,7 @@ class DB_admin(object):
             raise ValueError("你有未执行完的sql语句!")
         self.connection.commit()
         self.end()
+
 
 
 class Logic:
@@ -824,7 +870,7 @@ class Logic:
     @staticmethod
     def LIKE(colname, value):
         """需要自己加%进行模糊匹配"""
-        return Logic.BOX(colname + " LIKE (?) ", [value])
+        return Logic.BOX(colname + " LIKE (?) ", ["'"+value+"'"])
 
     @staticmethod
     def EQ(LOGIC="AND", **kwargs):
@@ -945,6 +991,16 @@ class Table:
                     "number": []
             }
 
+    @dataclass
+    class GRAPH_VIEW_CACHE(BaseFields):
+        uuid: "str" = "varchar(8) primary key not null unique"
+        cache:"str" = "text"
+        def constrain(self):
+            return {
+                    "string": ["uuid", "cache" ],
+                    "number": []
+            }
+
     class Const:
         clipbox = DB_admin.table_clipbox
         pdfinfo = DB_admin.table_pdfinfo
@@ -952,6 +1008,7 @@ class Table:
         Gview = DB_admin.table_Gview
         GviewCard = DB_admin.table_GviewCard
         GviewConfig = DB_admin.table_GviewConfig
+        GviewCache = DB_admin.table_Gview_cache
 
     switch = {
         Const.clipbox  : CLIPBOX_INFO_TABLE(),
@@ -959,7 +1016,8 @@ class Table:
         Const.linkinfo  : CARD_LINK_INFO(),
         Const.Gview  : GRAPH_VIEW_TABLE(),
         Const.GviewCard  : GRAPH_VIEW_CARD_TABLE(),
-        Const.GviewConfig : GRAPH_VIEW_CONFIG()
+        Const.GviewConfig : GRAPH_VIEW_CONFIG(),
+        Const.GviewCache:GRAPH_VIEW_CACHE()
     }
 
 
@@ -1022,7 +1080,8 @@ class DBResults(object):
             li = [ClipboxRecord(**i) for i in self]
             return li
 
-        def to_gview_data(self):
+        def to_gview_record(self):
+            """导出的都是字符串,需要自己再转一次"""
             return [GviewRecord(**i) for i in self]
 
         def to_givenformat_data(self, _format,multiArgs=False):
@@ -1141,6 +1200,12 @@ class GviewRecord:
     nodes:str
     edges:str
     config:str = ""
+
+    def to_GviewData(self):
+        from .configsModel import GViewData
+        return GViewData(uuid=self.uuid,name=self.name,
+                         nodes=json.loads(self.nodes),edges=json.loads(self.edges),config=self.config
+                         )
 
 @dataclass
 class PDFinfoRecord:

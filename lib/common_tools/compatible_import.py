@@ -32,9 +32,9 @@ class Utils:
     @staticmethod
     def isQt6():
 
-        if ISDEBUG and ISLOCALDEBUG:
-            print("调试阶段可自己选择anki版本")
-            return True
+        # if ISDEBUG and ISLOCALDEBUG:
+        #     print("调试阶段可自己选择anki版本")
+        #     return True
 
         try:
             import PyQt6
@@ -80,28 +80,32 @@ isWin = sys.platform.startswith("win32")
 isLin = not isMac and not isWin
 
 
-if ISDEBUG and ISLOCALDEBUG:
-    mw = None
-    tooltip = showInfo = print
-    isMac= isWin=True
-else:
-    mw = Anki.aqt.mw
-    from aqt.utils import tooltip, showInfo
-    # from anki.utils import is_mac as isMac, is_win as isWin
-    from aqt.utils import saveGeom, restoreGeom, tr
-    from aqt import dialogs, AnkiQt, gui_hooks
-    from aqt.browser import Browser, SidebarItem, SidebarItemType, SidebarTreeView
-    from aqt.browser.previewer import \
-        BrowserPreviewer, Previewer, MultiCardPreviewer
-    from aqt.editor import Editor, EditorWebView
-    from aqt.addcards import AddCards
-    from aqt.operations.card import set_card_deck
-    from aqt.reviewer import Reviewer, RefreshNeeded, V3CardInfo
-    from aqt.webview import AnkiWebView
-    from aqt.operations.scheduling import answer_card
+# if ISDEBUG and ISLOCALDEBUG:
+#     mw = None
+#     tooltip = showInfo = print
+#     isMac= isWin=True
+# else:
+mw = Anki.aqt.mw
+from aqt.utils import tooltip, showInfo
+# from anki.utils import is_mac as isMac, is_win as isWin
+from aqt.utils import saveGeom, restoreGeom, tr
+from aqt import dialogs, AnkiQt, gui_hooks
+from aqt.browser import Browser, SidebarItem, SidebarItemType, SidebarTreeView
+from aqt.browser.previewer import \
+    BrowserPreviewer, Previewer, MultiCardPreviewer
+from aqt.editor import Editor, EditorWebView
+from aqt.addcards import AddCards
+from aqt.operations.card import set_card_deck
+from aqt.reviewer import Reviewer, RefreshNeeded, V3CardInfo
+from aqt.webview import AnkiWebView
+from aqt.operations.scheduling import answer_card
 
 # 兼容格式: classEnum.Name
-if Anki.isQt6:
+
+# NEEDQT6 = ISQT6 if ISLOCALDEBUG else Anki.isQt6
+
+if Utils.isQt6():
+    # TODO 'QStyle.State_Selected' will stop working. Please use 'QStyle.StateFlag.State_Selected' instead.
     from PyQt6 import QtGui, QtCore, QtWidgets
     from PyQt6.QtCore import *
     from PyQt6.QtWidgets import *
@@ -109,8 +113,11 @@ if Anki.isQt6:
     from PyQt6.QtWebEngineWidgets import *
 
 
-    QSettings_NativeFormat = QSettings.Format.NativeFormat
+    # QSettings_NativeFormat = QSettings.Format.NativeFormat
 
+
+    class QStyle_StateFlag:
+        State_Selected = QStyle.StateFlag.State_Selected
 
     class TextFlag:
         TextSingleLine = Qt.TextFlag.TextSingleLine
@@ -205,7 +212,13 @@ else:
     from PyQt5.QtGui import *
     from PyQt5.QtWebEngineWidgets import QWebEngineView
     # if not ISLOCALDEBUG:
+    Qt.WidgetAttribute.WA_DeleteOnClose = Qt.WA_DeleteOnClose
     QSettings_NativeFormat = QSettings.NativeFormat
+    class QPainter_RenderHint:
+        Antialiasing = QPainter.Antialiasing
+        TextAntialiasing = QPainter.TextAntialiasing
+        SmoothPixmapTransform = QPainter.SmoothPixmapTransform
+        LosslessImageRendering = QPainter.LosslessImageRendering
     QPainter.RenderHint.Antialiasing = QPainter.Antialiasing
     QPainter.RenderHint.TextAntialiasing = QPainter.TextAntialiasing
     QPainter.RenderHint.SmoothPixmapTransform = QPainter.SmoothPixmapTransform
@@ -223,6 +236,7 @@ else:
     Qt.KeyboardModifier.MetaModifier = Qt.MetaModifier
     Qt.KeyboardModifier.KeypadModifier = Qt.KeypadModifier
     Qt.KeyboardModifier.GroupSwitchModifier = Qt.GroupSwitchModifier
+    Qt.Key.Key_Return = Qt.Key_Return
     Qt.ContextMenuPolicy.NoContextMenu = Qt.NoContextMenu
     Qt.ContextMenuPolicy.PreventContextMenu = Qt.PreventContextMenu
     Qt.ContextMenuPolicy.DefaultContextMenu = Qt.DefaultContextMenu
@@ -262,7 +276,8 @@ else:
     QGraphicsLineItem.GraphicsItemFlag.ItemIsSelectable = QGraphicsLineItem.ItemIsSelectable
     QAbstractItemView.ScrollMode.ScrollPerPixel = QAbstractItemView.ScrollPerPixel
 
-
+    class QStyle_StateFlag:
+        State_Selected = QStyle.State_Selected
 
     class PenStyle:
         SolidLine = Qt.SolidLine

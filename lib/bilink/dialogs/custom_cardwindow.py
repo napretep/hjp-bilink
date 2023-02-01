@@ -28,7 +28,7 @@ if not ISLOCAL:
             if not self.note:
                 # shutdown
                 return
-            # focus lost or key/button pressed?
+
             if cmd.startswith("blur") or cmd.startswith("key"):
                 (type, ord, nid, txt) = cmd.split(":", 3)
                 ord = int(ord)
@@ -161,10 +161,10 @@ if not ISLOCAL:
             self.silentlyClose = True
             self.vbox = QVBoxLayout()
             self.vbox.setContentsMargins(0, 0, 0, 0)
-            self._web = AnkiWebView(title="independent previewer")
+            self._web = AnkiWebView(title=common_tools.baseClass.枚举命名.独立卡片预览器)
             self.vbox.addWidget(self._web)
             self.setLayout(self.vbox)
-            restoreGeom(self, "independent previewer")
+            restoreGeom(self, common_tools.baseClass.枚举命名.独立卡片预览器)
             self.bottombar = QHBoxLayout()
 
             self._other_side = QPushButton(QIcon(common_tools.G.src.ImgDir.right_direction), "")
@@ -174,7 +174,7 @@ if not ISLOCAL:
 
             self._other_side.setAutoDefault(False)
             self._other_side.clicked.connect(self._on_other_side)
-            self.setWindowTitle("independent previewer")
+            self.setWindowTitle(common_tools.baseClass.枚举命名.独立卡片预览器)
             # buttons
             # self.browser_button.clicked.connect(self._on_browser_button)
             # self.browser_button.setText("show in browser")

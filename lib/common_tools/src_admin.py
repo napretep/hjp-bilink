@@ -132,6 +132,7 @@ class SrcAdmin:
             self.delete = os.path.join(self.root.path.resource_icon,"icon_delete.png")
             self.open = os.path.join(self.root.path.resource_icon, "icon_open.png")
             self.help = os.path.join(self.root.path.resource_icon,"icon_help.png")
+            self.preview_open = os.path.join(self.root.path.resource_icon,"icon_preview_open.png")
             self.edit = os.path.join(self.root.path.resource_icon,"icon_edit.png")
             self.save = os.path.join(self.root.path.resource_icon, "icon_save.png")
             self.box2 = os.path.join(self.root.path.resource_icon, "icon_box2.png")

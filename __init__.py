@@ -1,5 +1,5 @@
 """入口
-
+警告:pyqt不支持中文信号名
 """
 
 from .lib.common_tools import connectors

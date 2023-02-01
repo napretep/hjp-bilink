@@ -70,7 +70,7 @@ mw_VersionDialog = mw_addonName["VersionDialog"]
 mw_progresser = mw.__dict__[addonName]["progresser"]
 mw_universal_worker = None
 mw_grapher = mw.__dict__[addonName]["grapher"] # grapher是临时视图, 也叫链接池视图
-mw_gview = {}
+mw_gview = {} # 当前运行的视图存放所在地
 GViewAdmin_window = None
 GViewAutoShow_window = None
 mw_addcard_to_grapher_on = False
@@ -82,4 +82,4 @@ GroupReview_version: "float" = 0
 nextCard_interval: "list[int]" = []  # 用来记录连续过快复习
 cardChangedTime = -1
 customPreviewerBothSide=False
-
+常量_当前等待新增卡片的视图索引: "None|str" = None
