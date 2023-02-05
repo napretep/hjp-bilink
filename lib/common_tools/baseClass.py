@@ -6,12 +6,11 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2022/7/15 23:09'
 
-这个文件用于提供基类
+这个文件用于提供基类,
 """
 import typing
 
 from .compatible_import import *
-from . import funcs
 import abc
 from typing import TYPE_CHECKING
 
@@ -23,10 +22,23 @@ class 视图结点类型:
     视图="view"
 
 class 枚举命名:
-    位置 = "位置"  # 用于gviewdata中结点的位置
-    名字 = "名字"  # 用于gviewdata中边名的描述
+    位置 = "position"  # 用于gviewdata中结点的位置
+    名字 = "node_name"  # 用于gviewdata中边名的描述
     独立卡片预览器 = "independent previewer"
-    数据类型="dataType"
+    数据类型="data_type"
+    特征结点 = "core_node"
+    创建时间 = "created_time"
+    上次访问 = "last_visit"
+    上次编辑 = "last_edit"
+    访问次数 = "visit_count"
+    视图卡片内容缓存 = "card_content_cache"
+    结点访问次数 = "node_vist_count"
+    结点上次访问 = "node_last_vist"
+    优先级 = "node_priority"
+    需要复习 = "need_review"
+    必须复习 = "must_review"
+    结点标签 = "node_tag"
+    漫游起点 = "roaming_start"
 
 
 
@@ -46,7 +58,6 @@ class ConfigTableNewRowFormView:
         self.widget.setWindowTitle("new")
         self.widget.resize(500, 300)
         self.colItems: "list[ConfigTableView.TableItem]" = colItems
-        # self.colWidgets: "list[QWidget]" = [] # funcs.Map.do(self.colItems, lambda item: item.ShowAsWidget())
         self.SetupUI()
         self.SetupWidget()
         self.SetupEvent()
@@ -62,7 +73,6 @@ class ConfigTableNewRowFormView:
         self.mainLayout.addLayout(hlayout)
         self.mainLayout.setAlignment(Qt.AlignRight)
         self.widget.setLayout(self.mainLayout)
-        # funcs.Map.do(range(len(self.superior.colnames)), lambda i: self.layout.addRow(self.superior.colnames[i], self.__dict__[f"col{i}"]))
         self.okbtn.clicked.connect(self.OnOkClicked)
         [self.layout.addRow(self.superior.colnames[i], self.colWidgets[i]) for i in range(len(self.superior.colnames))]
 

@@ -128,7 +128,7 @@ if not ISLOCAL:
 
         """
 
-        def __init__(self, card: Card, superior=None, *args, **kwargs):
+        def __init__(self, card: Card=None, superior=None, *args, **kwargs):
             self._card = card
             self.editor: "Optional[NoteEditorDialog]" =None
             self.superior = superior
@@ -147,6 +147,12 @@ if not ISLOCAL:
         def initEvent(self):
             common_tools.G.signals.onCardSwitchBothSide.connect(self.handleBothSideEmit)
 
+        def activateAsSubWidget(self):
+            self._state = "question"
+            self._last_state = None
+            self._create_gui()
+            self._setup_web_view()
+            self.render_card()
 
         def card(self) -> Card:
             # self._card.id.__str__()

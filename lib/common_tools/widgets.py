@@ -1714,6 +1714,17 @@ class ConfigWidget:
 
             pass
 
+    class excutableStringEdit(QTextEdit):
+        pass
+
+    class GviewConfigNodeFilter(excutableStringEdit):
+        pass
+
+    class GviewConfigCascadingSorter(excutableStringEdit):
+        pass
+
+    class GviewConfigWeightedSorter(excutableStringEdit):
+        pass
 
 class ReviewButtonForCardPreviewer:
     def __init__(self, papa, layout: "QGridLayout"):

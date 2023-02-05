@@ -284,6 +284,131 @@ def 翻译(**kwargs):
 # noinspection NonAsciiCharacters
 class Translate:
     lang = currentLang
+    说明_漫游路径算法选择=翻译(
+            zh="""
+漫游路径算法选择: roaming_path_mode
+当我们打算在视图的结点网络中进行漫游复习时, 我们需要确定漫游经过的结点序列, 这个序列就是漫游的路线, 
+这个路线需要两个不同的配置项确定, 当前配置项仅指定基本的漫游模式, 指定漫游的基本模式后, 就可以到这种模式同名的配置项中, 选择一种具体的排序算法来规划漫游路径,
+基本模式有:cascading_sort(多级排序), weighted_sort(加权排序), graph_sort(图排序)三种.
+            """,
+            en="""
+Roaming path algorithm selection: roaming_path_mode
+When we intend to roam a network of nodes in the view, we need to determine the sequence of nodes through which the roaming will take place, and this sequence is the roaming route, 
+This route needs to be determined by two different configuration items, the current configuration item only specifies the basic roaming mode, after specifying the basic mode of roaming, you can go to the configuration item of the same name of this mode and choose a specific sorting algorithm to plan the roaming path,
+The basic modes are: cascading_sort, weighted_sort, and graph_sort.
+            """
+    )
+
+    说明_总是显示边名 = 翻译(
+            zh="""勾选本项后, 所有结点的边的名字总是会显示出来. 不勾选本项的话, 只有当你选中一个结点时, 才会显示从这个结点出发的边的名字.
+""",
+            en="""When this item is checked, the names of the edges of all nodes will always be displayed. If this item is not checked, the name of the edge from this node will be displayed only if you select it.
+"""
+    )
+
+    说明_结点标签枚举 = 翻译(
+            zh="""
+你在文本框中输入python语法的字符串列表, 会被转换成 视图结点的 node_tag属性中的 待选标签列表
+示例: 
+你在文本框中输入 ["apple","banana","orange"] 后, 那么其他结点的node_tag 待选标签中就会有
+apple banana orange 
+注意:
+1. 必须严格遵守python的字符串列表类型格式, 否则会报错, 从而被一个空列表强制覆盖, 空列表则代表无可选标签.
+2. 元素的顺序是有意义的, 排在前面的权重更大, 用于加权计算.
+            """,
+en="""
+The list of strings you enter into Python syntax in the text box will be converted into a list of tags to be selected in the node_tag property of the view node
+Example: 
+After you enter ["apple", "banana", "orange" in the text box, then the node_tag of other nodes will be in the Selected tab
+apple banana orange 
+Note:
+1. The Python string list type format must be strictly observed, otherwise an error will be reported, which will be forcibly overwritten by an empty list, and the empty list means no optional tags.
+2. The order of the elements is meaningful, with greater weight in front of the ranking, used for weighting calculations.
+"""
+    )
+
+    说明_加权排序=翻译(
+zh="""
+加权排序:weighted_sort
+如果你在roaming_path_mode中选择了weighted_sort模式, 则漫游路径会根据结点的各类属性的加权排序结果生成.
+
+""",
+en="""
+
+"""
+    )
+
+    说明_多级排序 = 翻译(
+            zh="""
+多级排序:cascading_sort
+如果你在roaming_path_mode中选择了cascading_sort模式, 则漫游路径会根据结点的各类属性排序结果生成.
+本配置项是一个排序等级表格, 比较两项排序时, 从第一行所保存的结点属性开始比较, 若相同则向下一行比较, 以此类推.
+例如:
+假设我们有如下排序等级表格:
+升/降序 属性名         
+↑      node_priority
+↓      node_visit_count
+则两个结点会先根据 node_priority 进行升序排序, 
+如果两个结点的node_priority相同, 则再根据 node_visit_count 进行降序排序
+            """,
+en="""
+Multi-level sorting: cascading_sort
+If you choose cascading_sort mode in roaming_path_mode, the roaming path will be generated according to the sorting result of various attributes of the node.
+This configuration item is a sorting hierarchy table, when comparing two sorting, start from the first row of node attributes saved, if the same, then compare the next row, and so on.
+Example:
+Suppose we have the following sort order table:
+ascending/descending attribute name         
+↑ node_priority
+↓ node_visit_count
+Then the two nodes will be sorted first in ascending order according to node_priority, 
+If both nodes have the same node_priority, then they will be sorted in descending order based on node_visit_count
+"""
+    )
+    说明_漫游路径过滤 = 翻译(
+        zh="""
+漫游结点过滤:roaming_node_filter
+本配置项将根据用户所设条件, 先将不满足条件的结点过滤剔除, 再在剩余满足条件的结点上执行漫游路径生成算法,
+
+比如:
+点击加号新建一行记录, 在弹出的文本框中输入 node_priority > 50 and node_visit_count <30 and node_tag in ["apple","banana"]
+点击确定后, 在表中选中此行, 则程序会根据结点的优先级属性, 访问次数属性以及结点标签属性, 过滤掉不满足条件的结点, 在这个基础上再去执行路径生成算法.
+
+注意:
+条件必须是符合python语法的表达式,返回值只能是布尔类型, 否则就会被强制清空.
+
+可用于过滤的结点的属性名及其数据类型:
+node_priority,node_visit_count,out_degree,in_degree: 整数型,
+created_time, node_last_edit, last_review: 时间戳,
+need_review,must_review,core_node: 布尔型,
+node_name:字符串
+node_tag: 字符串列表,
+data_type: 枚举类型("card","view"),
+可用于过滤的函数:
+to_timestamp(time_string):接受YYYY-MM-DD格式时间字符串参数返回时间戳(秒).
+        """,
+en="""
+Roaming node filtering: roaming_node_filter
+This configuration item will filter out the nodes that do not meet the conditions according to the conditions set by the user, and then execute the roaming path generation algorithm on the remaining nodes that meet the conditions,
+
+For example:
+Click the plus sign to create a new row, enter node_priority > 50 and node_visit_count < 30 and node_tag in ["apple", "banana"] in the pop-up text box
+After clicking OK, select this row in the table, then the program will filter out nodes that do not meet the criteria based on their priority, visit count and node tag attributes, and then execute the path generation algorithm based on that.
+
+Note:
+The condition must be a python syntax expression, and the return value can only be a boolean, otherwise it will be forced to clear.
+
+The property names and data types of the property that can be used for filtering:
+node_priority, node_visit_count, out_degree, in_degree: integer type,
+created_time, node_last_edit, last_review: timestamp,
+need_review,must_review,core_node: Boolean,
+node_name: string
+node_tag: list of strings,
+data_type: enumeration type ("card", "view"),
+Functions that can be used for filtering:
+to_timestamp(time_string): accepts YYYY-MM-DD format time string parameter to return the timestamp (in seconds).
+"""
+    )
+
     导入 = 翻译(zh="导入到视图",en="insert into another view")
     不存在 = 翻译(zh="不存在",en="do not exist")
     在此处搜索=翻译(zh="输入关键词,敲击回车搜索", en="Enter something here, hit enter to search")
@@ -311,11 +436,11 @@ class Translate:
     上次访问时间=翻译(zh="上次访问时间", en="last visit time")
     上次编辑时间=翻译(zh="上次编辑时间", en="last edit time")
     上次复习时间=翻译(zh="上次复习时间", en="last review time")
-    总访问数 = 翻译(zh="总访问数", en="visit count")
+    访问数 = 翻译(zh="访问数", en="visit count")
     结点数 = 翻译(zh="结点数", en="nodes count")
     边数 = 翻译(zh="边数", en="edges count")
     到期卡片数 = 翻译(zh="到期卡片数", en="due count")
-    代表性卡片 = 翻译(zh="代表性卡片", en="representative cards")
+    代表性结点 = 翻译(zh="代表性结点", en="representative nodes")
 
     导入到视图 = 翻译(zh="导入到视图",en="Insert them to a view")
     选择一个视图 = 翻译(zh="选择一个视图",en="Select a view to insert")

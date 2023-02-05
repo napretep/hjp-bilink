@@ -59,7 +59,7 @@ from typing import TYPE_CHECKING
 #         self.View: "QWidget" = QWidget(parent)
 
 本 = baseClass.枚举命名
-
+译 = Translate
 @dataclass
 class GViewData:
     """视图数据类
@@ -82,9 +82,10 @@ class GViewData:
     # * Done:2022年12月29日23:00:10 edges的结构要大改, 改成 {"fromNode,toNode":{desc:""}}
 
     edges: 'dict[str,dict[str,Any]]'  # 在取出时就应该保证边的唯一性,而且主要用来存json字符串,所以不用set TODO # {"from_to":{connect:True,desc:"abc"}}
+    meta: "Optional[dict[str,int|None|str]]"=None
     config: 'str' = ""  # * Done 2022年11月25日22:46:21: 记录配置表uuid, 需要用的时候读取
-
     def __init__(self,**kwargs):
+        from . import funcs
         uuid,name,nodes,edges = kwargs["uuid"],kwargs["name"],kwargs["nodes"],kwargs["edges"]
         if "config" in kwargs:
             config = kwargs["config"]
@@ -103,34 +104,30 @@ class GViewData:
         self.uuid = uuid
         self.name = name
         self.config = config
-
+        self.meta=funcs.GviewOperation.默认元信息模板(None if "meta" not in kwargs else kwargs["meta"])
         if 版本20221226:
             self.nodes = {}
             self.edges = {}
             for 标识,位置 in nodes.items():
-                self.nodes[标识]= {}
-                self.nodes[标识][本.位置]=位置
-                self.nodes[标识][本.数据类型]=baseClass.视图结点类型.卡片
+                self.nodes[标识]= funcs.GviewOperation.依参数确定视图结点数据类型模板()
             for 对儿 in edges:
-                self.edges[f"{对儿[0]},{对儿[1]}"]={}
-                self.edges[f"{对儿[0]},{对儿[1]}"][本.名字]=""
+                self.edges[f"{对儿[0]},{对儿[1]}"]=funcs.GviewOperation.默认视图边数据模板()
         else:
             if type(nodes)==dict:
                 self.nodes = {}
                 for 标识, 值 in nodes.items():
-                    self.nodes[标识] = {}
-                    self.nodes[标识][本.位置] =值[本.位置]
-                    self.nodes[标识][本.数据类型] = 值[本.数据类型] if  本.数据类型 in 值 else baseClass.视图结点类型.卡片
+                    self.nodes[标识] = funcs.GviewOperation.依参数确定视图结点数据类型模板(数据=值)
             if type(edges)==dict:
                 self.edges = {}
                 for 标识, 值 in edges.items():
-                    self.edges[标识]={}
-                    self.edges[标识][本.名字]="" if 本.名字 not in 值 else 值[本.名字]
+                    self.edges[标识]= funcs.GviewOperation.默认视图边数据模板(值)
+        # funcs.Utils.print(self,need_logFile=True)
+
 
     def copy(self):
         from . import funcs
         # uuid = funcs.UUID.by_random()
-        return GViewData(uuid=funcs.UUID.by_random(),name=self.name,config=self.config,edges=self.edges.copy(),nodes=self.nodes.copy())
+        return GViewData(uuid=funcs.UUID.by_random(),name=self.name,config=self.config,edges=self.edges.copy(),nodes=self.nodes.copy(),meta=self.meta.copy() if self.meta else None)
 
     def to_html_repr(self):
         return f"uuid={self.uuid}<br>" \
@@ -144,8 +141,16 @@ class GViewData:
                 "name"  : self.name,
                 "nodes" : f"{json.dumps(self.nodes)}",
                 "edges" : f"{json.dumps(self.edges)}",
-                "config": self.config
+                "config": self.config,
+                **self.meta
         }
+
+    def 访问次数加1(self):
+        pass
+
+    def 获取结点描述(self,编号,全部内容=False):
+        from . import funcs
+        return funcs.GviewOperation.获取视图结点描述(self,编号,全部内容)
 
     def __hash__(self):
         return int(self.uuid, 16)
@@ -832,6 +837,48 @@ class GviewConfigModel(BaseConfigModel):
             customizeComponent=lambda: widgets.ConfigWidget.GviewConfigApplyTable,
             validate=lambda value, item: sum([0 if GviewConfigModel.ViewExist(uuid) else 1 for uuid in value]) == 0
     ))
+    node_tag_enum: ConfigModelItem  = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_结点标签枚举],
+            tab_at="main",
+            value="[]", # "list[str]"
+            validate = lambda  value, item: Validation.node_tag_enum_validate(value),
+            component=ConfigModel.Widget.text
+    ))
+    edge_name_always_show:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_总是显示边名],
+            tab_at="main",
+            value=False,
+            component=ConfigModel.Widget.radio
+
+    ))
+    roaming_path_mode:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_漫游路径算法选择],
+            tab_at="roaming",
+            value=0,
+            component=ConfigModel.Widget.combo,
+            limit=[ComboItem("cascading_sort",0),ComboItem("weighted_sort",1),ComboItem("graph_sort",2)]
+    ))
+    roaming_node_filter:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_漫游路径过滤],
+            tab_at="roaming",
+            value=[],  # excutable string list
+            component=ConfigModel.Widget.customize,
+            customizeComponent=lambda:widgets.ConfigWidget.GviewConfigNodeFilter
+    ))
+    cascading_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_多级排序],
+            tab_at="roaming",
+            value=[],  # excutable string list
+            component=ConfigModel.Widget.customize,
+            customizeComponent=lambda:widgets.ConfigWidget.GviewConfigCascadingSorter
+    ))
+    weighted_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_多级排序],
+            tab_at="roaming",
+            value=[],  # excutable string list
+            component=ConfigModel.Widget.customize,
+            customizeComponent=lambda:widgets.ConfigWidget.GviewConfigCascadingSorter
+    ))
 
     def __repr__(self):
         d = {}
@@ -842,6 +889,27 @@ class GviewConfigModel(BaseConfigModel):
 
     def __str__(self):
         return self.__repr__()
+
+
+
+        pass
+
+class Validation:
+    @staticmethod
+    def node_tag_enum_validate(value: str, item: ConfigModelItem):
+        from ast import literal_eval
+        try:
+            new_value: list = literal_eval(value)
+            if type(new_value) != list:
+                return False
+            else:
+                if len(new_value) != 0:
+                    for el in new_value:
+                        if type(el) != "str":
+                            return False
+                return True
+        except:
+            return False
 
 
 if __name__ == '__main__':

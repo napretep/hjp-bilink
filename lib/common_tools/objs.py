@@ -6,14 +6,18 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/7/30 9:09'
 """
+import abc
+import collections
 import json
 import re
 import sqlite3
+from abc import ABC
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Union
 from urllib.parse import unquote
 from .compatible_import import *
+
 @dataclass
 class descExtractTable:
     templateId:"int"
@@ -26,6 +30,7 @@ class NONE:
     @staticmethod
     def activateWindow()->False:
         return False
+
 @dataclass
 class CmdArgs:
     type:"str"
@@ -734,12 +739,11 @@ class DB_admin(object):
             entity.append(v)
         s = self.sqlstr_RECORD_REPLACE.format(tablename=self.tab_name, cols=cols[0:-1], vals=vals[0:-1])
         from .funcs import write_to_log_file
-        write_to_log_file(s,need_timestamp=True)
-        write_to_log_file(entity.__str__())
+
         self.excute_queue.append([s, entity])
         return self
 
-    def update(self, values: "DB_admin.BOX" = None, where: "DB_admin.BOX" = None):
+    def update(self, values: "Logic.BOX" = None, where: "Logic.BOX" = None):
         """values,where 应该是一个字典, k是字段名,v是字段值"""
         assert values is not None and where is not None
         entity = values.values + where.values
@@ -893,8 +897,8 @@ class Logic:
         """
         a=?,b=?,c=?
         确保插入的都是数据库字段, 不然就等着报错吧!,
-        VALUEEQ与EQ的区别:
-            VALUEEQ得到的形式是string: a=?,b=?,c=?, value:[av,bv,cv], 主要用来赋值
+        LET与EQ的区别:
+            LET得到的形式是string: a=?,b=?,c=?, value:[av,bv,cv], 主要用来赋值
             EQ的形式是: string: a=av and b=bv ... 主要用来比较
         """
         string = ",".join([k + "=? " for k in list(kwargs.keys())])
@@ -910,10 +914,16 @@ class Table:
             return self.__class__.__name__
 
         def get_dict(self):
-            d = self.__dict__.copy()
-            return d
+            data = collections.OrderedDict()
+            [data.__setitem__(name, self.__dict__[name]) for name in self.ordered_fields()]
+            return data
 
+        @abc.abstractmethod
         def constrain(self):
+            raise NotImplementedError("")
+
+        @abc.abstractmethod
+        def ordered_fields(self)->list[str]:
             raise NotImplementedError("")
 
         pass
@@ -926,8 +936,16 @@ class Table:
         "string": ["data"],
         "number": ["card_id"]
     }
+
+        def ordered_fields(self):
+            return ["card_id","data"]
+
     @dataclass
     class PDF_INFO_TABLE(BaseFields):
+        def ordered_fields(self) -> list[str]:
+            return ["uuid","pdf_path","ratio","offset"]
+            pass
+
         uuid: "str" = "varchar primary key not null unique"
         pdf_path: "str" = "varchar not null"
         ratio: "float" = "float not null"
@@ -937,8 +955,15 @@ class Table:
         "string": ["uuid", "pdf_path"],
         "number": ["ratio", "offset"]
     }
+
+
+
     @dataclass
     class CLIPBOX_INFO_TABLE(BaseFields):
+        def ordered_fields(self) -> list[str]:
+            return ["uuid","x","y","w","h","QA","comment","commentQA","card_id","ratio","pagenum","pdfuuid"]
+            pass
+
         uuid: "str" = "varchar(8) primary key not null unique"
         x: "str" = "float not null"
         y: "str" = "float not null"
@@ -959,18 +984,30 @@ class Table:
     @dataclass
     class GRAPH_VIEW_TABLE(BaseFields):
         """grapher的固定视图,G代表graph, 目前想到的串有,uuid,name,member_info_json, 需要根据卡片id反查所属view时,查找"""
+
+        def ordered_fields(self) -> list[str]:
+            return ["uuid","name","nodes","edges","config","last_view","last_edited","view_count","created_time","card_content_cache"]
+            pass
+
         uuid: "str" = "varchar(8) primary key not null unique"
         name: "str" = "varchar not null"
         nodes:"str" = "text"
         edges:"str" = "text"
         config:"str" = "varchar"
+        created_time:"str" = "integer"
+        last_edited:"str" ="integer"
+        last_view:"str"="integer"
+        view_count:"str"="integer"  # 浏览次数
+        card_content_cache:"str" = "text"  # 卡片内容缓存, 用来实现按照卡片内容搜索视图.
         def constrain(self):
             return {
-        "string":["uuid","name","nodes","edges","config"],
-        "number":[]
+        "string":["uuid","name","nodes","edges","config","card_content_cache"],
+        "number":["created_time","last_edited","last_view","view_count"]
     }
     @dataclass
     class GRAPH_VIEW_CARD_TABLE(BaseFields):  # 这个表没用
+        def ordered_fields(self) -> list[str]:
+            return ["card_id","views","default_views"]
         card_id: "str" = "varchar primary key not null unique"
         views: "str" = "text"
         default_views: "str" = "text"
@@ -982,6 +1019,10 @@ class Table:
 
     @dataclass
     class GRAPH_VIEW_CONFIG(BaseFields):
+        def ordered_fields(self) -> list[str]:
+            return ["uuid","name","data"]
+            pass
+
         uuid: "str" = "varchar(8) primary key not null unique"
         name: "str" = "varchar not null"
         data:"str" = "text"
@@ -993,6 +1034,10 @@ class Table:
 
     @dataclass
     class GRAPH_VIEW_CACHE(BaseFields):
+        def ordered_fields(self) -> list[str]:
+            return ["uuid","cache"]
+            pass
+
         uuid: "str" = "varchar(8) primary key not null unique"
         cache:"str" = "text"
         def constrain(self):
@@ -1029,6 +1074,7 @@ class DBResults(object):
         self.results: "list" = results
         self.all_column_names = all_column_names
         self.curr_tabletype = curr_tabletype
+
 
     def zip_up(self, version=1):
         """zip只包装成字典, 如果要用dataclass ,请返回后自己包装"""
@@ -1082,6 +1128,7 @@ class DBResults(object):
 
         def to_gview_record(self):
             """导出的都是字符串,需要自己再转一次"""
+
             return [GviewRecord(**i) for i in self]
 
         def to_givenformat_data(self, _format,multiArgs=False):
@@ -1200,11 +1247,27 @@ class GviewRecord:
     nodes:str
     edges:str
     config:str = ""
+    meta:"Optional[dict]"=None
+
+    def __init__(self,*args,**kwargs):
+        self.uuid = kwargs["uuid"]
+        self.name = kwargs["name"]
+        self.nodes = kwargs["nodes"]
+        self.edges = kwargs["edges"]
+        self.config = kwargs["config"]
+        self.meta = {
+                "created_time":kwargs["created_time"],
+                "last_edited":kwargs["last_edited"],
+                "last_view":kwargs["last_view"],
+                "view_count":kwargs["view_count"],
+                # "card_content_cache":kwargs["card_content_cache"],
+        }
+
 
     def to_GviewData(self):
         from .configsModel import GViewData
         return GViewData(uuid=self.uuid,name=self.name,
-                         nodes=json.loads(self.nodes),edges=json.loads(self.edges),config=self.config
+                         nodes=json.loads(self.nodes),edges=json.loads(self.edges),config=self.config,meta=self.meta
                          )
 
 @dataclass

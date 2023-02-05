@@ -34,7 +34,7 @@ if __name__ == "__main__":
 else:
     from ..imports import common_tools
 
-import collections 
+import collections
 
 LinkDataPair = common_tools.objs.LinkDataPair
 GraphMode = common_tools.configsModel.GraphMode
@@ -176,6 +176,8 @@ class Grapher(QMainWindow):
             #         return
             if self.roaming:
                 self.roaming.close()
+
+            common_tools.funcs.GviewOperation.更新缓存(视图=self.data.gviewdata.uuid)
             common_tools.G.mw_gview[self.data.gviewdata.uuid] = None
             # common_tools.G.GViewAdmin_window
 
@@ -285,7 +287,7 @@ class Grapher(QMainWindow):
             last_item = self.data.node_dict[(list(self.data.node_dict.keys())[-1])].item
         结点集 = self.data.gviewdata.nodes
         for pair in pair_li:
-            card_id: "str" = pair if type(pair) == str else pair.card_id if isinstance(pair,LinkDataPair) else pair.uuid
+            card_id: "str" = pair if type(pair) == str else pair.card_id if isinstance(pair, LinkDataPair) else pair.uuid
             if card_id in 结点集:
                 continue
             else:
@@ -304,6 +306,7 @@ class Grapher(QMainWindow):
                 last_item = item
         if last_item:
             self.view.centerOn(item=last_item)
+            self.scene.clearSelection()
             last_item.setSelected(True)
         self.load_edges_from_linkdata()
 
@@ -489,8 +492,9 @@ class Grapher(QMainWindow):
         last_item = None
         for card_id, node in self.data.node_dict.items():
             item = self.add_node(card_id)
+            # funcs.Utils.print(self.data.gviewdata.nodes[card_id],need_logFile=True)
             if self.data.graph_mode == GraphMode.view_mode and card_id in self.data.gviewdata.nodes \
-                    and self.data.gviewdata.nodes[card_id][本.位置][0] is not None:  # * Done: 修改数据读取方式
+                    and self.data.gviewdata.nodes[card_id][本.位置]:  # * Done: 修改数据读取方式
                 item.setPos(*self.data.gviewdata.nodes[card_id][本.位置])
             else:
                 self.arrange_node(item)
@@ -574,7 +578,7 @@ class Grapher(QMainWindow):
 
         def updateNodeDueAll(self):
             for card_id in self.node_dict.keys():
-                if self.gviewdata.nodes[card_id][本.数据类型]==枚举_视图结点类型.卡片:
+                if self.gviewdata.nodes[card_id][本.数据类型] == 枚举_视图结点类型.卡片:
                     self.updateNodeDue(card_id)
 
         @property
@@ -621,6 +625,9 @@ class Grapher(QMainWindow):
                     if 索引 not in self.node_dict:
                         del 新结点集[索引]
                 self.gviewdata.nodes = 新结点集.copy()
+
+            def 备份元信息():
+                self.gviewdata.meta = funcs.GviewOperation.默认元信息模板(self.gviewdata.meta)
 
             get_nodeinfo_list()
             get_edgeinfo_list()
@@ -1063,10 +1070,11 @@ class Grapher(QMainWindow):
             return menu
 
         def mouseDoubleClickEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
-            if self.superior.data.graph_mode == 2:
+            if self.superior.data.graph_mode == GraphMode.debug_mode:
                 return
             if event.buttons() == Qt.MouseButton.LeftButton:
                 if self.结点类型() == 枚举_视图结点类型.卡片:
+
                     common_tools.funcs.Dialogs.open_custom_cardwindow(self.索引)
                 elif self.结点类型() == 枚举_视图结点类型.视图:
                     data = common_tools.funcs.GviewOperation.load(uuid=self.索引)
@@ -1318,9 +1326,10 @@ class Grapher(QMainWindow):
             2一个多卡片窗口,
             3一个队列创跨
             """
-            p = GrapherRoamingPreviewer(self.superior)
-            p.show()
-            p.listView.selectRow(3)
+            if not self.superior.roaming:
+                self.superior.roaming = GrapherRoamingPreviewer(self.superior)
+            self.superior.roaming.show()
+            self.superior.roaming.activateWindow()
             pass
 
         def openConfig(self):
@@ -1471,7 +1480,8 @@ class GViewAdmin(QDialog):
                 [self.bottom.delete_button.clicked, self.on_delete],
                 [self.bottom.link_button.clicked, self.on_link],
                 [self.bottom.display_button.clicked, self.on_display_changed],
-                [self.bottom.help_button.clicked,self.on_help],
+                [self.bottom.create_button.clicked, self.on_create],
+                [self.bottom.help_button.clicked, self.on_help],
                 [self.model.itemChanged, self.on_model_item_changed_handle],
                 [self.view.doubleClicked, self.on_view_doubleclicked_handle],
                 [self.view.customContextMenuRequested, self.on_view_contextmenu_handle],
@@ -1485,7 +1495,7 @@ class GViewAdmin(QDialog):
     def on_view_contextmenu_handle(self, pos):
         # item = self.model.itemFromIndex(self.view.indexAt(pos))
         项表 = self.view.获取有效项()
-        if len(项表)==0:
+        if len(项表) == 0:
             return
         # if item is None:
         #     return
@@ -1493,7 +1503,7 @@ class GViewAdmin(QDialog):
         #     tooltip(Translate.请点击叶结点)
         #     return
         else:
-            if len(项表)==1:
+            if len(项表) == 1:
                 item = 项表[0]
                 data = item.data(Qt.ItemDataRole.UserRole)
                 menu = self.view.contextMenu = QMenu(self.view)
@@ -1503,34 +1513,35 @@ class GViewAdmin(QDialog):
                 funcs.MenuMaker.gview_ankilink(menu_copy_as, data)
                 menu.popup(QCursor.pos())
             else:
-                待插视图数据表:"list[GViewData]" = [项.data(Qt.ItemDataRole.UserRole) for 项 in 项表]
+                待插视图数据表: "list[GViewData]" = [项.data(Qt.ItemDataRole.UserRole) for 项 in 项表]
                 菜单 = self.view.contextMenu = QMenu(self.view)
                 菜单.addAction(译.删除).triggered.connect(lambda: self.当_删除多个(待插视图数据表))
                 菜单2 = 菜单.addMenu(译.导入到视图)
                 菜单2.addAction(译.选择一个视图).triggered.connect(lambda: self.当_选择视图插入(待插视图数据表))
-                已打开视图菜单=菜单2.addMenu(译.插入到已经打开的视图)
+                已打开视图菜单 = 菜单2.addMenu(译.插入到已经打开的视图)
                 for 视图编号 in funcs.GviewOperation.列出已打开的视图():
-                    已打开视图:Grapher = funcs.G.mw_gview[视图编号]
-                    已打开视图菜单.addAction(已打开视图.data.gviewdata.name).triggered.connect(lambda:self.当_插入到视图(已打开视图,待插视图数据表))
-                菜单2.addAction(译.新建视图).triggered.connect(lambda:self.当_创建视图并插入(待插视图数据表))
+                    已打开视图: Grapher = funcs.G.mw_gview[视图编号]
+                    已打开视图菜单.addAction(已打开视图.data.gviewdata.name).triggered.connect(lambda: self.当_插入到视图(已打开视图, 待插视图数据表))
+                菜单2.addAction(译.新建视图).triggered.connect(lambda: self.当_创建视图并插入(待插视图数据表))
                 菜单.popup(QCursor.pos())
         # menu.popup(pos)
 
-    def 当_插入到视图(self,已打开视图:Grapher,待插视图数据表:"list[GViewData]"):
+    def 当_插入到视图(self, 已打开视图: Grapher, 待插视图数据表: "list[GViewData]"):
         已打开视图.load_node(待插视图数据表, 参数_视图结点类型=枚举_视图结点类型.视图)
         已打开视图.activateWindow()
         pass
 
-    def 当_创建视图并插入(self,待插视图数据表:"list[GViewData]"):
+    def 当_创建视图并插入(self, 待插视图数据表: "list[GViewData]"):
         视图编号 = funcs.GviewOperation.create()
-        视图对象:Grapher = funcs.G.mw_gview[视图编号]
+        视图对象: Grapher = funcs.G.mw_gview[视图编号]
         视图对象.load_node(待插视图数据表, 参数_视图结点类型=枚举_视图结点类型.视图)
         pass
 
-    def 当_选择视图插入(self,待插视图数据表:"list[GViewData]"):
+    def 当_选择视图插入(self, 待插视图数据表: "list[GViewData]"):
         被插视图数据 = funcs.GviewOperation.choose_insert()
-        被插视图对象:Grapher = funcs.G.mw_gview[被插视图数据.uuid]
-        被插视图对象.load_node(待插视图数据表, 参数_视图结点类型=枚举_视图结点类型.视图)
+        if 被插视图数据:
+            被插视图对象: Grapher = funcs.G.mw_gview[被插视图数据.uuid]
+            被插视图对象.load_node(待插视图数据表, 参数_视图结点类型=枚举_视图结点类型.视图)
         pass
 
     def on_view_doubleclicked_handle(self, index: "QModelIndex"):
@@ -1634,7 +1645,12 @@ class GViewAdmin(QDialog):
         self.data[data.uuid] = None
         self.rebuild()
         pass
-    def 当_删除多个(self, 项表:"list[GViewData]"):
+
+    def on_create(self):
+        funcs.GviewOperation.create()
+        pass
+
+    def 当_删除多个(self, 项表: "list[GViewData]"):
         for 项 in 项表:
             self.wait_for_delete.append(项.uuid)
             self.data[项.uuid] = None
@@ -1655,11 +1671,11 @@ class GViewAdmin(QDialog):
         g_layout.addWidget(self.bottom)
         self.setLayout(g_layout)
 
-    def init_data(self,data=None):
+    def init_data(self, data=None):
         datas = data if data is not None else funcs.GviewOperation.load_all()
-        self.data= {}
+        self.data = {}
         for data in datas:
-            self.data[data.uuid]=data
+            self.data[data.uuid] = data
         # list(map(lambda x: self.data.__setitem__(x.uuid, x), datas))
         self.rebuild()
 
@@ -1678,7 +1694,7 @@ class GViewAdmin(QDialog):
         for data in self.data.values():
             if not isinstance(data, GViewData):
                 continue
-            funcs.Utils.print(data)
+
             original_name = data.name.split("::")
             parent = root
             while original_name:
@@ -1686,7 +1702,7 @@ class GViewAdmin(QDialog):
                 if nodename not in parent.children:
                     item = self.Item(nodename, data=None if original_name else data)
                     if funcs.G.ISLOCALDEBUG:
-                        dueCountItem= self.Item("0")
+                        dueCountItem = self.Item("0")
                     else:
                         dueCountItem = self.Item(f"{common_tools.funcs.GviewOperation.getDueCount(data)}", data=None if original_name else data)
                     parent.item.appendRow([item, dueCountItem])
@@ -1706,7 +1722,7 @@ class GViewAdmin(QDialog):
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.save()
-        funcs.GviewOperation.更新缓存()
+        # funcs.GviewOperation.更新缓存()
         funcs.G.GViewAdmin_window = None
 
     class Model(QStandardItemModel):
@@ -1745,9 +1761,8 @@ class GViewAdmin(QDialog):
                 item = self.superior.model.itemFromIndex(idx)
                 if item.data(Qt.ItemDataRole.UserRole):
                     有效结点.append(item)
-            funcs.Utils.print(有效结点)
-            return 有效结点
 
+            return 有效结点
 
     class Bottom(QWidget):
         def __init__(self, superior: 'GViewAdmin'):
@@ -1760,22 +1775,23 @@ class GViewAdmin(QDialog):
             self.open_button = QToolButton(self)
             self.display_button = QToolButton(self)
             self.help_button = QToolButton(self)
+            self.create_button = QToolButton(self)
             self.search_edit = QLineEdit(self)
             self.search_edit.setPlaceholderText(译.在此处搜索)
             h_layout = QHBoxLayout(self)
             h_layout.setContentsMargins(0, 0, 0, 0)
             h_layout.addWidget(self.search_edit)
             self.setContentsMargins(0, 0, 0, 0)
-            button_li: "list[QToolButton]" = [self.display_button, self.open_button, self.rename_button, self.delete_button, self.link_button, self.help_button]
-            icon_li = [src.ImgDir.tree, src.ImgDir.preview_open, src.ImgDir.rename, src.ImgDir.delete, src.ImgDir.link,src.ImgDir.help]
-            tooltip_li = ["display as tree", "open", "rename", "delete", "copy link","help"]
+            button_li: "list[QToolButton]" = [self.display_button, self.open_button, self.rename_button, self.delete_button, self.link_button, self.create_button, self.help_button]
+            icon_li = [src.ImgDir.tree, src.ImgDir.preview_open, src.ImgDir.rename, src.ImgDir.delete, src.ImgDir.link, src.ImgDir.item_plus, src.ImgDir.help]
+            tooltip_li = ["display as tree", "open", "rename", "delete", "copy link", "create", "help"]
             # self.open_button.setToolTip()
             list(map(lambda x: x.setContentsMargins(0, 0, 0, 0), button_li))
             list(map(lambda x: h_layout.addWidget(x, alignment=AlignmentFlag.AlignRight), button_li))
             list(map(lambda x: x[0].setIcon(QIcon(x[1])), zip(button_li, icon_li)))
             list(map(lambda x: x[0].setToolTip(x[1]), zip(button_li, tooltip_li)))
             self.search_edit.textChanged.connect(self.on_search_edit_text_changed)
-            QShortcut(Qt.Key.Key_Return,self.search_edit).activated.connect(lambda: self.searching(self.search_edit.text()))
+            QShortcut(Qt.Key.Key_Return, self.search_edit).activated.connect(lambda: self.searching(self.search_edit.text()))
             self.setLayout(h_layout)
 
         def on_search_edit_text_changed(self, text: str):
@@ -1816,19 +1832,44 @@ class GrapherRoamingPreviewer(QMainWindow):
     """
 
     def __init__(self, superior):
-        from .custom_cardwindow import SingleCardPreviewer
+
         super().__init__()
         self.superior: "Grapher" = superior
         self.dueQueue = [card_id for card_id in self.superior.data.gviewdata.nodes]  # 这个需要排序获取 比如从grapher那里搞个
-        initCard = common_tools.funcs.CardOperation.GetCard(self.dueQueue[0])
+        # initCard = common_tools.funcs.CardOperation.GetCard(self.dueQueue[0])
+        self.当前编码 = ""
         self.导航按钮组 = self.导航组件(self)
         self.listView = self.List(self)
-        self.cardView: "SingleCardPreviewer" = SingleCardPreviewer(initCard, superior=self, parent=self, mw=mw, on_close=lambda: None)
-        self.复习_视图结点展示组件= self.复习对象_视图结点(self)
+        self.layoutH = QHBoxLayout()  # QMainWindow的布局
+        self._cardView: "SingleCardPreviewer" = None
+        self.复习_视图结点展示组件 = self.复习对象_视图结点(self)
         self.container = QWidget()
         self.initUI()
-        self.initEvent()
-        self.listView.selectRow(0)
+        # self.initEvent()
+        if self.listView.tempModel.rowCount()==0:
+            self.圆满完成()
+        else:
+            self.listView.selectRow(0)
+
+    @property
+    def cardView(self):
+        """SingleCardPreviewer 第一个参数必须是Card对象,否则就无法启动.
+        但 视图中, 很有可能没有card存在, 也有可能第一行是view,
+        在切换到view显示时, cardView需要一个伪组件用来隐藏, 相关的事件也要延后
+        """
+        if not self._cardView and self.当前编码 != "":
+            from .custom_cardwindow import SingleCardPreviewer
+            initCard = common_tools.funcs.CardOperation.GetCard(self.当前编码)
+            self._cardView = SingleCardPreviewer(initCard, superior=self, parent=self, mw=mw, on_close=lambda: None)
+            self.initEvent()
+            # self._cardView.open()
+            self.layoutH.addWidget(self.cardView, stretch=1)
+            self._cardView.activateAsSubWidget()
+            return self._cardView
+        elif self._cardView:
+            return self._cardView
+        else:
+            return QWidget()
 
     def readCard(self, card_id):
         return common_tools.funcs.CardOperation.GetCard(card_id)
@@ -1837,28 +1878,32 @@ class GrapherRoamingPreviewer(QMainWindow):
         项 = self.listView.tempModel.itemFromIndex(self.listView.currentIndex())
         return 项.data()
 
-    def item_finish(self,自动关闭=True):
+    def item_finish(self, 自动关闭=True):
         """可以理解为 item finish"""
         if self.还有结点():
             选中行号 = self.listView.currentIndex().row()
             self.listView.removeCurrentItem()
-            选中行号的新索引 = self.listView.tempModel.index(选中行号,0)
-            if 选中行号的新索引.row()!=-1:
+            选中行号的新索引 = self.listView.tempModel.index(选中行号, 0)
+            if 选中行号的新索引.row() != -1:
                 self.listView.selectRow(选中行号)
             else:
                 self.listView.selectRow(0)
         else:
             self.listView.removeCurrentItem()
-            self.同时隐藏卡片与视图展示组件()
-            self.导航按钮组.hide()
-            showInfo("review complete!")
+            self.圆满完成()
+            self.close()
 
-    def last_item(self):
-        行号 = self.listView.currentIndex().row() -1
-        总行数 = self.listView.tempModel.rowCount()
-        self.listView.selectRow(行号%总行数)
+    def 圆满完成(self):
+        self.同时隐藏卡片与视图展示组件()
+        self.导航按钮组.hide()
+        showInfo(f"roaming of the view: {self.superior.data.gviewdata.name} is finished!")
         pass
 
+    def last_item(self):
+        行号 = self.listView.currentIndex().row() - 1
+        总行数 = self.listView.tempModel.rowCount()
+        self.listView.selectRow(行号 % 总行数)
+        pass
 
     def next_item(self):
         行号 = self.listView.currentIndex().row() + 1
@@ -1872,28 +1917,26 @@ class GrapherRoamingPreviewer(QMainWindow):
         pass
 
     def 还有结点(self):
-        return self.listView.tempModel.rowCount()>1
+        return self.listView.tempModel.rowCount() > 1
 
     def initEvent(self):
-        btns = self.cardView.revWidget.ease_button
+        btns = self._cardView.revWidget.ease_button
         [btns[i].clicked.connect(self.item_finish) for i in btns]
 
         pass
 
     def closeEvent(self, *args, **kwargs):
-        self.superior.roaming=None
+        self.superior.roaming = None
 
     def initUI(self):
-        self.cardView.open()
-        layoutH = QHBoxLayout()
-        layoutH.addWidget(self.listView,stretch=0)
-        layoutH.addWidget(self.导航按钮组,stretch=0,alignment=AlignmentFlag.AlignBottom)
-        layoutH.addWidget(self.cardView,stretch=1)
-        layoutH.addWidget(self.复习_视图结点展示组件, stretch=1)
-        layoutH.setContentsMargins(0,0,0,0)
+
+        self.layoutH.addWidget(self.listView, stretch=0)
+        self.layoutH.addWidget(self.导航按钮组, stretch=0, alignment=AlignmentFlag.AlignBottom)
+        self.layoutH.addWidget(self.复习_视图结点展示组件, stretch=1)
+        self.layoutH.setContentsMargins(0, 0, 0, 0)
         self.cardView.hide()
         self.复习_视图结点展示组件.hide()
-        self.container.setLayout(layoutH)
+        self.container.setLayout(self.layoutH)
         self.setCentralWidget(self.container)
         self.setWindowTitle(f"roaming review for view of {self.superior.data.gviewdata.name} ")
         self.setMinimumHeight(600)
@@ -1913,58 +1956,58 @@ class GrapherRoamingPreviewer(QMainWindow):
         pass
 
     class 导航组件(QWidget):
-        收起=0
-        展开=1
-        def __init__(self,上级:"GrapherRoamingPreviewer"):
+        收起 = 0
+        展开 = 1
+
+        def __init__(self, 上级: "GrapherRoamingPreviewer"):
             super().__init__()
-            self.当前侧边栏收起展开状态=GrapherRoamingPreviewer.导航组件.展开 # 0
-            self.上级=上级
-            self.按钮_下一个 = QPushButton(QIcon(funcs.G.src.ImgDir.bottom_direction),"")
-            self.按钮_上一个 = QPushButton(QIcon(funcs.G.src.ImgDir.top_direction),"")
-            self.按钮_收起展开 = QPushButton(QIcon(self.获取收起展开的图标()),"")
-            self.按钮组 = [self.按钮_上一个,self.按钮_下一个,self.按钮_收起展开]
-            提示 = ["last","next","sidebar hide/show"]
+            self.当前侧边栏收起展开状态 = GrapherRoamingPreviewer.导航组件.展开  # 0
+            self.上级 = 上级
+            self.按钮_下一个 = QPushButton(QIcon(funcs.G.src.ImgDir.bottom_direction), "")
+            self.按钮_上一个 = QPushButton(QIcon(funcs.G.src.ImgDir.top_direction), "")
+            self.按钮_收起展开 = QPushButton(QIcon(self.获取收起展开的图标()), "")
+            self.按钮组 = [self.按钮_上一个, self.按钮_下一个, self.按钮_收起展开]
+            提示 = ["last", "next", "sidebar hide/show"]
             响应函数 = [self.上级.last_item, self.上级.next_item, self.上级.switch_sidebar_show_hide]
             垂直布局 = QVBoxLayout()
             [垂直布局.addWidget(按钮) for 按钮 in self.按钮组]
             [self.按钮组[i].setToolTip(提示[i]) for i in range(len(self.按钮组))]
             [self.按钮组[i].clicked.connect(响应函数[i]) for i in range(len(self.按钮组))]
-            垂直布局.setContentsMargins(0,0,0,0)
+            垂直布局.setContentsMargins(0, 0, 0, 0)
             self.setLayout(垂直布局)
 
         def 操作侧边栏隐藏或显示(self):
-            if self.当前侧边栏收起展开状态==GrapherRoamingPreviewer.导航组件.展开:
+            if self.当前侧边栏收起展开状态 == GrapherRoamingPreviewer.导航组件.展开:
                 self.上级.listView.show()
             else:
                 self.上级.listView.hide()
 
         def 获取收起展开的图标(self):
-            if self.当前侧边栏收起展开状态==GrapherRoamingPreviewer.导航组件.展开:
+            if self.当前侧边栏收起展开状态 == GrapherRoamingPreviewer.导航组件.展开:
                 return funcs.G.src.ImgDir.left_direction
             else:
                 return funcs.G.src.ImgDir.right_direction
 
         def 切换收起展开状态(self):
-            if self.当前侧边栏收起展开状态==GrapherRoamingPreviewer.导航组件.收起:
-                self.当前侧边栏收起展开状态=GrapherRoamingPreviewer.导航组件.展开
+            if self.当前侧边栏收起展开状态 == GrapherRoamingPreviewer.导航组件.收起:
+                self.当前侧边栏收起展开状态 = GrapherRoamingPreviewer.导航组件.展开
 
             else:
-                self.当前侧边栏收起展开状态=GrapherRoamingPreviewer.导航组件.收起
+                self.当前侧边栏收起展开状态 = GrapherRoamingPreviewer.导航组件.收起
 
         def 更换收起展开按钮图标(self):
             self.按钮_收起展开.setIcon(QIcon(self.获取收起展开的图标()))
 
     class 复习对象_视图结点(QWidget):
-        def __init__(self,上级:"GrapherRoamingPreviewer"):
+        def __init__(self, 上级: "GrapherRoamingPreviewer"):
             super().__init__()
-            self.上级=上级
-            
+            self.上级 = 上级
+
             self.按钮1_完成复习 = QPushButton("finish")
             self.按钮2_打开视图 = QPushButton("open")
-            self.按钮2_打开视图.clicked.connect(lambda:funcs.Dialogs.open_grapher(
-                    gviewdata=funcs.GviewOperation.load(uuid=self.上级.获取当前结点的编码())))
+            self.按钮2_打开视图.clicked.connect(self.open_current_view_roaming)
             self.按钮1_完成复习.clicked.connect(self.上级.item_finish)
-            self.组件_视图信息=QWidget()
+            self.组件_视图信息 = QWidget()
             self.视图信息组件_内容 = self.视图信息组件的内容(self)
             self.表单布局 = QFormLayout()
             self.垂直布局 = QVBoxLayout()
@@ -1976,36 +2019,52 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.setLayout(self.垂直布局)
             self.初始化UI()
 
+        def open_current_view_roaming(self):
+            uuid = self.上级.获取当前结点的编码()
+            funcs.Dialogs.open_grapher(
+                    gviewdata=funcs.GviewOperation.load(uuid=uuid), mode=GraphMode.view_mode)
+            g:Grapher=funcs.G.mw_gview[uuid]
+            g.toolbar.openRoaming()
+
         def 初始化UI(self):
 
-            for 信息,组件 in self.视图信息组件_内容.有序信息.items():
-                self.表单布局.addRow(信息,组件)
+            for 信息, 组件 in self.视图信息组件_内容.有序信息.items():
+                self.表单布局.addRow(信息, 组件)
             self.组件_视图信息.setLayout(self.表单布局)
 
-
         def 读取视图信息(self):
-            视图编号= self.上级.获取当前结点的编码()
-            视图数据= funcs.GviewOperation.load(uuid=视图编号)
+            视图编号 = self.上级.获取当前结点的编码()
+            视图数据 = funcs.GviewOperation.load(uuid=视图编号)
             self.视图信息组件_内容.有序信息[译.视图名].setText(视图数据.name)
-
+            self.视图信息组件_内容.有序信息[译.结点数].setText(len(list(视图数据.nodes.keys())).__str__())
+            self.视图信息组件_内容.有序信息[译.边数].setText(len(list(视图数据.edges.keys())).__str__())
+            self.视图信息组件_内容.有序信息[译.到期卡片数].setText(funcs.GviewOperation.getDueCount(视图数据).__str__())
+            self.视图信息组件_内容.有序信息[译.创建时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.创建时间]).__str__())
+            self.视图信息组件_内容.有序信息[译.上次访问时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.上次访问]).__str__())
+            self.视图信息组件_内容.有序信息[译.上次编辑时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.上次编辑]).__str__())
+            self.视图信息组件_内容.有序信息[译.访问数].setText(视图数据.meta[本.访问次数].__str__())
+            代表性结点 = ""
+            for 索引,数据 in 视图数据.nodes.items():
+                if 数据[本.特征结点]:
+                    代表性结点 += 索引+":"+视图数据.获取结点描述(索引)
+            self.视图信息组件_内容.有序信息[译.代表性结点].setText(代表性结点)
             pass
 
         class 视图信息组件的内容:
-            def __init__(self,上级):
-                self.上级=上级
+            def __init__(self, 上级):
+                self.上级 = 上级
                 self.有序信息 = collections.OrderedDict()
                 for 信息名称 in [译.视图名,
-                                译.创建时间,
-                                译.上次访问时间,
-                                译.上次编辑时间,
-                                译.上次复习时间,
-                                译.总访问数,
-                                译.结点数,
-                                译.边数,
-                                译.到期卡片数,
-                                译.代表性卡片,]:
-                    self.有序信息[信息名称]=QLabel("")
-
+                             译.创建时间,
+                             译.上次访问时间,
+                             译.上次编辑时间,
+                             译.上次复习时间,
+                             译.访问数,
+                             译.结点数,
+                             译.边数,
+                             译.到期卡片数,
+                             译.代表性结点, ]:
+                    self.有序信息[信息名称] = QLabel("")
 
     class List(QListView):
         def __init__(self, superior):
@@ -2023,10 +2082,11 @@ class GrapherRoamingPreviewer(QMainWindow):
 
         def handleSelectionChanged(self, selected: "QItemSelection", deselected: "QItemSelection"):
             if selected.indexes():
-                视图数据=self.superior.superior.data.gviewdata
+                视图数据 = self.superior.superior.data.gviewdata
                 编号 = self.tempModel.itemFromIndex(selected.indexes()[0]).data()
-                if 视图数据.nodes[编号][本.数据类型]==枚举_视图结点类型.卡片:
+                if 视图数据.nodes[编号][本.数据类型] == 枚举_视图结点类型.卡片:
                     self.superior.切换到卡片组件()
+                    self.superior.当前编码 = 编号
                     self.superior.cardView.loadNewCard(common_tools.funcs.CardOperation.GetCard(编号))
                 else:
                     self.superior.复习_视图结点展示组件.读取视图信息()
@@ -2060,7 +2120,7 @@ class GrapherRoamingPreviewer(QMainWindow):
             pass
 
         def buildData(self):
-            视图数据=self.superior.superior.data.gviewdata
+            视图数据 = self.superior.superior.data.gviewdata
             for 结点编号 in self.superior.dueQueue:
                 desc = funcs.GviewOperation.获取视图结点描述(视图数据, 结点编号)  # self.superior.superior.data.node_dict[card_id].pair.desc
                 item = QStandardItem(desc)
@@ -2074,7 +2134,6 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.setCurrentIndex(row)
             self.selectionModel().clearSelection()
             self.selectionModel().select(self.currentIndex(), QItemSelectionModel.Select)
-
 
         def getCurrCardId(self):
             item = self.tempModel.itemFromIndex(self.currentIndex())
