@@ -121,8 +121,22 @@ class GViewData:
                 self.edges = {}
                 for 标识, 值 in edges.items():
                     self.edges[标识]= funcs.GviewOperation.默认视图边数据模板(值)
+
+
+
         # funcs.Utils.print(self,need_logFile=True)
 
+    def 清除无效结点(self):
+        from . import funcs, baseClass
+        新数据=self.nodes.copy()
+        for uuid in self.nodes.keys():
+            if self.nodes[uuid][baseClass.枚举命名.数据类型] == baseClass.视图结点类型.卡片:
+                if not funcs.CardOperation.exists(uuid):
+                    del 新数据[uuid]
+            else:
+                if not funcs.GviewOperation.exists(uuid=uuid):
+                    del 新数据[uuid]
+        self.nodes=新数据
 
     def copy(self):
         from . import funcs
@@ -132,15 +146,15 @@ class GViewData:
     def to_html_repr(self):
         return f"uuid={self.uuid}<br>" \
                f"name={self.name}<br>" \
-               f"node_list={json.dumps(self.nodes)}<br>" \
-               f"edge_list={json.dumps(self.edges)}"
+               f"node_list={json.dumps(self.nodes,ensure_ascii=False)}<br>" \
+               f"edge_list={json.dumps(self.edges,ensure_ascii=False)}"
 
     def to_DB_format(self):
         return {
                 "uuid"  : self.uuid,
                 "name"  : self.name,
-                "nodes" : f"{json.dumps(self.nodes)}",
-                "edges" : f"{json.dumps(self.edges)}",
+                "nodes" : f"{json.dumps(self.nodes,ensure_ascii=False)}",
+                "edges" : f"{json.dumps(self.edges,ensure_ascii=False)}",
                 "config": self.config,
                 **self.meta
         }
@@ -216,15 +230,16 @@ class ConfigModelItem:
     tab_at: "str"
     hide: "bool" = False
     display: 'Callable[[Any],Any]' = lambda x: x
-    validate: 'Callable[[Any,Any],Any]' = lambda x, item: None
+    validate: 'Callable[[Any,Any],Any]' = lambda value, item: None
     limit: "list" = field(default_factory=lambda: [0, MAXINT])
     customizeComponent: "Callable[[],CustomConfigItemView.__class__]" = lambda: CustomConfigItemView  # 这个组件的第一个参数必须接受
     _id: "int" = 0  # 0表示无特殊信息
     widget:"QWidget" = None
-    设值到组件: "Callable[[Any],Any]"=None
-    def setValue(self, 值):
+    设值到组件: "Callable[[Any],Any]"=None  # 将配置表项的值设到组件上, BaseConfig.makeConfigRow中用到, 不同的组件设置方式不同,需要在那边自定义
+    def setValue(self, 值, 需要设值回到组件=True):
+        """设值到配置表项"""
         self.value = 值
-        if self.设值到组件:
+        if self.设值到组件 and 需要设值回到组件:
             self.设值到组件(值)
 
 
@@ -797,24 +812,7 @@ class GviewConfigModel(BaseConfigModel):
             validate=lambda value, item: re.search(r"\S", value)
     ))
 
-    chooseCards: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["本项设定选择要复习卡片的方式, 其中'选中卡片的连通集'意思是你选择的卡片连通的所有卡片 "],
-            value=0,
-            component=ConfigModel.Widget.combo,
-            tab_at="main",
-            limit=[ComboItem(Translate.到期卡片, 0), ComboItem(Translate.全部卡片, 1),
-                   ComboItem(Translate.选中的卡片, 2), ComboItem(Translate.选中卡片的连通集, 3)],
-    ))
-    roamingRoute: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["本项设定选择漫游复习的路径,也就是漫游复习队列的排序"],
-            value=0,
-            component=ConfigModel.Widget.combo,
-            tab_at="main",
-            limit=[ComboItem(Translate.广度优先, 0), ComboItem(Translate.深度优先, 1),
-                   ComboItem(Translate.拓扑排序, 2), ComboItem(Translate.到期时间升序, 3),
-                   ComboItem(Translate.到期时间降序, 4), ComboItem(Translate.随机排序, 5)],
 
-    ))
     roamingStart: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["本项设定漫游的起点"],
             value=0,
@@ -837,12 +835,13 @@ class GviewConfigModel(BaseConfigModel):
             customizeComponent=lambda: widgets.ConfigWidget.GviewConfigApplyTable,
             validate=lambda value, item: sum([0 if GviewConfigModel.ViewExist(uuid) else 1 for uuid in value]) == 0
     ))
-    node_tag_enum: ConfigModelItem  = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_结点标签枚举],
+    node_role_enum: ConfigModelItem  = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_结点角色枚举],
             tab_at="main",
             value="[]", # "list[str]"
             validate = lambda  value, item: Validation.node_tag_enum_validate(value),
-            component=ConfigModel.Widget.text
+            component=ConfigModel.Widget.customize,
+            customizeComponent=lambda: widgets.ConfigWidget.GviewConfigNodeRoleEnumEditor,
     ))
     edge_name_always_show:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_总是显示边名],
@@ -856,7 +855,7 @@ class GviewConfigModel(BaseConfigModel):
             tab_at="roaming",
             value=0,
             component=ConfigModel.Widget.combo,
-            limit=[ComboItem("cascading_sort",0),ComboItem("weighted_sort",1),ComboItem("graph_sort",2)]
+            limit=[ComboItem("random_sort",0),ComboItem("cascading_sort",1),ComboItem("weighted_sort",2),ComboItem("graph_sort",3)]
     ))
     roaming_node_filter:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_漫游路径过滤],
@@ -873,11 +872,18 @@ class GviewConfigModel(BaseConfigModel):
             customizeComponent=lambda:widgets.ConfigWidget.GviewConfigCascadingSorter
     ))
     weighted_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_多级排序],
+            instruction=[译.说明_加权排序],
             tab_at="roaming",
             value=[],  # excutable string list
             component=ConfigModel.Widget.customize,
-            customizeComponent=lambda:widgets.ConfigWidget.GviewConfigCascadingSorter
+            customizeComponent=lambda:widgets.ConfigWidget.GviewConfigWeightedSorter
+    ))
+    graph_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_图排序],
+            tab_at="roaming",
+            value=0,  # excutable string list
+            component=ConfigModel.Widget.combo ,
+            limit=[ComboItem(译.深度优先遍历,0),ComboItem(译.广度优先遍历,1)]
     ))
 
     def __repr__(self):

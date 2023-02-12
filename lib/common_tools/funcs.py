@@ -122,7 +122,15 @@ class MenuMaker:
 
 class GviewOperation:
 
-
+    @staticmethod
+    def 设定视图结点描述(视图数据:GViewData, 结点编号, 设定内容):
+        视图类型 = 视图数据.nodes[结点编号][字典键名.数据类型]
+        if 视图类型 == 枚举_视图结点类型.卡片:
+            CardOperation.desc_save(结点编号,设定内容)
+        else:
+            结点对应视图 = GviewOperation.load(结点编号)
+            结点对应视图.name = 设定内容
+            GviewOperation.save(结点对应视图)
 
     @staticmethod
     def 获取视图结点描述(视图数据:GViewData, 结点编号, 全部内容=False):
@@ -414,7 +422,7 @@ class GviewOperation:
     @staticmethod
     def 默认视图边数据模板(数据=None):
         默认值 = {
-                字典键名.名字: ""
+                字典键名.边名: ""
         }
         return Utils.字典缺省值填充器(默认值, 数据)
 
@@ -424,13 +432,14 @@ class GviewOperation:
         默认值={
                 _.数据类型  :结点类型,
                 _.位置    : [],
-                _.特征结点  : False,
+                _.主要结点  : False,
                 _.结点上次访问:int(time.time()),
+                _.结点上次编辑:int(time.time()),
                 _.结点访问次数:0,
                 _.优先级   :0,
                 _.需要复习  :True,
                 _.必须复习  :False,
-                _.结点标签  :[],
+                _.结点.角色  :-1,
                 _.漫游起点  :False,
         }
 
@@ -489,7 +498,7 @@ class Utils(object):
     # def output():
 
     @staticmethod
-    def print(*args, need_timestamp=True, need_logFile=False, **kwargs):
+    def print(*args, need_timestamp=True, need_logFile=True, **kwargs):
 
         if G.ISDEBUG:
             caller = sys._getframe(1).f_code.co_name
@@ -514,6 +523,10 @@ class Utils(object):
         for 键,值 in 默认值.items():
             新值[键] = Utils.字典默认键值对(值,键,对应值)
         return 新值
+
+    @staticmethod
+    def 时间戳转日期(时间戳):
+        return datetime.fromtimestamp(时间戳)
 
 class 组件定制:
 
@@ -787,7 +800,7 @@ class BaseConfig(metaclass=abc.ABCMeta):
         """
 
         # from .configsModel import BaseConfigModel
-        print(f"in makeConfigDialog data={数据}")
+        # print(f"in makeConfigDialog data={数据}")
         @dataclasses.dataclass()
         class 分页字典项:
             widget: QWidget = dataclasses.field(default_factory=QWidget)
@@ -834,36 +847,34 @@ class GviewConfigOperation(BaseConfig):
     @staticmethod
     def 从数据库删除(标识:str):
         if type(标识)!=str:
-            raise  ValueError("类型不匹配")
-        G.DB.go(G.DB.table_GviewConfig).delete(objs.Logic.EQ(uuid=标识)).commit(callback=print)
+            raise ValueError("类型不匹配")
+        DB = G.DB
+        DB.go(DB.table_GviewConfig)
+        DB.excute_queue.append(f"delete from GRAPH_VIEW_CONFIG where uuid='{标识}'")
+        DB.commit(lambda x:Utils.print(x,need_logFile=True))
+        # G.DB.go(G.DB.table_GviewConfig).delete(objs.Logic.EQ(uuid=f"'{标识}'")).commit(lambda x:Utils.print(x,need_logFile=True))
 
     @staticmethod
     def 指定视图配置(视图记录: "GViewData|str", 新配置记录: "objs.Record.GviewConfig|str|None" = None):
-        print(f" assign view config function begin ")
-        if type(视图记录) == str:
-            视图记录 = GviewOperation.load(视图记录)
-
-        if 新配置记录 is None:
-            新配置记录 = objs.Record.GviewConfig()
-        elif type(新配置记录)==str:
-            新配置记录 = objs.Record.GviewConfig.readModelFromDB(新配置记录)
+        Utils.print(f" assign view config function begin",need_logFile=True)
 
         def 删除前配置中的当前视图():
             前配置记录 = GviewConfigOperation.从数据库读(视图记录.config)
             应用前配置的视图表: "list[str]" = 前配置记录.data.appliedGview.value
-            print(f"former model applied config table, before append={应用前配置的视图表}")
+            Utils.print(f"former model applied config table, before append={应用前配置的视图表}",need_logFile=True)
             if 视图记录.uuid in 应用前配置的视图表:
                 应用前配置的视图表.remove(视图记录.uuid)
                 if len(应用前配置的视图表) == 0:
+                    Utils.print(f"应用前配置的视图表={应用前配置的视图表},下面要删除这个配置了",need_logFile=True)
                     GviewConfigOperation.从数据库删除(前配置记录.uuid)
                 else:
                     前配置记录.data.appliedGview.setValue(应用前配置的视图表)
                     前配置记录.saveModelToDB()
-            print(f"former model applied config table, after append={应用前配置的视图表}")
+            Utils.print(f"former model applied config table, after append={应用前配置的视图表}",need_logFile=True)
 
         def 将当前视图添加到现配置的支配表中():
             应用配置视图表: "list[str]" = 新配置记录.data.appliedGview.value
-            print(f"new model uuid={新配置记录.uuid}, appliedGview before append =  {应用配置视图表}")
+            Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview before append =  {应用配置视图表}",need_logFile=True)
 
             if 视图记录.uuid not in 应用配置视图表:
                 应用配置视图表.append(视图记录.uuid)
@@ -872,7 +883,16 @@ class GviewConfigOperation(BaseConfig):
             GviewOperation.save(视图记录)
             新配置记录.data.元信息.确定保存到数据库=True
             新配置记录.saveModelToDB()
-            print(f"new model uuid={新配置记录.uuid}, appliedGview after append =  {应用配置视图表}, gview.config = {视图记录.config}")
+            Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview after append =  {应用配置视图表}, gview.config = {视图记录.config}",need_logFile=True)
+
+        if type(视图记录) == str:
+            视图记录 = GviewOperation.load(视图记录)
+
+        if 新配置记录 is None:
+            新配置记录 = objs.Record.GviewConfig()
+        elif type(新配置记录)==str:
+            新配置记录 = objs.Record.GviewConfig.readModelFromDB(新配置记录)
+
 
         if 视图记录.config and objs.Record.GviewConfig.静态_存在于数据库中(视图记录.config):
             删除前配置中的当前视图()
@@ -880,7 +900,7 @@ class GviewConfigOperation(BaseConfig):
         将当前视图添加到现配置的支配表中()
 
         GviewOperation.save(视图记录)
-        print("assign view over ")
+        Utils.print("assign view over ",need_logFile=True)
 
     @staticmethod
     def 移除视图配置(视图标识: "str", 配置标识: "str"):
@@ -902,6 +922,19 @@ class GviewConfigOperation(BaseConfig):
         result = G.DB.commit()
         return list(result)
 
+    @staticmethod
+    def 获取结点角色数据源(gview_uuid=None,gview_data:"GViewData"=None)->list[str]:
+
+        if gview_uuid:
+            data = GviewOperation.load(gview_uuid)
+        else:
+            data = gview_data
+        if data.config:
+            from ast import literal_eval
+            role_enum = literal_eval(objs.Record.GviewConfig.readModelFromDB(data.config).data.node_role_enum)
+            return role_enum
+        else:
+            return []
     pass
 
 class Config(BaseConfig):
@@ -1000,6 +1033,7 @@ class LinkDataOperation:
         """仅根据pair的desc信息更新,别的不做"""
         data = LinkDataOperation.read_from_db(pair.card_id)
         data.self_data.desc = pair.desc
+        data.self_data.get_desc_from=G.objs.LinkDescFrom.DB
         data.save_to_DB()
         if pair.get_desc_from == G.objs.LinkDescFrom.Field:
             tooltip(Translate.描述已修改但是___, period=6000)
@@ -1059,6 +1093,8 @@ class LinkDataOperation:
 class CardTemplateOperation:
     @staticmethod
     def GetModelFromId(Id: int):
+        if G.ISLOCALDEBUG:
+            return None
         return mw.col.models.get(Id)
 
     @staticmethod
@@ -1067,6 +1103,8 @@ class CardTemplateOperation:
 
     @staticmethod
     def GetAllTemplates():
+        if G.ISLOCALDEBUG:
+            return []
         return mw.col.models.all()
 
 
@@ -1425,6 +1463,10 @@ class CardOperation:
                     datainfo.self_data.get_desc_from = objs.LinkDescFrom.DB
                     datainfo.save_to_DB()
                     return datainfo.self_data.desc
+
+    @staticmethod
+    def desc_save(card_id,desc):
+        LinkDataOperation.update_desc_to_db(LinkDataPair(card_id,desc))
 
     @staticmethod
     def InstructionOfExtractDesc(card_id):
@@ -1852,7 +1894,6 @@ class DeckOperation:
 class MonkeyPatch:
 
     @staticmethod
-
     def AddCards_closeEvent(funcs):
         from aqt.addcards import AddCards
         def 包装器(self:"AddCards", evt: "QCloseEvent"):
@@ -2237,7 +2278,9 @@ class Dialogs:
     @staticmethod
     def open_configuration():
         """ 这里的内容要整理到Config的父类中"""
-        dialog = Config.makeConfigDialog(None, Config.get(), 关闭时回调=lambda 数据: Config.save(数据))  # save的参数是经过修正的cfg
+        dialog = Config.makeConfigDialog(None, Config.get(),
+                                         # 关闭时回调=None)
+        lambda 数据: Config.save(数据))  # save的参数是经过修正的cfg
 
         dialog.exec()
 

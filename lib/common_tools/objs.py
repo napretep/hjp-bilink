@@ -9,14 +9,32 @@ __time__ = '2021/7/30 9:09'
 import abc
 import collections
 import json
-import re
+import re,sys
 import sqlite3
+from datetime import datetime
 from abc import ABC
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Union
 from urllib.parse import unquote
 from .compatible_import import *
+logtext = r"C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\log.txt"
+class Utils(object):
+    @staticmethod
+    def print(*args, need_timestamp=True, need_logFile=True, **kwargs):
+
+            caller = sys._getframe(1).f_code.co_name
+            caller2 = sys._getframe(2).f_code.co_name
+            if need_timestamp:
+                ts = (datetime.now().strftime("%Y%m%d%H%M%S"))
+            else:
+                ts = ""
+            if need_logFile:
+                f = open(logtext, "a", encoding="utf-8")
+                print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs, file=f)
+            else:
+                print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs)
+
 
 @dataclass
 class descExtractTable:
@@ -342,7 +360,7 @@ class LinkDataJSONInfo:
 
     @property
     def to_DB_record(self):
-        s = json.dumps(self.todict()["data"])
+        s = json.dumps(self.todict()["data"],ensure_ascii=False)
         d = {"card_id": self.self_data.card_id, "data": s}
         return d
 
@@ -579,7 +597,7 @@ class DB_admin(object):
         self.excute_queue = []
         self.result_queue = []
         self.connection = sqlite3.connect(self.db_dir)
-        self.connection.create_function("regexp",2,self.regexp)
+        self.connection.create_function("regexp",2,self._regexp)
         self.cursor = self.connection.cursor()
         self.curr_tabtype = curr_tabtype
         # self.tab_name = Table.switch[curr_tabtype][0]
@@ -588,7 +606,7 @@ class DB_admin(object):
         self.table_fields_align()
         return self
 
-    def regexp(self,expr,item):
+    def _regexp(self,expr,item):
         """本函数用于注册SQLlite需要的功能,不对外使用"""
         reg = re.compile(expr)
         return reg.search(item) is not None
@@ -738,7 +756,7 @@ class DB_admin(object):
             vals += "?,"  # 最后一个逗号要去掉
             entity.append(v)
         s = self.sqlstr_RECORD_REPLACE.format(tablename=self.tab_name, cols=cols[0:-1], vals=vals[0:-1])
-        from .funcs import write_to_log_file
+
 
         self.excute_queue.append([s, entity])
         return self
@@ -812,14 +830,18 @@ class DB_admin(object):
 
     def commit(self, callback=None,need_commit=True):
         s = self.excute_queue.pop(0)
+        Utils.print(s)
         if s:
             if callback:
                 callback(s.__str__())
             if type(s) == list:
                 result = self.cursor.execute(s[0], s[1]) #注意update的时候,字符串对象需要多加一个""
             else:
+                if callback:callback("即将执行")
                 result = self.cursor.execute(s)
-            if need_commit:self.connection.commit()
+            if need_commit:
+                if callback:callback("即将commit")
+                self.connection.commit()
             return result
 
     def __enter__(self):
@@ -877,6 +899,10 @@ class Logic:
         return Logic.BOX(colname + " LIKE (?) ", ["'"+value+"'"])
 
     @staticmethod
+    def REGEX(colname,value):
+        return Logic.BOX(colname + " REGEXP (?) ", ["'" + value + "'"])
+
+    @staticmethod
     def EQ(LOGIC="AND", **kwargs):
         string = ""
         values = []
@@ -923,7 +949,7 @@ class Table:
             raise NotImplementedError("")
 
         @abc.abstractmethod
-        def ordered_fields(self)->list[str]:
+        def ordered_fields(self)->"list[str]":
             raise NotImplementedError("")
 
         pass
@@ -942,7 +968,7 @@ class Table:
 
     @dataclass
     class PDF_INFO_TABLE(BaseFields):
-        def ordered_fields(self) -> list[str]:
+        def ordered_fields(self) -> "list[str]":
             return ["uuid","pdf_path","ratio","offset"]
             pass
 
@@ -960,7 +986,7 @@ class Table:
 
     @dataclass
     class CLIPBOX_INFO_TABLE(BaseFields):
-        def ordered_fields(self) -> list[str]:
+        def ordered_fields(self) -> "list[str]":
             return ["uuid","x","y","w","h","QA","comment","commentQA","card_id","ratio","pagenum","pdfuuid"]
             pass
 
@@ -985,7 +1011,7 @@ class Table:
     class GRAPH_VIEW_TABLE(BaseFields):
         """grapher的固定视图,G代表graph, 目前想到的串有,uuid,name,member_info_json, 需要根据卡片id反查所属view时,查找"""
 
-        def ordered_fields(self) -> list[str]:
+        def ordered_fields(self) -> "list[str]":
             return ["uuid","name","nodes","edges","config","last_view","last_edited","view_count","created_time","card_content_cache"]
             pass
 
@@ -1006,7 +1032,7 @@ class Table:
     }
     @dataclass
     class GRAPH_VIEW_CARD_TABLE(BaseFields):  # 这个表没用
-        def ordered_fields(self) -> list[str]:
+        def ordered_fields(self) -> "list[str]":
             return ["card_id","views","default_views"]
         card_id: "str" = "varchar primary key not null unique"
         views: "str" = "text"
@@ -1019,7 +1045,7 @@ class Table:
 
     @dataclass
     class GRAPH_VIEW_CONFIG(BaseFields):
-        def ordered_fields(self) -> list[str]:
+        def ordered_fields(self) -> "list[str]":
             return ["uuid","name","data"]
             pass
 
@@ -1034,7 +1060,7 @@ class Table:
 
     @dataclass
     class GRAPH_VIEW_CACHE(BaseFields):
-        def ordered_fields(self) -> list[str]:
+        def ordered_fields(self) -> "list[str]":
             return ["uuid","cache"]
             pass
 
@@ -1196,7 +1222,6 @@ class Record(QObject):
                 from . import G
                 G.DB.go(G.DB.table_GviewConfig)
                 self.name = self.data.name.value
-                print(f"gview config={self.uuid} going to save data = {self.getDict()}")
                 if G.DB.exists(Logic.EQ(uuid=self.uuid)):
                     G.DB.update(values=Logic.LET(**self.getDict()),where=Logic.EQ(uuid=self.uuid)).commit()
                 else:

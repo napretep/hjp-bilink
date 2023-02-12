@@ -284,18 +284,25 @@ def 翻译(**kwargs):
 # noinspection NonAsciiCharacters
 class Translate:
     lang = currentLang
+    过滤表达式 = 翻译(zh="过滤表达式",en="filter expression")
+    选中 = 翻译(zh="选中",en="choose")
+    你将删除这些结点 = 翻译(zh="你将删除这些结点", en="You will delete these nodes")
+    深度优先遍历=翻译(zh="深度优先遍历",en="depth-first traversal ")
+    广度优先遍历=翻译(zh="广度优先遍历",en="breadth-first traversal")
     说明_漫游路径算法选择=翻译(
             zh="""
 漫游路径算法选择: roaming_path_mode
 当我们打算在视图的结点网络中进行漫游复习时, 我们需要确定漫游经过的结点序列, 这个序列就是漫游的路线, 
 这个路线需要两个不同的配置项确定, 当前配置项仅指定基本的漫游模式, 指定漫游的基本模式后, 就可以到这种模式同名的配置项中, 选择一种具体的排序算法来规划漫游路径,
-基本模式有:cascading_sort(多级排序), weighted_sort(加权排序), graph_sort(图排序)三种.
+基本模式有:random_sort(随机排序),cascading_sort(多级排序), weighted_sort(加权排序), graph_sort(图排序)三种.
+其中 random_sort 模式是以随机的方式来确定漫游的路径, 无需进一步设置.
             """,
             en="""
 Roaming path algorithm selection: roaming_path_mode
 When we intend to roam a network of nodes in the view, we need to determine the sequence of nodes through which the roaming will take place, and this sequence is the roaming route, 
 This route needs to be determined by two different configuration items, the current configuration item only specifies the basic roaming mode, after specifying the basic mode of roaming, you can go to the configuration item of the same name of this mode and choose a specific sorting algorithm to plan the roaming path,
-The basic modes are: cascading_sort, weighted_sort, and graph_sort.
+The basic modes are:random_sort, cascading_sort, weighted_sort, and graph_sort.
+The random_sort mode determines the roaming path in a random way, no further settings are needed.
             """
     )
 
@@ -306,7 +313,7 @@ The basic modes are: cascading_sort, weighted_sort, and graph_sort.
 """
     )
 
-    说明_结点标签枚举 = 翻译(
+    说明_结点角色枚举 = 翻译(
             zh="""
 你在文本框中输入python语法的字符串列表, 会被转换成 视图结点的 node_tag属性中的 待选标签列表
 示例: 
@@ -319,7 +326,7 @@ apple banana orange
 en="""
 The list of strings you enter into Python syntax in the text box will be converted into a list of tags to be selected in the node_tag property of the view node
 Example: 
-After you enter ["apple", "banana", "orange" in the text box, then the node_tag of other nodes will be in the Selected tab
+After you enter ["apple", "banana", "orange"] in the text box, then the node_tag of other nodes will be in the Selected tab
 apple banana orange 
 Note:
 1. The Python string list type format must be strictly observed, otherwise an error will be reported, which will be forcibly overwritten by an empty list, and the empty list means no optional tags.
@@ -364,6 +371,22 @@ Then the two nodes will be sorted first in ascending order according to node_pri
 If both nodes have the same node_priority, then they will be sorted in descending order based on node_visit_count
 """
     )
+    说明_图排序 = 翻译(
+            zh="""
+图排序:graph_sort,
+如果你在roaming_path_mode中选择了graph_sort模式, 则漫游路径会根据结点的遍历结果生成.
+图的排序算法有深度优先遍历和广度优先遍历两种.
+如果你已经选中了一个结点, 则图排序会以你所选结点为遍历起点, 否则会在视图的结点中寻找首个 roaming_start=True的结点作为遍历的起点
+""",
+en="""
+Graph sorting: graph_sort,
+If you choose graph_sort mode in roaming_path_mode, the roaming path will be generated based on the node traversal result.
+There are two sorting algorithms for graphs: depth-first traversal and breadth-first traversal.
+If you have already selected a node, the graph sort will start the traversal with the node you selected, otherwise it will find the first node with roaming_start=True among the view nodes as the starting point of the traversal
+"""
+    )
+
+
     说明_漫游路径过滤 = 翻译(
         zh="""
 漫游结点过滤:roaming_node_filter
@@ -371,18 +394,18 @@ If both nodes have the same node_priority, then they will be sorted in descendin
 
 比如:
 点击加号新建一行记录, 在弹出的文本框中输入 node_priority > 50 and node_visit_count <30 and node_tag in ["apple","banana"]
-点击确定后, 在表中选中此行, 则程序会根据结点的优先级属性, 访问次数属性以及结点标签属性, 过滤掉不满足条件的结点, 在这个基础上再去执行路径生成算法.
+点击确定后, 在表中选中此行, 则程序会根据结点的优先级属性是否大于50, 访问次数属性是否小于30以及结点标签属性是否为apple或banana, 过滤掉不满足条件的结点, 在这个基础上再去执行路径生成算法.
 
 注意:
 条件必须是符合python语法的表达式,返回值只能是布尔类型, 否则就会被强制清空.
 
-可用于过滤的结点的属性名及其数据类型:
+可用于过滤的结点的变量名及其数据类型:
 node_priority,node_visit_count,out_degree,in_degree: 整数型,
-created_time, node_last_edit, last_review: 时间戳,
-need_review,must_review,core_node: 布尔型,
+created_time, node_last_edit, last_review, due_date, today, this_week, this_month: 时间戳(秒),
+need_review, must_review,major_node: 布尔型,
 node_name:字符串
 node_tag: 字符串列表,
-data_type: 枚举类型("card","view"),
+data_type: 只能是"card"或"view"
 可用于过滤的函数:
 to_timestamp(time_string):接受YYYY-MM-DD格式时间字符串参数返回时间戳(秒).
         """,
@@ -400,7 +423,7 @@ The condition must be a python syntax expression, and the return value can only 
 The property names and data types of the property that can be used for filtering:
 node_priority, node_visit_count, out_degree, in_degree: integer type,
 created_time, node_last_edit, last_review: timestamp,
-need_review,must_review,core_node: Boolean,
+need_review,must_review,major_node: Boolean,
 node_name: string
 node_tag: list of strings,
 data_type: enumeration type ("card", "view"),

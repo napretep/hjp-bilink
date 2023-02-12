@@ -115,7 +115,7 @@ DB.go(DB.table_linkinfo)
 def read_card_link_info(card_id: str) -> LinkDataJSONInfo:
     DB.go(DB.table_linkinfo)
     if not cardExistsInDB(card_id):
-        data = json.dumps(get_template(card_id))
+        data = json.dumps(get_template(card_id),ensure_ascii=False)
         DB.insert(card_id=card_id, data=data).commit()
     result: "LinkDataJSONInfo" = DB.select(DB.EQ(card_id=card_id)).return_all().zip_up()[0].to_givenformat_data(
         LinkDataJSONInfo)

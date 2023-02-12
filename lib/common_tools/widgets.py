@@ -14,16 +14,19 @@ from abc import ABC
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
 from datetime import datetime
-import time
+import time, collections
 from typing import Union, Optional
 import sys
-
+from ast import literal_eval
 from .language import Translate, rosetta
 from . import configsModel
 
 from .compatible_import import *
 from . import funcs, baseClass
 
+布局  = 0
+组件  = 1
+子代  = 2
 # from ..bilink.dialogs.linkdata_grapher import Grapher
 
 if __name__ == "__main__":
@@ -35,6 +38,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .configsModel import *
+
+译 = Translate
 
 
 class GridHDescUnit(QWidget):
@@ -828,8 +833,6 @@ class tag_chooser(QDialog):
                         stack_item.set_tag_name(None)
                     for i in range(stack_item.rowCount()):
                         stack.append(stack_item.child(i, 0))
-                # for tag_name in to_be_deleted:
-
                 self.superior.init_data_left()
 
         def on_collection_tag_add_handle(self):
@@ -1003,30 +1006,22 @@ class ConfigWidget:
             w.widget.exec()
             if w.ok:
                 self.AppendRow(w.colItems)
+                self.SaveDataToConfigModel()
 
         def ShowRowEditor(self, row: "list[ConfigWidget.PDFUrlLinkBooklist.TableItem]"):
             w = self.NewRowFormWidget(self, row)
             w.widget.exec()
             if w.ok:
                 w.setValueToTableRowFromForm()
-            # layout = QFormLayout()
-            # textItemList = list(map(lambda col: QTextEdit(col.text()), row[0:3]))
-            #
-            # list(map(lambda idx: textItemList[idx].textChanged.connect(
-            #         lambda: row[idx].setData(textItemList[idx].toPlainText(), ItemDataRole.DisplayRole)
-            # ), range(3)))
-            # funcs.Map.do(range(3), lambda idx: layout.addRow(self.colnames[idx], textItemList[idx]))
-            # layout.addRow(self.colnames[3], row[3].ShowAsWidget())
-            # self.rowEditor.setLayout(layout)
-            # self.rowEditor.exec()
+
 
         def SaveDataToConfigModel(self):
 
             newConfigItem = []
-            for row in range(self.model.rowCount()):
+            for row in range(self.table_model.rowCount()):
                 line = []
                 for col in range(4):
-                    item: "ConfigWidget.PDFUrlLinkBooklist.TableItem" = self.model.item(row, col)
+                    item: "ConfigWidget.PDFUrlLinkBooklist.TableItem" = self.table_model.item(row, col)
                     if col in range(2):
                         if not re.search("\S", item.text()):
                             break
@@ -1038,7 +1033,7 @@ class ConfigWidget:
                         line.append(item.text())
                 if len(line) > 0:
                     newConfigItem.append(line)
-            self.ConfigModelItem.setValue(newConfigItem)
+            self.ConfigModelItem.setValue(newConfigItem,需要设值回到组件=False)
             pass
 
         def GetRowFromData(self, data: "list[str]"):
@@ -1142,31 +1137,32 @@ class ConfigWidget:
             w.widget.exec()
             if w.ok:
                 self.AppendRow(w.colItems)
+                self.SaveDataToConfigModel()
 
         def ShowRowEditor(self, row: "list[ConfigWidget.DescExtractPresetTable.TableItem]"):
             w = self.NewRowFormWidget(self, colItems=row)
             w.widget.exec()
             if w.ok:
-                w.setValueToTableRowFromForm()
-                self.SaveDataToConfigModel()
+                w.setValueToTableRowFromForm() #从新建表单设置回到表格
+                self.SaveDataToConfigModel() # 从表格回到配置项
 
         def OnTemplateComboBoxChanged(self, item: "ConfigWidget.DescExtractPresetTable.TableItem", templateId):
-            row = self.model.indexFromItem(item).row()
+            row = self.table_model.indexFromItem(item).row()
             # templateId = item.data(ItemDataRole.UserRole)
-            fieldItem: "ConfigWidget.DescExtractPresetTable.TableItem" = self.model.item(row, 1)
+            fieldItem: "ConfigWidget.DescExtractPresetTable.TableItem" = self.table_model.item(row, 1)
             fieldItem.SetupFieldCombo(templateId)
             self.rowEditor.update()
 
         def SaveDataToConfigModel(self):
             data = []
-            for row in range(self.model.rowCount()):
+            for row in range(self.table_model.rowCount()):
                 rowdata = []
                 for col in range(len(self.colnames)):
-                    item: "ConfigWidget.DescExtractPresetTable.TableItem" = self.model.item(row, col)
+                    item: "ConfigWidget.DescExtractPresetTable.TableItem" = self.table_model.item(row, col)
                     value = item.GetValue()
                     rowdata.append(value)
                 data.append(rowdata)
-            self.ConfigModelItem.setValue(data)
+            self.ConfigModelItem.setValue(data,需要设值回到组件=False)
             pass
 
         class TableItem(baseClass.ConfigTableView.TableItem):
@@ -1317,17 +1313,6 @@ class ConfigWidget:
 
         class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
             def __init__(self, superior: "ConfigWidget.DescExtractPresetTable", colItems: "list[ConfigWidget.DescExtractPresetTable.TableItem]" = None):
-
-                if not colItems:
-                    colItems = funcs.Map.do(superior.defaultRowData, lambda data: superior.TableItem(superior, *data))
-
-                self.colItems = colItems
-                # self.colWidgets: "list[QWidget]" = funcs.Map.do(self.colItems, lambda item: item.ShowAsWidget())
-                # self.col0: "QComboBox" = QComboBox()  # self.colWidgets[0]
-                # self.col1: "QComboBox" = QComboBox()  # self.colWidgets[1]
-                # self.col2: "QSpinBox" = QSpinBox()  # self.colWidgets[2]
-                # self.col3: "QTextEdit" = QTextEdit()  # self.colWidgets[3]
-                # self.col4: "QRadioButton" = QRadioButton()  # self.colWidgets[4]
                 self.colWidgets = [QComboBox(),
                                    QComboBox(),
                                    QSpinBox(),
@@ -1422,7 +1407,7 @@ class ConfigWidget:
         TODO: 当应用表中点击删除项的时候, 如果点击的是视图本身, 则立即发动视图的config置空, 重新载入配置表
 
         """
-        colnames = ["name"]
+        colnames = [译.视图名]
         defaultRowData = [("",)]
         IsList = True
 
@@ -1432,21 +1417,11 @@ class ConfigWidget:
             if w.ok and w.判断已选中:
                 w.setValueToTableRowFromForm()
                 self.AppendRow(w.colItems)
-
-        # def RemoveRow(self):
-        #     项 = super().RemoveRow()
-        #     被删除视图标识 = 项.data()
-            #
-            # 调用者:Grapher.ToolBar = self.上级.调用者
-            # 调用者视图标识 = 调用者.superior.data.gviewdata.uuid
-            # if 调用者视图标识 == 被删除视图标识 or self.model.rowCount()==0:
-            #     self.上级.close()
-            #     调用者.openConfig()
+                self.SaveDataToConfigModel()
             pass
 
         def AppendRow(self, row: "list[baseClass.ConfigTableView.TableItem]"):
-            self.model.appendRow(row)
-            self.SaveDataToConfigModel()
+            self.table_model.appendRow(row)
             pass
 
         def ShowRowEditor(self, row: "list[ConfigWidget.GviewConfigApplyTable.TableItem]"):
@@ -1454,41 +1429,39 @@ class ConfigWidget:
             w.widget.exec()
             if w.ok and w.判断已选中:
                 w.setValueToTableRowFromForm()
+                self.SaveDataToConfigModel()
 
         def RemoveRow(self):
-            print("RemoveRow begin")
             from ..bilink.dialogs.linkdata_grapher import Grapher
             idx = self.viewTable.selectedIndexes()
             if len(idx) == 0:
                 return
-            取出的项 = self.model.takeRow(idx[0].row())[0]
-            被删的视图标识:str = 取出的项.data()
+            取出的项 = self.table_model.takeRow(idx[0].row())[0]
+            被删的视图标识: str = 取出的项.data()
             #
-            上级的配置模型:"GviewConfigModel"= self.上级.参数模型
+            上级的配置模型: "GviewConfigModel" = self.上级.参数模型
             调用者: Grapher.ToolBar = self.上级.调用者
             调用者视图标识 = 调用者.superior.data.gviewdata.uuid
-            需要重启=False
+            需要重启 = False
             funcs.GviewConfigOperation.指定视图配置(被删的视图标识)
+            self.ConfigModelItem.value.remove(被删的视图标识)
             if 调用者视图标识 == 被删的视图标识:
                 需要重启 = True
-
             if not funcs.objs.Record.GviewConfig.静态_存在于数据库中(上级的配置模型.uuid.value):
-                #
+                self.上级.参数模型.元信息.确定保存到数据库 = False
                 需要重启 = True
                 pass
             if 需要重启:
                 self.上级.close()
                 调用者.openConfig()
 
-            print("delete end")
-
         def SaveDataToConfigModel(self):
             """ """
             newConfigItem = []
-            for row in range(self.model.rowCount()):
-                item = self.model.item(row, 0)
+            for row in range(self.table_model.rowCount()):
+                item = self.table_model.item(row, 0)
                 newConfigItem.append(item.data())
-            self.ConfigModelItem.setValue(newConfigItem)
+            self.ConfigModelItem.setValue(newConfigItem,需要设值回到组件=False)
             pass
 
         def GetRowFromData(self, data: "list[str]"):
@@ -1497,13 +1470,17 @@ class ConfigWidget:
 
         class TableItem(baseClass.ConfigTableView.TableItem):
 
-            def __init__(self, superior, uuid: "str"):
+            def __init__(self, superior:baseClass.ConfigTableNewRowFormView, uuid: "str"):
                 """
                 uuid: gviewUuid
                 """
                 from . import funcs
-                name = funcs.GviewOperation.load(uuid=uuid).name
+                if uuid=="":
+                    name = ""
+                else:
+                    name = funcs.GviewOperation.load(uuid=uuid).name
                 super().__init__(superior, name)
+
                 self.superior: "ConfigWidget.GviewConfigApplyTable" = superior
                 self.setData(uuid)
 
@@ -1550,18 +1527,21 @@ class ConfigWidget:
             def setValueToTableRowFromForm(self):
                 """
                 """
-                # self.colItems =
+                if not self.tableView.selectedIndexes():
+                    return
 
                 选中项: "QStandardItem" = self.tableModel.itemFromIndex(self.tableView.selectedIndexes()[0])
-                视图名, 视图标识 = 选中项.text(), 选中项.data(ItemDataRole.UserRole)
+                视图名, 视图标识 = 选中项.text(), 选中项.data()
 
                 现配置模型: "configsModel.GviewConfigModel" = self.superior.上级.参数模型
-                funcs.GviewConfigOperation.指定视图配置(视图标识,现配置模型.uuid.value)
+                funcs.GviewConfigOperation.指定视图配置(视图记录=视图标识, 新配置记录=现配置模型.uuid.value)
 
-                视图配置表的项 = self.superior.TableItem(self.superior, 视图名)
-                视图配置表的项.setData(视图标识, ItemDataRole.UserRole)
-                self.colItems = [视图配置表的项]
-
+                视图配置表的项 = self.superior.TableItem(self.superior, 视图标识)
+                # 视图配置表的项.setData(视图标识)
+                if self.isNew:
+                    self.colItems = [视图配置表的项]
+                else:
+                    self.colItems[0].SetValue(视图名,视图标识)
                 pass
 
             def __init__(self, superior: "ConfigWidget.GviewConfigApplyTable", colItems: "list[ConfigWidget.GviewConfigApplyTable.TableItem]" = None):
@@ -1606,13 +1586,13 @@ class ConfigWidget:
                 """
 
                 def onClick(searchString: "str"):
-                    if searchString == "":
-                        return
-                    if not re.search(r"\S", searchString):
-                        return
-                    likeString = "%".join(searchString)
-                    G.DB.go(G.DB.table_Gview)
-                    模糊搜索得到的视图表 = G.DB.select(G.objs.Logic.LIKE("name", f"%{likeString}%")).return_all().zip_up().to_gview_record()
+                    if searchString == "" or not re.search(r"\S", searchString):
+                        模糊搜索得到的视图表 = funcs.GviewOperation.load_all()
+                    else:
+                        关键词正则 = re.sub(r"\s", ".*", searchString)
+                        DB,Logic=G.DB,G.objs.Logic
+                        DB.go(DB.table_Gview)
+                        模糊搜索得到的视图表 = DB.select(Logic.REGEX("name",关键词正则)).return_all().zip_up().to_gview_record()
                     self.tableModel = funcs.组件定制.模型(["视图名/name of view"])
                     采用本配置的视图表 = self.superior.ConfigModelItem.value
                     [self.tableModel.appendRow([baseClass.Standard.Item(视图数据.name, data=视图数据.uuid)]) for 视图数据 in 模糊搜索得到的视图表 if 视图数据.uuid not in 采用本配置的视图表]
@@ -1631,49 +1611,33 @@ class ConfigWidget:
         defaultRowData = [("",)]
 
         def NewRow(self):
-            # print("NewRow(self)")
             w = self.NewRowFormWidget(self)
             w.widget.exec()
             if w.ok:
                 self.AppendRow(w.colItems)
-
+                self.SaveDataToConfigModel()
             pass
 
         def ShowRowEditor(self, row: "list[baseClass.ConfigTableView.Item]"):
             w = self.NewRowFormWidget(self, row)
             w.widget.exec()
-            # if w.ok:
-            #     w.setValueToTableRowFromForm()
+            if w.ok:
+                self.SaveDataToConfigModel()
             pass
 
         def SaveDataToConfigModel(self):
             v = []
-            [v.append(self.model.item(i, 0).text()) for i in range(self.model.rowCount())]
-            self.ConfigModelItem.setValue(v)
+            [v.append(self.table_model.item(i, 0).text()) for i in range(self.table_model.rowCount())]
+            self.ConfigModelItem.setValue(v,需要设值回到组件=False)
             pass
-
-        # def SetupData(self):
-        #     """重载这个函数是因为List没有二维数据只有string, 而父类是以二维数据的形式工作, 所以要手动添加一个[row]"""
-        #     self.model.setHorizontalHeaderLabels(self.colnames)
-        #     self.viewTable.setModel(self.model)
-        #     raw_data = self.ConfigModelItem.value
-        #     list(map(lambda row: self.AppendRow(self.GetRowFromData([row])), raw_data))
 
         class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
             """输入文本即可,如果是gview开头则要检查是否存在"""
 
-            # def GetColWidgets(self) -> list[QWidget]:
-            #     return [self.col0]
-            #     pass
-
             def __init__(self, superior: "ConfigWidget.GroupReviewConditionList", colItems: "list[ConfigWidget.GroupReviewConditionList.TableItem]" = None):
                 """注意,defaultRowData需要考虑superior.TableItem(superior, data)载入是否正确
-
                 """
-                if not colItems:
-                    colItems = funcs.Map.do(superior.defaultRowData, lambda data: superior.TableItem(superior, *data))
                 self.col0: "QTextEdit" = QTextEdit()  # self.colWidgets[0]
-                self.colItems = colItems
                 self.colWidgets = [QTextEdit()]
                 super().__init__(superior, colItems)
 
@@ -1687,8 +1651,7 @@ class ConfigWidget:
 
             def SetupEvent(self):
                 pass
-                # funcs.Map.do(range(len(self.superior.colnames)), lambda idx: self.colWidgets[idx].textChanged.connect(lambda: self.colItems[idx].setText(self.colWidgets[idx].toPlainText())))
-                # self.colWidgets[3].clicked.connect(lambda: self.colItems[3].setText(str(self.colWidgets[3].isChecked())))
+
 
         class TableItem(baseClass.ConfigTableView.TableItem):
 
@@ -1714,17 +1677,292 @@ class ConfigWidget:
 
             pass
 
-    class excutableStringEdit(QTextEdit):
-        pass
 
-    class GviewConfigNodeFilter(excutableStringEdit):
-        pass
+    class GviewConfigNodeFilter(baseClass.ConfigTableView):
+        """
+        结点筛选器, 表格每一行对应一个筛选器,
+        条件|选中
 
-    class GviewConfigCascadingSorter(excutableStringEdit):
-        pass
+        """
+        colnames = [译.选中,译.过滤表达式]
+        defaultRowData = [("", "")]
 
-    class GviewConfigWeightedSorter(excutableStringEdit):
-        pass
+        def NewRow(self):
+            # item = baseClass.ConfigTableView.TableItem
+            # major_widget = QDialog()
+            # sub_widgets = collections.OrderedDict({
+            #         译.过滤表达式: QTextEdit(),
+            #         ""     : QPushButton(QIcon(G.src.ImgDir.correct), "")
+            # })
+            # btn: QPushButton = sub_widgets[""]
+            # txt: QTextEdit = sub_widgets[译.过滤表达式]
+            # layout = QFormLayout()
+            # for name, widget in sub_widgets.items():
+            #     layout.addRow(name, widget)
+            # major_widget.setLayout(layout)
+            #
+            # def on_correct_clicked():
+            #     self.AppendRow([item(self,txt.toPlainText()),item(self,"")])
+            #     major_widget.close()
+            #
+            # btn.clicked.connect(on_correct_clicked)
+            # major_widget.exec()
+            w = self.NewRowFormWidget(self)
+            w.widget.exec()
+            if w.ok:
+                self.AppendRow(w.colItems)
+                self.SaveDataToConfigModel()
+
+            pass
+
+        def ShowRowEditor(self, row: "list[ConfigTableView.Item]"=None):
+            w = self.NewRowFormWidget(self)
+            w.widget.exec()
+            if w.ok:
+                self.SaveDataToConfigModel()
+
+        def SaveDataToConfigModel(self):
+            idx = self.viewTable.currentIndex()
+            if idx.isValid():
+                pass
+            pass
+
+        class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
+            def SetupEvent(self):
+                pass
+
+            def SetupWidget(self):
+                self.colWidgets[0].setText(self.colItems[0].text())
+                pass
+
+            def setValueToTableRowFromForm(self):
+                self.colItems[0].SetValue(self.colWidgets[0].toPlainText(), self.colWidgets[0].toPlainText())
+                pass
+
+            def __init__(self,superior,colItems=None):
+                self.superior:"ConfigWidget.GviewConfigNodeFilter" = superior
+                self.colWidgets = [QTextEdit(),QLabel()]
+                super().__init__(superior, colItems)
+
+        class TableItem(baseClass.ConfigTableView.TableItem):
+            def __init__(self,superior,value,*args):
+                super().__init__(superior,value)
+                self.superior:"ConfigWidget.GviewConfigNodeFilter"=superior
+                pass
+
+            def ShowAsWidget(self):
+                pass
+
+            def GetValue(self):
+                pass
+
+    class GviewConfigCascadingSorter(baseClass.ConfigTableView):
+
+        def NewRow(self):
+            pass
+
+        def ShowRowEditor(self, row: "list[ConfigTableView.Item]"):
+            pass
+
+        def SaveDataToConfigModel(self):
+            pass
+
+    class GviewConfigWeightedSorter(baseClass.ConfigTableView):
+
+        def NewRow(self):
+            pass
+
+        def ShowRowEditor(self, row: "list[ConfigTableView.Item]"):
+            pass
+
+        def SaveDataToConfigModel(self):
+            pass
+
+    class GviewNodeProperty(QDialog):
+        class Enum:
+            QLabel = "QLabel"
+            QTextEdit = "QTextEdit"
+            QRadioButton = "QRadioButton"
+            QSlider = "QSlider"
+            QCheckBox = "QCheckBox"
+            QComboBox = "QComboBox"
+
+        def node_property(self):
+
+            pass
+
+        def __init__(self, gview_data=None, node_uuid=None, superior=None):
+            super().__init__()
+            from ..bilink.dialogs.linkdata_grapher import Grapher
+            self.superior: Grapher = superior
+            self.major_layout = QFormLayout()
+            self.gview_data: funcs.GViewData = gview_data
+            self.node_uuid: str = node_uuid
+            self.btn_ok = QPushButton(QIcon(G.src.ImgDir.correct), "")
+            self.btn_ok.clicked.connect(self.save_quit)
+            _ = ConfigWidget.GviewNodeProperty.Enum
+            __ = baseClass.枚举命名
+            self.prop_dict: "dict[str,dict]" = {  # 组件名:属性名:组件实例对象
+                    _.QRadioButton: {__.需要复习: QRadioButton(),
+                                     __.必须复习: QRadioButton(),
+                                     __.漫游起点: QRadioButton(),
+                                     __.主要结点: QRadioButton()},
+                    _.QTextEdit   : {__.结点描述: QTextEdit()},
+                    _.QComboBox   : {__.结点.角色: {
+                            __.数据源: funcs.GviewConfigOperation.获取结点角色数据源(gview_data=self.gview_data),
+                            __.组件 : QComboBox()
+
+                    }},
+                    _.QSlider     : {__.优先级: {
+                            __.范围: [-100, 100],
+                            __.组件: QSlider()
+                    }},
+                    _.QLabel      : {__.数据类型  : QLabel(),
+                                     __.位置    : QLabel(),
+                                     __.结点上次编辑: QLabel(),
+                                     __.结点上次访问: QLabel(),
+                                     __.结点访问次数: QLabel(),
+                                     }
+            }
+            node_data = self.gview_data.nodes[self.node_uuid]
+            for w in self.prop_dict.keys():
+                if w == _.QRadioButton:
+                    for name in self.prop_dict[w].keys():
+                        widget: QRadioButton = self.prop_dict[w][name]
+                        widget.setChecked(node_data[name])
+                        self.major_layout.addRow(name, widget)
+                elif w == _.QTextEdit:
+                    for name in self.prop_dict[w].keys():
+                        widget: QTextEdit = self.prop_dict[w][name]
+                        widget.setText(funcs.GviewOperation.获取视图结点描述(self.gview_data, self.node_uuid))
+                        self.major_layout.addRow(name, widget)
+                elif w == _.QComboBox:
+                    for name in self.prop_dict[w].keys():
+                        widget: QComboBox = self.prop_dict[w][name][__.组件]
+                        data_source: list[str] = self.prop_dict[w][name][__.数据源]
+                        saved_value = node_data[name]
+
+                        for idx in range(len(data_source)):
+                            widget.addItem(data_source[idx], idx)
+                        saved_value_idx = widget.findData(saved_value)
+                        widget.addItem(QIcon(G.src.ImgDir.cancel), "", -1)
+                        widget.setCurrentIndex(saved_value_idx if saved_value_idx != -1 else len(data_source))
+                        self.major_layout.addRow(name, widget)
+                elif w == _.QSlider:
+                    for name in self.prop_dict[w].keys():
+                        widget: QSlider = self.prop_dict[w][name][__.组件]
+                        data_range = self.prop_dict[w][name][__.范围]
+                        saved_value = node_data[name]
+                        widget.setRange(data_range[0], data_range[1])
+                        widget.setValue(saved_value)
+                        self.major_layout.addRow(name, widget)
+                elif w == _.QLabel:
+                    for name in self.prop_dict[w].keys():
+                        widget: QLabel = self.prop_dict[w][name]
+                        saved_value = node_data[name]
+                        if name in [__.结点上次编辑, __.结点上次访问]:
+                            widget.setText(funcs.Utils.时间戳转日期(saved_value).__str__())
+                        else:
+                            widget.setText(saved_value.__str__())
+                        self.major_layout.addRow(name, widget)
+            self.major_layout.addRow("", self.btn_ok)
+            self.setLayout(self.major_layout)
+
+        def save_quit(self):
+            _ = ConfigWidget.GviewNodeProperty.Enum
+            __ = baseClass.枚举命名
+            node_data = self.gview_data.nodes[self.node_uuid]
+            for widget_type in self.prop_dict.keys():
+                if widget_type == _.QRadioButton:
+                    for name in self.prop_dict[widget_type].keys():
+                        widget: QRadioButton = self.prop_dict[widget_type][name]
+                        node_data[name] = widget.isChecked()
+                elif widget_type == _.QSlider:
+                    for name in self.prop_dict[widget_type].keys():
+                        widget: QSlider = self.prop_dict[widget_type][name][__.组件]
+                        node_data[name] = widget.value()
+                elif widget_type == _.QComboBox:
+                    for name in self.prop_dict[widget_type].keys():
+                        widget: QComboBox = self.prop_dict[widget_type][name][__.组件]
+                        node_data[name] = widget.currentData()
+                elif widget_type == _.QTextEdit:
+                    for name in self.prop_dict[widget_type].keys():
+                        widget: QTextEdit = self.prop_dict[widget_type][name]
+                        funcs.GviewOperation.设定视图结点描述(self.gview_data, self.node_uuid, widget.toPlainText())
+
+            self.close()
+            pass
+
+        def save(self):
+
+            pass
+
+    class GviewConfigNodeRoleEnumEditor(baseClass.ConfigItemLabelView):
+        """
+        以不可编辑的label形式展示文本, 如果需要编辑, 点击按钮弹出特定的编辑器进行编辑
+        这样做的目的是为了对编辑内容进行检测.
+        """
+        class 角色枚举编辑器(baseClass.可执行字符串编辑组件):
+
+            def __init__(self,文本):
+                super().__init__(文本)
+                self.布局[子代][2][组件].setText(译.说明_结点角色枚举)
+            def on_help(self):
+
+                help_label:QLabel = self.布局[子代][2][组件]
+                if help_label.text() == 译.说明_结点角色枚举:
+                    self.布局[子代][2][组件].setText("")
+                else:
+                    self.布局[子代][2][组件].setText(译.说明_结点角色枚举)
+
+                layout: QHBoxLayout = self.布局[布局]
+                help_label.repaint()
+                help_label.update()
+                layout.update()
+
+
+            def on_test(self):
+                # noinspection PyBroadException
+                try:
+                    strings = self.布局[子代][0][组件].toPlainText()
+                    literal = literal_eval(strings)
+                    if type(literal)!=list:
+                        self.布局[子代][2][组件].setText("type error:input must be a list")
+                        return False
+                    elif [i for i in literal if type(i)!=str]:
+                        self.布局[子代][2][组件].setText("type error:every element of the list must be string")
+                        return False
+                    else:
+                        self.布局[子代][2][组件].setText("ok")
+                        return True
+                except Exception as err:
+                    self.布局[子代][2][组件].setText("syntax error:"+err.__str__())
+                    return False
+
+                #
+
+
+                pass
+
+            def on_ok(self):
+                if self.on_test():
+                    self.ok = True
+                    self.合法字符串 = self.布局[子代][0][组件].toPlainText()
+                    self.close()
+
+                pass
+        def on_edit_btn_clicked(self):
+            w = self.角色枚举编辑器(self.label.text())
+            w.exec()
+            if w.ok:
+                self.ConfigModelItem.setValue(w.合法字符串)
+
+            pass
+
+    # class CustomConfigItemLabelView(baseClass.CustomConfigItemView):
+    #     def __init__(self,配置项,上级):
+    #         super().__init__(配置项,上级)
+    #         self.View =
 
 class ReviewButtonForCardPreviewer:
     def __init__(self, papa, layout: "QGridLayout"):
@@ -1848,7 +2086,6 @@ class ReviewButtonForCardPreviewer:
         for button in self.ease_button.values():
             button.setEnabled(True)
         tooltip(Translate.已解冻)
-
 
 
 if __name__ == "__main__":

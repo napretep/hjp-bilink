@@ -319,7 +319,7 @@ class AnchorDialog(QDialog):
     def model_data_save(self):
         """model->data"""
         from .. import linkdata_admin
-        data = json.dumps(self.data_model_load())
+        data = json.dumps(self.data_model_load(),ensure_ascii=False)
         print(data)
         linkdata_admin.write_card_link_info(self.card_id, data)
         common_tools.funcs.LinkPoolOperation.both_refresh(0,2)

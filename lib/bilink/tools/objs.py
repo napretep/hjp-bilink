@@ -85,5 +85,5 @@ class LinkDataJSONInfo:
         return d
 
     def to_json_string(self):
-        s = json.dumps(self.todict())
+        s = json.dumps(self.todict(),ensure_ascii=False)
         return s
