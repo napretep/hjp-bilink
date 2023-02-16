@@ -84,18 +84,18 @@ def make__open_GViewAdmin(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs)
         M.addAction(Translate.打开视图管理器).triggered.connect(common_tools.funcs.Dialogs.open_GviewAdmin)
 
 
-def make__group_review_operation(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
-    if atype in {T.browser} and common_tools.funcs.Config.get().group_review.value == True:
-        view: "Browser" = args[0]
-        M = get_browser_menu(view)
-        M2 = M.addMenu(Translate.群组复习操作)
-        menus = [Translate.保存当前搜索条件为群组复习条件, Translate.重建群组复习数据库, Translate.查看数据库最近更新时间]
-        acts = [
-                lambda: common_tools.funcs.GroupReview.save_search_condition_to_config(view),
-                common_tools.funcs.GroupReview.build,
-                lambda: tooltip(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(G.GroupReview_dict.version)))
-        ]
-        list(map(lambda x: func_actionMenuConnector(M2, menus[x], acts[x]), range(len(menus))))
+# def make__group_review_operation(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
+#     if atype in {T.browser} and common_tools.funcs.Config.get().group_review.value == True:
+#         view: "Browser" = args[0]
+#         M = get_browser_menu(view)
+#         M2 = M.addMenu(Translate.群组复习操作)
+#         menus = [Translate.保存当前搜索条件为群组复习条件, Translate.重建群组复习数据库, Translate.查看数据库最近更新时间]
+#         acts = [
+#                 lambda: common_tools.funcs.GroupReview.save_search_condition_to_config(view),
+#                 common_tools.funcs.GroupReview.build,
+#                 lambda: tooltip(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(G.GroupReview_dict.version)))
+#         ]
+#         list(map(lambda x: func_actionMenuConnector(M2, menus[x], acts[x]), range(len(menus))))
 
 
 def make__open_configfile(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):

@@ -302,9 +302,9 @@ def HTMLbutton_make(htmltext, card:"Card"):
     if funcs.HTML.clipbox_exists(html_string):
         # funcs.Utils.print(f"{card.id} clipbox_exists")
         anchor = PDFPageButtonMaker(anchor, card_id=card.id).build()
-    if G.GroupReview_dict and card.id in G.GroupReview_dict.card_group:
-        # funcs.Utils.print(f"{card.id} GroupReview")
-        anchor = GroupReviewButtonMaker(anchor, card_id=card.id).build()
+    # if G.GroupReview_dict and card.id in G.GroupReview_dict.card_group:
+    #     # funcs.Utils.print(f"{card.id} GroupReview")
+    #     anchor = GroupReviewButtonMaker(anchor, card_id=card.id).build()
     view_li = funcs.GviewOperation.find_by_card([funcs.LinkDataPair(str(card.id))])
     if len(view_li) > 0:
         # funcs.Utils.print(f"{card.id} len(view_li)>0:")

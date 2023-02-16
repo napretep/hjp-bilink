@@ -130,7 +130,7 @@ class GViewData:
         from . import funcs, baseClass
         新数据=self.nodes.copy()
         for uuid in self.nodes.keys():
-            if self.nodes[uuid][baseClass.枚举命名.数据类型] == baseClass.视图结点类型.卡片:
+            if self.nodes[uuid][baseClass.枚举命名.结点.数据类型] == baseClass.视图结点类型.卡片:
                 if not funcs.CardOperation.exists(uuid):
                     del 新数据[uuid]
             else:
@@ -138,10 +138,11 @@ class GViewData:
                     del 新数据[uuid]
         self.nodes=新数据
 
-    def copy(self):
+    def copy(self,new_name=None):
         from . import funcs
         # uuid = funcs.UUID.by_random()
-        return GViewData(uuid=funcs.UUID.by_random(),name=self.name,config=self.config,edges=self.edges.copy(),nodes=self.nodes.copy(),meta=self.meta.copy() if self.meta else None)
+        return GViewData(uuid=funcs.UUID.by_random(),name=self.name if new_name is None else new_name
+                         ,config=self.config,edges=self.edges.copy(),nodes=self.nodes.copy(),meta=self.meta.copy() if self.meta else None)
 
     def to_html_repr(self):
         return f"uuid={self.uuid}<br>" \
@@ -393,128 +394,129 @@ class ConfigModel(BaseConfigModel):
     #     tab_at=Translate.视图
     # ))
 
-    time_up_buzzer: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["""该项如果设为大于0的值,比如10,则在10秒后弹出提示框,提醒你已经看了10秒卡片,提示框有三个按钮可选, 取消,重新计时,继续, 第一个表示什么都不做, 第二个表示再次计时, 第三个表示执行自动操作,如果设为0,则表示关闭该功能""",
-                         "This item if set to a value greater than 0, such as 10, then after 10 seconds pop-up box to remind you have looked at the card for 10 seconds, the alert box has three buttons to choose from, cancel, retime, continue, the first means do nothing, the second means time again, the third means the implementation of automatic operations, if set to 0, it means that the function is closed"
-                         ],
-            value=0,
-            component=ConfigModel.Widget.spin,
-            tab_at=Translate.复习相关,
-    ))
-    time_up_auto_action: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    """该项设置复习时间到后, 选择'继续'按钮所对应的自动操作,可选以下几种自动操作:no action, again, hard, good, easy, delay 1 day, delay 3 days, delay 1 week, delay 1 month, customize delay,just show answer,其中delay表示推迟卡片, 推迟不会有复习记录, customize delay可以在时间到了后手动填写推迟天数""",
-                    "This item sets the automatic action corresponding to the 'Continue' button when the review time is up, you can choose the following automatic actions: no action, again, hard, good, easy, delay 1 day, delay 3 days, delay 1 week, delay 1 month, customize delay, just show answer, where delay means postpone the card, there will be no review record for delay, customize delay can be filled in manually after the time has come to postpone the number of days"],
-            value=0,
-            component=ConfigModel.Widget.combo,
-            limit=[ComboItem(Translate.不操作, 0), ComboItem(Translate.忘记, 1), ComboItem(Translate.困难, 2),
-                   ComboItem(Translate.良好, 3), ComboItem(Translate.简单, 4), ComboItem(Translate.延迟一天, 5),
-                   ComboItem(Translate.延迟三天, 6), ComboItem(Translate.延迟一周, 7), ComboItem(Translate.延迟一月, 8),
-                   ComboItem(Translate.自定义延迟, 9), ComboItem(Translate.显示答案, 10)],
-            tab_at=Translate.复习相关,
-    ))
-    time_up_skip_click: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["如果你想复习时间到了, 直接跳过提示按钮选择的环节,执行自动预设操作,请勾选本项", "If you want to skip the prompt button selection and perform the automatic preset operation when the review time is up, please check this box"],
-            value=False,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.复习相关,
-    ))
-    freeze_review: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "开启后,当到达显示答案的状态时,会冻结复习按钮一段时间,以防止你不假思索地复习卡片",
-                    "When turned on, the review button will freeze for a period of time when it reaches the state where the answer is displayed, to prevent you from reviewing the card without thinking."
-            ],
-            value=False,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.复习相关
-    ))
-    freeze_review_interval: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "阻止你在这个时间结束之前点击复习按钮.单位毫秒",
-                    "Prevents you from clicking the review button before this time expires. Unit milliseconds"
-            ],
-            value=10000,
-            component=ConfigModel.Widget.spin,
-            tab_at=Translate.复习相关,
-    ))
-    too_fast_warn: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "开启后,如果你复习间隔太快,他会提示你, 这个功能只在reviewer中有效",
-                    "After you turn it on, if you review the interval too fast, he will prompt you, this function is only effective in the reviewer"
-            ],
-            value=False,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.复习相关
-    ))
-    too_fast_warn_interval: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "提示你复习过快的最小间隔,单位是毫秒",
-                    "The minimum interval that prompts you to review too quickly, in milliseconds"
-            ],
-            value=2000,
-            component=ConfigModel.Widget.spin,
-            tab_at=Translate.复习相关
-    ))
-    too_fast_warn_everycard: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "当你连续复习X张卡片,并且每两张之间的间隔均小于配置表设定的最小间隔时,才会提示你复习过快 ,这里的X, 就是本字段设定的值",
-                    "When you review X cards in a row, and the interval between each two cards is less than the minimum interval set in the configuration table, then you will be prompted to review too fast, where X, is the value set in this field"
-            ],
-            value=3,
-            component=ConfigModel.Widget.spin,
-            tab_at=Translate.复习相关
-    ))
-    group_review: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "假设某个搜索条件下有多张卡,你复习其中一张卡,那么其余卡片也会用相同的选项自动进行复习,开启后,在 group_review_search_string 中输入搜索词(就像你在搜索栏中做的那样),即可对同属于这个搜索结果的卡片执行同步复习",
-                    "Suppose there are multiple cards in a certain search condition, and you review one of them, then the rest of the cards will be reviewed automatically with the same options, and when you turn it on, enter the search term in the group_review_search_string (as you did in the search field) to perform a simultaneous review of the cards belonging to the same search result"
-            ],
-            value=True,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.复习相关
-    ))
-
-    group_review_comfirm_dialog: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "如果开启,他会在你点复习之前弹出来询问你,让你确认要群组复习的卡片, 你如果不点确定, 他就不会复习",
-                    "English Instruction Maybe later"
-            ],
-            value=True,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.复习相关
-    ))
-    group_review_just_due_card: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "如果开启,则默认排除未到期的卡,仅复习已到期的卡",
-                    "English Instruction Maybe later"
-            ],
-            value=True,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.复习相关
-    ))
-    group_review_global_condition: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "默认将一个条件加到所有复习条件上",
-                    "English Instruction Maybe later"
-            ],
-            value="",
-            component=ConfigModel.Widget.line,
-            tab_at=Translate.复习相关
-    ))
-    group_review_search_string: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "这里填群组复习的条件,列表的每一项为一个完整搜索条件,如果不会填,有更简单操作,点击browser界面菜单栏->hjp_bilink->群组复习操作->保存当前搜索条件为群组复习条件,即可",
-                    "English Instruction Maybe later"
-            ],
-            value=[],
-            validate=lambda text, item:  # 这个地方要有两次不同方式的调用所以要用两个不同的判断
-            (re.search(r"\S", text) and text not in item.value) if type(text) == str
-            else reduce(lambda x, y: x and y, map(lambda x: re.search(r"\S", x), text), True) if type(text) == list
-            else False,
-            component=ConfigModel.Widget.customize,
-            customizeComponent=lambda: widgets.ConfigWidget.GroupReviewConditionList,
-            tab_at=Translate.复习相关
-    ))
+    # 2023年2月16日00:13:49 暂时取消这些功能, 存在bug以后再修复
+    # time_up_buzzer: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=["""该项如果设为大于0的值,比如10,则在10秒后弹出提示框,提醒你已经看了10秒卡片,提示框有三个按钮可选, 取消,重新计时,继续, 第一个表示什么都不做, 第二个表示再次计时, 第三个表示执行自动操作,如果设为0,则表示关闭该功能""",
+    #                      "This item if set to a value greater than 0, such as 10, then after 10 seconds pop-up box to remind you have looked at the card for 10 seconds, the alert box has three buttons to choose from, cancel, retime, continue, the first means do nothing, the second means time again, the third means the implementation of automatic operations, if set to 0, it means that the function is closed"
+    #                      ],
+    #         value=0,
+    #         component=ConfigModel.Widget.spin,
+    #         tab_at=Translate.复习相关,
+    # ))
+    # time_up_auto_action: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=[
+    #                 """该项设置复习时间到后, 选择'继续'按钮所对应的自动操作,可选以下几种自动操作:no action, again, hard, good, easy, delay 1 day, delay 3 days, delay 1 week, delay 1 month, customize delay,just show answer,其中delay表示推迟卡片, 推迟不会有复习记录, customize delay可以在时间到了后手动填写推迟天数""",
+    #                 "This item sets the automatic action corresponding to the 'Continue' button when the review time is up, you can choose the following automatic actions: no action, again, hard, good, easy, delay 1 day, delay 3 days, delay 1 week, delay 1 month, customize delay, just show answer, where delay means postpone the card, there will be no review record for delay, customize delay can be filled in manually after the time has come to postpone the number of days"],
+    #         value=0,
+    #         component=ConfigModel.Widget.combo,
+    #         limit=[ComboItem(Translate.不操作, 0), ComboItem(Translate.忘记, 1), ComboItem(Translate.困难, 2),
+    #                ComboItem(Translate.良好, 3), ComboItem(Translate.简单, 4), ComboItem(Translate.延迟一天, 5),
+    #                ComboItem(Translate.延迟三天, 6), ComboItem(Translate.延迟一周, 7), ComboItem(Translate.延迟一月, 8),
+    #                ComboItem(Translate.自定义延迟, 9), ComboItem(Translate.显示答案, 10)],
+    #         tab_at=Translate.复习相关,
+    # ))
+    # time_up_skip_click: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=["如果你想复习时间到了, 直接跳过提示按钮选择的环节,执行自动预设操作,请勾选本项", "If you want to skip the prompt button selection and perform the automatic preset operation when the review time is up, please check this box"],
+    #         value=False,
+    #         component=ConfigModel.Widget.radio,
+    #         tab_at=Translate.复习相关,
+    # ))
+    # freeze_review: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=[
+    #                 "开启后,当到达显示答案的状态时,会冻结复习按钮一段时间,以防止你不假思索地复习卡片",
+    #                 "When turned on, the review button will freeze for a period of time when it reaches the state where the answer is displayed, to prevent you from reviewing the card without thinking."
+    #         ],
+    #         value=False,
+    #         component=ConfigModel.Widget.radio,
+    #         tab_at=Translate.复习相关
+    # ))
+    # freeze_review_interval: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=[
+    #                 "阻止你在这个时间结束之前点击复习按钮.单位毫秒",
+    #                 "Prevents you from clicking the review button before this time expires. Unit milliseconds"
+    #         ],
+    #         value=10000,
+    #         component=ConfigModel.Widget.spin,
+    #         tab_at=Translate.复习相关,
+    # ))
+    # too_fast_warn: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=[
+    #                 "开启后,如果你复习间隔太快,他会提示你, 这个功能只在reviewer中有效",
+    #                 "After you turn it on, if you review the interval too fast, he will prompt you, this function is only effective in the reviewer"
+    #         ],
+    #         value=False,
+    #         component=ConfigModel.Widget.radio,
+    #         tab_at=Translate.复习相关
+    # ))
+    # too_fast_warn_interval: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=[
+    #                 "提示你复习过快的最小间隔,单位是毫秒",
+    #                 "The minimum interval that prompts you to review too quickly, in milliseconds"
+    #         ],
+    #         value=2000,
+    #         component=ConfigModel.Widget.spin,
+    #         tab_at=Translate.复习相关
+    # ))
+    # too_fast_warn_everycard: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=[
+    #                 "当你连续复习X张卡片,并且每两张之间的间隔均小于配置表设定的最小间隔时,才会提示你复习过快 ,这里的X, 就是本字段设定的值",
+    #                 "When you review X cards in a row, and the interval between each two cards is less than the minimum interval set in the configuration table, then you will be prompted to review too fast, where X, is the value set in this field"
+    #         ],
+    #         value=3,
+    #         component=ConfigModel.Widget.spin,
+    #         tab_at=Translate.复习相关
+    # ))
+    # group_review: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=[
+    #                 "假设某个搜索条件下有多张卡,你复习其中一张卡,那么其余卡片也会用相同的选项自动进行复习,开启后,在 group_review_search_string 中输入搜索词(就像你在搜索栏中做的那样),即可对同属于这个搜索结果的卡片执行同步复习",
+    #                 "Suppose there are multiple cards in a certain search condition, and you review one of them, then the rest of the cards will be reviewed automatically with the same options, and when you turn it on, enter the search term in the group_review_search_string (as you did in the search field) to perform a simultaneous review of the cards belonging to the same search result"
+    #         ],
+    #         value=True,
+    #         component=ConfigModel.Widget.radio,
+    #         tab_at=Translate.复习相关
+    # ))
+    #
+    # group_review_comfirm_dialog: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=[
+    #                 "如果开启,他会在你点复习之前弹出来询问你,让你确认要群组复习的卡片, 你如果不点确定, 他就不会复习",
+    #                 "English Instruction Maybe later"
+    #         ],
+    #         value=True,
+    #         component=ConfigModel.Widget.radio,
+    #         tab_at=Translate.复习相关
+    # ))
+    # group_review_just_due_card: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=[
+    #                 "如果开启,则默认排除未到期的卡,仅复习已到期的卡",
+    #                 "English Instruction Maybe later"
+    #         ],
+    #         value=True,
+    #         component=ConfigModel.Widget.radio,
+    #         tab_at=Translate.复习相关
+    # ))
+    # group_review_global_condition: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=[
+    #                 "默认将一个条件加到所有复习条件上",
+    #                 "English Instruction Maybe later"
+    #         ],
+    #         value="",
+    #         component=ConfigModel.Widget.line,
+    #         tab_at=Translate.复习相关
+    # ))
+    # group_review_search_string: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=[
+    #                 "这里填群组复习的条件,列表的每一项为一个完整搜索条件,如果不会填,有更简单操作,点击browser界面菜单栏->hjp_bilink->群组复习操作->保存当前搜索条件为群组复习条件,即可",
+    #                 "English Instruction Maybe later"
+    #         ],
+    #         value=[],
+    #         validate=lambda text, item:  # 这个地方要有两次不同方式的调用所以要用两个不同的判断
+    #         (re.search(r"\S", text) and text not in item.value) if type(text) == str
+    #         else reduce(lambda x, y: x and y, map(lambda x: re.search(r"\S", x), text), True) if type(text) == list
+    #         else False,
+    #         component=ConfigModel.Widget.customize,
+    #         customizeComponent=lambda: widgets.ConfigWidget.GroupReviewConditionList,
+    #         tab_at=Translate.复习相关
+    # ))
     length_of_desc: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
                     "length_of_desc项控制从卡片正文提取多少字符作为链接的标题,该项仅支持非负数字,0表示不限制",
@@ -541,6 +543,16 @@ class ConfigModel(BaseConfigModel):
             tab_at=Translate.链接相关,
             customizeComponent=lambda: widgets.ConfigWidget.DescExtractPresetTable
     ))
+    delete_intext_link_when_extract_desc: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=[
+                    "本项用来控制当执行卡片内容提取时,是否将文内链接也识别为卡片内容一并提取",
+                    "若开启,此时提取卡片内容之前,会删掉文内链接的信息再提取,若关闭,则会直接提取",
+                    "English Instruction Maybe later"
+            ],
+            value=True,
+            component=ConfigModel.Widget.radio,
+            tab_at=Translate.链接相关
+    ))
 
     new_card_default_desc_sync: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
@@ -564,16 +576,6 @@ class ConfigModel(BaseConfigModel):
     open_browser_after_link: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
                     "开启时,链接操作结束后,会打开浏览窗口,展示链接的项",
-                    "English Instruction Maybe later"
-            ],
-            value=True,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.链接相关
-    ))
-    delete_intext_link_when_extract_desc: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "本项用来控制当执行卡片内容提取时,是否将文内链接也识别为卡片内容一并提取",
-                    "若开启,此时提取卡片内容之前,会删掉文内链接的信息再提取,若关闭,则会直接提取",
                     "English Instruction Maybe later"
             ],
             value=True,
@@ -813,20 +815,20 @@ class GviewConfigModel(BaseConfigModel):
     ))
 
 
-    roamingStart: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["本项设定漫游的起点"],
-            value=0,
-            component=ConfigModel.Widget.combo,
-            tab_at="main",
-            limit=[ComboItem(Translate.随机选择卡片开始, 0), ComboItem(Translate.手动选择卡片开始, 1), ]
-    ))
-    groupReview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["本项设定是否对使用本配置的视图开启群组复习,提示:开启群组复习后,最好就别再使用漫游复习,因为会一下子复习掉所有卡片,毫无漫游的意义"],
-            value=False,
-            component=ConfigModel.Widget.radio,
-            tab_at="main",
-
-    ))
+    # roamingStart: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=["本项设定漫游的起点"],
+    #         value=0,
+    #         component=ConfigModel.Widget.combo,
+    #         tab_at="main",
+    #         limit=[ComboItem(Translate.随机选择卡片开始, 0), ComboItem(Translate.手动选择卡片开始, 1), ]
+    # ))
+    # groupReview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #         instruction=["本项设定是否对使用本配置的视图开启群组复习,提示:开启群组复习后,最好就别再使用漫游复习,因为会一下子复习掉所有卡片,毫无漫游的意义"],
+    #         value=False,
+    #         component=ConfigModel.Widget.radio,
+    #         tab_at="main",
+    #
+    # ))
     appliedGview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["本项设定本配置表所应用的视图们, 如果你删掉了表中的全部视图, 那么会导致该配置被删除, 并且为当前的视图立即新建一个配置"],
             value=[],
@@ -860,21 +862,21 @@ class GviewConfigModel(BaseConfigModel):
     roaming_node_filter:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_漫游路径过滤],
             tab_at="roaming",
-            value=[],  # excutable string list
+            value=[[],-1],  # excutable string list
             component=ConfigModel.Widget.customize,
             customizeComponent=lambda:widgets.ConfigWidget.GviewConfigNodeFilter
     ))
     cascading_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_多级排序],
             tab_at="roaming",
-            value=[],  # excutable string list
+            value=[[],-1],  # excutable string list
             component=ConfigModel.Widget.customize,
             customizeComponent=lambda:widgets.ConfigWidget.GviewConfigCascadingSorter
     ))
     weighted_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_加权排序],
             tab_at="roaming",
-            value=[],  # excutable string list
+            value=[[],-1],  # excutable string list
             component=ConfigModel.Widget.customize,
             customizeComponent=lambda:widgets.ConfigWidget.GviewConfigWeightedSorter
     ))

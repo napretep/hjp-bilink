@@ -830,7 +830,7 @@ class DB_admin(object):
 
     def commit(self, callback=None,need_commit=True):
         s = self.excute_queue.pop(0)
-        Utils.print(s)
+
         if s:
             if callback:
                 callback(s.__str__())

@@ -63,21 +63,21 @@ def run():
     gui_hooks.browser_sidebar_will_show_context_menu.append(events.on_browser_sidebar_will_show_context_menu_handle)
 
     # GroupReview
-    signals.on_card_answerd.connect(funcs.CardOperation.group_review)
+    # signals.on_card_answerd.connect(funcs.CardOperation.group_review)
     signals.on_card_answerd.connect(lambda answerinfo:funcs.GrapherOperation.updateDue(f"{answerinfo.card_id}"))
     gui_hooks.reviewer_did_answer_card.append(lambda x, y, z: signals.on_card_answerd.emit(
             AnswerInfoInterface(platform=x, card_id=y.id, option_num=z)
     ))
-    signals.on_card_changed.connect(funcs.GroupReview.modified_card_record)
+    # signals.on_card_changed.connect(funcs.GroupReview.modified_card_record)
     hooks.note_will_flush.append(lambda x: signals.on_card_changed.emit(x))  # 能检查到更改field,tag,deck,只要显示了都会检测到
-    gui_hooks.collection_did_load.append(lambda x: funcs.GroupReview.begin())
-    signals.on_group_review_search_string_changed.connect(funcs.GroupReview.build)
+    # gui_hooks.collection_did_load.append(lambda x: funcs.GroupReview.begin())
+    # signals.on_group_review_search_string_changed.connect(funcs.GroupReview.build)
 
     # MonkeyPatch
     browser.browser.PreviewDialog = funcs.MonkeyPatch.BrowserPreviewer
     browser.Browser.setupMenus = funcs.MonkeyPatch.BrowserSetupMenus(browser.Browser.setupMenus, setupShortCuts)
-    reviewer.Reviewer._showEaseButtons = funcs.MonkeyPatch.Reviewer_showEaseButtons(reviewer.Reviewer._showEaseButtons)
-    reviewer.Reviewer.nextCard = funcs.MonkeyPatch.Reviewer_nextCard(reviewer.Reviewer.nextCard)
+    # reviewer.Reviewer._showEaseButtons = funcs.MonkeyPatch.Reviewer_showEaseButtons(reviewer.Reviewer._showEaseButtons)
+    # reviewer.Reviewer.nextCard = funcs.MonkeyPatch.Reviewer_nextCard(reviewer.Reviewer.nextCard)
     addcards.AddCards.closeEvent = funcs.MonkeyPatch.AddCards_closeEvent(addcards.AddCards.closeEvent)
     setupAnkiLinkProtocol()
 

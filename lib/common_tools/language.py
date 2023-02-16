@@ -173,7 +173,7 @@ def rosetta(text: str = ""):
         "学习":"review",
         "请选择卡片":"please select card",
         "复习相关":"review",
-        "链接相关":"linking",
+        "全局链接相关":"global linking",
         "快捷键":"shortcuts",
         "同步与备份":"sync & backup",
         "关于":"about",
@@ -284,8 +284,28 @@ def 翻译(**kwargs):
 # noinspection NonAsciiCharacters
 class Translate:
     lang = currentLang
+
+    可执行字符串_返回的值必须是数值类型 = 翻译(
+            zh="可执行字符串表达式的返回值必须是数值类型", en="The return value of codeString must be int or float type"
+    )
+
+    可执行字符串表达式的返回值必须是布尔类型= 翻译(
+            zh="可执行字符串表达式的返回值必须是布尔类型", en="The return value of codeString must be a Boolean type"
+    )
+    可执行字符串表达式的返回值必须是列表类型 = 翻译(
+            zh="可执行字符串表达式的返回值必须是列表类型", en="The return value of codeString must be a list type"
+    )
+    可执行字符串_必须是一个二元元组 = 翻译(
+            zh="可执行字符串表达式的列表返回值的每个元素必须是一个二元元组", en="Each element of the list returned by codeString must be a binary tuple"
+    )
+    可执行字符串_二元组中的变量名必须是指定名称 = 翻译(
+            zh="二元组中的变量名必须是指定名称", en="The variable name in the binary must be the specified name"
+    )
+    你将重置本视图的配置 = 翻译(zh="你将重置本视图的配置",en="You will reset the configuration of this view")
     过滤表达式 = 翻译(zh="过滤表达式",en="filter expression")
-    选中 = 翻译(zh="选中",en="choose")
+    多级排序依据=翻译(zh="排序依据",en="sorting bases")
+    加权公式 = 翻译(zh="加权公式",en="weighted formula")
+    选中 = 翻译(zh="选中",en="selected")
     你将删除这些结点 = 翻译(zh="你将删除这些结点", en="You will delete these nodes")
     深度优先遍历=翻译(zh="深度优先遍历",en="depth-first traversal ")
     广度优先遍历=翻译(zh="广度优先遍历",en="breadth-first traversal")
@@ -338,7 +358,8 @@ Note:
 zh="""
 加权排序:weighted_sort
 如果你在roaming_path_mode中选择了weighted_sort模式, 则漫游路径会根据结点的各类属性的加权排序结果生成.
-
+在加权排序公式中可用的变量:
+node_in_degree,node_out_degree,priority,last_review,
 """,
 en="""
 
@@ -349,14 +370,19 @@ en="""
             zh="""
 多级排序:cascading_sort
 如果你在roaming_path_mode中选择了cascading_sort模式, 则漫游路径会根据结点的各类属性排序结果生成.
-本配置项是一个排序等级表格, 比较两项排序时, 从第一行所保存的结点属性开始比较, 若相同则向下一行比较, 以此类推.
-例如:
-假设我们有如下排序等级表格:
-升/降序 属性名         
-↑      node_priority
-↓      node_visit_count
+在本配置项中, 如果你想添加一种多级排序规则, 则需要点击加号按钮, 在弹出的对话框中输入一个python语法风格的列表,这个列表的每个元素是一个二元对,在每个二元对中,第一个元素用于填写进行排序比较的变量, 第二元素用于填写升序还是降序排序, 列表中的二元对放置顺序确定了多级排序比较所用变量的顺序, 排在前面的变量优先进行比较.
+例如,当你填写:
+[[node_priority,ascending],[node_visit_count,descending]]
+
 则两个结点会先根据 node_priority 进行升序排序, 
 如果两个结点的node_priority相同, 则再根据 node_visit_count 进行降序排序
+
+注意:
+升序和降序只能用"ascending","descending"来表示,
+排序依据的变量只能是规定的可用变量,
+
+可用的变量有
+
             """,
 en="""
 Multi-level sorting: cascading_sort
@@ -393,11 +419,12 @@ If you have already selected a node, the graph sort will start the traversal wit
 本配置项将根据用户所设条件, 先将不满足条件的结点过滤剔除, 再在剩余满足条件的结点上执行漫游路径生成算法,
 
 比如:
-点击加号新建一行记录, 在弹出的文本框中输入 node_priority > 50 and node_visit_count <30 and node_tag in ["apple","banana"]
+点击加号新建一行记录, 在弹出的文本框中输入 
+node_priority > 50 and node_visit_count <30 and node_tag in ["apple","banana"]
 点击确定后, 在表中选中此行, 则程序会根据结点的优先级属性是否大于50, 访问次数属性是否小于30以及结点标签属性是否为apple或banana, 过滤掉不满足条件的结点, 在这个基础上再去执行路径生成算法.
 
 注意:
-条件必须是符合python语法的表达式,返回值只能是布尔类型, 否则就会被强制清空.
+条件必须是符合python语法的表达式,返回值只能是布尔类型.
 
 可用于过滤的结点的变量名及其数据类型:
 node_priority,node_visit_count,out_degree,in_degree: 整数型,
@@ -413,8 +440,8 @@ en="""
 Roaming node filtering: roaming_node_filter
 This configuration item will filter out the nodes that do not meet the conditions according to the conditions set by the user, and then execute the roaming path generation algorithm on the remaining nodes that meet the conditions,
 
-For example:
-Click the plus sign to create a new row, enter node_priority > 50 and node_visit_count < 30 and node_tag in ["apple", "banana"] in the pop-up text box
+For example, Click the plus sign to create a new row in the pop-up text box, enter:
+node_priority > 50 and node_visit_count < 30 and node_tag in ["apple", "banana"] 
 After clicking OK, select this row in the table, then the program will filter out nodes that do not meet the criteria based on their priority, visit count and node tag attributes, and then execute the path generation algorithm based on that.
 
 Note:
@@ -463,7 +490,7 @@ to_timestamp(time_string): accepts YYYY-MM-DD format time string parameter to re
     结点数 = 翻译(zh="结点数", en="nodes count")
     边数 = 翻译(zh="边数", en="edges count")
     到期卡片数 = 翻译(zh="到期卡片数", en="due count")
-    代表性结点 = 翻译(zh="代表性结点", en="representative nodes")
+    代表性结点 = 翻译(zh="代表性结点", en="major nodes")
 
     导入到视图 = 翻译(zh="导入到视图",en="Insert them to a view")
     选择一个视图 = 翻译(zh="选择一个视图",en="Select a view to insert")

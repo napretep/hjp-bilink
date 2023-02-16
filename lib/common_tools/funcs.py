@@ -17,7 +17,7 @@ from urllib.parse import quote
 
 import uuid
 from collections import Sequence
-from datetime import datetime
+from datetime import datetime,timedelta
 import time
 from math import ceil
 from typing import Union, Optional, NewType, Callable, List, Iterable, Type, Any
@@ -43,11 +43,12 @@ from . import objs
 if not ISLOCAL:
     from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewer
 from .configsModel import ConfigModel, AnswerInfoInterface, GroupReviewDictInterface, GViewData, GraphMode, \
-    ConfigModelItem, CustomConfigItemView, BaseConfigModel,GviewConfigModel
+    ConfigModelItem, CustomConfigItemView, BaseConfigModel, GviewConfigModel
 from . import widgets
 
 字典键名 = baseClass.枚举命名
 枚举_视图结点类型 = baseClass.视图结点类型
+
 
 def do_nothing(*args, **kwargs):
     pass
@@ -123,31 +124,32 @@ class MenuMaker:
 class GviewOperation:
 
     @staticmethod
-    def 设定视图结点描述(视图数据:GViewData, 结点编号, 设定内容):
-        视图类型 = 视图数据.nodes[结点编号][字典键名.数据类型]
+    def 设定视图结点描述(视图数据: GViewData, 结点编号, 设定内容):
+        视图类型 = 视图数据.nodes[结点编号][字典键名.结点.数据类型]
         if 视图类型 == 枚举_视图结点类型.卡片:
-            CardOperation.desc_save(结点编号,设定内容)
+            CardOperation.desc_save(结点编号, 设定内容)
         else:
             结点对应视图 = GviewOperation.load(结点编号)
             结点对应视图.name = 设定内容
             GviewOperation.save(结点对应视图)
 
     @staticmethod
-    def 获取视图结点描述(视图数据:GViewData, 结点编号, 全部内容=False):
-        视图类型 = 视图数据.nodes[结点编号][字典键名.数据类型]
+    def 获取视图结点描述(视图数据: GViewData, 结点编号, 全部内容=False):
+        视图类型 = 视图数据.nodes[结点编号][字典键名.结点.数据类型]
         if 视图类型 == 枚举_视图结点类型.卡片:
             return CardOperation.desc_extract(结点编号) if not 全部内容 else CardOperation.获取卡片内容与标题(结点编号)
         else:
             return GviewOperation.load(uuid=结点编号).name
 
         pass
+
     @staticmethod
     def 列出已打开的视图():
         from ..bilink.dialogs.linkdata_grapher import Grapher
-        return [键 for 键 in G.mw_gview.keys() if isinstance(G.mw_gview[键],Grapher)]
+        return [键 for 键 in G.mw_gview.keys() if isinstance(G.mw_gview[键], Grapher)]
 
     @staticmethod
-    def 更新缓存(视图:"str|GViewData"=None):
+    def 更新缓存(视图: "str|GViewData" = None):
         """这个东西, 更新的是一个表, 这个表的每个记录对应一个视图索引,
         记录的第一列是视图索引, 第二列是视图中全部卡片描述的并集, 用于搜索关键词定位视图
         流程, 如果存在数据表, 则drop table, 然后生成新的插
@@ -155,13 +157,13 @@ class GviewOperation:
         from .objs import Logic
         DB = G.DB
         if 视图:
-            if type(视图)==str:
+            if type(视图) == str:
                 数据 = GviewOperation.load(uuid=视图)
                 编号 = 视图
             else:
                 数据 = 视图
                 编号 = 视图.uuid
-            缓存内容 = "\n".join(GviewOperation.获取视图结点描述(数据,索引,全部内容=True) for 索引 in 数据.nodes.keys())
+            缓存内容 = "\n".join(GviewOperation.获取视图结点描述(数据, 索引, 全部内容=True) for 索引 in 数据.nodes.keys())
             DB.go(DB.table_Gview)
 
             DB.update(values=Logic.LET(**{字典键名.视图卡片内容缓存: 缓存内容}),
@@ -176,45 +178,45 @@ class GviewOperation:
 
             视图数据表 = GviewOperation.load_all_as_dict()
             视图缓存字典 = []
-            计数=0
+            计数 = 0
             for 数据 in 视图数据表.values():
                 结点索引表 = list(数据.nodes.keys())
-                视图缓存字典.append([数据.uuid,""])
+                视图缓存字典.append([数据.uuid, ""])
 
                 for 结点索引 in 结点索引表:
 
                     if ISLOCALDEBUG:
                         描述 = "debug"
                     else:
-                        描述 = CardOperation.获取卡片内容与标题(结点索引) if 数据.nodes[结点索引][字典键名.数据类型] == 枚举_视图结点类型.卡片 \
+                        描述 = CardOperation.获取卡片内容与标题(结点索引) if 数据.nodes[结点索引][字典键名.结点.数据类型] == 枚举_视图结点类型.卡片 \
                             else 视图数据表[结点索引].name
 
-                    视图缓存字典[-1][1]+=描述+"\n"
-                视图缓存字典[-1][1] = "'"+视图缓存字典[-1][1]+"'"
+                    视图缓存字典[-1][1] += 描述 + "\n"
+                视图缓存字典[-1][1] = "'" + 视图缓存字典[-1][1] + "'"
             DB.go(DB.table_Gview_cache).批量插入(视图缓存字典)
 
         Utils.tooltip("gview cache rebuild end")
 
     @staticmethod
-    def fuzzy_search(search_string:str):
+    def fuzzy_search(search_string: str):
         """在GRAPH_VIEW , GRAPH_VIEW_CACHE 两个表中做模糊搜索, 将用户的空格替换成通配符"""
-        关键词正则 = re.sub(r"\s",".*",search_string)
+        关键词正则 = re.sub(r"\s", ".*", search_string)
 
-        DB,Logic = G.DB, objs.Logic
+        DB, Logic = G.DB, objs.Logic
 
         DB.go(DB.table_Gview)
         DB.excute_queue.append(f"""select * from GRAPH_VIEW_TABLE where name regexp '{关键词正则}' or uuid regexp '{关键词正则}'""")
-        匹配的视图集 =[data.to_GviewData() for data in DB.return_all().zip_up().to_gview_record()]
+        匹配的视图集 = [data.to_GviewData() for data in DB.return_all().zip_up().to_gview_record()]
         DB.excute_queue.append(f"""select uuid from GRAPH_VIEW_CACHE WHERE cache regexp '{关键词正则}'""")
         for 行 in DB.return_all().results:
-            if 行[0] not in 匹配的视图集: # 为了保持元素的唯一性
+            if 行[0] not in 匹配的视图集:  # 为了保持元素的唯一性
                 匹配的视图集.append(GviewOperation.load(uuid=行[0]))
         # Utils.print(匹配的视图集)
         return 匹配的视图集
         pass
 
     @staticmethod
-    def save(data: GViewData = None, data_li: "Iterable[GViewData]" = None, exclude:"list[str]"=None):
+    def save(data: GViewData = None, data_li: "Iterable[GViewData]" = None, exclude: "list[str]" = None):
         """"""
         if data:
             # Utils.print(data,need_logFile=True)
@@ -274,7 +276,7 @@ class GviewOperation:
         DB = G.DB
         DB.go(DB.table_Gview)
         DB.excute_queue.append(DB.sqlstr_RECORD_SELECT_ALL.format(tablename=DB.tab_name))
-        records =[记录.to_GviewData() for 记录 in DB.return_all().zip_up().to_gview_record()]
+        records = [记录.to_GviewData() for 记录 in DB.return_all().zip_up().to_gview_record()]
         return records
 
     @staticmethod
@@ -284,9 +286,8 @@ class GviewOperation:
         DB.excute_queue.append(DB.sqlstr_RECORD_SELECT_ALL.format(tablename=DB.tab_name))
         记录表 = DB.return_all().zip_up().to_gview_record()
         结果 = {}
-        [结果.__setitem__(记录.uuid,记录.to_GviewData()) for 记录 in 记录表]
+        [结果.__setitem__(记录.uuid, 记录.to_GviewData()) for 记录 in 记录表]
         return 结果
-
 
     @staticmethod
     def 读取全部id():
@@ -303,7 +304,7 @@ class GviewOperation:
 
         def pair_to_gview(pair):
             card_id = pair.card_id
-            datas =  DB.select(DB.LIKE("nodes", f"%\"{card_id}\"%")).return_all().zip_up().to_gview_record()
+            datas = DB.select(DB.LIKE("nodes", f"%\"{card_id}\"%")).return_all().zip_up().to_gview_record()
             return set(map(
                     lambda data: data.to_GviewData(), datas))
 
@@ -326,17 +327,25 @@ class GviewOperation:
     @staticmethod
     def delete(uuid: str = None, uuid_li: "Iterable[str]" = None):
         """"""
+        from ..bilink.dialogs.linkdata_grapher import Grapher
         DB = G.DB
-        DB.go(DB.table_Gview)
+        def 彻底删除(视图标识):
+
+            if 视图标识 in G.mw_gview and isinstance(G.mw_gview[视图标识],Grapher):
+                视图窗口:Grapher = G.mw_gview[视图标识]
+                视图窗口.close()
+            config = GviewOperation.load(视图标识).config
+            if config:
+                GviewConfigOperation.从数据库删除(config)
+            DB.go(DB.table_Gview)
+            DB.delete(where=DB.VALUEEQ(uuid=视图标识)).commit()
         if uuid:
-            DB.delete(where=DB.VALUEEQ(uuid=uuid)).commit()
-            DB.end()
-            return
+            彻底删除(uuid)
         elif uuid_li:
             for uuid in uuid_li:
-                DB.delete(where=DB.VALUEEQ(uuid=uuid)).commit()
-            DB.end()
-            return
+                彻底删除(uuid)
+        DB.end()
+        return
 
     @staticmethod
     def get_correct_view_name_input(placeholder=""):
@@ -375,7 +384,7 @@ class GviewOperation:
         Dialogs.open_grapher(gviewdata=data, mode=GraphMode.view_mode)
         if G.GViewAdmin_window:
             from ..bilink.dialogs.linkdata_grapher import GViewAdmin
-            win:GViewAdmin = G.GViewAdmin_window
+            win: GViewAdmin = G.GViewAdmin_window
             win.init_data()
         return uuid
 
@@ -387,9 +396,9 @@ class GviewOperation:
         GviewOperation.create(nodes, edges, name=name)
 
     @staticmethod
-    def choose_insert(pairs_li: 'list[G.objs.LinkDataPair]'=None):
+    def choose_insert(pairs_li: 'list[G.objs.LinkDataPair]' = None):
         all_gview = GviewOperation.load_all()
-        check:dict[str,GViewData] = {}
+        check: dict[str, GViewData] = {}
         list(map(lambda data: check.__setitem__(data.name, data), all_gview))
         # name_li = list()
         viewname, okPressed = QInputDialog.getItem(None, "Get gview", "", set(check.keys()), 0, False)
@@ -406,44 +415,61 @@ class GviewOperation:
 
         now = now = datetime.now()
         return sum(1 for i in Filter.do(Map.do([索引 for 索引 in g.nodes.keys() if CardOperation.exists(索引)],
-                                               lambda x: CardOperation.getLastNextRev(x)) ,
+                                               lambda x: CardOperation.getLastNextRev(x)),
                                         lambda due: due[1] <= now))
 
     @staticmethod
     def 默认元信息模板(数据=None):
-        默认值={
-                字典键名.创建时间: int(time.time()),
-                字典键名.上次访问: int(time.time()),
-                字典键名.上次编辑: int(time.time()),
-                字典键名.访问次数: 1
+        默认值 = {
+                字典键名.结点.创建时间: int(time.time()),
+                字典键名.结点.上次访问: int(time.time()),
+                字典键名.结点.上次编辑: int(time.time()),
+                字典键名.结点.访问次数: 1
         }
         return Utils.字典缺省值填充器(默认值, 数据)
 
     @staticmethod
     def 默认视图边数据模板(数据=None):
         默认值 = {
-                字典键名.边名: ""
+                字典键名.结点.边名: ""
         }
         return Utils.字典缺省值填充器(默认值, 数据)
 
     @staticmethod
-    def 依参数确定视图结点数据类型模板(结点类型=枚举_视图结点类型.卡片,数据=None):
+    def 依参数确定视图结点数据类型模板(结点类型=枚举_视图结点类型.卡片, 数据=None):
         _ = 字典键名
-        默认值={
-                _.数据类型  :结点类型,
-                _.位置    : [],
-                _.主要结点  : False,
-                _.结点上次访问:int(time.time()),
-                _.结点上次编辑:int(time.time()),
-                _.结点访问次数:0,
-                _.优先级   :0,
-                _.需要复习  :True,
-                _.必须复习  :False,
-                _.结点.角色  :-1,
-                _.漫游起点  :False,
+        默认值 = {
+                _.结点.数据类型  : 结点类型,
+                _.结点.位置    : [],
+                _.结点.主要结点  : False,
+                _.结点.需要复习  : True,
+                _.结点.必须复习  : False,
+                _.结点.漫游起点  : False,
+                _.结点.创建时间 : int(time.time()),
+                _.结点.上次访问: int(time.time()),
+                _.结点.上次编辑: int(time.time()),
+                _.结点.访问次数: 0,
+                _.结点.优先级   : 0,
+                _.结点.角色 : -1,
         }
 
         return Utils.字典缺省值填充器(默认值, 数据)
+
+    @staticmethod
+    def 推断结点未保存的信息(索引=None):
+        _ = 字典键名.结点
+        if not 索引:
+            return {
+                    _.出度:0,
+                    _.入度:0,
+                    _.数据源:[],
+                    _.上次复习:int(time.time()),
+                    _.描述:"",
+                    _.已到期:False,
+            }
+        else:
+            return {}
+
 
 class Utils(object):
     @dataclasses.dataclass
@@ -485,6 +511,7 @@ class Utils(object):
             Utils.print(s)
         else:
             tooltip(s)
+
     @staticmethod
     def showInfo(s):
         if G.ISDEBUG:
@@ -518,15 +545,91 @@ class Utils(object):
         return 默认值 if not 对应值 or 键名 not in 对应值 else 对应值[键名]
 
     @staticmethod
-    def 字典缺省值填充器(默认值:dict, 对应值: "Optional[dict]"=None):
+    def 字典缺省值填充器(默认值: dict, 对应值: "Optional[dict]" = None):
         新值 = {}
-        for 键,值 in 默认值.items():
-            新值[键] = Utils.字典默认键值对(值,键,对应值)
+        for 键, 值 in 默认值.items():
+            新值[键] = Utils.字典默认键值对(值, 键, 对应值)
         return 新值
 
     @staticmethod
     def 时间戳转日期(时间戳):
         return datetime.fromtimestamp(时间戳)
+
+    @staticmethod
+    def 日期转时间戳(日期):
+        """
+        日期为: YYYY-MM-DD格式
+        """
+        return int(time.mktime(time.strptime(日期, "%Y-%m-%d")))
+
+    class 时间处理:
+
+        @staticmethod
+        def 日偏移(日期=None,偏移量:int=0):
+
+            """
+            可用的指标: days
+            返回时间戳"""
+            if 日期 is None:
+                日期 = datetime.today().date()
+            偏移时间 = 日期 + timedelta(days=偏移量)
+            时间戳 = time.mktime(偏移时间.timetuple())
+            return 时间戳
+
+        @staticmethod
+        def 月偏移(日期=None,偏移量=0):
+            if 日期 is None:
+                日期 = datetime.today().date()
+            日期年份 = 日期.timetuple().tm_year
+            日期月份 = 日期.timetuple().tm_mon
+            所求月份 = 12 if (日期月份+偏移量)%12==0 else (日期月份+偏移量)%12
+            所求年份 = ceil( (日期月份+偏移量)/12)-1+日期年份
+            时间戳 = time.mktime(datetime(所求年份,所求月份,1).timetuple())
+            pass
+
+        @staticmethod
+        def 周偏移(指标=0):
+            pass
+
+        @staticmethod
+        def 今日():
+            return Utils.时间处理.日偏移()
+        @staticmethod
+        def 昨日():
+            return Utils.时间处理.日偏移(None,-1)
+        @staticmethod
+        def 三天前():
+            return Utils.时间处理.日偏移(None,-3)
+        @staticmethod
+        def 本周():
+            今天周几 = datetime.today().timetuple().tm_wday
+            return Utils.时间处理.日偏移(None, -今天周几)
+
+        @staticmethod
+        def 上周():
+            今天周几 = datetime.today().timetuple().tm_wday
+            return Utils.时间处理.日偏移(None, -今天周几-7)
+
+        @staticmethod
+        def 本月():
+            return Utils.时间处理.月偏移(None,0)
+
+        @staticmethod
+        def 一个月前():
+            return Utils.时间处理.月偏移(None,-1)
+
+        @staticmethod
+        def 三个月前():
+            """本月,上月,上上月
+            3 2 1 12 11
+            """
+            return Utils.时间处理.月偏移(None, -3)
+
+        @staticmethod
+        def 六个月前():
+            return Utils.时间处理.月偏移(None, -6)
+            # 现在 = time.localtime()
+            # time.mktime((现在.tm_year,现在.tm_mon,现在.tm_mday-现在.tm_wday,0,0,0,0,0,0))
 
 class 组件定制:
 
@@ -608,109 +711,109 @@ class 组件定制:
     #             布局.addRow(描述,组件)
     #     else:
     #         for 组件 in 布局组件表:
-    #             布局.addWidget()
-
-
-class GroupReview(object):
-    """这是一套性能优化方案, GroupReview由于每次回答都要去数据库查询一遍,因此我们想了一招来更新缓存
-    1,监听卡片的变化,
-    """
-
-    @staticmethod
-    def begin():
-        """入口,要从配置读东西,保存到某地,现在看来保存到G是最合适的,还需要设计数据结构"""
-        if Config.get().group_review.value == False:
-            return
-        GroupReview.build()
-        G.GroupReview_timer.timeout.connect(GroupReview.update)
-        G.GroupReview_timer.start(G.src.groupreview_update_interval)
-
-    @staticmethod
-    def build():
-        G.GroupReview_dict = GroupReviewDictInterface()
-        searchs: "list[str]" = Config.get().group_review_search_string.value
-        for search in searchs:
-            if search == "" or not re.search(r"\S", search):
-                continue
-            if search.lower().startswith("gviewid"):
-                if GviewOperation.exists(uuid=search[len("gviewid"):]):
-                    cids = Map.do(GviewOperation.load(search[len("gviewid"):]).nodes.keys(), lambda card_id: int(card_id))
-                else:
-                    showInfo(f"{search} 不存在, 请删除\n can't find {search} , please delete it")
-                    cids = []
-            else:
-                for_due = "(is:new OR is:due)" if Config.get().group_review_just_due_card.value else ""
-                global_str = f"({Config.get().group_review_global_condition.value})"
-                cids = mw.col.find_cards(f"({search}) {for_due} {global_str if global_str != '()' else ''}")
-            list(map(lambda cid: G.GroupReview_dict.card_group_insert(cid, search), cids))
-            list(map(lambda cid: G.GroupReview_dict.search_group_insert(cid, search), cids))
-        G.GroupReview_dict.build_union_search()
-        G.GroupReview_dict.update_version()
-
-    @staticmethod
-    def update():
-        """从配置表加载查询条件,然后去搜索,组织,并更新到数据库
-        这个函数需要定期执行,要给一些优化,
-        这里是重点对象, 首先执行一次联合查询, 然后检查原本在的是否消失, 原本不在的是否新增
-        https://blog.csdn.net/qq_34130509/article/details/89473503
-        """
-        if Config.get().group_review.value == False:
-            return
-
-        def search_result_not_changed():
-            """在这里,我们检查有没有必要更新"""
-            new_cids = set(mw.col.find_cards(G.GroupReview_dict.union_search))
-            old_cids = G.GroupReview_dict.card_group.keys()
-            need_add_card = new_cids - old_cids
-            need_del_card = old_cids - new_cids
-            return len(need_add_card) == 0 and len(need_del_card) == 0
-
-        # 临时文件没有变化则退出
-        if len(G.GroupReview_tempfile) == 0:
-            return
-        # 临时文件有变化,且临时文件cid不属于集合,则检查原集合是否有改动,无改动则退出
-        not_belong_to_card_group = len(G.GroupReview_tempfile & G.GroupReview_dict.card_group.keys()) == 0
-        if not_belong_to_card_group and search_result_not_changed():
-            G.GroupReview_tempfile.clear()
-            return
-        # 其他的筛选条件太难选了.到这里就直接建立吧
-        GroupReview.build()
-        G.GroupReview_tempfile.clear()
-
-    @staticmethod
-    def modified_card_record(note: "Note"):
-        """将卡片写到一个全局变量,作为集合"""
-        if not Config.get().group_review.value:
-            return
-        try:
-            G.GroupReview_tempfile |= set(note.card_ids())
-        except Exception as e:
-            Utils.print(e)
-            return
-
-    @staticmethod
-    def save_search_condition_to_config(browser: "Browser"):
-        """把搜索栏的内容拷贝下来粘贴到配置表"""
-        curr_string = browser.form.searchEdit.currentText()
-        if curr_string == "" or not re.search(r"\S", curr_string):
-            tooltip("不接受空格与空值<br>null string or empty string is not allowed")
-            return
-        GroupReview.addReviewCondition(curr_string)
-
-    @staticmethod
-    def saveGViewAsGroupReviewCondition(gviewId: "str"):
-        GroupReview.addReviewCondition("gviewid:" + gviewId)
-
-    @staticmethod
-    def addReviewCondition(condition):
-        c = Config.get()
-        setv = set(c.group_review_search_string.value)
-        setv.add(condition)
-        c.group_review_search_string.value = list(setv)
-        Config.save(c)
-        G.signals.on_group_review_search_string_changed.emit()
-        tooltip("已添加到群组复习条件列表: " + condition)
-
+    #             布局.addWidget()更
+#
+# # 2023年2月15日23:42:11 砍掉 group_review功能, 全部相关代码被注释掉.
+# # class GroupReview(object):
+# #     """这是一套性能优化方案, GroupReview由于每次回答都要去数据库查询一遍,因此我们想了一招来新缓存
+#     1,监听卡片的变化,
+#     """
+#
+#     @staticmethod
+#     def begin():
+#         """入口,要从配置读东西,保存到某地,现在看来保存到G是最合适的,还需要设计数据结构"""
+#         if Config.get().group_review.value == False:
+#             return
+#         GroupReview.build()
+#         G.GroupReview_timer.timeout.connect(GroupReview.update)
+#         G.GroupReview_timer.start(G.src.groupreview_update_interval)
+#
+#     @staticmethod
+#     def build():
+#         G.GroupReview_dict = GroupReviewDictInterface()
+#         searchs: "list[str]" = Config.get().group_review_search_string.value
+#         for search in searchs:
+#             if search == "" or not re.search(r"\S", search):
+#                 continue
+#             if search.lower().startswith("gviewid"):
+#                 if GviewOperation.exists(uuid=search[len("gviewid"):]):
+#                     cids = Map.do(GviewOperation.load(search[len("gviewid"):]).nodes.keys(), lambda card_id: int(card_id))
+#                 else:
+#                     showInfo(f"{search} 不存在, 请删除\n can't find {search} , please delete it")
+#                     cids = []
+#             else:
+#                 for_due = "(is:new OR is:due)" if Config.get().group_review_just_due_card.value else ""
+#                 global_str = f"({Config.get().group_review_global_condition.value})"
+#                 cids = mw.col.find_cards(f"({search}) {for_due} {global_str if global_str != '()' else ''}")
+#             list(map(lambda cid: G.GroupReview_dict.card_group_insert(cid, search), cids))
+#             list(map(lambda cid: G.GroupReview_dict.search_group_insert(cid, search), cids))
+#         G.GroupReview_dict.build_union_search()
+#         G.GroupReview_dict.update_version()
+#
+#     @staticmethod
+#     def update():
+#         """从配置表加载查询条件,然后去搜索,组织,并更新到数据库
+#         这个函数需要定期执行,要给一些优化,
+#         这里是重点对象, 首先执行一次联合查询, 然后检查原本在的是否消失, 原本不在的是否新增
+#         https://blog.csdn.net/qq_34130509/article/details/89473503
+#         """
+#         if Config.get().group_review.value == False:
+#             return
+#
+#         def search_result_not_changed():
+#             """在这里,我们检查有没有必要更新"""
+#             new_cids = set(mw.col.find_cards(G.GroupReview_dict.union_search))
+#             old_cids = G.GroupReview_dict.card_group.keys()
+#             need_add_card = new_cids - old_cids
+#             need_del_card = old_cids - new_cids
+#             return len(need_add_card) == 0 and len(need_del_card) == 0
+#
+#         # 临时文件没有变化则退出
+#         if len(G.GroupReview_tempfile) == 0:
+#             return
+#         # 临时文件有变化,且临时文件cid不属于集合,则检查原集合是否有改动,无改动则退出
+#         not_belong_to_card_group = len(G.GroupReview_tempfile & G.GroupReview_dict.card_group.keys()) == 0
+#         if not_belong_to_card_group and search_result_not_changed():
+#             G.GroupReview_tempfile.clear()
+#             return
+#         # 其他的筛选条件太难选了.到这里就直接建立吧
+#         GroupReview.build()
+#         G.GroupReview_tempfile.clear()
+#
+#     @staticmethod
+#     def modified_card_record(note: "Note"):
+#         """将卡片写到一个全局变量,作为集合"""
+#         if not Config.get().group_review.value:
+#             return
+#         try:
+#             G.GroupReview_tempfile |= set(note.card_ids())
+#         except Exception as e:
+#             Utils.print(e)
+#             return
+#
+#     @staticmethod
+#     def save_search_condition_to_config(browser: "Browser"):
+#         """把搜索栏的内容拷贝下来粘贴到配置表"""
+#         curr_string = browser.form.searchEdit.currentText()
+#         if curr_string == "" or not re.search(r"\S", curr_string):
+#             tooltip("不接受空格与空值<br>null string or empty string is not allowed")
+#             return
+#         GroupReview.addReviewCondition(curr_string)
+#
+#     @staticmethod
+#     def saveGViewAsGroupReviewCondition(gviewId: "str"):
+#         GroupReview.addReviewCondition("gviewid:" + gviewId)
+#
+#     @staticmethod
+#     def addReviewCondition(condition):
+#         c = Config.get()
+#         setv = set(c.group_review_search_string.value)
+#         setv.add(condition)
+#         c.group_review_search_string.value = list(setv)
+#         Config.save(c)
+#         G.signals.on_group_review_search_string_changed.emit()
+#         tooltip("已添加到群组复习条件列表: " + condition)
+#
 
 class BaseConfig(metaclass=abc.ABCMeta):
     """一切配置表的基类
@@ -780,9 +883,9 @@ class BaseConfig(metaclass=abc.ABCMeta):
             w.setText(value)
             配置项.设值到组件 = lambda 值: w.setText(值)
         elif widgetType == typ.customize:
-            x = 配置项.customizeComponent()(配置项, 上级)  # 这个地方的警告去不掉, 很烦人.
-            配置项.设值到组件 = lambda 值: x.SetupData(值)
-            w = x.View
+            x2 = 配置项.customizeComponent()(配置项, 上级)  # 这个地方的警告去不掉, 很烦人.
+            配置项.设值到组件 = lambda 值: x2.SetupData(值)
+            w = x2.View
         else:
             raise ValueError(f"配置项:{配置项名},未知组件方案")
         配置项.widget = w
@@ -792,7 +895,7 @@ class BaseConfig(metaclass=abc.ABCMeta):
         return container
 
     @staticmethod
-    def makeConfigDialog(调用者, 数据: "BaseConfigModel", 关闭时回调: "Callable[[BaseConfigModel],None]"=None):
+    def makeConfigDialog(调用者, 数据: "BaseConfigModel", 关闭时回调: "Callable[[BaseConfigModel],None]" = None):
         """
         关闭时回调
         TODO:这里的内容要整理到Config的父类中
@@ -833,7 +936,7 @@ class BaseConfig(metaclass=abc.ABCMeta):
         容器.setWindowIcon(QIcon(G.src.ImgDir.config))
         容器.setWindowTitle("配置表/configuration")
         if 关闭时回调:
-            容器.rejected.connect(lambda :关闭时回调(数据))
+            容器.rejected.connect(lambda: 关闭时回调(数据))
 
         return 容器
 
@@ -841,58 +944,96 @@ class BaseConfig(metaclass=abc.ABCMeta):
 class GviewConfigOperation(BaseConfig):
 
     @staticmethod
+    def eval可用函数():
+        return {
+                "to_timestamp"  : Utils.日期转时间戳,
+                "today"         : Utils.时间处理.今日(),
+                "yesterday"     : Utils.时间处理.昨日(),
+                "last_week"     : Utils.时间处理.上周(),
+                "this_week"     : Utils.时间处理.本周(),
+                "last_month"    : Utils.时间处理.一个月前(),
+                "this_mohth"    : Utils.时间处理.本月(),
+                "three_day_ago": Utils.时间处理.三天前(),
+                "three_month_ago" : Utils.时间处理.三个月前() ,
+                "six_month_ago": Utils.时间处理.六个月前(),
+        }
+
+    @staticmethod
+    def 全部可用变量名():
+
+        return
+
+    @staticmethod
+    def 获取eval可用变量(视图数据:GViewData=None,结点索引=None):
+        """"""
+        _ = baseClass.枚举命名
+        new_globals = globals().copy()
+
+        if not 结点索引:  # 此时作为测试使用
+            return [
+                    new_globals
+                    , {
+                            **GviewOperation.依参数确定视图结点数据类型模板(),
+                            _.结点.入度       : 0,
+                            _.结点.出度       : 0,
+                            _.结点.名称       : "",
+                            **GviewConfigOperation.eval可用函数()
+                    }]
+        else:
+            return {}
+
+    @staticmethod
     def 从数据库读(标识):
         return objs.Record.GviewConfig.readModelFromDB(标识)
 
     @staticmethod
-    def 从数据库删除(标识:str):
-        if type(标识)!=str:
+    def 从数据库删除(标识: str):
+        if type(标识) != str:
             raise ValueError("类型不匹配")
         DB = G.DB
         DB.go(DB.table_GviewConfig)
         DB.excute_queue.append(f"delete from GRAPH_VIEW_CONFIG where uuid='{标识}'")
-        DB.commit(lambda x:Utils.print(x,need_logFile=True))
+        DB.commit(lambda x: Utils.print(x, need_logFile=True))
         # G.DB.go(G.DB.table_GviewConfig).delete(objs.Logic.EQ(uuid=f"'{标识}'")).commit(lambda x:Utils.print(x,need_logFile=True))
 
     @staticmethod
     def 指定视图配置(视图记录: "GViewData|str", 新配置记录: "objs.Record.GviewConfig|str|None" = None):
-        Utils.print(f" assign view config function begin",need_logFile=True)
+        Utils.print(f" assign view config function begin", need_logFile=True)
 
         def 删除前配置中的当前视图():
             前配置记录 = GviewConfigOperation.从数据库读(视图记录.config)
             应用前配置的视图表: "list[str]" = 前配置记录.data.appliedGview.value
-            Utils.print(f"former model applied config table, before append={应用前配置的视图表}",need_logFile=True)
+            Utils.print(f"former model applied config table, before append={应用前配置的视图表}", need_logFile=True)
             if 视图记录.uuid in 应用前配置的视图表:
                 应用前配置的视图表.remove(视图记录.uuid)
                 if len(应用前配置的视图表) == 0:
-                    Utils.print(f"应用前配置的视图表={应用前配置的视图表},下面要删除这个配置了",need_logFile=True)
+                    Utils.print(f"应用前配置的视图表={应用前配置的视图表},下面要删除这个配置了", need_logFile=True)
                     GviewConfigOperation.从数据库删除(前配置记录.uuid)
                 else:
                     前配置记录.data.appliedGview.setValue(应用前配置的视图表)
                     前配置记录.saveModelToDB()
-            Utils.print(f"former model applied config table, after append={应用前配置的视图表}",need_logFile=True)
+            Utils.print(f"former model applied config table, after append={应用前配置的视图表}", need_logFile=True)
 
         def 将当前视图添加到现配置的支配表中():
             应用配置视图表: "list[str]" = 新配置记录.data.appliedGview.value
-            Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview before append =  {应用配置视图表}",need_logFile=True)
+            Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview before append =  {应用配置视图表}", need_logFile=True)
 
             if 视图记录.uuid not in 应用配置视图表:
                 应用配置视图表.append(视图记录.uuid)
                 新配置记录.data.appliedGview.setValue(应用配置视图表)
             视图记录.config = 新配置记录.uuid
             GviewOperation.save(视图记录)
-            新配置记录.data.元信息.确定保存到数据库=True
+            新配置记录.data.元信息.确定保存到数据库 = True
             新配置记录.saveModelToDB()
-            Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview after append =  {应用配置视图表}, gview.config = {视图记录.config}",need_logFile=True)
+            Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview after append =  {应用配置视图表}, gview.config = {视图记录.config}", need_logFile=True)
 
         if type(视图记录) == str:
             视图记录 = GviewOperation.load(视图记录)
 
         if 新配置记录 is None:
             新配置记录 = objs.Record.GviewConfig()
-        elif type(新配置记录)==str:
+        elif type(新配置记录) == str:
             新配置记录 = objs.Record.GviewConfig.readModelFromDB(新配置记录)
-
 
         if 视图记录.config and objs.Record.GviewConfig.静态_存在于数据库中(视图记录.config):
             删除前配置中的当前视图()
@@ -900,7 +1041,7 @@ class GviewConfigOperation(BaseConfig):
         将当前视图添加到现配置的支配表中()
 
         GviewOperation.save(视图记录)
-        Utils.print("assign view over ",need_logFile=True)
+        Utils.print("assign view over ", need_logFile=True)
 
     @staticmethod
     def 移除视图配置(视图标识: "str", 配置标识: "str"):
@@ -923,7 +1064,7 @@ class GviewConfigOperation(BaseConfig):
         return list(result)
 
     @staticmethod
-    def 获取结点角色数据源(gview_uuid=None,gview_data:"GViewData"=None)->list[str]:
+    def 获取结点角色数据源(gview_uuid=None, gview_data: "GViewData" = None) -> list[str]:
 
         if gview_uuid:
             data = GviewOperation.load(gview_uuid)
@@ -931,11 +1072,13 @@ class GviewConfigOperation(BaseConfig):
             data = gview_data
         if data.config:
             from ast import literal_eval
-            role_enum = literal_eval(objs.Record.GviewConfig.readModelFromDB(data.config).data.node_role_enum)
+            role_enum = literal_eval(objs.Record.GviewConfig.readModelFromDB(data.config).data.node_role_enum.value)
             return role_enum
         else:
             return []
+
     pass
+
 
 class Config(BaseConfig):
     """TODO 这里需要抽象出一个父类, 实现widget继承"""
@@ -998,6 +1141,7 @@ class GrapherOperation:
 
     @staticmethod
     def updateDue(card_id: str):
+        """当在reviewer中复习了卡片后, 在相关的领域内也要更新对应的Due"""
         from ..bilink.dialogs.linkdata_grapher import Grapher
 
         if isinstance(G.mw_grapher, Grapher):
@@ -1033,7 +1177,7 @@ class LinkDataOperation:
         """仅根据pair的desc信息更新,别的不做"""
         data = LinkDataOperation.read_from_db(pair.card_id)
         data.self_data.desc = pair.desc
-        data.self_data.get_desc_from=G.objs.LinkDescFrom.DB
+        data.self_data.get_desc_from = G.objs.LinkDescFrom.DB
         data.save_to_DB()
         if pair.get_desc_from == G.objs.LinkDescFrom.Field:
             tooltip(Translate.描述已修改但是___, period=6000)
@@ -1276,34 +1420,34 @@ class CustomProtocol:
 
 class CardOperation:
 
-    @staticmethod
-    def group_review(answer: AnswerInfoInterface):
-        """用来同步复习卡片"""
-
-        if Config.get().group_review.value == False:
-            return
-        if answer.card_id not in G.GroupReview_dict.card_group:
-            return
-        if Config.get().group_review_comfirm_dialog.value:
-            go_on = QMessageBox.information(None, "group_review", Translate.群组复习提示, QMessageBox.Yes | QMessageBox.No)
-            if go_on == QMessageBox.No:
-                return
-        searchs = G.GroupReview_dict.card_group[answer.card_id]
-
-        sched = compatible_import.mw.col.sched
-        reportstring = ""
-        for search in searchs:
-            cids = G.GroupReview_dict.search_group[search]
-            for cid in cids:
-                card = mw.col.get_card(CardId(cid))
-                button_num = sched.answerButtons(card)
-                ease = answer.option_num if button_num >= answer.option_num else button_num
-                if card.timer_started is None: card.timer_started = time.time() - 60
-                CardOperation.answer_card(card, ease)
-                reportstring += str(cid) + ":" + CardOperation.desc_extract(cid) + "<br>"
-        mw.col.reset()
-        reportstring += "以上卡片已经同步复习<br>cards above has beend sync reviewed"
-        tooltip(reportstring, period=5000)
+    # @staticmethod
+    # def group_review(answer: AnswerInfoInterface):
+    #     """用来同步复习卡片"""
+    #
+    #     if Config.get().group_review.value == False:
+    #         return
+    #     if answer.card_id not in G.GroupReview_dict.card_group:
+    #         return
+    #     if Config.get().group_review_comfirm_dialog.value:
+    #         go_on = QMessageBox.information(None, "group_review", Translate.群组复习提示, QMessageBox.Yes | QMessageBox.No)
+    #         if go_on == QMessageBox.No:
+    #             return
+    #     searchs = G.GroupReview_dict.card_group[answer.card_id]
+    #
+    #     sched = compatible_import.mw.col.sched
+    #     reportstring = ""
+    #     for search in searchs:
+    #         cids = G.GroupReview_dict.search_group[search]
+    #         for cid in cids:
+    #             card = mw.col.get_card(CardId(cid))
+    #             button_num = sched.answerButtons(card)
+    #             ease = answer.option_num if button_num >= answer.option_num else button_num
+    #             if card.timer_started is None: card.timer_started = time.time() - 60
+    #             CardOperation.answer_card(card, ease)
+    #             reportstring += str(cid) + ":" + CardOperation.desc_extract(cid) + "<br>"
+    #     mw.col.reset()
+    #     reportstring += "以上卡片已经同步复习<br>cards above has beend sync reviewed"
+    #     tooltip(reportstring, period=5000)
 
     @staticmethod
     def delay_card(card, delay_num):
@@ -1407,7 +1551,8 @@ class CardOperation:
         note: "Note" = CardOperation.note_get(card_id)
         卡片内容 = "\n".join(note.fields)
         卡片标题 = LinkDataOperation.read_from_db(card_id).self_data.desc
-        return 卡片标题+"\n"+卡片内容
+        return 卡片标题 + "\n" + 卡片内容
+
     @staticmethod
     def desc_extract(card_id, fromField=False):
         """读取逻辑,
@@ -1465,8 +1610,8 @@ class CardOperation:
                     return datainfo.self_data.desc
 
     @staticmethod
-    def desc_save(card_id,desc):
-        LinkDataOperation.update_desc_to_db(LinkDataPair(card_id,desc))
+    def desc_save(card_id, desc):
+        LinkDataOperation.update_desc_to_db(LinkDataPair(card_id, desc))
 
     @staticmethod
     def InstructionOfExtractDesc(card_id):
@@ -1896,10 +2041,11 @@ class MonkeyPatch:
     @staticmethod
     def AddCards_closeEvent(funcs):
         from aqt.addcards import AddCards
-        def 包装器(self:"AddCards", evt: "QCloseEvent"):
+        def 包装器(self: "AddCards", evt: "QCloseEvent"):
             G.常量_当前等待新增卡片的视图索引 = ""
-            funcs(self,evt)
+            funcs(self, evt)
             pass
+
         return 包装器
         pass
 
@@ -2250,7 +2396,7 @@ class Dialogs:
         pass
 
     @staticmethod
-    def open_grapher(pair_li: "list[G.objs.LinkDataPair]" = None, need_activate=True, gviewdata: "GViewData" = None,
+    def open_grapher(pair_li: "list[G.objs.LinkDataPair|str]" = None, need_activate=True, gviewdata: "GViewData" = None,
                      selected_as_center=True, mode=GraphMode.normal, ):
         from ..bilink.dialogs.linkdata_grapher import Grapher
         if mode == GraphMode.normal:
@@ -2263,7 +2409,7 @@ class Dialogs:
                 G.mw_grapher.show()
         elif mode == GraphMode.view_mode:
             if (gviewdata.uuid not in G.mw_gview) or (not isinstance(G.mw_gview[gviewdata.uuid], Grapher)):
-                G.mw_gview[gviewdata.uuid] = Grapher(pair_li=pair_li, mode=mode, gviewdata=gviewdata)
+                G.mw_gview[gviewdata.uuid] = Grapher(mode=mode, gviewdata=gviewdata)
                 G.mw_gview[gviewdata.uuid].load_node(pair_li)
                 G.mw_gview[gviewdata.uuid].show()
             else:
@@ -2280,7 +2426,7 @@ class Dialogs:
         """ 这里的内容要整理到Config的父类中"""
         dialog = Config.makeConfigDialog(None, Config.get(),
                                          # 关闭时回调=None)
-        lambda 数据: Config.save(数据))  # save的参数是经过修正的cfg
+                                         lambda 数据: Config.save(数据))  # save的参数是经过修正的cfg
 
         dialog.exec()
 
@@ -3130,7 +3276,7 @@ def desc_extract(card_id=None, fromField=False):
 
 def card_exists(card_id):
     from . import objs
-    if isinstance(card_id,str) and not card_id.isdigit():
+    if isinstance(card_id, str) and not card_id.isdigit():
         return False
     cid = CardOperation.get_correct_id(card_id)
     txt = f"cid:{cid}"
