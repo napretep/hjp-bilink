@@ -121,10 +121,18 @@ class GViewData:
                 self.edges = {}
                 for 标识, 值 in edges.items():
                     self.edges[标识]= funcs.GviewOperation.默认视图边数据模板(值)
-
+        self.node_helper = self.获得结点的详细设定()
 
 
         # funcs.Utils.print(self,need_logFile=True)
+
+    def 获得结点的详细设定(self):
+        from . models import 类型_视图结点模型
+        视图结点助手 = {}
+        for key,value in self.nodes.items():
+            视图结点助手[key]=类型_视图结点模型()
+            视图结点助手[key].初始化(self,key)
+        return 视图结点助手
 
     def 清除无效结点(self):
         from . import funcs, baseClass
@@ -787,7 +795,6 @@ text-decoration:none;""",
 
 @dataclass
 class GviewConfigModel(BaseConfigModel):
-    # TODO 可选择是否总是显示边名
     @staticmethod
     def json_load(source: "dict"):
         """TODO: 设计json数据的读取,保存在objs.Record.GviewConfig.data中"""
@@ -815,13 +822,13 @@ class GviewConfigModel(BaseConfigModel):
     ))
 
 
-    # roamingStart: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-    #         instruction=["本项设定漫游的起点"],
-    #         value=0,
-    #         component=ConfigModel.Widget.combo,
-    #         tab_at="main",
-    #         limit=[ComboItem(Translate.随机选择卡片开始, 0), ComboItem(Translate.手动选择卡片开始, 1), ]
-    # ))
+    roamingStart: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=["本项设定漫游的起点"],
+            value=0,
+            component=ConfigModel.Widget.combo,
+            tab_at="main",
+            limit=[ComboItem(Translate.随机选择卡片开始, 0), ComboItem(Translate.手动选择卡片开始, 1), ]
+    ))
     # groupReview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
     #         instruction=["本项设定是否对使用本配置的视图开启群组复习,提示:开启群组复习后,最好就别再使用漫游复习,因为会一下子复习掉所有卡片,毫无漫游的意义"],
     #         value=False,

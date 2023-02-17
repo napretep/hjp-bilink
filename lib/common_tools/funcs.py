@@ -124,6 +124,36 @@ class MenuMaker:
 class GviewOperation:
 
     @staticmethod
+    def 判断结点已到期(视图数据:GViewData,结点编号:str):
+        现在 = int(time.time())
+        if 视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.卡片:
+            return int(CardOperation.getLastNextRev(结点编号)[1].timestamp())<=现在
+        elif 视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.视图:
+            return True
+        else:
+            raise NotImplementedError()
+
+    @staticmethod
+    def 结点上次复习时间(视图数据:GViewData,结点编号:str):
+        """如果是卡片, 则调用 CardOperation.上次复习时间(结点编号)
+        否则另外解决
+        """
+        if 视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.卡片:
+            return CardOperation.getLastNextRev(结点编号)[0]
+        elif 视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.视图:
+            return Utils.时间戳转日期(视图数据.meta[字典键名.视图.上次复习])
+        else:
+            raise NotImplementedError()
+
+    @staticmethod
+    def 获取结点出度(视图数据:GViewData,结点编号:str):
+        return len([1 for 边 in 视图数据.edges.keys() if 边.startswith(结点编号)])
+
+    @staticmethod
+    def 获取结点入度(视图数据:GViewData,结点编号:str):
+        return len([1 for 边 in 视图数据.edges.keys() if 边.endswith(结点编号)])
+
+    @staticmethod
     def 设定视图结点描述(视图数据: GViewData, 结点编号, 设定内容):
         视图类型 = 视图数据.nodes[结点编号][字典键名.结点.数据类型]
         if 视图类型 == 枚举_视图结点类型.卡片:
@@ -421,10 +451,11 @@ class GviewOperation:
     @staticmethod
     def 默认元信息模板(数据=None):
         默认值 = {
-                字典键名.结点.创建时间: int(time.time()),
-                字典键名.结点.上次访问: int(time.time()),
-                字典键名.结点.上次编辑: int(time.time()),
-                字典键名.结点.访问次数: 1
+                字典键名.视图.创建时间: int(time.time()),
+                字典键名.视图.上次访问: int(time.time()),
+                字典键名.视图.上次编辑: int(time.time()),
+                字典键名.视图.上次复习: int(time.time()),
+                字典键名.视图.访问次数: 0
         }
         return Utils.字典缺省值填充器(默认值, 数据)
 
@@ -638,7 +669,6 @@ class 组件定制:
         if not 容器: 容器 = QWidget()
         基 = G.objs.Bricks
         布局, 组件, 子代 = 基.三元组
-
         def 子组合(组件树: "dict"):
             if 布局 in 组件树:
                 the_layout: "QHBoxLayout|QVBoxLayout|QGridLayout" = 组件树[布局]
@@ -648,6 +678,7 @@ class 组件定制:
                         the_layout.addLayout(子组件[布局])
                     else:
                         the_layout.addWidget(子组件[组件])
+
             return 组件树
 
         容器.setLayout(子组合(组件树数据)[布局])
@@ -1448,6 +1479,10 @@ class CardOperation:
     #     mw.col.reset()
     #     reportstring += "以上卡片已经同步复习<br>cards above has beend sync reviewed"
     #     tooltip(reportstring, period=5000)
+
+    # @staticmethod
+    # def 上次复习时间(card_id):
+        # CardOperation.GetCard(card_id).load()
 
     @staticmethod
     def delay_card(card, delay_num):

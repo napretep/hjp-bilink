@@ -1322,7 +1322,8 @@ class Grapher(QMainWindow):
             item: "Grapher.ItemRect|Grapher.ItemEdge" = self.superior.scene.selectedItems()[0]
             if isinstance(item, Grapher.ItemRect):
                 # self.superior.card_edit_desc(item)
-                common_tools.widgets.ConfigWidget.GviewNodeProperty(self.superior.data.gviewdata,item.索引,self.superior).exec()
+                self.superior.data.gviewdata.node_helper[item.索引].创建结点UI().exec()
+                # common_tools.widgets.ConfigWidget.GviewNodeProperty(self.superior.data.gviewdata,item.索引,self.superior).exec()
             if isinstance(item, Grapher.ItemEdge):
                 self.superior.编辑边的描述(item)
 
@@ -2218,6 +2219,13 @@ class GrapherConfig(QDialog):
     TODO:    应用当前配置到其他视图
     TODO:    为当前视图选择另一个配置
     """
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":

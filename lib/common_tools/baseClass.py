@@ -40,7 +40,7 @@ class 枚举命名:
         # 结点自身保存信息
         角色 = "node_role"
         上次编辑 = "node_last_edit"
-        上次访问 = "node_last_vist"
+        上次访问 = "node_last_visit"
         访问次数 = "node_visit_count"
         数据类型 = "node_data_type"
         主要结点 = "node_major_node"
@@ -52,10 +52,31 @@ class 枚举命名:
         漫游起点 = "node_roaming_start"
 
         pass
+    class 视图:
+        创建时间 = "view_created_time"
+        上次访问 = "view_last_visit"
+        上次编辑 = "view_last_edit"
+        上次复习 = "view_last_review"
+        访问次数 = "view_visit_count"
 
     class 边:
         pass
-
+    class 组件类型:
+        spin = 0
+        radio = 1
+        line = 2
+        combo = 3
+        list = 4
+        none = 5
+        inputFile = 6
+        inputStr = 7
+        label = 8
+        text = 9
+        customize = 10
+        slider = 11
+        checkbox=12
+    class 砖:
+        布局, 组件, 子代 = 0, 1, 2
     范围 = "range"
     组件 = "widget"
     值 = "value"

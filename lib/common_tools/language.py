@@ -272,19 +272,53 @@ def rosetta(text: str = ""):
     return translateFuncs[lang](text)
 
 
-def 翻译(**kwargs):
+def 翻译(zh="",en="",**kwargs):
     surrport = ["zh-CN", "zh-TW", "en", "en-GB"]
     if currentLang in ["zh-CN", "zh-TW"]:
-        return kwargs["zh"]
+        return zh
     elif currentLang in ["en", "en-GB"] and "en" in kwargs:
-        return kwargs["en"]
+        return en
     else:
-        return kwargs["zh"]
+        return en
 
 # noinspection NonAsciiCharacters
 class Translate:
     lang = currentLang
-
+    无角色 = 翻译("无角色","no role")
+    漫游起点 = 翻译("漫游起点","roaming start")
+    说明_漫游起点 = 翻译("当你的漫游路线生成模式为图遍历排序模式, 而且视图配置中'roamingStart'项选择了自动模式时, 本程序会自动在结点集合中寻找首个'漫游起点'属性开启的结点作为图遍历的起点. 更多信息请查看视图配置中'roamingStart'项的解释.","When your roaming route generation mode is graph traversal sorting mode and automatic mode is selected for 'roamingStart' in the view configuration, the program will automatically find the first node in the node set with the 'roamingStart' attribute turned on as the starting point of the graph traversal. For more information, please see the explanation of 'roamingStart' item in the view configuration.")
+    必须复习 = 翻译("必须复习","must review")
+    说明_必须复习 = 翻译("当一个结点的'必须复习'属性被开启, 则无论是否满足漫游复习的过滤规则, 都会被选中复习","When the 'must review' attribute of a node is turned on, it will be selected for review regardless of whether the roaming review filter rule is satisfied")
+    需要复习 = 翻译("需要复习","need review")
+    说明_需要复习 = 翻译("当一个结点的'需要复习'属性被关闭, 则无论是否满足漫游复习的过滤规则, 都不会被选中复习","When the 'need to review' attribute of a node is turned off, it will not be selected for review, regardless of whether the roaming review filter rule is satisfied.")
+    说明_结点优先级 = 翻译("结点优先级这个属性通常由于筛选和排序用于漫游复习的结点","The node priority property is usually used to filter and sort the nodes for roaming review due to")
+    结点优先级 = 翻译("结点优先级","node priority")
+    说明_主要结点 = 翻译("在展示视图概要信息时, 主要结点会作为这个视图的代表性结点用来简要展示","When presenting the view summary information, the major node is used as a representative node for this view for a brief presentation")
+    主要结点 = 翻译("主要结点","major node")
+    结点数据类型 = 翻译("结点类型","node  type")
+    说明_结点数据类型 = 翻译("目前视图的结点有两种类型, 卡片类型和视图类型, 未来可能会增加更多的类型","Currently there are two types of view nodes, card type and view type, more types may be added in the future")
+    说明_上次访问 = 翻译(zh="每当你在视图上双击打开一个结点时, 就会记录你这次访问的时间, 即所谓的上次访问时间, 同样上次访问时间也是依赖于特定视图的, 在不同视图中的相同卡片或视图结点有不同的上次访问时间",
+                 en="Whenever you double-click on a view to open a node, the time of your visit is recorded, the so-called last visit time, which is also view-dependent, as the same card or view node in a different view has a different last visit time")
+    上次访问 = 翻译(zh="上次访问时间",en="last view time")
+    说明_上次编辑 = 翻译(zh="结点的上次编辑时间是指你最后一次编辑结点属性的时间, 他是与视图有关的属性, 也就是说, 同一个卡片或视图在不同的视图中作为结点时, 他们均有独立的上次编辑时间",
+                 en="The last edit time of a node is the time when you last edited the properties of the node, which are view-related properties, that is, the same card or view has an independent last edit time when it is used as a node in different views")
+    结点角色 = 翻译(zh="结点角色",en="node role")
+    说明_结点角色 = 翻译(zh="每个结点都可以赋予一个角色属性, 角色的概念类似于标签, 用于对结点作进一步的分类, 结点的角色并不能随意赋予, 而是要根据视图配置中预定的角色列表来赋予, 视图配置预定的角色列表使用方法请直接看相关的选项.",
+                 en="Each node can be assigned a role attribute, the concept of role is similar to tag, used to further classify the node, the role of the node can not be assigned arbitrarily, but according to the predefined list of roles in the view configuration, the use of the predefined list of roles in the view configuration, please see the relevant options directly")
+    说明_到期结点 = 翻译(zh="对于卡片类型的结点来说, 结点到期即anki定义的到期, 对于视图类型的结点来说, 它总是处在到期状态",
+                 en="For card type nodes, the due node is the due defined by anki, and for view type nodes, it is always in the due state")
+    到期结点 = 翻译(zh="到期结点",en="is due node")
+    说明_结点描述 = 翻译(zh="结点名称是与视图无关的属性, 你在任何地方修改结点名称都会导致所有视图中含有该对象的名称被同步改变,若结点类型为视图,则结点名称就是这个视图的名称, 若结点类型为卡片, 则结点名称是从卡片中提取的, 卡片结点的名称提取方法可以在全局设置中修改",
+                 en="The node name is a view-independent property, where you change the node name anywhere, the name of the object in all views will be changed simultaneously, if the node type is a view, then the node name is the name of the view, if the node type is a card, then the node name is extracted from the card, the method of extracting the name of the card node can be changed in the global settings")
+    结点描述 = 翻译(zh="结点名称",en="node name")
+    上次复习 = 翻译(zh="上次复习",en="last review")
+    说明_上次复习 = 翻译(zh="卡片的上次复习时间是与视图无关的, 任何地方只要你点过复习按钮, 点击按钮的时间就会计算为上次复习时间",
+                 en="The last review time of the card is view independent, anywhere you click the review button, the time you click the button will be counted as the last review time")
+    到达结点的边的数量 = 翻译(zh="到达结点的边的数量", en="Number of edges that reach the node")
+    从结点出发的边的数量 = 翻译(zh="从结点出发的边的数量",en="Number of edges from the node")
+    结点入度 = 翻译(zh="结点入度", en="node in-degree")
+    结点出度 = 翻译(zh="结点出度",en="node out-degree")
+    结点位置 = 翻译(zh="结点坐标",en="node coordinates")
     可执行字符串_返回的值必须是数值类型 = 翻译(
             zh="可执行字符串表达式的返回值必须是数值类型", en="The return value of codeString must be int or float type"
     )
@@ -482,10 +516,12 @@ to_timestamp(time_string): accepts YYYY-MM-DD format time string parameter to re
                          )
 
     视图名 = 翻译(zh="视图名",en="name")
-    创建时间 = 翻译(zh="创建时间", en="created")
+    说明_创建时间 = 翻译("结点的创建时间是不可修改的, 除非你删除这个结点, 并再次导入它","The creation time of a node cannot be modified unless you delete the node and import it again")
+    创建时间 = 翻译(zh="创建时间", en="created time")
     上次访问时间=翻译(zh="上次访问时间", en="last visit time")
     上次编辑时间=翻译(zh="上次编辑时间", en="last edit time")
     上次复习时间=翻译(zh="上次复习时间", en="last review time")
+    说明_访问数 = 翻译("每当你在视图上双击打开一个结点时, 结点访问次数属性就会增加1,  同样访问次数也是依赖于特定视图的, 在不同视图中的相同卡片或视图结点有不同的访问次数","Whenever you double-click on a view to open a node, the node visit count property is increased by 1. Again, the visit count is view-dependent, and the same card or view node in a different view has a different visit count")
     访问数 = 翻译(zh="访问数", en="visit count")
     结点数 = 翻译(zh="结点数", en="nodes count")
     边数 = 翻译(zh="边数", en="edges count")
@@ -626,8 +662,9 @@ to_timestamp(time_string): accepts YYYY-MM-DD format time string parameter to re
     随机排序: str = rosetta("随机排序")
     到期时间升序:str = rosetta("到期时间升序")
     到期时间降序: str = rosetta("到期时间降序")
-    随机选择卡片开始:str=rosetta("随机选择卡片开始")
-    手动选择卡片开始:str = rosetta("手动选择卡片开始")
+    自动选择卡片开始:str=翻译("自动模式","Automatic mode")
+    随机选择卡片开始:str=翻译("随机模式","Random mode")
+    手动选择卡片开始:str = 翻译("手动模式","Manual mode")
     由视图名搜索视图:str = rosetta("由视图名搜索视图")
     更换本视图的配置:str = rosetta("更换本视图的配置")
     说明_视图配置与视图的区别:str = rosetta("视图配置表(设置表)与视图是两个独立的对象,两者的关系就像牌组设置与牌组本身, 视图配置可以控制视图的默认行为, 一个视图配置可以应用到多个视图上, 如果一个视图配置没有对应的视图, 则该视图配置会被删除")

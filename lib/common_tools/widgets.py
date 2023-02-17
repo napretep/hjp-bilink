@@ -1703,7 +1703,7 @@ class ConfigWidget:
                         return False
                     pass
 
-            return edit_widget(上级,行,译.说明_漫游路径过滤)
+            return edit_widget(上级, 行, 译.说明_漫游路径过滤)
 
     class GviewConfigCascadingSorter(baseClass.配置项单选型表格组件):
         colnames = [译.选中, 译.多级排序依据]
@@ -1713,26 +1713,26 @@ class ConfigWidget:
             class edit_widget(baseClass.组件_表格型配置项_列编辑器_可执行字符串):
                 def on_test(self):
                     _ = baseClass.枚举命名
-                    globals_dict,locals_dict = funcs.GviewConfigOperation.获取eval可用变量()
+                    globals_dict, locals_dict = funcs.GviewConfigOperation.获取eval可用变量()
                     locals_dict[_.上升] = _.上升
                     locals_dict[_.下降] = _.下降
-                    a_or_d = [_.上升,_.下降]
-                    specified_name= [_.结点.入度,_.结点.出度,_.结点.名称,_.结点.上次访问,_.结点.上次编辑,_.结点.访问次数,_.结点.优先级,_.结点.上次复习,_.结点.角色]
+                    a_or_d = [_.上升, _.下降]
+                    specified_name = [_.结点.入度, _.结点.出度, _.结点.名称, _.结点.上次访问, _.结点.上次编辑, _.结点.访问次数, _.结点.优先级, _.结点.上次复习, _.结点.角色]
                     变量名字典 = {}
-                    [变量名字典.__setitem__(name,name) for name in specified_name]
+                    [变量名字典.__setitem__(name, name) for name in specified_name]
 
                     # noinspection PyBroadException
                     try:
                         strings = self.布局[子代][0][组件].toPlainText()
-                        literal = eval(strings, {},{**变量名字典,_.上升:_.上升,_.下降:_.下降}
+                        literal = eval(strings, {}, {**变量名字典, _.上升: _.上升, _.下降: _.下降}
                                        )
                         if type(literal) != list:
                             self.设置说明栏("type error:" + 译.可执行字符串表达式的返回值必须是列表类型)
                             return False
-                        elif len( [tup for tup in literal if len(tup)!=2] )>0:
+                        elif len([tup for tup in literal if len(tup) != 2]) > 0:
                             self.设置说明栏("type error:" + 译.可执行字符串_必须是一个二元元组)
                             return False
-                        elif len([tup for tup in literal if not (tup[0] in 变量名字典 and tup[1] in a_or_d)])>0:
+                        elif len([tup for tup in literal if not (tup[0] in 变量名字典 and tup[1] in a_or_d)]) > 0:
                             self.设置说明栏("type error:" + 译.可执行字符串_二元组中的变量名必须是指定名称)
                             return False
                         else:
@@ -1755,8 +1755,8 @@ class ConfigWidget:
                     globals_dict, locals_dict = funcs.GviewConfigOperation.获取eval可用变量()
                     try:
                         strings = self.布局[子代][0][组件].toPlainText()
-                        literal = eval(strings,globals_dict, locals_dict)
-                        if type(literal) not in (int,float):
+                        literal = eval(strings, globals_dict, locals_dict)
+                        if type(literal) not in (int, float):
                             self.设置说明栏(译.可执行字符串_返回的值必须是数值类型)
                             return False
                         else:
@@ -1765,7 +1765,8 @@ class ConfigWidget:
                     except Exception as err:
                         self.设置说明栏("syntax error:" + err.__str__())
                         return False
-            return edit_widget(上级, 行,译.说明_加权排序)
+
+            return edit_widget(上级, 行, 译.说明_加权排序)
 
     class GviewNodeProperty(QDialog):
         class Enum:
@@ -1799,20 +1800,20 @@ class ConfigWidget:
                     _.QTextEdit   : {__.结点.描述: QTextEdit()},
                     _.QComboBox   : {__.结点.角色: {
                             __.结点.数据源: funcs.GviewConfigOperation.获取结点角色数据源(gview_data=self.gview_data),
-                            __.组件 : QComboBox()
+                            __.组件    : QComboBox()
 
                     }},
                     _.QSlider     : {__.结点.优先级: {
                             __.范围: [-100, 100],
                             __.组件: QSlider()
                     }},
-                    _.QLabel      : {__.结点.数据类型  : QLabel(),
-                                     __.结点.位置    : QLabel(),
+                    _.QLabel      : {__.结点.数据类型: QLabel(),
+                                     __.结点.位置  : QLabel(),
                                      __.结点.上次编辑: QLabel(),
                                      __.结点.上次访问: QLabel(),
                                      __.结点.访问次数: QLabel(),
-                                     __.结点.出度 : QLabel(),
-                                     __.结点.入度 : QLabel(),
+                                     __.结点.出度  : QLabel(),
+                                     __.结点.入度  : QLabel(),
                                      }
             }
             node_data = self.gview_data.nodes[self.node_uuid]
@@ -2076,6 +2077,48 @@ class ReviewButtonForCardPreviewer:
         for button in self.ease_button.values():
             button.setEnabled(True)
         tooltip(Translate.已解冻)
+
+
+class 自定义组件:
+    class 视图结点属性:
+        class 角色多选(QComboBox):
+            def __init__(self, 项):
+                super().__init__()
+                """根据配置中的安排加载对应的多选框"""
+                from . import funcs, models
+                self.项: models.类型_视图结点属性项 = 项
+                视图配置id = self.项.上级.元数据.视图数据.config
+                self.待选角色表 = []
+                if 视图配置id:
+                    字面量 = funcs.GviewConfigOperation.从数据库读(视图配置id).data.node_role_enum.value
+                    self.待选角色表 = literal_eval(字面量)
+                # self.下拉选框 = QComboBox()
+                [self.addItem(self.待选角色表[i], i) for i in range(len(self.待选角色表))]
+                self.addItem(QIcon(funcs.G.src.ImgDir.close), 译.无角色, -1)
+                self.setCurrentIndex(self.findData(self.项.值,role=Qt.UserRole))
+                item_set_value = lambda value: self.项.设值(value)
+                self.currentIndexChanged.connect(lambda x: item_set_value(self.currentData()))
+                pass
+
+        # class 优先级(QWidget):
+        #     def __init__(self, 项):
+        #         """优先级是个滑动条, 要显示滑动的数值,每次滑动完都要保存"""
+        #         super().__init__()
+        #         from . import funcs, models
+        #         self.项: models.类型_视图结点属性项 = 项
+        #         self.拖动条 = QSlider()
+        #         self.数值显示 = QLabel()
+        #         if self.项.有限制:
+        #             self.拖动条.setRange(self.项.限制[0],self.项.限制[1])
+        #         funcs.组件定制.组件组合({布局:QHBoxLayout(),子代:[self.数值显示,self.拖动条]},self)
+        #
+        #         def item_set_value(value):
+        #             self.项.设值(value)
+        #             self.数值显示.setText(value.__str__())
+        #         self.拖动条.valueChanged.connect(item_set_value)
+        #
+        #
+        #         pass
 
 
 if __name__ == "__main__":
