@@ -26,7 +26,6 @@ class 视图结点类型:
 
 
 class 枚举命名:
-    @dataclasses.dataclass
     class 结点:
         # 结点推算所得信息
         出度 = "node_out_degree"
@@ -58,6 +57,7 @@ class 枚举命名:
         上次编辑 = "view_last_edit"
         上次复习 = "view_last_review"
         访问次数 = "view_visit_count"
+
 
     class 边:
         pass

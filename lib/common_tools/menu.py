@@ -1,5 +1,4 @@
 """
-DONE: 存在webview右键不显示菜单的问题
 """
 
 import time
@@ -267,19 +266,19 @@ def make__other(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
 def make__open_grapher(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
     Gop = common_tools.funcs.GviewOperation
     dlg = common_tools.funcs.Dialogs
-
+    from . import funcs
     if atype in {T.browser_context, T.webview}:
 
-        from . import funcs
+
         from ..bilink.dialogs.linkdata_grapher import Grapher
         prefix = kwargs["prefix"]
         pair_li = pairsli_admin.pairs_li
         if len(args) > 0:
             M: "QMenu" = args[1]
-            name = Translate.在grapher中打开卡片
+            name = Translate.在graph_view中打开卡片
             M2 = M.addMenu(prefix + name)
 
-            M2.addAction(Translate.直接打开).triggered.connect(lambda: funcs.Dialogs.open_grapher(pair_li))
+            M2.addAction(Translate.图形化双链操作界面).triggered.connect(lambda: funcs.Dialogs.open_grapher(pair_li))
 
             M2.addAction(Translate.新建视图).triggered.connect(lambda: funcs.GviewOperation.create_from_pair(pair_li))
 
@@ -298,6 +297,9 @@ def make__open_grapher(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
 
             list(map(lambda x: func_actionMenuConnector(M2, Translate.打开于视图 + ":" + x.name, dlg.open_grapher, pair_li=pair_li,
                                                         mode=GraphMode.view_mode, gviewdata=x), viewdata_L))
+    elif atype in {T.mainwin}:
+        M = get_browser_menu(args[0]) if atype == T.browser else get_mainWin_menu()
+        M.addAction(Translate.图形化双链操作界面).triggered.connect(lambda: funcs.Dialogs.open_grapher())
 
 
 make_list = [globals()[name] for name in globals() if name.startswith("make__")]

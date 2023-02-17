@@ -283,7 +283,10 @@ def 翻译(zh="",en="",**kwargs):
 
 # noinspection NonAsciiCharacters
 class Translate:
-    lang = currentLang
+    双击牌组即可修改卡片所属牌组=翻译("双击牌组即可修改卡片所属牌组","Double click on the deck to change the card's deck")
+    选择文外链接卡片加载 = 翻译("选择","select")
+    加载全部文外链接卡片 = 翻译("全部","all")
+    加载文外链接卡片 = 翻译("加载文外链接卡片","load out-link cards")
     无角色 = 翻译("无角色","no role")
     漫游起点 = 翻译("漫游起点","roaming start")
     说明_漫游起点 = 翻译("当你的漫游路线生成模式为图遍历排序模式, 而且视图配置中'roamingStart'项选择了自动模式时, 本程序会自动在结点集合中寻找首个'漫游起点'属性开启的结点作为图遍历的起点. 更多信息请查看视图配置中'roamingStart'项的解释.","When your roaming route generation mode is graph traversal sorting mode and automatic mode is selected for 'roamingStart' in the view configuration, the program will automatically find the first node in the node set with the 'roamingStart' attribute turned on as the starting point of the graph traversal. For more information, please see the explanation of 'roamingStart' item in the view configuration.")
@@ -564,7 +567,7 @@ to_timestamp(time_string): accepts YYYY-MM-DD format time string parameter to re
     发现未注册自定义url协议_现已自动注册_若出现反复注册_请以管理员身份运行anki:str=rosetta("发现未注册自定义url协议,现已自动注册,若出现反复注册,请以管理员身份运行anki")
     打开clipper:str=rosetta("打开clipper")
     在clipper中打开卡片:str=rosetta("在clipper中打开卡片")
-    在grapher中打开卡片:str=rosetta("在grapher中打开卡片")
+    在graph_view中打开卡片:str=翻译("在graph_view中打开卡片","open card in graph_view")
     添加同步复习标签:str=rosetta("添加同步复习标签")
     保存当前搜索条件为群组复习条件:str=rosetta("保存当前搜索条件为群组复习条件")
     保存成功:str=rosetta("保存成功")
@@ -573,11 +576,11 @@ to_timestamp(time_string): accepts YYYY-MM-DD format time string parameter to re
     配置表操作:str=rosetta("配置表操作")
     重置配置表:str=rosetta("重置配置表")
     创建为视图:str=rosetta("创建为视图")
-    视图名:str=rosetta("视图名")
+
     视图命名规则:str=rosetta("视图名不能有空白字符,不能有连续4个':',即'::::'非法")
     视图名必须是JSON合法的字符串:str=rosetta("视图名必须是JSON合法的字符串")
     打开于视图:str=rosetta("打开于视图")
-    直接打开:str=rosetta("临时视图")
+    图形化双链操作界面:str=翻译("图形化双链操作界面","visual bilinker")
     删除边:str=rosetta("删除边")
     隐藏边:str=rosetta("隐藏边")
     Anki搜索:str=rosetta("Anki搜索")
@@ -589,7 +592,6 @@ to_timestamp(time_string): accepts YYYY-MM-DD format time string parameter to re
     已复制到剪贴板:str=rosetta("已复制到剪贴板")
     未选择卡片:str=rosetta("未选择卡片")
     自动更新描述:str=rosetta("自动更新描述")
-    上次复习:str=rosetta("上次复习")
     下次复习:str=rosetta("下次复习")
     可复习:str=rosetta("可复习")
     未到期:str=rosetta("未到期")
@@ -677,7 +679,6 @@ to_timestamp(time_string): accepts YYYY-MM-DD format time string parameter to re
     添加卡片:str = rosetta("添加卡片")
     添加视图:str = rosetta("添加视图")
     新建:str = rosetta("新建")
-    导入:str = rosetta("导入")
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/8/1 16:48'
 """
+import math
 import os
 import re
 import urllib
@@ -348,6 +349,7 @@ class deck_chooser(QDialog):
         V_layout = QVBoxLayout(self)
         V_layout.addWidget(self.header)
         V_layout.addWidget(self.view)
+        V_layout.addWidget(QLabel(译.双击牌组即可修改卡片所属牌组),stretch=0)
         V_layout.setStretch(1, 1)
         V_layout.setStretch(0, 0)
         self.setLayout(V_layout)
@@ -2095,7 +2097,7 @@ class 自定义组件:
                 # self.下拉选框 = QComboBox()
                 [self.addItem(self.待选角色表[i], i) for i in range(len(self.待选角色表))]
                 self.addItem(QIcon(funcs.G.src.ImgDir.close), 译.无角色, -1)
-                self.setCurrentIndex(self.findData(self.项.值,role=Qt.UserRole))
+                self.setCurrentIndex(self.findData(self.项.值, role=Qt.UserRole))
                 item_set_value = lambda value: self.项.设值(value)
                 self.currentIndexChanged.connect(lambda x: item_set_value(self.currentData()))
                 pass

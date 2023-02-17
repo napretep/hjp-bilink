@@ -131,7 +131,7 @@ class GViewData:
         视图结点助手 = {}
         for key,value in self.nodes.items():
             视图结点助手[key]=类型_视图结点模型()
-            视图结点助手[key].初始化(self,key)
+            视图结点助手[key].初始化()
         return 视图结点助手
 
     def 清除无效结点(self):

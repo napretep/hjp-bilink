@@ -1225,9 +1225,9 @@ class LinkDataOperation:
         if cardB.self_data not in cardA.link_list:
             cardA.append_link(cardB.self_data)
             if needsave: cardA.save_to_DB()
-        # if cardA.self_data not in cardB.link_list:
-        #     cardB.append_link(cardA.self_data)
-        #     if needsave: cardB.save_to_DB()
+        if cardA.self_data not in cardB.link_list:
+            cardB.append_link(cardA.self_data)
+            if needsave: cardB.save_to_DB()
 
     @staticmethod
     def unbind(card_idA: 'Union[str,LinkDataJSONInfo]', card_idB: 'Union[str,LinkDataJSONInfo]', needsave=True):
@@ -1241,9 +1241,9 @@ class LinkDataOperation:
         if cardB.self_data in cardA.link_list:
             cardA.remove_link(cardB.self_data)
             if needsave: cardA.save_to_DB()
-        # if cardA.self_data in cardB.link_list:
-        #     cardB.remove_link(cardA.self_data)
-        #     if needsave: cardB.save_to_DB()
+        if cardA.self_data in cardB.link_list:
+            cardB.remove_link(cardA.self_data)
+            if needsave: cardB.save_to_DB()
 
     @staticmethod
     def backup(cfg: "ConfigModel", now=None):
@@ -2077,7 +2077,7 @@ class MonkeyPatch:
     def AddCards_closeEvent(funcs):
         from aqt.addcards import AddCards
         def 包装器(self: "AddCards", evt: "QCloseEvent"):
-            G.常量_当前等待新增卡片的视图索引 = ""
+            G.常量_当前等待新增卡片的视图索引 = None
             funcs(self, evt)
             pass
 
@@ -2435,12 +2435,13 @@ class Dialogs:
                      selected_as_center=True, mode=GraphMode.normal, ):
         from ..bilink.dialogs.linkdata_grapher import Grapher
         if mode == GraphMode.normal:
-            if isinstance(G.mw_grapher, Grapher):
+            from .graphical_bilinker import VisualBilinker
+            if isinstance(G.mw_grapher, VisualBilinker):
                 G.mw_grapher.load_node(pair_li, selected_as_center=selected_as_center)
                 if need_activate:
                     G.mw_grapher.activateWindow()
             else:
-                G.mw_grapher = Grapher(pair_li)
+                G.mw_grapher = VisualBilinker(pair_li)
                 G.mw_grapher.show()
         elif mode == GraphMode.view_mode:
             if (gviewdata.uuid not in G.mw_gview) or (not isinstance(G.mw_gview[gviewdata.uuid], Grapher)):

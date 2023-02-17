@@ -205,10 +205,10 @@ class Grapher(QMainWindow):
             posi = 数据[本.结点.位置]
             if card_id not in self.data.node_dict or posi[0] is None:
                 pair = LinkDataPair(card_id=card_id, desc=CardOperation.desc_extract(card_id))
-                item = self.add_node(pair)
+                item = self.create_node(pair)
                 self.arrange_node(item)
             else:
-                item = self.add_node(self.data.node_dict[card_id].索引)
+                item = self.create_node(self.data.node_dict[card_id].索引)
                 item.setSelected(True)
                 last_card = card_id
                 item.setPos(*posi)
@@ -237,7 +237,7 @@ class Grapher(QMainWindow):
                             本.结点.位置  : [],
                             本.结点.数据类型: common_tools.baseClass.视图结点类型.卡片
                     }
-                    item = self.add_node(pair)
+                    item = self.create_node(pair)
                     self.arrange_node(item)
             list(map(lambda x: self.data.node_dict[x.card_id].item.setSelected(True), pair_li))
             索引 = pair_li[-1].card_id
@@ -250,12 +250,12 @@ class Grapher(QMainWindow):
         common_tools.funcs.Dialogs.open_grapher(gviewdata=self.data.gviewdata.copy(new_name=name), mode=funcs.GraphMode.view_mode)
 
     # node
-    def add_node(self, pair: "LinkDataPair|str"):
+    def create_node(self, pair: "LinkDataPair|str"):
         """
-        add_node 只是单纯地添加, 不会对位置作修改,
+        create_node 只是单纯地添加, 不会对位置作修改,
         如果你没有位置数据,那就调用默认的 arrange_node函数来排版位置
         如果你有位置数据, 那就用 item自己的setPos
-        注意, add_node, 添加的是view中的图形结点, 请在外部完成gviewdata中数据的添加.
+        注意, create_node, 添加的是view中的图形结点, 请在外部完成gviewdata中数据的添加.
         """
         card_id = pair if type(pair) == str else pair.card_id
         if card_id not in self.data.node_dict:
@@ -273,7 +273,7 @@ class Grapher(QMainWindow):
     def load_node(self, pair_li: "list[LinkDataPair|str|GViewData|None]", begin_item=None, selected_as_center=True, 参数_视图结点类型=common_tools.baseClass.视图结点类型.卡片):
         """
         load_node 2023年1月20日05:48:58 目前暂时针对card结点使用, 不针对view结点使用
-        load_node从外部直接读取,并且要完成排版任务, 比较复杂 建议用add_node,add_node比较单纯"""
+        load_node从外部直接读取,并且要完成排版任务, 比较复杂 建议用create_node,create_node比较单纯"""
         if pair_li is None:
             return
         item_li = []
@@ -290,7 +290,7 @@ class Grapher(QMainWindow):
                 结点集[card_id] = funcs.GviewOperation.依参数确定视图结点数据类型模板(参数_视图结点类型)
                 self.data.node_dict[card_id] = self.data.Node(card_id)
 
-                item = self.add_node(card_id)  # 我就单纯读
+                item = self.create_node(card_id)  # 我就单纯读
                 item_li.append(card_id)
                 if begin_item:
                     self.arrange_node(item, begin_item)
@@ -431,8 +431,10 @@ class Grapher(QMainWindow):
         self.data.node_dict[card_idA].edges.append(self.data.edge_dict[card_idA][card_idB])
         if f"{card_idA},{card_idB}" not in self.data.gviewdata.edges:
             self.data.gviewdata.edges[f"{card_idA},{card_idB}"]=funcs.GviewOperation.默认视图边数据模板()
+        self.data.inverse_edge[card_idA,card_idB]=self.data.edge_dict[card_idA][card_idB]
 
         self.scene.addItem(edgeItem)
+
 
         if add_bilink:
             self.add_bilink(card_idA, card_idB)
@@ -447,11 +449,14 @@ class Grapher(QMainWindow):
         nodes = self.data.node_dict
         edge = edges[card_idA][card_idB]
         if edge:
+            # self.data.inverse_edge_dict
             self.scene.removeItem(edge.item)
             nodes[card_idA].edges.remove(edge)
             edge.item.hide()
         # nodes[card_idB].edges.remove(edge)
         edges[card_idA][card_idB] = None
+        del self.data.inverse_edge[card_idA,card_idB]
+
         if remove_globalLink:
             self.remove_globalLink(card_idA, card_idB)
         pass
@@ -492,7 +497,7 @@ class Grapher(QMainWindow):
         last_card_id: "" = None
         last_item = None
         for card_id, node in self.data.node_dict.items():
-            item = self.add_node(card_id)
+            item = self.create_node(card_id)
             # funcs.Utils.print(self.data.gviewdata.nodes[card_id],need_logFile=True)
             if self.data.graph_mode == GraphMode.view_mode and card_id in self.data.gviewdata.nodes \
                     and self.data.gviewdata.nodes[card_id][本.结点.位置]:  # * Done: 修改数据读取方式
@@ -500,8 +505,8 @@ class Grapher(QMainWindow):
             else:
                 self.arrange_node(item)
             last_item = item
-        self.update_all_edges_posi()
         if last_item:
+            self.   update_all_edges_posi()
             # last_item.setSelected(True)
             self.view.centerOn(item=last_item)
         if self.data.graph_mode == GraphMode.normal:
@@ -563,6 +568,7 @@ class Grapher(QMainWindow):
             self._edge_dict: "Optional[dict[str,dict[str,Optional[Grapher.Entity.Edge]]]]" = {}
             self.currentSelectedEdge: "list[Grapher.ItemEdge]" = []
             self.state = Grapher.Entity.State()
+            self.inverse_edge = self.InverseEdge() # 反向表
 
         @property
         def node_dict(self) -> 'dict[str,Grapher.Entity.Node]':
@@ -677,6 +683,42 @@ class Grapher(QMainWindow):
             mouseRightClicked: bool = False
             mouseLeftClicked: bool = False
 
+        class InverseEdge:
+            """
+            输入以正向输入, 查询以反向查询
+            """
+
+            def __init__(self):
+                self.反查表: "dict[str,dict[str,Grapher.Entity.Edge]]" = {}
+
+            def __getitem__(self, item):
+
+                if type(item) != tuple:
+                    if item in self.反查表:
+                        return self.反查表[item]
+                    else:
+                        return {}
+                else:
+                    if item[0] in self.反查表 and item[1] in self.反查表[item[0]]:
+                        return self.反查表[item[0]][item[1]]
+                    else:
+                        return None
+
+            def __setitem__(self, key, value):
+                A, B = key
+                if B not in self.反查表:
+                    self.反查表[B] = {}
+                self.反查表[B][A] = value
+
+            def __delitem__(self, key):
+                """删除以正向删除"""
+                if type(key) == tuple:
+                    if key[1] in self.反查表 and key[0] in self.反查表[key[1]]:
+                        del self.反查表[key[1]][key[0]]
+                else:
+                    raise TypeError("key must be tuple")
+                pass
+
     class View(QGraphicsView):
         def __init__(self, parent: "Grapher"):
             super().__init__(parent)
@@ -731,7 +773,8 @@ class Grapher(QMainWindow):
             if event.buttons() == Qt.MouseButton.LeftButton:
                 self.superior.data.state.mouseIsMovingAndLeftClicked = True
                 if self.superior.scene.selectedItems() and self.itemAt(event.pos()):
-                    self.superior.update_all_edges_posi()
+                    # self.superior.update_all_edges_posi()
+                    pass
                 if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
                     choose1 = len(self.superior.scene.selectedItems()) == 1
                     if isinstance(self.draw_line_start_item, Grapher.ItemRect) and choose1:
@@ -873,17 +916,18 @@ class Grapher(QMainWindow):
             # * Done:2022年12月27日00:13:23 设计边名的显示
 
         def update_line(self):
-            p1 = self.itemStart.mapToScene(self.itemStart.boundingRect().center())
-            p2 = self.itemEnd.mapToScene(self.itemEnd.boundingRect().center())
-            rectA = self.itemStart.mapRectToScene(self.itemStart.rect())
-            rectB = self.itemEnd.mapRectToScene(self.itemEnd.rect())
+            p1:QPointF = self.itemStart.mapToScene(self.itemStart.boundingRect().center())
+            p2:QPointF = self.itemEnd.mapToScene(self.itemEnd.boundingRect().center())
+            # rectA = self.itemStart.mapRectToScene(self.itemStart.rect())
+            # rectB = self.itemEnd.mapRectToScene(self.itemEnd.rect())
             # pA = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rectA)
             # pB = common_tools.funcs.Geometry.IntersectPointByLineAndRect(QLineF(p1, p2), rectB)
 
             # if pA is not None: p1=pA
             # if pB is not None: p2=pB
-            line = QLineF(p1, p2)
-            self.setLine(line)
+            # line = QLineF(p1, p2)
+            self.setLine(p1.x(),p1.y(),p2.x(),p2.y())
+            # self.setLine(line)
             self.show()
             self.setVisible(True)
             # print(f"self visibility = {self}")
@@ -941,7 +985,7 @@ class Grapher(QMainWindow):
                 self.setPen(self.normal_pen)
                 self.setZValue(1)
             self.绘制边名(painter)
-
+            # self.update_line()
 
             # 文本 = self.获取实体数据().描述 if self.获取实体数据().描述 != "" \
             #     else "debug hello world world hello" \
@@ -1125,9 +1169,23 @@ class Grapher(QMainWindow):
 
         def mouseMoveEvent(self, event: 'QGraphicsSceneMouseEvent') -> None:
             self.prepareGeometryChange()
-            edges = self.superior.data.node_dict[self.索引].edges
-            for edge in edges:
-                edge.item.update_line()
+            if event.buttons() == Qt.MouseButton.LeftButton:
+                edges = self.superior.data.node_dict[self.索引].edges
+                for edge in edges:
+                    edge.item.update_line()
+                    # cardA,cardB = edge.nodes[0].索引,edge.nodes[1].索引
+                for edge in self.superior.data.inverse_edge[self.索引].values():
+                    edge.item.update_line()
+                    # if cardB in self.superior.data.edge_dict and cardA in self.superior.data.edge_dict[cardB] and \
+                    #         self.superior.data.edge_dict[cardA][cardB] is not None:
+                    #     self.superior.data.edge_dict[cardA][cardB].item.update_line()
+
+                # cardA = self.索引
+                # if cardA in self.superior.data.edge_dict:
+                #     for cardB in self.superior.data.edge_dict[cardA].keys():
+                #         self.superior.data.edge_dict[cardA][cardB].item.update_line()
+
+
             # if not self.contextMenuOpened:
             super().mouseMoveEvent(event)
 
@@ -1140,6 +1198,7 @@ class Grapher(QMainWindow):
                 self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, True)
 
         # def drawRedDot(self):
+
 
         def 结点数据(self):
             return self.superior.data.gviewdata.nodes[self.索引]
@@ -1188,7 +1247,7 @@ class Grapher(QMainWindow):
                 painter.setBrush(QBrush(self.due_dot_style))
                 painter.drawEllipse(header_rect.right() - 5, 0, 5, 5)
             # TODO 设计读取卡片的flag
-
+            # self.update_line()
         pass
 
     class ToolBar(QToolBar):
@@ -1310,8 +1369,8 @@ class Grapher(QMainWindow):
         def deleteEdgeItem(self, item: "Grapher.ItemEdge"):
             # cardA = item.itemStart.pair.card_id
             # cardB = item.itemEnd.pair.card_id
-            modifyGlobalLink = self.superior.data.graph_mode == GraphMode.normal
-            self.superior.remove_edge(*item.获取关联的结点(), modifyGlobalLink)
+            # modifyGlobalLink = self.superior.data.graph_mode == GraphMode.normal
+            self.superior.remove_edge(*item.获取关联的结点(), False)
             pass
 
         def deleteRectItem(self, item: "Grapher.ItemRect"):
@@ -1335,18 +1394,17 @@ class Grapher(QMainWindow):
             pass
 
         def deleteItem(self):  # 0=rect,1=line
-            rectItem: "list[Grapher.ItemRect]" = list(filter(lambda item: isinstance(item, Grapher.ItemRect), self.superior.scene.selectedItems()))
-            lineItem: "list[Grapher.ItemEdge]" = list(filter(lambda item: isinstance(item, Grapher.ItemEdge), self.superior.scene.selectedItems()))
+            rectItem: "list[Grapher.ItemRect]" = [item for item in self.superior.scene.selectedItems() if isinstance(item, Grapher.ItemRect)]
+            lineItem: "list[Grapher.ItemEdge]" = [item for item in self.superior.scene.selectedItems() if isinstance(item, Grapher.ItemEdge)]
 
             code = QMessageBox.information(self, 译.你将删除这些结点,译.你将删除这些结点, QMessageBox.Yes | QMessageBox.No)
             if code == QMessageBox.Yes:
                 if len(rectItem) > 0:
                     for item in rectItem:
                         self.deleteRectItem(item)
-                elif len(lineItem) > 0:
+                if len(lineItem) > 0:
                     for item in lineItem:
                         self.deleteEdgeItem(item)
-
             # item = self.superior.scene.selectedItems()[0]
             # if isinstance(item, Grapher.ItemRect):
             #     self.deleteRectItem(item)
