@@ -7,7 +7,7 @@ __email__ = '564298339@qq.com'
 __time__ = '2022/8/17 0:57'
 本文件用于将 linkinfo.db中的全部对象修改其sync行为
 """
-# from lib.common_tools import funcs, G
+from lib.common_tools import funcs, G
 # from lib.common_tools.compatible_import import *
 # from lib.common_tools.objs import LinkDataPair
 # from lib.common_tools import G, baseClass,funcs
@@ -22,34 +22,38 @@ import abc
 from PyQt5.QtWidgets import QApplication, QDialog, QLabel, QPushButton, QVBoxLayout, QTextEdit
 
 if __name__ == "__main__":
-    class 视图结点类型:
-        卡片 = "card"
-        视图 = "view"
+    app = QApplication(sys.argv)
+    print(funcs.组件定制.长文本获取())
 
-
-    class A:
-
-
-        @staticmethod
-        def 打印参数(函数):
-            def 包装(*args, **kwargs):
-                结果 = 函数(*args, **kwargs)
-                print(args, kwargs)
-                return 结果
-
-            return 包装
-
-        @A.打印参数
-        def 一加一(self):
-            return 1 + 1
-
-        @打印参数
-        def 一加几(self, num):
-            return 1 + num
-
-
-    print(A().一加一())
-    print(A().一加几(2))
+    sys.exit(app.exec_())
+    # class 视图结点类型:
+    #     卡片 = "card"
+    #     视图 = "view"
+    #
+    #
+    # class A:
+    #
+    #
+    #     @staticmethod
+    #     def 打印参数(函数):
+    #         def 包装(*args, **kwargs):
+    #             结果 = 函数(*args, **kwargs)
+    #             print(args, kwargs)
+    #             return 结果
+    #
+    #         return 包装
+    #
+    #     @A.打印参数
+    #     def 一加一(self):
+    #         return 1 + 1
+    #
+    #     @打印参数
+    #     def 一加几(self, num):
+    #         return 1 + num
+    #
+    #
+    # print(A().一加一())
+    # print(A().一加几(2))
     # class B(A):
     #     pass
     #

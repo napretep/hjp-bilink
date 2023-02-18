@@ -9,7 +9,7 @@ TODO: 把所有的models移动到这里来
 """
 import datetime
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any,Callable,Optional
 
 from .compatible_import import *
 from . import funcs, baseClass, language, widgets
@@ -33,13 +33,17 @@ class 函数库_UI展示:
         return btn
 
     @staticmethod
-    def 做成行(左: "QWidget|QLayout", 右: "QPushButton"):
+    def 做成行(左: "QWidget|QLayout", 右: "QPushButton|Widget|QLayout"):
         布局 = QHBoxLayout()
         if isinstance(左, QWidget):
             布局.addWidget(左, stretch=1)
         else:
-            布局.addLayout(左, stretch=0)
-        布局.addWidget(右)
+            布局.addLayout(左, stretch=1)
+
+        if isinstance(右, QWidget):
+            布局.addWidget(右, stretch=0)
+        else:
+            布局.addLayout(右, stretch=0)
         布局.setContentsMargins(0, 0, 0, 0)
         return 布局
 
@@ -58,7 +62,30 @@ class 函数库_UI展示:
         self = 函数库_UI展示
         按钮 = self.提示按钮(项.说明)
         组件 = QLabel(项.组件显示值)
+        组件.setWordWrap(True)
         return self.做成行(组件, 按钮)
+        pass
+
+    @staticmethod
+    def editable_label(项: "基类_属性项"):
+        self = 函数库_UI展示
+        按钮 = self.提示按钮(项.说明)
+        按钮2= QPushButton(QIcon(funcs.G.src.ImgDir.edit), "")
+        右侧布局 = QVBoxLayout()
+        组件 = QLabel(项.组件显示值)
+        [右侧布局.addWidget(i) for i in [按钮,按钮2]]
+
+        def on_edit():
+            结果 = funcs.组件定制.长文本获取(组件.text())
+            if len(结果)>0:
+                组件.setText(结果[0])
+                项.设值(结果[0])
+            pass
+
+        按钮2.clicked.connect(on_edit)
+
+
+        return self.做成行(组件, 右侧布局)
         pass
 
     @staticmethod
@@ -70,12 +97,15 @@ class 函数库_UI展示:
         临时文本储存 = [""]
 
         def when_need_update():
+            # tooltip(组件.toPlainText())
+            # 项.设值(组件.toPlainText())
             组件.blockSignals(False)
             if 临时文本储存[0] != 组件.toPlainText():
                 临时文本储存[0] = 组件.toPlainText()
                 组件.blockSignals(True)
                 return QTimer.singleShot(100, when_need_update)
             else:
+                # tooltip("设置成功")
                 项.设值(组件.toPlainText())
 
         组件.textChanged.connect(when_need_update)
@@ -129,7 +159,8 @@ class 函数库_UI展示:
                 枚举.组件类型.checkbox : self.checkbox,
                 枚举.组件类型.text     : self.text,
                 枚举.组件类型.customize: self.customize,
-                枚举.组件类型.time     : self.time
+                枚举.组件类型.time     : self.time,
+                枚举.组件类型.editable_label:self.editable_label
         }
         return 函数字典[项.组件类型](项)
 
@@ -148,6 +179,7 @@ class 基类_模型:
     def 创建UI(self, 父类组件: "QWidget" = None):
         对话框 = 父类组件 if 父类组件 else QDialog()
         表单布局 = QFormLayout()
+        表单布局.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         for 属性名 in self.__dict__.keys():
             if isinstance(self.__dict__[属性名], 基类_属性项):
                 项: 类型_视图结点属性项 = self.__dict__[属性名]
@@ -178,14 +210,14 @@ class 基类_属性项:
     可展示中编辑: "int" = 0  # 需要对应的可展示中编辑组件, 与可展示联合判断
     推算得到: "int" = 0  # 需要提供推算方法
     用户可访: "int" = 0
-    推算函数: "None|Callable[[基类_属性项],Any]" = None
     组件类型: "int" = None
-    组件传值方式: "None|Callable[[值],Any]" = None
-    保存值的函数: "None|Callable[[基类_属性项,Any],Any]" = None
     有校验: "int" = 0
-    校验函数: "None|Callable[[值],bool]" = None
     有限制: "int" = 0
     限制: "list" = field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT])
+    推算函数: "None|Callable[[基类_属性项],Any]" = None
+    组件传值方式: "None|Callable[[基类_属性项],Any]" = None
+    _保存值的函数: Optional[Callable[["基类_属性项",Any],None]] = None
+    校验函数: "None|Callable[[基类_属性项],bool]" = None
     自定义组件: "None|Callable[[基类_属性项],QWidget]" = None
     上级 = None
 
@@ -196,9 +228,13 @@ class 基类_属性项:
     def 设值(self, value):
         raise NotImplementedError()
 
+    @staticmethod
+    def 保存值的函数(self,value):
+        self._保存值的函数(self,value)
+
     @property
     def 组件显示值(self):
-        if self.组件类型 in [枚举.组件类型.label, 枚举.组件类型.text]:
+        if self.组件类型 in [枚举.组件类型.label, 枚举.组件类型.text,枚举.组件类型.editable_label]:
             return self.值.__str__() if not self.组件传值方式 else self.组件传值方式(self)
         else:
             return self.值 if not self.组件传值方式 else self.组件传值方式(self)
@@ -242,8 +278,8 @@ class 类型_视图结点属性项(基类_属性项):
         if self.可保存到视图数据:
             数据.nodes[编号][self.字段名] = value
             funcs.GviewOperation.save(数据)
-        elif self.保存值的函数:
-            self.保存值的函数(self)
+        elif self._保存值的函数:
+            self.保存值的函数(self, value)
         else:
             raise ValueError("未知的保存方式,或者不该保存")
         if self.上级.UI创建完成:
@@ -461,8 +497,8 @@ class 类型_视图结点模型(基类_模型):
             推算得到=1,  # 需要提供推算方法
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             推算函数=lambda 项: funcs.GviewOperation.获取视图结点描述(项.上级.数据源.视图数据, 项.上级.数据源.结点编号),
-            组件类型=枚举.组件类型.text,  # 展示用的组件
-            保存值的函数=lambda 项: funcs.GviewOperation.设定视图结点描述(项.上级.数据源.视图数据, 项.上级.数据源.结点编号, 项.值)
+            组件类型=枚举.组件类型.editable_label,  # 展示用的组件
+            _保存值的函数=lambda 项,新值: funcs.GviewOperation.设定视图结点描述(项.上级.数据源.视图数据, 项.上级.数据源.结点编号, 新值)
             # 组件传值方式=None,
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
@@ -602,8 +638,8 @@ class 类型_视图本身属性项(基类_属性项):
     def 设值(self, value):
         if self.可保存:
             self.上级.数据源.meta[self.字段名] = value
-        elif self.保存值的函数:
-            self.保存值的函数(self)
+        elif self._保存值的函数:
+            self.保存值的函数(self, value)
         else:
             raise NotImplementedError()
         if self.上级.UI创建完成:
@@ -635,10 +671,10 @@ class 类型_视图本身模型(基类_模型):
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             可展示中编辑=1,  # 需要对应的可展示中编辑组件, 与可展示联合判断
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
-            组件类型=枚举.组件类型.text,  # 展示用的组件
+            组件类型=枚举.组件类型.editable_label,  # 展示用的组件
             推算得到=1,
             推算函数=lambda 项: 项.上级.数据源.name,
-            保存值的函数=lambda 项: funcs.GviewOperation.重命名(项.上级.数据源, 项.值)
+            _保存值的函数=lambda 项,新值: funcs.GviewOperation.重命名(项.上级.数据源, 新值)
     ))
 
     创建时间: 类型_视图本身属性项 = field(default_factory=lambda: 类型_视图本身属性项(
@@ -770,5 +806,5 @@ class 类型_视图边模型(基类_模型):
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             可展示中编辑=1,  # 需要对应的可展示中编辑组件, 与可展示联合判断
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
-            组件类型=枚举.组件类型.text,  # 展示用的组件
+            组件类型=枚举.组件类型.editable_label,  # 展示用的组件
     ))

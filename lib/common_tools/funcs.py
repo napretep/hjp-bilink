@@ -127,6 +127,7 @@ class GviewOperation:
     def 重命名(视图数据:GViewData,新名字):
         视图数据.name = 新名字
         GviewOperation.save(视图数据)
+        tooltip("改名成功".format(view_name=视图数据.name,name=新名字))
 
     @staticmethod
     def 获取主要结点编号(视图数据:GViewData):
@@ -719,12 +720,16 @@ class 组件定制:
         return 组件
 
     @staticmethod
-    def 对话窗口(标题=None, 图标=None):
+    def 对话窗口(标题=None, 图标=None,最大宽度=None,closeEvent=None):
         组件 = QDialog()
         if 标题:
             组件.setWindowTitle(标题)
         if 图标:
             组件.setWindowIcon(图标)
+        if 最大宽度:
+            组件.setMaximumWidth(最大宽度)
+        if closeEvent:
+            组件.closeEvent=closeEvent
         return 组件
 
     @staticmethod
@@ -744,6 +749,22 @@ class 组件定制:
         if 触发函数:
             组件.clicked.connect(触发函数)
         return 组件
+
+    @staticmethod
+    def 长文本获取(预置内容=None,标题=None,获取回调:Callable[[str],Any]=None):
+        布局, 组件, 子代 = 0, 1, 2
+        result=[]
+        对话框布局 = {
+                布局:QVBoxLayout(),子代:[
+                        {组件:QTextEdit(预置内容)},
+                        {组件:QPushButton(QIcon(G.src.ImgDir.correct),"")}
+                ]
+        }
+        对话框:"QDialog" = 组件定制.组件组合(对话框布局,组件定制.对话窗口(标题))
+        对话框布局[子代][1][组件].clicked.connect(lambda:[result.append(对话框布局[子代][0][组件].toPlainText()),对话框.close()])
+
+        对话框.exec()
+        return result
     # @staticmethod
     # def 批量布局(布局:"QVBoxLayout|QHBoxLayout|QFormLayout",布局组件表:"list"):
     #     if isinstance(布局,QFormLayout):
@@ -1104,7 +1125,7 @@ class GviewConfigOperation(BaseConfig):
         return list(result)
 
     @staticmethod
-    def 获取结点角色数据源(gview_uuid=None, gview_data: "GViewData" = None) -> list[str]:
+    def 获取结点角色数据源(gview_uuid=None, gview_data: "GViewData" = None) -> "list[str]":
 
         if gview_uuid:
             data = GviewOperation.load(gview_uuid)

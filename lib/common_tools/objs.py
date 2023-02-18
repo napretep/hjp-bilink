@@ -1012,7 +1012,8 @@ class Table:
         """grapher的固定视图,G代表graph, 目前想到的串有,uuid,name,member_info_json, 需要根据卡片id反查所属view时,查找"""
 
         def ordered_fields(self) -> "list[str]":
-            return ["uuid","name","nodes","edges","config","last_view","last_edited","view_count","created_time","card_content_cache"]
+            return ["uuid","name","nodes","edges","config", "view_created_time", "view_last_visit", "view_last_edit",  "view_last_review",
+                    "view_visit_count", "card_content_cache"]
             pass
 
         uuid: "str" = "varchar(8) primary key not null unique"
@@ -1020,10 +1021,11 @@ class Table:
         nodes:"str" = "text"
         edges:"str" = "text"
         config:"str" = "varchar"
-        created_time:"str" = "integer"
-        last_edited:"str" ="integer"
-        last_view:"str"="integer"
-        view_count:"str"="integer"  # 浏览次数
+        view_created_time:"str" = "integer"
+        view_last_visit:"str"="integer"
+        view_last_edit:"str" ="integer"
+        view_last_review:"str"="integer"
+        view_visit_count:"str"="integer"  # 浏览次数
         card_content_cache:"str" = "text"  # 卡片内容缓存, 用来实现按照卡片内容搜索视图.
         def constrain(self):
             return {
@@ -1280,13 +1282,7 @@ class GviewRecord:
         self.nodes = kwargs["nodes"]
         self.edges = kwargs["edges"]
         self.config = kwargs["config"]
-        self.meta = {
-                "created_time":kwargs["created_time"],
-                "last_edited":kwargs["last_edited"],
-                "last_view":kwargs["last_view"],
-                "view_count":kwargs["view_count"],
-                # "card_content_cache":kwargs["card_content_cache"],
-        }
+        self.meta = kwargs
 
 
     def to_GviewData(self):

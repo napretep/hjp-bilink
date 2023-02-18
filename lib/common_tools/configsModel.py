@@ -108,7 +108,7 @@ class GViewData:
         self.uuid = uuid
         self.name = name
         self.config = config
-        self.meta=funcs.GviewOperation.默认元信息模板(None if "meta" not in kwargs else kwargs["meta"])
+        self.meta=funcs.GviewOperation.默认元信息模板(kwargs["meta"] if "meta" in kwargs else None)
         if 版本20221226:
             self.nodes = {}
             self.edges = {}
@@ -177,7 +177,7 @@ class GViewData:
                 "nodes" : f"{json.dumps(self.nodes,ensure_ascii=False)}",
                 "edges" : f"{json.dumps(self.edges,ensure_ascii=False)}",
                 "config": self.config,
-                **self.meta
+                **self.meta #保存时将每个字段都提出来
         }
 
 

@@ -82,9 +82,12 @@ class 枚举命名:
         slider = 11
         checkbox=12
         time = 13
+        editable_label=14
+
 
     class 砖:
         布局, 组件, 子代 = 0, 1, 2
+        框, 件, 子 = 0, 1, 2
     范围 = "range"
     组件 = "widget"
     值 = "value"

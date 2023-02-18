@@ -93,7 +93,7 @@ class Grapher(QMainWindow):
         self.data.gviewdata.数据更新.视图访问发生()
 
     def 自身属性查看器(self):
-        self.data.gviewdata.meta_helper.创建UI(funcs.组件定制.对话窗口(标题="info of view")).exec()
+        self.data.gviewdata.meta_helper.创建UI(funcs.组件定制.对话窗口(标题="info of view",最大宽度=600)).exec()
 
 
     def 结点属性查看器(self, item: "Grapher.ItemRect|Grapher.ItemEdge"):
@@ -456,12 +456,15 @@ class Grapher(QMainWindow):
 
             # def 备份视图元信息():
             #     self.gviewdata.meta = funcs.GviewOperation.默认元信息模板(self.gviewdata.meta)
+            # self.gviewdata.meta = funcs.GviewOperation.默认元信息模板(self.gviewdata.meta)
 
             # 备份视图元信息()
             # get_nodeinfo_list()
             # get_edgeinfo_list()
             funcs.GviewOperation.save(self.gviewdata)
             # return node_info_list, edge_info_list
+            # showInfo(self.gviewdata.meta.__str__())
+
 
         def remove_from_node_data(self,node_id):
             node = self.node_dict[node_id]
@@ -996,11 +999,10 @@ class Grapher(QMainWindow):
             if event.buttons() == Qt.MouseButton.LeftButton:
                 if self.结点类型== 枚举_视图结点类型.卡片:
                     common_tools.funcs.Dialogs.open_custom_cardwindow(self.索引)
-                    self.superior.data.gviewdata.数据更新.结点访问发生(self.索引)
                 elif self.结点类型== 枚举_视图结点类型.视图:
                     data = common_tools.funcs.GviewOperation.load(uuid=self.索引)
                     common_tools.funcs.Dialogs.open_grapher(gviewdata=data, mode=GraphMode.view_mode)
-                self.superior.结点访问记录更新(self.索引)
+                self.superior.data.gviewdata.数据更新.结点访问发生(self.索引)
 
             super().mouseDoubleClickEvent(event)
 
@@ -1946,7 +1948,7 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.按钮1_完成复习 = QPushButton("reviewed")
             self.按钮2_打开视图 = QPushButton("open")
             self.按钮2_打开视图.clicked.connect(self.open_current_view_roaming)
-            self.按钮1_完成复习.clicked.connect(self.当完成复习)
+            self.按钮1_完成复习.clicked.connect(self.on_review_completed)
             self.组件_视图信息 = QWidget()
             self.当前视图数据:"None|GViewData"=None
             # self.视图信息组件_内容 = self.视图信息组件的内容(self)
@@ -1960,7 +1962,7 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.setLayout(self.垂直布局)
             self.初始化UI()
 
-        def 当完成复习(self):
+        def on_review_completed(self):
             self.当前视图数据.数据更新.视图复习发生()
             self.上级.item_finish()
             pass
