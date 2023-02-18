@@ -886,7 +886,7 @@ class VisualBilinker(QMainWindow):
         def make_context_menu(self):
             menu = QMenu()
 
-            menu.addAction(译.删除).triggered.connect(self.superior.del_selected_node)
+            menu.addAction(译.移除).triggered.connect(self.superior.del_selected_node)
             # noinspection PyUnresolvedReferences
             menu.addAction(译.修改描述).triggered.connect(lambda: self.superior.card_edit_desc(self))
 

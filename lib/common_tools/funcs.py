@@ -124,23 +124,43 @@ class MenuMaker:
 class GviewOperation:
 
     @staticmethod
+    def 重命名(视图数据:GViewData,新名字):
+        视图数据.name = 新名字
+        GviewOperation.save(视图数据)
+
+    @staticmethod
+    def 获取主要结点编号(视图数据:GViewData):
+        return [结点 for 结点 in 视图数据.nodes if 视图数据.node_helper[结点].主要结点==True]
+
+    @staticmethod
     def 判断结点已到期(视图数据:GViewData,结点编号:str):
         现在 = int(time.time())
-        if 视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.卡片:
+        类型 = 视图数据.node_helper[结点编号].数据类型.值
+
+        if 类型 == 枚举_视图结点类型.卡片:
             return int(CardOperation.getLastNextRev(结点编号)[1].timestamp())<=现在
-        elif 视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.视图:
+        elif 类型 == 枚举_视图结点类型.视图:
             return True
         else:
-            raise NotImplementedError()
+            raise NotImplementedError(
+                    {枚举_视图结点类型.卡片:
+                         [视图数据.node_helper[结点编号].数据类型.值,
+                          {"result1":视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.卡片},
+                          {"result2":视图数据.node_helper[结点编号].数据类型.值 == 枚举_视图结点类型.卡片}],
+                     枚举_视图结点类型.视图:
+                         [视图数据.node_helper[结点编号].数据类型.值,
+                          {"result1":视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.视图},
+                          {"result2":视图数据.node_helper[结点编号].数据类型.值 == 枚举_视图结点类型.视图}]})
 
     @staticmethod
     def 结点上次复习时间(视图数据:GViewData,结点编号:str):
         """如果是卡片, 则调用 CardOperation.上次复习时间(结点编号)
         否则另外解决
         """
-        if 视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.卡片:
+        类型 = 视图数据.node_helper[结点编号].数据类型.值
+        if 类型 == 枚举_视图结点类型.卡片:
             return CardOperation.getLastNextRev(结点编号)[0]
-        elif 视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.视图:
+        elif 类型 == 枚举_视图结点类型.视图:
             return Utils.时间戳转日期(视图数据.meta[字典键名.视图.上次复习])
         else:
             raise NotImplementedError()
@@ -344,17 +364,6 @@ class GviewOperation:
         return final_givew
 
     @staticmethod
-    def update(data: GViewData):
-        """把数据写回到数据库"""
-        DB = G.DB
-        DB.go(DB.table_Gview)
-        d = data.to_DB_format()
-        d.pop("uuid")
-        DB.update(values=DB.VALUEEQ(**d), where=DB.EQ(uuid=data.uuid)).commit()
-        # name=d["name"],nodes=d["nodes"],edges=d["edges"]
-        DB.end()
-
-    @staticmethod
     def delete(uuid: str = None, uuid_li: "Iterable[str]" = None):
         """"""
         from ..bilink.dialogs.linkdata_grapher import Grapher
@@ -462,7 +471,7 @@ class GviewOperation:
     @staticmethod
     def 默认视图边数据模板(数据=None):
         默认值 = {
-                字典键名.结点.边名: ""
+                字典键名.边.名称: ""
         }
         return Utils.字典缺省值填充器(默认值, 数据)
 

@@ -60,6 +60,10 @@ from typing import TYPE_CHECKING
 
 本 = baseClass.枚举命名
 译 = Translate
+
+
+
+
 @dataclass
 class GViewData:
     """视图数据类
@@ -85,7 +89,7 @@ class GViewData:
     meta: "Optional[dict[str,int|None|str]]"=None
     config: 'str' = ""  # * Done 2022年11月25日22:46:21: 记录配置表uuid, 需要用的时候读取
     def __init__(self,**kwargs):
-        from . import funcs
+        from . import funcs,models
         uuid,name,nodes,edges = kwargs["uuid"],kwargs["name"],kwargs["nodes"],kwargs["edges"]
         if "config" in kwargs:
             config = kwargs["config"]
@@ -122,17 +126,25 @@ class GViewData:
                 for 标识, 值 in edges.items():
                     self.edges[标识]= funcs.GviewOperation.默认视图边数据模板(值)
         self.node_helper = self.获得结点的详细设定()
-
+        self.meta_helper = models.类型_视图本身模型().初始化(self)
+        self.edge_helper = self.获得边的详细设定()
+        self.数据更新 = self.类_函数库_数据更新(self)
 
         # funcs.Utils.print(self,need_logFile=True)
+    def 获得边的详细设定(self):
+        from . models import 类型_视图边模型
+        助手 = {}
+        for key,value in self.edges.items():
+            助手[key]=类型_视图边模型().初始化(self,key)
+        return 助手
 
     def 获得结点的详细设定(self):
         from . models import 类型_视图结点模型
-        视图结点助手 = {}
+        助手 = {}
         for key,value in self.nodes.items():
-            视图结点助手[key]=类型_视图结点模型()
-            视图结点助手[key].初始化()
-        return 视图结点助手
+            助手[key]=类型_视图结点模型()
+            助手[key].初始化(self,key)
+        return 助手
 
     def 清除无效结点(self):
         from . import funcs, baseClass
@@ -168,12 +180,14 @@ class GViewData:
                 **self.meta
         }
 
-    def 访问次数加1(self):
-        pass
+
 
     def 获取结点描述(self,编号,全部内容=False):
         from . import funcs
         return funcs.GviewOperation.获取视图结点描述(self,编号,全部内容)
+
+
+
 
     def __hash__(self):
         return int(self.uuid, 16)
@@ -185,6 +199,82 @@ class GViewData:
             return other == self.uuid
         else:
             raise  ValueError("未知的比较对象")
+
+
+
+    def 新增边(self,a,b,文字=""):
+        from . import funcs, models
+        a_b = f"{a},{b}"
+        self.edges[a_b]=funcs.GviewOperation.默认视图边数据模板({本.边.名称:文字})
+        self.node_helper[a_b] = models.类型_视图边模型().初始化(self, a_b)
+
+    def 删除边(self,a=None,b=None):
+        if a and b :
+            a_b=f"{a},{b}"
+            if a_b in self.edges:
+                del self.edges[a_b]
+            if a_b in self.node_helper:
+                del self.node_helper[a_b]
+        else:
+            edge_list = list(self.edges.keys())
+            for a_b in edge_list:
+                if a in a_b:
+                    del self.edges[a_b]
+                    if a_b in self.node_helper:
+                        del self.node_helper[a_b]
+
+    def 新增结点(self,编号,类型):
+        from . import funcs,models
+        self.nodes[编号]=funcs.GviewOperation.依参数确定视图结点数据类型模板(类型)
+        self.node_helper[编号]=models.类型_视图结点模型().初始化(self,编号)
+
+    def 删除结点(self,编号):
+        if 编号 in self.nodes:
+            del self.nodes[编号]
+        if 编号 in self.node_helper:
+            del self.node_helper[编号]
+        edge_list = list(self.edges.keys())
+        for a_b in edge_list:
+            if 编号 in a_b:
+                del self.edges[a_b]
+                if a_b in self.node_helper:
+                    del self.node_helper[a_b]
+
+    class 类_函数库_数据更新:
+        def __init__(self,上级:"GViewData"):
+            self.上级:"GViewData"= 上级
+
+        def 保存视图数据(self):
+            from . import funcs
+            funcs.GviewOperation.save(self.上级)
+
+        def 视图编辑发生(self):
+            self.上级.meta[本.视图.上次编辑]=(int(time.time()))
+            self.保存视图数据()
+            pass
+
+        def 视图访问发生(self):
+            self.上级.meta[本.视图.上次访问] = (int(time.time()))
+            self.上级.meta[本.视图.访问次数] += 1
+            self.保存视图数据()
+            pass
+
+        def 视图复习发生(self):
+            self.上级.meta[本.视图.上次复习] = (int(time.time()))
+            self.保存视图数据()
+
+        def 结点编辑发生(self,结点编号):
+            self.上级.nodes[结点编号][本.结点.上次编辑]=(int(time.time()))
+            self.保存视图数据()
+
+        def 结点访问发生(self,结点编号):
+            self.上级.nodes[结点编号][本.结点.上次访问]=(int(time.time()))
+            self.上级.nodes[结点编号][本.结点.访问次数]+=1
+            self.保存视图数据()
+
+
+
+
 @dataclass
 class GraphMode:
     normal: int = 0

@@ -137,6 +137,7 @@ class SrcAdmin:
             self.save = os.path.join(self.root.path.resource_icon, "icon_save.png")
             self.box2 = os.path.join(self.root.path.resource_icon, "icon_box2.png")
 
+
     @dataclasses.dataclass
     class _ShortCut:
         shortcut_browserTableSelected_link = "Alt+1"

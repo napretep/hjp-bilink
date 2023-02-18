@@ -52,14 +52,20 @@ class 枚举命名:
 
         pass
     class 视图:
+        # 保存得
+        名称 = "view_name"
         创建时间 = "view_created_time"
         上次访问 = "view_last_visit"
         上次编辑 = "view_last_edit"
         上次复习 = "view_last_review"
         访问次数 = "view_visit_count"
+        # 推算得
+        到期结点数 = "view_due_node_count"
+        主要结点 = "view_major_Nodes"
 
 
     class 边:
+        名称= "edge_name"
         pass
     class 组件类型:
         spin = 0
@@ -75,6 +81,8 @@ class 枚举命名:
         customize = 10
         slider = 11
         checkbox=12
+        time = 13
+
     class 砖:
         布局, 组件, 子代 = 0, 1, 2
     范围 = "range"

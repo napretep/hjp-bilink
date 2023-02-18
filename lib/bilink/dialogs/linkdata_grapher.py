@@ -64,23 +64,11 @@ class Grapher(QMainWindow):
     def __init__(self,
                  pair_li: "list[LinkDataPair]" = None,  # 直接导入卡片描述对儿
                  gviewdata: "GViewData" = None,  # 读取已经保存过的视图数据
-                 focusOn: "str" = None,
-                 mode=GraphMode.normal, ):
+                 mode=GraphMode.view_mode, ):
         super().__init__()
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, on=True)  # TODO: 'Qt.WA_DeleteOnClose' will stop working. Please use 'Qt.WidgetAttribute.WA_DeleteOnClose' instead.
         self.data = self.Entity(self)
         self.data.gviewdata = gviewdata
-        self.data.node_dict = pair_li
-        if self.data.gviewdata:  # 如果视图数据存在, 转换到链接数据
-            self.data.node_dict = [索引 for 索引 in gviewdata.nodes.keys() if mode == GraphMode.debug_mode or funcs.CardOperation.exists(索引) or funcs.GviewOperation.exists(uuid=索引)]
-            # 下面这段代码是为了去除无效的结点和边
-            # for card_id in self.data.gviewdata.nodes.keys():
-            #     if card_id not in self.data.node_dict:
-            #         del self.data.gviewdata.nodes[card_id]
-            # for cardA_cardB in self.data.gviewdata.edges.keys():
-            #     cardA,cardB=cardA_cardB.split(",")
-            #     if cardA not in self.data.node_dict or cardB not in self.data.node_dict:
-            #         del self.data.gviewdata.nodes[cardA_cardB]
 
         self.data.graph_mode = mode
         self.view = self.View(self)
@@ -88,7 +76,6 @@ class Grapher(QMainWindow):
         self.view.setScene(self.scene)
         self.roaming: "Optional[GrapherRoamingPreviewer]" = None  # roaming是个窗口
 
-        # self.toolBar
         self.toolbar = self.ToolBar(self)
 
         r = self.rect()
@@ -103,33 +90,27 @@ class Grapher(QMainWindow):
                 # [self.on_card_reviewed, lambda card_id : if card_id in self.data.node_dict.keys(): self.data.updateNodeDue() else None]
         ]).bind()
         self.init_graph_item()
-        # if self.data.graph_mode == GraphMode.normal:
-        #     self.init_graph_item()
-        # elif self.data.graph_mode == GraphMode.view_mode:
-        #     self.load_view()
+        self.data.gviewdata.数据更新.视图访问发生()
 
-    def card_edit_desc(self, item: "Grapher.ItemRect"):
-        text, okPressed = common_tools.compatible_import.QInputDialog.getText(self, "get new description", "", text=funcs.CardOperation.desc_extract(item.索引))
-        if okPressed:
-            # item.pair.desc = text
-            if item.结点类型() == 枚举_视图结点类型.卡片:
-                common_tools.funcs.LinkDataOperation.update_desc_to_db(LinkDataPair(item.索引, text))
-                common_tools.funcs.CardOperation.refresh()
-            elif item.结点类型() == 枚举_视图结点类型.视图:
-                self.data.gviewdata.name = text
-                common_tools.funcs.GviewOperation.update(self.data.gviewdata)
+    def 自身属性查看器(self):
+        self.data.gviewdata.meta_helper.创建UI(funcs.组件定制.对话窗口(标题="info of view")).exec()
+
+
+    def 结点属性查看器(self, item: "Grapher.ItemRect|Grapher.ItemEdge"):
+        if isinstance(item, Grapher.ItemRect):
+            self.data.gviewdata.node_helper[item.索引].创建UI(funcs.组件定制.对话窗口(标题="info of node")).exec()
+        if isinstance(item, Grapher.ItemEdge):
+            self.边属性查看器(item)
+        self.data.node_edge_packup()
         pass
 
-    def 编辑边的描述(self, item: "Grapher.ItemEdge"):
-        """FOCUS:边的信息要设计起来,从数据库取出的记录->数据模型->视图模型"""
+    def 边属性查看器(self, item: "Grapher.ItemEdge"):
         开始, 结束 = item.获取关联的结点()
         边数据 = self.data.edge_dict[开始][结束]
-        text, okPressed = common_tools.compatible_import.QInputDialog.getText(self, "get new description", "", text=边数据.描述)
+        text, okPressed = common_tools.compatible_import.QInputDialog.getText(self, "get new description for the edge", "", text=边数据.描述)
         if okPressed:
             边数据.描述 = text
-            self.data.gviewdata.edges[f"{开始},{结束}"][本.结点.边名] = text
-            # self.data.node_edge_packup()
-            # common_tools.funcs.GviewOperation.update(self.data.gviewdata)
+            self.data.gviewdata.edge_helper[f"{开始},{结束}"].边名.设值(text)
         pass
 
     def on_card_updated_handle(self, event):
@@ -160,22 +141,9 @@ class Grapher(QMainWindow):
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         mode = self.data.graph_mode
-        if mode == GraphMode.normal:
-            common_tools.G.mw_grapher = None
-        elif mode == GraphMode.view_mode:
+        if mode == GraphMode.view_mode:
             self.data.node_edge_packup()
 
-            # nodes, edges = self.data.node_edge_packup()
-            # self.data.gviewdata.nodes = nodes # * Done: 这个地方要改, 直接从gviewdata获取的位置数据, 因此要改
-
-            # data = GViewData(uuid = self.data.gviewdata.uuid, name=self.data.gviewdata.name, nodes=nodes, edges=edges, config=self.data.gviewdata.config)
-            # if funcs.GviewOperation.exists(data):
-            #     funcs.GviewOperation.save(data)
-            # else:
-            #     correction = QMessageBox.warning(self, "warning", Translate.本视图已被删除_确定退出么, QMessageBox.Yes | QMessageBox.No)
-            #     if correction == QMessageBox.No:
-            #         a0.ignore()
-            #         return
             if self.roaming:
                 self.roaming.close()
 
@@ -194,55 +162,6 @@ class Grapher(QMainWindow):
     def on_scene_selectionChanged_handle(self):
         self.switch_edge_highlight()
 
-    # view
-    def load_view(self, gviewdata=None):
-        """从外部读取布局事先确定好的内容
-        """
-        CardOperation = common_tools.funcs.CardOperation
-        if gviewdata is None: gviewdata = self.data.gviewdata
-        last_card = ""
-        for card_id, 数据 in gviewdata.nodes.items():  # * Done: 修改数据读取方式
-            posi = 数据[本.结点.位置]
-            if card_id not in self.data.node_dict or posi[0] is None:
-                pair = LinkDataPair(card_id=card_id, desc=CardOperation.desc_extract(card_id))
-                item = self.create_node(pair)
-                self.arrange_node(item)
-            else:
-                item = self.create_node(self.data.node_dict[card_id].索引)
-                item.setSelected(True)
-                last_card = card_id
-                item.setPos(*posi)
-        for cardA_cardB in gviewdata.edges:
-            cardA, cardB = cardA_cardB.split(",")
-            # data = read_card_link_info(cardA)
-            # if LinkDataPair(card_id=cardB) in data.link_list:
-            self.add_edge(cardA, cardB, add_bilink=self.data.graph_mode == GraphMode.normal, 描述=self.data.gviewdata.edges[cardA_cardB][本.结点.边名])
-        if last_card: self.view.centerOn(item=self.data.node_dict[last_card].item)
-        pass
-
-    def insert(self, pair_li: "list[LinkDataPair|str]"):
-        """根据填入的pair 点亮,聚焦到对应的卡片上"""
-        结点集 = self.data.gviewdata.nodes
-        if pair_li is None:
-            return
-        if len(pair_li) == 0:
-            tooltip("不存在卡片")
-            return
-        self.scene.clearSelection()
-        if isinstance(pair_li[0], LinkDataPair):
-
-            for pair in pair_li:
-                if pair.card_id not in 结点集:
-                    结点集[pair.card_id] = {
-                            本.结点.位置  : [],
-                            本.结点.数据类型: common_tools.baseClass.视图结点类型.卡片
-                    }
-                    item = self.create_node(pair)
-                    self.arrange_node(item)
-            list(map(lambda x: self.data.node_dict[x.card_id].item.setSelected(True), pair_li))
-            索引 = pair_li[-1].card_id
-            self.view.centerOn(item=self.data.node_dict[索引].item)
-
     def create_view(self):
         name, submitted = funcs.GviewOperation.get_correct_view_name_input()
         if not submitted: return
@@ -250,30 +169,21 @@ class Grapher(QMainWindow):
         common_tools.funcs.Dialogs.open_grapher(gviewdata=self.data.gviewdata.copy(new_name=name), mode=funcs.GraphMode.view_mode)
 
     # node
-    def create_node(self, pair: "LinkDataPair|str"):
+    def create_node(self, pair: "LinkDataPair|str",参数_视图结点类型=枚举_视图结点类型.卡片,fromGviewData=False):
         """
         create_node 只是单纯地添加, 不会对位置作修改,
         如果你没有位置数据,那就调用默认的 arrange_node函数来排版位置
         如果你有位置数据, 那就用 item自己的setPos
         注意, create_node, 添加的是view中的图形结点, 请在外部完成gviewdata中数据的添加.
         """
-        card_id = pair if type(pair) == str else pair.card_id
-        if card_id not in self.data.node_dict:
-            self.data.node_dict = [card_id]
-            item = self.ItemRect(self, card_id)
-            self.data.node_dict[card_id].item = item
-        elif card_id in self.data.node_dict and self.data.node_dict[card_id].item is None:
-            item = self.ItemRect(self, card_id)
-            self.data.node_dict[card_id].item = item
-
+        node_id = pair if type(pair) == str else pair.card_id
+        item = self.ItemRect(self, node_id, 参数_视图结点类型)
         self.scene.addItem(item)
-
+        self.data.add_to_node_data(item,fromGviewData)
         return item
 
-    def load_node(self, pair_li: "list[LinkDataPair|str|GViewData|None]", begin_item=None, selected_as_center=True, 参数_视图结点类型=common_tools.baseClass.视图结点类型.卡片):
-        """
-        load_node 2023年1月20日05:48:58 目前暂时针对card结点使用, 不针对view结点使用
-        load_node从外部直接读取,并且要完成排版任务, 比较复杂 建议用create_node,create_node比较单纯"""
+    def load_node(self, pair_li: "list[LinkDataPair|str|GViewData|None]", begin_item=None, selected_as_center=True, 参数_视图结点类型=枚举_视图结点类型.卡片,from_outside=True):
+        """ """
         if pair_li is None:
             return
         item_li = []
@@ -281,16 +191,13 @@ class Grapher(QMainWindow):
 
         if len(self.data.node_dict) > 0:
             last_item = self.data.node_dict[(list(self.data.node_dict.keys())[-1])].item
-        结点集 = self.data.gviewdata.nodes
         for pair in pair_li:
             card_id: "str" = pair if type(pair) == str else pair.card_id if isinstance(pair, LinkDataPair) else pair.uuid
-            if card_id in 结点集:
+            if card_id in self.data.gviewdata.nodes:
                 continue
             else:
-                结点集[card_id] = funcs.GviewOperation.依参数确定视图结点数据类型模板(参数_视图结点类型)
                 self.data.node_dict[card_id] = self.data.Node(card_id)
-
-                item = self.create_node(card_id)  # 我就单纯读
+                item = self.create_node(card_id,参数_视图结点类型)  # 我就单纯读
                 item_li.append(card_id)
                 if begin_item:
                     self.arrange_node(item, begin_item)
@@ -304,10 +211,49 @@ class Grapher(QMainWindow):
             self.view.centerOn(item=last_item)
             self.scene.clearSelection()
             last_item.setSelected(True)
-        self.load_edges_from_linkdata()
         self.data.node_edge_packup()
         self.data.updateNodeDueAll()
 
+
+    def add_edge(self, card_idA: "str", card_idB: "str",fromGviewData=False):
+        """A->B, 反过来不成立
+        add_bilink 用来判断是否要修改全局链接.
+        """
+
+        nodeA = self.data.node_dict[card_idA]
+        nodeB = self.data.node_dict[card_idB]
+        edgeItem = self.ItemEdge(self, nodeA.item, nodeB.item)
+        self.scene.addItem(edgeItem)
+        self.data.add_to_edge_data(edgeItem,fromGviewData)
+
+
+        return edgeItem
+
+        pass
+
+    def remove_edge(self, card_idA=None, card_idB=None):
+        """
+        """
+        edge = self.data.edge_dict[card_idA][card_idB]
+        a,b = edge.item.获取关联的结点()
+        edge.item.hide()
+        self.scene.removeItem(edge.item)
+        self.data.remove_from_edge_data(a,b)
+        pass
+
+    # bilink
+    def remove_node(self, item: "Grapher.ItemRect"):
+        node_id = item.索引
+        for edge in item.node.edges:
+            self.scene.removeItem(edge.item)
+        for edge in item.node.inver_edges:
+            self.scene.removeItem(edge.item)
+        self.scene.removeItem(item)
+        self.data.remove_from_node_data(item.索引)
+
+    def remove_many_nodes(self,items: "list[Grapher.ItemRect]"):
+        for item in items:
+            self.remove_node(item)
     def arrange_node(self, new_item: "Grapher.ItemRect", center_item=None):
         def get_random_p(center_item, radius, part):
             total = radius / self.data.default_radius * 6
@@ -340,49 +286,11 @@ class Grapher(QMainWindow):
                 radius += self.data.default_radius
                 count = 0
 
-    def del_selected_node(self):
-        item_li: "list[Grapher.ItemRect]" = self.selected_nodes()
-        # card_id_li = list(self.data.node_dict.keys())
-        # edges = self.data.edge_dict
-        for item in item_li:
-            self.remove_node(item)
-            # card_idA = item.pair.card_id
-            # for card_idB in card_id_li:
-            #     if card_idB == card_idA: continue
-            #     if card_idA in edges and card_idB in edges[card_idA]:
-            #         print(f"self.remove_edge({card_idA}, {card_idB})")
-            #         self.remove_edge(card_idA, card_idB)
-            #     if card_idB in edges and card_idA in edges[card_idB]:
-            #         print(f"self.remove_edge({card_idB}, {card_idA})")
-            #         self.remove_edge(card_idB, card_idA)
-            # self.scene.removeItem(item)
-            # self.data.node_dict.pop(card_idA)
-
-        pass
 
     def selected_nodes(self):
         item_li: "list[Grapher.ItemRect]" = [item for item in self.scene.selectedItems() if isinstance(item, Grapher.ItemRect)]
 
         return item_li
-
-    def load_edges_from_linkdata(self, card_li: "list[str]" = None):
-        if self.data.graph_mode == GraphMode.debug_mode or self.data.graph_mode == GraphMode.view_mode:
-            return
-        if __name__ == "__main__":
-            from lib.bilink.imports import common_tools
-            pass
-        else:
-            from ..imports import common_tools
-        DB = common_tools.funcs.LinkDataOperation
-        if card_li is None:
-            card_li = list(self.data.node_dict.keys())
-        for card_idA in card_li:
-            cardA_dict = DB.read_from_db(card_idA).link_dict
-            for card_idB in card_li:
-                if card_idB == card_idA:
-                    continue
-                if card_idB in cardA_dict:
-                    self.add_edge(card_idA, card_idB, add_bilink=self.data.graph_mode == GraphMode.normal)
 
     def update_all_edges_posi(self):
         updated = set()
@@ -411,117 +319,33 @@ class Grapher(QMainWindow):
                     else:
                         edge.item.unhighlight()
                 modified.add(边结点)
-
-    def add_edge(self, card_idA: "str", card_idB: "str", add_bilink=False, 描述=""):
-        """A->B, 反过来不成立
-        add_bilink 用来判断是否要修改全局链接.
-        """
-        edges = self.data.edge_dict
-        if card_idA in edges and card_idB in edges[card_idA] and edges[card_idA][card_idB] is not None:
-            return
-        nodeA = self.data.node_dict[card_idA]
-        nodeB = self.data.node_dict[card_idB]
-
-        edgeItem = self.ItemEdge(self, nodeA.item, nodeB.item)
-        # self.data.node_dict[card_idB].edges.append(edge)
-
-        if card_idA not in self.data.edge_dict:  # 如果边集里不存在
-            self.data.edge_dict[card_idA] = {}
-        self.data.edge_dict[card_idA][card_idB] = self.data.Edge(item=edgeItem, nodes=[nodeA, nodeB], 描述=描述)  # FOCUS 修改 edge_dict的value类型
-        self.data.node_dict[card_idA].edges.append(self.data.edge_dict[card_idA][card_idB])
-        if f"{card_idA},{card_idB}" not in self.data.gviewdata.edges:
-            self.data.gviewdata.edges[f"{card_idA},{card_idB}"]=funcs.GviewOperation.默认视图边数据模板()
-        self.data.inverse_edge[card_idA,card_idB]=self.data.edge_dict[card_idA][card_idB]
-
-        self.scene.addItem(edgeItem)
-
-
-        if add_bilink:
-            self.add_bilink(card_idA, card_idB)
-
-        pass
-
-    def remove_edge(self, card_idA, card_idB, remove_globalLink=False):
-        """
-        remove_globalLink 用来判断是否要修改全局链接.
-        """
-        edges = self.data.edge_dict
-        nodes = self.data.node_dict
-        edge = edges[card_idA][card_idB]
-        if edge:
-            # self.data.inverse_edge_dict
-            self.scene.removeItem(edge.item)
-            nodes[card_idA].edges.remove(edge)
-            edge.item.hide()
-        # nodes[card_idB].edges.remove(edge)
-        edges[card_idA][card_idB] = None
-        del self.data.inverse_edge[card_idA,card_idB]
-
-        if remove_globalLink:
-            self.remove_globalLink(card_idA, card_idB)
-        pass
-
-    # bilink
-    def remove_node(self, item: "Grapher.ItemRect"):
-        card_id_li = self.data.node_dict.keys()
-        edges = self.data.edge_dict
-        card_idA = item.索引
-        for card_idB in card_id_li:
-            if card_idB == card_idA: continue
-            if card_idA in edges and card_idB in edges[card_idA]:
-                print(f"self.remove_edge({card_idA}, {card_idB})")
-                self.remove_edge(card_idA, card_idB)
-            if card_idB in edges and card_idA in edges[card_idB]:
-                print(f"self.remove_edge({card_idB}, {card_idA})")
-                self.remove_edge(card_idB, card_idA)
-        self.scene.removeItem(item)
-        self.data.node_dict.pop(card_idA)
-
-    def remove_globalLink(self, card_idA, card_idB):
-        """globallink就是全局的链接"""
-        common_tools.funcs.LinkDataOperation.unbind(card_idA, card_idB)
-        common_tools.funcs.LinkPoolOperation.both_refresh()
-        print("remove_globalLink")
-        pass
-
-    def add_bilink(self, card_idA, card_idB):
-        common_tools.funcs.LinkDataOperation.bind(card_idA, card_idB)
-        common_tools.funcs.LinkPoolOperation.both_refresh()
-        print("add_bilink")
-        pass
-
     # init
 
-    def init_graph_item(self):
+    def init_graph_item(self,need_centerOn=True):
         """用于初始化"""
-        last_card_id: "" = None
         last_item = None
-        for card_id, node in self.data.node_dict.items():
-            item = self.create_node(card_id)
-            # funcs.Utils.print(self.data.gviewdata.nodes[card_id],need_logFile=True)
-            if self.data.graph_mode == GraphMode.view_mode and card_id in self.data.gviewdata.nodes \
-                    and self.data.gviewdata.nodes[card_id][本.结点.位置]:  # * Done: 修改数据读取方式
-                item.setPos(*self.data.gviewdata.nodes[card_id][本.结点.位置])
+
+        for 结点编号,结点数据 in self.data.gviewdata.node_helper.items():
+
+            item = self.create_node(结点编号,结点数据.数据类型.值,fromGviewData=True)
+            if 结点数据.位置.值:
+                item.setPos(*结点数据.位置.值)
             else:
                 self.arrange_node(item)
             last_item = item
-        if last_item:
-            self.   update_all_edges_posi()
+        for cardA_cardB in self.data.gviewdata.edge_helper.keys():
+            cardA, cardB = cardA_cardB.split(",")
+            item = self.add_edge(cardA, cardB,fromGviewData=True)
+
+        if last_item and need_centerOn:
+            self.update_all_edges_posi()
             # last_item.setSelected(True)
             self.view.centerOn(item=last_item)
-        if self.data.graph_mode == GraphMode.normal:
-            self.load_edges_from_linkdata()
-        elif self.data.graph_mode == GraphMode.view_mode:
-            for cardA_cardB in self.data.gviewdata.edges:
-                cardA, cardB = cardA_cardB.split(",")
-                if cardA not in self.data.node_dict or cardB not in self.data.node_dict:
-                    continue
-                self.add_edge(cardA, cardB, 描述=self.data.gviewdata.edges[cardA_cardB][本.结点.边名])
+
+
 
     def init_UI(self):
-        if self.data.graph_mode == GraphMode.normal:
-            self.setWindowTitle("temporary view")
-        elif self.data.graph_mode == GraphMode.view_mode:
+        if self.data.graph_mode == GraphMode.view_mode:
             self.setWindowTitle("view of " + self.data.gviewdata.name)
         self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.link2))
         self.setWindowFlags(Qt.WindowType.WindowMinMaxButtonsHint | Qt.WindowType.WindowCloseButtonHint)
@@ -562,7 +386,7 @@ class Grapher(QMainWindow):
         def __init__(self, superior: "Grapher"):
             self.superior = superior
             self.root = superior
-            self.graph_mode = GraphMode.normal
+            self.graph_mode = GraphMode.view_mode
             self.gviewdata: Optional[GViewData] = None
             self._node_dict: "Optional[dict[str,Optional[Grapher.Entity.Node]]]" = {}
             self._edge_dict: "Optional[dict[str,dict[str,Optional[Grapher.Entity.Edge]]]]" = {}
@@ -605,51 +429,75 @@ class Grapher(QMainWindow):
             """
             这是为了获取边与顶点的最新信息, 然后打包存储
             """
+            for node_id,nodeinfo in self.node_dict.items():
+                self.gviewdata.node_helper[node_id].位置.设值(nodeinfo.item.获取保存用的位置())
+            # def get_edgeinfo_list():
+            #     for cardA in self.edge_dict.keys():
+            #         for cardB in self.edge_dict[cardA].keys():
+            #             边 = f"{cardA},{cardB}"
+            #             self.gviewdata.edge_helper[边].边名.设值(self.edge_dict[cardA][cardB].描述)
 
-            def get_edgeinfo_list():
-                新边集 = self.gviewdata.edges.copy()
-                for cardA in self.edge_dict.keys():
-                    for cardB in self.edge_dict[cardA].keys():
-                        if self.edge_dict[cardA][cardB] is not None and self.edge_dict[cardA][cardB].item is not None:
-                            边 = f"{cardA},{cardB}"
-                            if 边 not in 新边集:
-                                新边集[边] = {}
-                            新边集[边][本.结点.边名] = self.edge_dict[cardA][cardB].描述
+            # def get_nodeinfo_list():
+            #     d = {}
+            #     新结点集 = self.gviewdata.nodes.copy()
+            #     for 索引, 值 in self.node_dict.items():
+            #         if 索引 in 新结点集:
+            #             if 本.结点.位置 not in 新结点集[索引]:
+            #                 新结点集[索引][本.结点.位置] = {}
+            #             新结点集[索引][本.结点.位置] = [值.item.scenePos().x(), 值.item.scenePos().y()]
+            #         else:
+            #             新结点集[索引] = {本.结点.位置  : [值.item.scenePos().x(), 值.item.scenePos().y()],
+            #                         本.结点.数据类型: 值.item.结点类型()
+            #                         }
+            #     for 索引 in self.gviewdata.nodes.keys():
+            #         if 索引 not in self.node_dict:
+            #             del 新结点集[索引]
+            #     self.gviewdata.nodes = 新结点集.copy()
 
-                for 边两端 in self.gviewdata.edges.keys():
-                    cardA, cardB = 边两端.split(",")
-                    if cardA in self.edge_dict and cardB in self.edge_dict[cardA] and self.edge_dict[cardA][cardB] is not None and self.edge_dict[cardA][cardB].item is not None:
-                        continue
-                    else:
-                        del 新边集[边两端]
+            # def 备份视图元信息():
+            #     self.gviewdata.meta = funcs.GviewOperation.默认元信息模板(self.gviewdata.meta)
 
-                self.gviewdata.edges = 新边集.copy()
-
-            def get_nodeinfo_list():
-                d = {}
-                新结点集 = self.gviewdata.nodes.copy()
-                for 索引, 值 in self.node_dict.items():
-                    if 索引 in 新结点集:
-                        if 本.结点.位置 not in 新结点集[索引]:
-                            新结点集[索引][本.结点.位置] = {}
-                        新结点集[索引][本.结点.位置] = [值.item.scenePos().x(), 值.item.scenePos().y()]
-                    else:
-                        新结点集[索引] = {本.结点.位置  : [值.item.scenePos().x(), 值.item.scenePos().y()],
-                                    本.结点.数据类型: 值.item.结点类型()
-                                    }
-                for 索引 in self.gviewdata.nodes.keys():
-                    if 索引 not in self.node_dict:
-                        del 新结点集[索引]
-                self.gviewdata.nodes = 新结点集.copy()
-
-            def 备份视图元信息():
-                self.gviewdata.meta = funcs.GviewOperation.默认元信息模板(self.gviewdata.meta)
-
-            备份视图元信息()
-            get_nodeinfo_list()
-            get_edgeinfo_list()
+            # 备份视图元信息()
+            # get_nodeinfo_list()
+            # get_edgeinfo_list()
             funcs.GviewOperation.save(self.gviewdata)
             # return node_info_list, edge_info_list
+
+        def remove_from_node_data(self,node_id):
+            node = self.node_dict[node_id]
+            for edge in node.edges.copy():
+                node.edges.remove(edge)
+                self.node_dict[edge.nodes[1].索引].inver_edges.remove(edge)
+            for edge in node.inver_edges.copy():
+                node.inver_edges.remove(edge)
+                self.node_dict[edge.nodes[0].索引].edges.remove(edge)
+            del self.node_dict[node_id]
+            self.gviewdata.删除结点(node_id)
+
+        def remove_from_edge_data(self,a:"str",b:"str"):
+            edge = self.edge_dict[a][b]
+            self.node_dict[a].edges.remove(edge)
+            self.node_dict[b].inver_edges.remove(edge)
+            del self.edge_dict[a][b]
+            del self.inverse_edge[a,b]
+            self.gviewdata.删除边(a,b)
+
+        def add_to_node_data(self,item:"Grapher.ItemRect",fromGviewData=False):
+            self.node_dict[item.索引]=self.Node(item.索引,item=item)
+            if not fromGviewData:
+                self.gviewdata.新增结点(item.索引,item.结点类型)
+
+        def add_to_edge_data(self,item:"Grapher.ItemEdge",fromGviewData=False):
+            a,b = item.itemStart,item.itemEnd
+            if a not in self.edge_dict:
+                self.edge_dict[a.索引]={}
+            self.edge_dict[a.索引][b.索引]=self.Edge(item,[a,b])
+            self.inverse_edge[a.索引,b.索引]=self.edge_dict[a.索引][b.索引]
+            self.node_dict[a.索引].edges.append(self.edge_dict[a.索引][b.索引])
+            self.node_dict[b.索引].inver_edges.append(self.edge_dict[a.索引][b.索引])
+            if not fromGviewData:
+                self.gviewdata.新增边(a.索引,b.索引)
+
 
         @dataclass
         class Node:
@@ -660,11 +508,12 @@ class Grapher(QMainWindow):
             item: "Optional[Grapher.ItemRect]" = None
             edges: "list[Grapher.Entity.Edge]" = field(default_factory=list)
 
-            def __init__(self, 索引: "str|LinkDataPair", due=False, item=None, edges=None):
+            def __init__(self, 索引: "str|LinkDataPair", due=False, item=None, edges=None,inver_edges=None):
                 self.索引 = 索引 if type(索引) == str else 索引.card_id
                 self.due = due
                 self.item = item
-                self.edges = [] if edges is None else edges
+                self.edges:"list[Grapher.Entity.Edge]" = [] if edges is None else edges
+                self.inver_edges:"list[Grapher.Entity.Edge]"=[] if inver_edges is None else inver_edges
 
         @dataclass
         class Edge:
@@ -869,7 +718,7 @@ class Grapher(QMainWindow):
             end_item, begin_item = self.draw_line_end_item, self.draw_line_start_item
             if isinstance(end_item, Grapher.ItemRect) and begin_item != end_item:
                 add_bilink = self.superior.data.graph_mode == GraphMode.normal
-                self.superior.add_edge(begin_item.索引, end_item.索引, add_bilink=add_bilink)
+                self.superior.add_edge(begin_item.索引, end_item.索引)
             self.superior.data.state.mouseIsMoving = False
             self.Auxiliary_line.hide()
 
@@ -878,7 +727,7 @@ class Grapher(QMainWindow):
             menu = QMenu()
             menu.addAction(Translate.创建为视图).triggered.connect(lambda: self.superior.create_view())
             if len(pairli) > 0:
-                menu.addAction(Translate.粘贴卡片).triggered.connect(lambda: self.superior.insert(pairli))
+                menu.addAction(Translate.粘贴卡片).triggered.connect(lambda: self.superior.load_node(pairli))
             # if self.superior.data.graph_mode == GraphMode.view_mode:
             #     menu.addAction(Translate.保存当前视图为群组复习条件).triggered.connect(lambda: self.superior.saveAsGroupReviewCondition())
             pos = event.globalPosition() if common_tools.compatible_import.Anki.isQt6 else event.screenPos()
@@ -892,6 +741,18 @@ class Grapher(QMainWindow):
         pass
 
     class Scene(QGraphicsScene):
+
+        def __init__(self,superior):
+            super().__init__(superior)
+            self.superior:Grapher = superior
+
+        # def addItem(self, item: "Grapher.ItemRect|Grapher.ItemEdge"):
+        #     super().addItem(item)
+        #     if isinstance(item,Grapher.ItemRect):
+        #         self.superior.data.gviewdata.新增结点(item.索引,item.结点类型)
+        #         self.superior.data.add_item_to_node_dict(item)
+        #     else:
+
         pass
 
     class ItemEdge(common_tools.baseClass.Geometry.ArrowLine):
@@ -944,10 +805,8 @@ class Grapher(QMainWindow):
             self.saveSelect()
             if event.buttons() == Qt.MouseButton.RightButton:
                 menu = QMenu()
-                remove_globalLink = self.superior.data.graph_mode == GraphMode.normal
                 menu.addAction(Translate.删除边).triggered.connect(
-                        lambda: self.superior.remove_edge(self.itemStart.索引, self.itemEnd.索引,
-                                                          remove_globalLink=remove_globalLink))
+                        lambda: self.superior.remove_edge(self.itemStart.索引, self.itemEnd.索引))
 
                 pos = event.screenPos()  # if common_tools.compatible_import.Anki.isQt6 else event.screenPosition()
                 # menu.exec(pos)
@@ -1003,7 +862,14 @@ class Grapher(QMainWindow):
 
         def 获取实体数据(self):
             A, B = self.获取关联的结点()
-            return self.superior.data.edge_dict[A][B]
+            a_b = f"{A},{B}"
+            try:
+                if a_b in self.superior.data.gviewdata.edge_helper.keys():
+                    return self.superior.data.gviewdata.edge_helper[a_b].边名.值
+                else:
+                    return ""
+            except:
+                return ""
 
         def 绘制边名(self,painter):
             paint_center = (self.triangle[1] + self.triangle[2]) / 2
@@ -1012,7 +878,7 @@ class Grapher(QMainWindow):
                 cfg = funcs.GviewConfigOperation.从数据库读(self.superior.data.gviewdata.config)
                 总是显示 = cfg.data.edge_name_always_show.value
 
-            文本 = self.获取实体数据().描述 if self.获取实体数据().描述 != "" \
+            文本 = self.获取实体数据() if self.获取实体数据() \
                 else "debug hello world world hello" \
                 if self.superior.data.state == GraphMode.debug_mode \
                 else ""
@@ -1043,12 +909,12 @@ class Grapher(QMainWindow):
             intext = 2
             outext = 3
 
-        def __init__(self, superior: "Grapher", 索引: "str|LinkDataPair"):
+        def __init__(self, superior: "Grapher", 索引: "str|LinkDataPair",类型=枚举_视图结点类型.卡片):
             super().__init__()
-
+            self._类型=类型
             self.superior = superior
             self.索引: "str" = 索引 if type(索引) == str else 索引.card_id
-            if self.结点类型() == 枚举_视图结点类型.视图:
+            if self.结点类型 == 枚举_视图结点类型.视图:
                 self.current_title_style = self.view_title_style
                 self.current_body_style = self.view_body_style
             self.setPen(QPen(self.current_body_style))
@@ -1071,14 +937,13 @@ class Grapher(QMainWindow):
             self.collide_top = QRectF(w / 4, 0, w / 2, h / 4)
             self.collide_bottom = QRectF(w / 4, h * 3 / 4, w / 2, h / 4)
 
+        def 获取保存用的位置(self):
+
+            return [self.scenePos().x(),self.scenePos().y()]
+
         @property
         def node(self):
             return self.superior.data.node_dict[self.索引]
-
-        def load_linked_card(self, mode=3):
-            cardinfo = common_tools.funcs.LinkDataOperation.read_from_db(self.索引)
-            pair_li = [pair for pair in cardinfo.link_list]
-            self.superior.load_node(pair_li, begin_item=self)
 
         def collide_handle(self, item_li: "list[Grapher.ItemRect]" = None):
             if item_li is None:
@@ -1106,10 +971,9 @@ class Grapher(QMainWindow):
 
         def make_context_menu(self):
             menu = QMenu()
-
-            menu.addAction(Translate.删除).triggered.connect(self.superior.del_selected_node)
+            menu.addAction(Translate.删除结点).triggered.connect(lambda:self.superior.remove_many_nodes(self.superior.selected_nodes()))
             # noinspection PyUnresolvedReferences
-            menu.addAction(Translate.修改描述).triggered.connect(lambda: self.superior.card_edit_desc(self))
+            menu.addAction(Translate.修改描述).triggered.connect(lambda: self.superior.结点属性查看器(self))
 
             if self.superior.data.gviewdata.nodes[self.索引][本.结点.数据类型] == common_tools.baseClass.视图结点类型.卡片:
                 pair_li: "list[LinkDataPair]" = [LinkDataPair(item.索引, funcs.CardOperation.desc_extract(item.索引)) for item in self.superior.selected_nodes() if funcs.CardOperation.exists(item.索引)]
@@ -1122,22 +986,6 @@ class Grapher(QMainWindow):
                 self.contextMenuOpened = False
 
             menu.closeEvent = lambda x: menuCloseEvent()
-            if self.superior.data.graph_mode == GraphMode.normal:
-                loadlinkcard = menu.addMenu("加载链接卡片")
-                for name, action in [
-                        ("加载全部文外链接卡片", lambda: self.load_linked_card(mode=self.MODE.outext))
-                ]:
-                    loadlinkcard.addAction(name).triggered.connect(action)
-                outtextmenu = loadlinkcard.addMenu("选择文外链接卡片加载")
-                link_list = common_tools.funcs.LinkDataOperation.read_from_db(self.索引).link_list
-                shorten = common_tools.funcs.str_shorten
-
-                for pair in link_list:
-                    action = lambda pair: lambda: self.superior.load_node([pair], begin_item=self)
-                    outtextmenu.addAction(
-                            f"""card_id={pair.card_id},desc={shorten(pair.desc)}""").triggered.connect(
-                            action(pair)
-                    )
             self.contextMenuOpened = True
             self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, False)
             return menu
@@ -1146,9 +994,10 @@ class Grapher(QMainWindow):
             if self.superior.data.graph_mode == GraphMode.debug_mode:
                 return
             if event.buttons() == Qt.MouseButton.LeftButton:
-                if self.结点类型() == 枚举_视图结点类型.卡片:
+                if self.结点类型== 枚举_视图结点类型.卡片:
                     common_tools.funcs.Dialogs.open_custom_cardwindow(self.索引)
-                elif self.结点类型() == 枚举_视图结点类型.视图:
+                    self.superior.data.gviewdata.数据更新.结点访问发生(self.索引)
+                elif self.结点类型== 枚举_视图结点类型.视图:
                     data = common_tools.funcs.GviewOperation.load(uuid=self.索引)
                     common_tools.funcs.Dialogs.open_grapher(gviewdata=data, mode=GraphMode.view_mode)
                 self.superior.结点访问记录更新(self.索引)
@@ -1171,22 +1020,11 @@ class Grapher(QMainWindow):
             self.prepareGeometryChange()
             if event.buttons() == Qt.MouseButton.LeftButton:
                 edges = self.superior.data.node_dict[self.索引].edges
+                inver_edges = self.superior.data.node_dict[self.索引].inver_edges
                 for edge in edges:
                     edge.item.update_line()
-                    # cardA,cardB = edge.nodes[0].索引,edge.nodes[1].索引
-                for edge in self.superior.data.inverse_edge[self.索引].values():
+                for edge in inver_edges:
                     edge.item.update_line()
-                    # if cardB in self.superior.data.edge_dict and cardA in self.superior.data.edge_dict[cardB] and \
-                    #         self.superior.data.edge_dict[cardA][cardB] is not None:
-                    #     self.superior.data.edge_dict[cardA][cardB].item.update_line()
-
-                # cardA = self.索引
-                # if cardA in self.superior.data.edge_dict:
-                #     for cardB in self.superior.data.edge_dict[cardA].keys():
-                #         self.superior.data.edge_dict[cardA][cardB].item.update_line()
-
-
-            # if not self.contextMenuOpened:
             super().mouseMoveEvent(event)
 
             # print(self.scenePos().__str__())
@@ -1203,21 +1041,19 @@ class Grapher(QMainWindow):
         def 结点数据(self):
             return self.superior.data.gviewdata.nodes[self.索引]
 
+        @property
         def 结点类型(self):
-            if 本.结点.数据类型 not in self.结点数据():  # 这说明没有
-                return common_tools.baseClass.视图结点类型.卡片
-            else:
-                return self.结点数据()[本.结点.数据类型]
+            return self._类型
 
         def 结点描述(self):
             if self.superior.data.graph_mode == GraphMode.debug_mode:
                 return "debug"
-            if self.结点类型() == common_tools.baseClass.视图结点类型.卡片:
+            if self.结点类型 == common_tools.baseClass.视图结点类型.卡片:
                 return funcs.CardOperation.desc_extract(self.索引)
-            elif self.结点类型() == common_tools.baseClass.视图结点类型.视图:
+            elif self.结点类型 == common_tools.baseClass.视图结点类型.视图:
                 return funcs.GviewOperation.load(self.索引).name
             else:
-                raise ValueError("未知的结点数据类型")
+                raise ValueError(f"未知的结点数据类型:{self.结点类型}")
 
         def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
                   widget: typing.Optional[QWidget] = ...) -> None:
@@ -1266,7 +1102,7 @@ class Grapher(QMainWindow):
                 self.reConfig_Btn =QAction(QIcon(imgDir.config_reset), "", parent)
                 self.help = QAction(QIcon(imgDir.help), "", parent)
                 self.itemDel = QAction(QIcon(imgDir.delete), "", parent)
-                self.itemRename = QAction(QIcon(imgDir.rename), "", parent)
+                self.itemRename = QAction(QIcon(imgDir.ID_card), "", parent)
                 self.insert_item = QMenu()
                 self.initUI()
 
@@ -1283,7 +1119,7 @@ class Grapher(QMainWindow):
                         T.重置配置表,
                         "help",
                         T.删除,
-                        T.重命名,
+                        T.说明_属性查看,
                 ]
 
             @property
@@ -1314,7 +1150,7 @@ class Grapher(QMainWindow):
             self.生成图元插入菜单()
 
             self.act.itemDel.setDisabled(True)
-            self.act.itemRename.setDisabled(True)
+            # self.act.itemRename.setDisabled(True)
             pass
 
         def 生成图元插入菜单(self):
@@ -1324,7 +1160,6 @@ class Grapher(QMainWindow):
             新建菜单 = 主菜单.addMenu(译.新建)
             新建菜单.addAction(译.卡片).triggered.connect(self.create_card)
             新建菜单.addAction(译.视图).triggered.connect(self.create_view)
-            # 主菜单.addAction(译.导入).triggered.connect(self.import_item)
             引入图标.setMenu(主菜单)
             self.addWidget(引入图标)
             pass
@@ -1355,14 +1190,14 @@ class Grapher(QMainWindow):
             try:
                 if len(self.superior.scene.selectedItems()) > 0:
                     items = self.superior.scene.selectedItems()
-                    if len(items) == 1 and (isinstance(items[0], Grapher.ItemRect) or isinstance(items[0], Grapher.ItemEdge)):
-                        self.act.itemRename.setDisabled(False)
-                    else:
-                        self.act.itemRename.setDisabled(True)
+                    # if len(items) == 1 and (isinstance(items[0], Grapher.ItemRect) or isinstance(items[0], Grapher.ItemEdge)):
+                    #     self.act.itemRename.setDisabled(False)
+                    # else:
+                    #     self.act.itemRename.setDisabled(True)
                     self.act.itemDel.setDisabled(False)
                 else:
                     self.act.itemDel.setDisabled(True)
-                    self.act.itemRename.setDisabled(True)
+                    # self.act.itemRename.setDisabled(True)
             except:
                 return None
 
@@ -1370,7 +1205,7 @@ class Grapher(QMainWindow):
             # cardA = item.itemStart.pair.card_id
             # cardB = item.itemEnd.pair.card_id
             # modifyGlobalLink = self.superior.data.graph_mode == GraphMode.normal
-            self.superior.remove_edge(*item.获取关联的结点(), False)
+            self.superior.remove_edge(*item.获取关联的结点())
             pass
 
         def deleteRectItem(self, item: "Grapher.ItemRect"):
@@ -1378,14 +1213,11 @@ class Grapher(QMainWindow):
             pass
 
         def node_property_editor(self):
-            item: "Grapher.ItemRect|Grapher.ItemEdge" = self.superior.scene.selectedItems()[0]
-            if isinstance(item, Grapher.ItemRect):
-                # self.superior.card_edit_desc(item)
-                self.superior.data.gviewdata.node_helper[item.索引].创建结点UI().exec()
-                # common_tools.widgets.ConfigWidget.GviewNodeProperty(self.superior.data.gviewdata,item.索引,self.superior).exec()
-            if isinstance(item, Grapher.ItemEdge):
-                self.superior.编辑边的描述(item)
-
+            if len(self.superior.scene.selectedItems()) > 0:
+                item: "Grapher.ItemRect|Grapher.ItemEdge" = self.superior.scene.selectedItems()[0]
+                self.superior.结点属性查看器(item)
+            else:
+                self.superior.自身属性查看器()
             # def 结点编辑组件():
             #     主窗体 = QDialog()
             #     表单布局 = QFormLayout()
@@ -1673,7 +1505,7 @@ class GViewAdmin(QDialog):
             funcs.Utils.tooltip(Translate.视图命名规则)
             return
         data.name = item.text()
-        funcs.GviewOperation.update(data)
+        funcs.GviewOperation.save(data)
 
         pass
 
@@ -2111,12 +1943,13 @@ class GrapherRoamingPreviewer(QMainWindow):
             super().__init__()
             self.上级 = 上级
 
-            self.按钮1_完成复习 = QPushButton("finish")
+            self.按钮1_完成复习 = QPushButton("reviewed")
             self.按钮2_打开视图 = QPushButton("open")
             self.按钮2_打开视图.clicked.connect(self.open_current_view_roaming)
-            self.按钮1_完成复习.clicked.connect(self.上级.item_finish)
+            self.按钮1_完成复习.clicked.connect(self.当完成复习)
             self.组件_视图信息 = QWidget()
-            self.视图信息组件_内容 = self.视图信息组件的内容(self)
+            self.当前视图数据:"None|GViewData"=None
+            # self.视图信息组件_内容 = self.视图信息组件的内容(self)
             self.表单布局 = QFormLayout()
             self.垂直布局 = QVBoxLayout()
             self.垂直布局.addWidget(self.组件_视图信息)
@@ -2127,6 +1960,11 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.setLayout(self.垂直布局)
             self.初始化UI()
 
+        def 当完成复习(self):
+            self.当前视图数据.数据更新.视图复习发生()
+            self.上级.item_finish()
+            pass
+
         def open_current_view_roaming(self):
             uuid = self.上级.获取当前结点的编码()
             funcs.Dialogs.open_grapher(
@@ -2135,44 +1973,46 @@ class GrapherRoamingPreviewer(QMainWindow):
             g.toolbar.openRoaming()
 
         def 初始化UI(self):
-
-            for 信息, 组件 in self.视图信息组件_内容.有序信息.items():
-                self.表单布局.addRow(信息, 组件)
-            self.组件_视图信息.setLayout(self.表单布局)
+            pass
+            # for 信息, 组件 in self.视图信息组件_内容.有序信息.items():
+            #     self.表单布局.addRow(信息, 组件)
+            # self.组件_视图信息.setLayout(self.表单布局)
 
         def 读取视图信息(self):
             视图编号 = self.上级.获取当前结点的编码()
-            视图数据 = funcs.GviewOperation.load(uuid=视图编号)
-            self.视图信息组件_内容.有序信息[译.视图名].setText(视图数据.name)
-            self.视图信息组件_内容.有序信息[译.结点数].setText(len(list(视图数据.nodes.keys())).__str__())
-            self.视图信息组件_内容.有序信息[译.边数].setText(len(list(视图数据.edges.keys())).__str__())
-            self.视图信息组件_内容.有序信息[译.到期卡片数].setText(funcs.GviewOperation.getDueCount(视图数据).__str__())
-            self.视图信息组件_内容.有序信息[译.创建时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.结点.创建时间]).__str__())
-            self.视图信息组件_内容.有序信息[译.上次访问时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.结点.上次访问]).__str__())
-            self.视图信息组件_内容.有序信息[译.上次编辑时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.结点.上次编辑]).__str__())
-            self.视图信息组件_内容.有序信息[译.访问数].setText(视图数据.meta[本.结点.访问次数].__str__())
-            代表性结点 = ""
-            for 索引,数据 in 视图数据.nodes.items():
-                if 数据[本.结点.主要结点]:
-                    代表性结点 += 索引+":"+视图数据.获取结点描述(索引)
-            self.视图信息组件_内容.有序信息[译.代表性结点].setText(代表性结点)
+            self.当前视图数据 = funcs.GviewOperation.load(uuid=视图编号)
+            self.当前视图数据.meta_helper.创建UI(self.组件_视图信息)
+
+            # self.视图信息组件_内容.有序信息[译.视图名].setText(视图数据.name)
+            # self.视图信息组件_内容.有序信息[译.结点数].setText(len(list(视图数据.nodes.keys())).__str__())
+            # self.视图信息组件_内容.有序信息[译.边数].setText(len(list(视图数据.edges.keys())).__str__())
+            # self.视图信息组件_内容.有序信息[译.到期卡片数].setText(funcs.GviewOperation.getDueCount(视图数据).__str__())
+            # self.视图信息组件_内容.有序信息[译.创建时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.结点.创建时间]).__str__())
+            # self.视图信息组件_内容.有序信息[译.上次访问时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.结点.上次访问]).__str__())
+            # self.视图信息组件_内容.有序信息[译.上次编辑时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.结点.上次编辑]).__str__())
+            # self.视图信息组件_内容.有序信息[译.访问数].setText(视图数据.meta[本.结点.访问次数].__str__())
+            # 代表性结点 = ""
+            # for 索引,数据 in 视图数据.nodes.items():
+            #     if 数据[本.结点.主要结点]:
+            #         代表性结点 += 索引+":"+视图数据.获取结点描述(索引)
+            # self.视图信息组件_内容.有序信息[译.代表性结点].setText(代表性结点)
             pass
 
-        class 视图信息组件的内容:
-            def __init__(self, 上级):
-                self.上级 = 上级
-                self.有序信息 = collections.OrderedDict()
-                for 信息名称 in [译.视图名,
-                             译.创建时间,
-                             译.上次访问时间,
-                             译.上次编辑时间,
-                             译.上次复习时间,
-                             译.访问数,
-                             译.结点数,
-                             译.边数,
-                             译.到期卡片数,
-                             译.代表性结点, ]:
-                    self.有序信息[信息名称] = QLabel("")
+        # class 视图信息组件的内容:
+        #     def __init__(self, 上级):
+        #         self.上级 = 上级
+        #         self.有序信息 = collections.OrderedDict()
+        #         for 信息名称 in [译.视图名,
+        #                      译.创建时间,
+        #                      译.上次访问时间,
+        #                      译.上次编辑时间,
+        #                      译.上次复习时间,
+        #                      译.访问数,
+        #                      译.结点数,
+        #                      译.边数,
+        #                      译.到期卡片数,
+        #                      译.代表性结点, ]:
+        #             self.有序信息[信息名称] = QLabel("")
 
     class List(QListView):
         def __init__(self, superior):

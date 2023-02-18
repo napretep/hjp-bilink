@@ -22,15 +22,40 @@ import abc
 from PyQt5.QtWidgets import QApplication, QDialog, QLabel, QPushButton, QVBoxLayout, QTextEdit
 
 if __name__ == "__main__":
-    # [print(i) for i in range(5)]
-    # class A:
-    #     @property
-    #     def B(self):
-    #         return 1
-    #     @B.setter
-    #     def B(self,value):
-    #         print(value)
+    class 视图结点类型:
+        卡片 = "card"
+        视图 = "view"
 
+
+    class A:
+
+
+        @staticmethod
+        def 打印参数(函数):
+            def 包装(*args, **kwargs):
+                结果 = 函数(*args, **kwargs)
+                print(args, kwargs)
+                return 结果
+
+            return 包装
+
+        @A.打印参数
+        def 一加一(self):
+            return 1 + 1
+
+        @打印参数
+        def 一加几(self, num):
+            return 1 + num
+
+
+    print(A().一加一())
+    print(A().一加几(2))
+    # class B(A):
+    #     pass
+    #
+    # def T(s):
+    #     print(s == 视图结点类型.卡片)
+    # T(B())
     pass
     # def 播报(内容):
     #     return lambda :print(内容)
@@ -52,9 +77,5 @@ if __name__ == "__main__":
     #     def B(self):
     #         print("I'm A")
 
-
     # C = A()
     # print()
-
-
-

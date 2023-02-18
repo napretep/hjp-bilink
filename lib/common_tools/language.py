@@ -283,6 +283,19 @@ def 翻译(zh="",en="",**kwargs):
 
 # noinspection NonAsciiCharacters
 class Translate:
+
+    说明_属性查看 = 翻译("当你没有选中东西,打开视图本身的属性,当你选中了一个东西,打开那个东西的属性","when you don't select node or edge, it will open the property of the view, else open the propery of the selected node or edge")
+    边名=翻译("边名","edge name")
+    删除结点 = 翻译("删除结点","delete node")
+    移除= 翻译("移除(非删除卡片)","remove(not delete card)")
+    视图上次访问 = 翻译("视图上次访问","view_last_visit")
+    视图上次编辑 = 翻译("视图上次编辑","view_last_edit")
+    视图上次复习 = 翻译("视图上次复习","view_last_review")
+    视图访问次数 = 翻译("视图访问次数","view_visit_count")
+    视图到期结点数 = 翻译("视图到期结点数","view_due_node_count")
+    视图主要结点 = 翻译("视图主要结点","view_major_Nodes")
+    视图创建时间 = 翻译("视图创建时间","view_created_time")
+    该项解释工作未完成= 翻译("该项解释工作未完成","the explanation was not completed")
     双击牌组即可修改卡片所属牌组=翻译("双击牌组即可修改卡片所属牌组","Double click on the deck to change the card's deck")
     选择文外链接卡片加载 = 翻译("选择","select")
     加载全部文外链接卡片 = 翻译("全部","all")
@@ -518,7 +531,7 @@ to_timestamp(time_string): accepts YYYY-MM-DD format time string parameter to re
 """
                          )
 
-    视图名 = 翻译(zh="视图名",en="name")
+    视图名 = 翻译(zh="视图名",en="view name")
     说明_创建时间 = 翻译("结点的创建时间是不可修改的, 除非你删除这个结点, 并再次导入它","The creation time of a node cannot be modified unless you delete the node and import it again")
     创建时间 = 翻译(zh="创建时间", en="created time")
     上次访问时间=翻译(zh="上次访问时间", en="last visit time")

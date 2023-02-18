@@ -2089,7 +2089,7 @@ class 自定义组件:
                 """根据配置中的安排加载对应的多选框"""
                 from . import funcs, models
                 self.项: models.类型_视图结点属性项 = 项
-                视图配置id = self.项.上级.元数据.视图数据.config
+                视图配置id = self.项.上级.数据源.视图数据.config
                 self.待选角色表 = []
                 if 视图配置id:
                     字面量 = funcs.GviewConfigOperation.从数据库读(视图配置id).data.node_role_enum.value
