@@ -35,6 +35,7 @@ class 枚举命名:
         名称 = "node_name"
         描述 = "node_desc"
         边名 = "edge_name"
+        角色名 = "node_role_name"
         已到期 = "is_due"  #视图结点总是到期
         # 结点自身保存信息
         角色 = "node_role"
@@ -68,6 +69,12 @@ class 枚举命名:
         结点角色表 = "node_role_list"
         ascending = "ascending"
         descending = "descending"
+        class 图排序模式:
+            深度优先遍历=0
+            广度优先遍历=1
+        class roamingStart:
+            随机选择卡片开始=0
+            手动选择卡片开始=1
 
     class 时间:
         转时间戳 = "to_timestamp"
@@ -468,6 +475,7 @@ class 配置项单选型表格组件(ConfigTableView):
         if w.ok:
             self.AppendRow(w.colItems)
             self.SaveDataToConfigModel()
+            self.set_row_selected(self.table_model.rowCount()-1)
         pass
 
     def ShowRowEditor(self, row: "list[baseClass.ConfigTableView.TableItem]" = None):
@@ -482,11 +490,14 @@ class 配置项单选型表格组件(ConfigTableView):
 
         pass
 
-    def set_row_selected(self):
+    def set_row_selected(self,指定行=None):
         for rownum in range(self.table_model.rowCount()):
             item = self.table_model.item(rownum, 0)
             item.setText("")
-        idxs = self.viewTable.selectedIndexes()
+
+        idxs = self.viewTable.selectedIndexes() if not 指定行 else [self.table_model.index(指定行,0)]
+
+
         if idxs:
             item = self.table_model.itemFromIndex(idxs[0])
             item.setText("✔")

@@ -19,13 +19,13 @@ from urllib.parse import quote
 import uuid
 from collections import Sequence
 from datetime import datetime, timedelta
-import time
-from math import ceil
+import time,math
+# from math import ceil
 from typing import Union, Optional, NewType, Callable, List, Iterable, Type, Any
 import json
 import os
 import re
-from functools import reduce
+from functools import reduce, cmp_to_key
 from .compatible_import import *
 from . import baseClass
 
@@ -542,7 +542,7 @@ class Utils(object):
 
     @staticmethod
     def percent_calc(total, count, begin, ratio):
-        return ceil(count / total * ratio) + begin
+        return math.ceil(count / total * ratio) + begin
 
     @staticmethod
     def emptystr(s):
@@ -666,7 +666,7 @@ class Utils(object):
             日期年份 = 日期.timetuple().tm_year
             日期月份 = 日期.timetuple().tm_mon
             所求月份 = 12 if (日期月份 + 偏移量) % 12 == 0 else (日期月份 + 偏移量) % 12
-            所求年份 = ceil((日期月份 + 偏移量) / 12) - 1 + 日期年份
+            所求年份 = math.ceil((日期月份 + 偏移量) / 12) - 1 + 日期年份
             时间戳 = int(time.mktime(datetime(所求年份, 所求月份, 1).timetuple()))
             return 时间戳
 
@@ -1094,12 +1094,77 @@ class IntroductionOperation:
 class GviewConfigOperation(BaseConfig):
 
     @staticmethod
-    def 漫游路径生成之多级排序(前一项,后一项,视图数据:GViewData,排序表:"List[Iterable[str,str]]"):
-        for 排序字段,升降序 in 排序表:
+    def 获取结点角色名(视图数据:GViewData,结点编号,角色序号):
+        if 角色序号 < 0:
+            return ""
+        if not 视图数据.config:
+            return ""
+        else:
+            角色列表 = GviewConfigOperation.从数据库读(视图数据.config).data.node_role_list.value
+            if 角色序号>=len(角色列表):
+                视图数据.node_helper[结点编号].角色.设值(-1)
+                return ""
+            else:
+                return 角色列表[角色序号]
 
-            pass
-
+    @staticmethod
+    def 漫游路径生成之深度优先遍历(视图数据:GViewData,结点队列:"list[str]",起点:"list[str]"):
+        栈=[]
+        结点集 = set(结点队列)
+        已访问 = []
+        边集 = 视图数据.edge_helper.keys()
+        while 结点集:
+            if not 栈:
+                栈.append(结点集.pop() if not 起点 else 起点.pop())
+            while 栈:
+                结点 = 栈.pop()
+                已访问.append(结点)
+                结点为起点的边集 = [边 for 边 in 边集 if 边.startswith(结点)]
+                for 边 in 结点为起点的边集:
+                    终点 = 边.split(",")[1]
+                    if 终点 not in 已访问 and 终点 not in 栈:
+                        栈.append(终点)
+            结点集-=set(已访问)
+        return 已访问
         pass
+    @staticmethod
+    def 漫游路径生成之广度优先遍历(视图数据:GViewData,结点队列:"list[str]",起点:"list[str]"):
+        队 = []
+        结点集 = set(结点队列)
+        已访问 = []
+        边集 = 视图数据.edge_helper.keys()
+        while 结点集:
+            if not 队:
+                队.insert(0, 结点集.pop() if not 起点 else 起点.pop())
+            while 队:
+                结点 = 队.pop()
+                已访问.append(结点)
+                结点为起点的边集 = [边 for 边 in 边集 if 边.startswith(结点)]
+                for 边 in 结点为起点的边集:
+                    终点 = 边.split(",")[1]
+                    if 终点 not in 已访问 and 终点 not in 队:
+                        队.insert(0, 终点)
+
+            结点集 -= set(已访问)
+        return 已访问
+        pass
+    @staticmethod
+    def 漫游路径生成之多级排序(前一项,后一项,视图数据:GViewData,排序表:"List[Iterable[str,str]]"):
+        """默认升序排序,默认的比较是 前一项>后一项"""
+        前一项结点数据,后一项结点数据=视图数据.node_helper[前一项],视图数据.node_helper[后一项]
+        _ = 字典键名
+        for 排序字段,升降序 in 排序表:
+            if 前一项结点数据[排序字段].值==后一项结点数据[排序字段].值:
+                continue
+            else:
+                return (前一项结点数据[排序字段].值-后一项结点数据[排序字段].值)*(1 if 升降序==_.上升 else -1)
+        return 0
+        pass
+
+    @staticmethod
+    def 漫游路径生成之加权排序(前一项,后一项,视图数据:GViewData,排序公式):
+        return eval(排序公式,*GviewConfigOperation.获取eval可用变量与函数(视图数据,前一项)) - eval(排序公式,*GviewConfigOperation.获取eval可用变量与函数(视图数据,后一项))
+
     @staticmethod
     def 漫游路径生成(视图数据:GViewData,配置数据:objs.Record.GviewConfig,队列:"list[str]"):
         _ = 字典键名.路径生成模式
@@ -1109,12 +1174,29 @@ class GviewConfigOperation(BaseConfig):
         if  生成模式 == _.随机排序:
             random.shuffle(队列)
             return 队列
+
         elif 生成模式==_.多级排序:
             待选表,选中序号 = 配置数据.data.cascading_sort.value
-            排序表:"List[Iterable[str,str]]" = eval(待选表[选中序号])
+            排序表:"List[Iterable[str,str]]" = eval(待选表[选中序号]) if 选中序号>=0 else [[字典键名.结点.优先级,字典键名.下降]]
+            队列.sort(key=cmp_to_key(lambda x,y:GviewConfigOperation.漫游路径生成之多级排序(x,y,视图数据,排序表)))
+            return 队列
+        elif 生成模式==_.加权排序:
+            待选表, 选中序号 = 配置数据.data.weighted_sort.value
+            公式 = 待选表[选中序号] if 选中序号>=0 else f"{字典键名.结点.优先级}"
+            队列.sort(key=cmp_to_key(lambda x,y:GviewConfigOperation.漫游路径生成之加权排序(x,y,视图数据,公式)),reverse=True)
+            return 队列
+        else:
+            图排序模式 = 配置数据.data.graph_sort.value
+            开始结点 = [random.choice(队列)]
+            if 配置数据.data.roamingStart.value == 字典键名.视图配置.roamingStart.手动选择卡片开始:
+                可能的开始结点 = [结点编号 for 结点编号 in 队列 if 视图数据.node_helper[结点编号].漫游起点.值]
+                if len(可能的开始结点)>0:
+                    开始结点=可能的开始结点
+            if 图排序模式 == 字典键名.视图配置.图排序模式.广度优先遍历:
+                return GviewConfigOperation.漫游路径生成之广度优先遍历(视图数据,队列,开始结点)
+            else:
+                return GviewConfigOperation.漫游路径生成之深度优先遍历(视图数据,队列,开始结点)
 
-
-        pass
 
 
 
@@ -1125,8 +1207,13 @@ class GviewConfigOperation(BaseConfig):
             raise ValueError('config is None')
         列表 = 配置数据.data.roaming_node_filter.value[0]
         选项 = 配置数据.data.roaming_node_filter.value[1]
-        if 选项==-1:
+        结点数据 = 视图数据.node_helper[结点编号]
+        if 结点数据.必须复习.值==True:
             return True
+        elif 结点数据.需要复习.值==False :
+            return False
+        elif 选项==-1:
+            return eval(字典键名.结点.已到期, *GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号))
         else:
             return eval(列表[选项], *GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号))
         pass
@@ -1145,9 +1232,9 @@ class GviewConfigOperation(BaseConfig):
         for 属性名 in 视图属性模型.获取可访变量(指定变量类型).keys():
             说明 += fr"<p><b>{属性名}</b>,{视图属性模型[属性名].变量使用的解释()}</p>"
         说明+=f"<p><b>{_.视图配置.结点角色表}</b>,mean:{译.角色待选列表},type:list,example:['apple','banana']</p>"
-        说明+=f"<p><b>time_xxxx</b>,{译.所有time开头的变量都是时间戳}:{[_.时间.今日  ,_.时间.昨日  ,_.时间.上周  ,_.时间.本周  ,_.时间.一个月前,_.时间.本月  ,_.时间.三天前 ,_.时间.三个月前,_.时间.六个月前]}</p>"
+        说明+=f"<p><b>time_xxxx</b>,{译.所有time开头的变量都是时间戳}:{', '.join([_.时间.今日  ,_.时间.昨日  ,_.时间.上周  ,_.时间.本周  ,_.时间.一个月前,_.时间.本月  ,_.时间.三天前 ,_.时间.三个月前,_.时间.六个月前])}</p>"
         说明+=f"<p><b>{_.时间.转时间戳}</b>,example:to_timestamp('2023-2-18')->1676649600</p>"
-
+        说明+=f"<p><b>supported python module:</b> math,random,re</p>"
         return BeautifulSoup(说明, "html.parser").__str__()
 
 
@@ -1170,7 +1257,7 @@ class GviewConfigOperation(BaseConfig):
     @staticmethod
     def 获取eval可用字面量(指定变量类型=None):
         from . import models
-        return [*models.类型_视图本身模型().获取可访变量(指定变量类型=指定变量类型), *models.类型_视图结点模型.获取可访变量(指定变量类型=指定变量类型)]
+        return [*models.类型_视图本身模型().获取可访字面量(指定变量类型=指定变量类型), *models.类型_视图结点模型().获取可访字面量(指定变量类型=指定变量类型)]
         pass
 
     @staticmethod
@@ -1185,7 +1272,7 @@ class GviewConfigOperation(BaseConfig):
                             **GviewConfigOperation.获取eval可用函数(),
                             **(models.类型_视图结点模型().获取可访变量(指定变量类型=指定变量类型) if not 视图数据 else 视图数据.node_helper[结点索引].获取可访变量(指定变量类型=指定变量类型)),
                             **(models.类型_视图本身模型().获取可访变量(指定变量类型=指定变量类型) if not 视图数据 else 视图数据.meta_helper.获取可访变量(指定变量类型=指定变量类型)),
-                            _.视图配置.结点角色表:eval(GviewConfigOperation.从数据库读(视图数据.config).data.node_role_enum.value) if 视图数据 and 视图数据.config else []
+                            _.视图配置.结点角色表:eval(GviewConfigOperation.从数据库读(视图数据.config).data.node_role_list.value) if 视图数据 and 视图数据.config else []
                     }
                 ]
         return 变量对儿
@@ -1280,7 +1367,7 @@ class GviewConfigOperation(BaseConfig):
             data = gview_data
         if data.config:
             from ast import literal_eval
-            role_enum = literal_eval(objs.Record.GviewConfig.readModelFromDB(data.config).data.node_role_enum.value)
+            role_enum = literal_eval(objs.Record.GviewConfig.readModelFromDB(data.config).data.node_role_list.value)
             return role_enum
         else:
             return []

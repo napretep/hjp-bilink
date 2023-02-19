@@ -1,5 +1,8 @@
 from . import compatible_import as compatible
+from . import baseClass
 currentLang = compatible.Anki.Lang.currentLang
+
+枚举 = baseClass.枚举命名
 
 def rosetta(text: str = ""):
     """# return text"""
@@ -284,7 +287,30 @@ def 翻译(zh="",en="",**kwargs):
 # noinspection NonAsciiCharacters
 class Translate:
 
-    可用变量与函数 = 翻译("可用变量与函数","Available Variables and Functions")
+    例子_结点过滤=翻译("""例子:node_priority>0
+表示当结点的优先级大于0时,才纳入漫游队列,
+    ""","""Example: node_priority>0
+means that when the priority of the node is greater than 0, it will be included in the roaming queue
+    """)
+
+    例子_多级排序=翻译("""例子:[[node_priority,descending],[node_visit_count,ascending]]
+表示先比较两个结点的优先级,按降序排序, 若优先级相同, 则再比较两个结点的访问次数, 按升序排序
+descending, ascending 是两个变量
+""",
+"""
+Example: [[node_priority,descending],[node_visit_count,ascending]]
+means first compare the priority of two nodes, sort by descending, if the priority is the same, then compare the visit count of two nodes, sort by ascending
+descending, ascending are two variables
+""")
+    例子_加权排序=翻译("""例子: max(abs(node_last_view-node_last_review)/86400,-node_role,node_out_degree+node_in_degree)
+表示在以下三种结果中取最大的作为权重值:1结点上次访问与上次复习的差值比上1天的秒数,2结点角色在角色列表中所对应位置的负数, 3 结点出度与入度之和
+最终结果默认按计算所得权重的降序排序
+    ""","""Example: max(abs(node_last_view - node_last_review)/86400,-node_role,node_out_degree+node_in_degree)
+This means that the largest of the following three results is used as the weight value: 1 the number of seconds between the last visit and the last review of the node compared to the last day, 2 the negative number of the node's role in the role list, 3 the sum of the node's out-degree and in-degree.
+The final result is sorted by default in descending order of the calculated weights
+    """)
+
+    可用变量与函数 = 翻译("可用变量,函数与模块","Available Variables, Functions and Modules")
     角色待选列表 = 翻译("角色待选列表","Role to be selected list")
     所有time开头的变量都是时间戳=翻译("所有以'time'开头的变量都是时间戳","All variables that start with 'time' are timestamps")
     说明_属性查看 = 翻译("当你没有选中东西,打开视图本身的属性,当你选中了一个东西,打开那个东西的属性","when you don't select node or edge, it will open the property of the view, else open the propery of the selected node or edge")
@@ -411,14 +437,17 @@ Note: 1:
     )
 
     说明_加权排序=翻译(
-zh="""
+zh=f"""
 加权排序:weighted_sort
 如果你在roaming_path_mode中选择了weighted_sort模式,
-那么在本程序执行生成漫游路径的操作时,会根据当前表格中选中的加权公式, 作为对每个结点评分的依据.最终会以这些结点的加权评分的降序排列结果作为漫游的路径.""",
-en="""
+那么在本程序执行生成漫游路径的操作时,会根据当前表格中选中的加权公式, 作为对每个结点评分的依据.最终会以这些结点的加权评分的降序排列结果作为漫游的路径.
+如果没有选中任何加权公式, 那么会采用默认的公式来排序结点:  {枚举.结点.优先级}
+""",
+en=f"""
 Weighted sort: weighted_sort
 If you select weighted_sort mode in roaming_path_mode,
 Then when this program generates roaming paths, it will use the weighted formula selected in the current table as the basis for scoring each node. The final roaming path will be based on the descending order of the weighted scores of these nodes.
+If no weighting formula is selected or the table is empty, then the default formula will be used to sort the nodes:{枚举.结点.优先级}
 """
     )
 
@@ -432,32 +461,36 @@ Then when this program generates roaming paths, it will use the weighted formula
 列表中的二元对放置顺序确定了多级排序比较所用变量的顺序, 排在前面的变量优先进行比较.
 
 例如,当你填写:
-[[node_priority,ascending],[node_visit_count,descending]]
+[[node_priority,descending],[node_visit_count,ascending]]
 
-则两个结点会先根据 node_priority 进行升序排序, 
-如果两个结点的node_priority相同, 则再根据 node_visit_count 进行降序排序
+则两个结点会先根据 node_priority 进行降序排序, 
+如果两个结点的node_priority相同, 则再根据 node_visit_count 进行升序排序
 
 注意:
 升序和降序只能用"ascending","descending"来表示,
 排序依据的变量只能是规定的可用变量
+
+默认的多级排序规则:[[node_priority,descending]]
             """,
 en="""
-Multi-level sorting: cascading_sort
-If you choose cascading_sort mode in roaming_path_mode, the roaming path will be generated based on the sorting result of various attributes of the node.
+cascading sorting: cascading_sort
+If you select cascading_sort mode in roaming_path_mode, the roaming path will be generated based on the sorting result of various attributes of the node.
 In this configuration, if you want to add a multi-level sorting rule, you need to click the plus button and enter a python syntax style list in the popup dialog.
 Each element of this list is a binary pair,
-In each binary pair, the first element is used to fill in the variables for sorting comparisons, and the second element is used to fill in whether to sort ascending or descending, 
+In each binary pair, the first element is used to fill in the variables to be sorted and compared, and the second element is used to fill in whether to sort ascending or descending, 
 The order in which the binary pairs are placed in the list determines the order of the variables used in the multilevel sorting comparison, with the first variables being compared first.
 
 For example, when you fill in:
-[[node_priority,ascending],[node_visit_count,descending]]
+[[node_priority,descending],[node_visit_count,ascending]]
 
-then the two nodes will be sorted first in ascending order according to node_priority, 
-If both nodes have the same node_priority, they will be sorted according to node_visit_count in descending order
+then the two nodes will be sorted first in descending order according to node_priority, 
+If both nodes have the same node_priority, then they are sorted ascending according to node_visit_count
 
 Note:
 Ascending and descending can only be represented by "ascending" and "descending",
-The sorting variables can only be based on the available variables
+The sorting variables can only be based on the available variables.
+
+Default cascading sorting rule: [[node_priority,descending]]
 """
     )
     说明_图排序 = 翻译(
@@ -483,22 +516,26 @@ If you have already selected a node, the graph sort will start the traversal wit
 
 比如:
 点击加号新建一行记录, 在弹出的文本框中输入 
-node_priority > 50 and node_visit_count <30 and node_tag in ["apple","banana"]
+node_priority > 50 and node_visit_count <30 and node_role_name in ["apple","banana"]
 点击确定后, 在表中选中此行, 则程序会根据结点的优先级属性是否大于50, 访问次数属性是否小于30以及结点标签属性是否为apple或banana, 过滤掉不满足条件的结点, 在这个基础上再去执行路径生成算法.
 
 注意:
 条件必须是符合python语法的表达式,返回值只能是布尔类型.
+
+默认的过滤规则: is_due
         """,
 en="""
 Roaming node filtering: roaming_node_filter
 This configuration item will filter out the nodes that do not meet the conditions according to the conditions set by the user, and then execute the roaming path generation algorithm on the remaining nodes that meet the conditions,
 
 For example, Click the plus sign to create a new row in the pop-up text box, enter:
-node_priority > 50 and node_visit_count < 30 and node_tag in ["apple", "banana"] 
+node_priority > 50 and node_visit_count < 30 and node_role in ["apple", "banana"] 
 After clicking OK, select this row in the table, then the program will filter out nodes that do not meet the criteria based on their priority, visit count and node tag attributes, and then execute the path generation algorithm based on that.
 
 Note:
 The condition must be a python syntax expression, and the return value can only be a boolean.
+
+Default filter rule: is_due
 """
     )
 
@@ -662,7 +699,7 @@ The condition must be a python syntax expression, and the return value can only 
     双面展示:str=rosetta("双面展示")
     开始漫游复习:str=rosetta("开始漫游复习")
     全部卡片:str=rosetta("全部卡片")
-    到期卡片:str=rosetta("到期卡片")
+    到期卡片:str=翻译("到期卡片","node that is due")
     选中的卡片:str=rosetta("选中的卡片")
     选中卡片的连通集:str=rosetta("选中卡片的连通集")
     广度优先: str = rosetta("广度优先")
@@ -686,7 +723,7 @@ The condition must be a python syntax expression, and the return value can only 
     添加卡片:str = rosetta("添加卡片")
     添加视图:str = rosetta("添加视图")
     新建:str = rosetta("新建")
-
-
+    结点角色名= 翻译("结点角色名","node role name")
+    说明_结点角色名=翻译(f"结点角色名无法在结点属性中修改,如果想更改角色名, 请到视图的配置表中修改{枚举.视图配置.结点角色表}",f"The node role name cannot be changed in the node properties, if you want to change the role name, please go to the configuration table of the view. {枚举.视图配置.结点角色表}")
 if __name__ == "__main__":
     print(Translate.打开配置表)

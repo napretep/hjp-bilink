@@ -27,13 +27,39 @@ if __name__ == "__main__":
     #
     # sys.exit(app.exec_())
 
-    class 值类型:
-        数值="number"
-        时间戳="timestamp"
-        布尔 = "bool"
-        枚举 = lambda 枚举表:"enum:"+枚举表.__str__()
+    # class A:
+    #     def __add__(self, other):
+    #
+    import sys
+    from functools import cmp_to_key
 
-    print(值类型.枚举(["1","2","3"]))
+
+    # def 漫游路径生成之深度优先遍历():
+    栈 = ["1"]
+    结点集 = set(["1","2","3","4","5","6"])
+    已访问 = []
+    边集 = ["1,2","2,3","2,4","4,5","5,6","6,2"]
+    while 结点集:
+        if not 栈:
+            栈.append(结点集.pop())
+        while 栈:
+            结点 = 栈.pop()
+            已访问.append(结点)
+            结点为起点的边集 = [边 for 边 in 边集 if 边.startswith(结点)]
+            for 边 in 结点为起点的边集:
+                终点 = 边.split(",")[1]
+                if 终点 not in 已访问:
+                    栈.append(终点)
+        结点集 -= set(已访问)
+    print(已访问)
+
+    # class 值类型:
+    #     数值="number"
+    #     时间戳="timestamp"
+    #     布尔 = "bool"
+    #     枚举 = lambda 枚举表:"enum:"+枚举表.__str__()
+    #
+    # print(值类型.枚举(["1","2","3"]))
 
 
     pass

@@ -74,6 +74,7 @@ class 函数库_UI展示:
         按钮2= QPushButton(QIcon(funcs.G.src.ImgDir.edit), "")
         右侧布局 = QVBoxLayout()
         组件 = QLabel(项.组件显示值)
+        组件.setWordWrap(True)
         [右侧布局.addWidget(i) for i in [按钮,按钮2]]
 
         def on_edit():
@@ -173,7 +174,7 @@ class 函数库_UI展示:
 class 基类_模型:
     UI创建完成 = 0
     数据源: "None|Any" = None
-    属性字典 = None
+    属性字典:"dict" = field(default_factory=dict)
 
     def 初始化(self, *args):
         raise NotImplementedError()
@@ -594,6 +595,23 @@ class 类型_视图结点模型(基类_模型):
             值解释=" -1 or 0 "
     ))
 
+    角色名:类型_视图结点属性项 = field(default_factory=lambda :类型_视图结点属性项(
+        字段名 = 枚举.结点.角色名,
+        展示名 = 译.结点角色名,
+        说明=译.说明_结点角色名,
+        可保存到视图数据=0, # 可保存到视图数据的意思是可保存到视图数据到视图数据中,
+        可展示=0,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
+        可展示中编辑=0,  # 需要对应的可展示中编辑组件, 与可展示联合判断
+        推算得到=1,  # 需要提供推算方法
+        用户可访=1, # 用户可以用自定义的python语句访问到这个变量的值
+        推算函数=lambda 项:funcs.GviewConfigOperation.获取结点角色名(项.上级.数据源.视图数据,项.上级.数据源.结点编号,项.值),
+        组件类型=枚举.组件类型.label, #展示用的组件
+        值解释="'apple' or 'banana' if no role then '' ",
+        默认值="",
+        值类型=枚举.值类型.文本
+    ))
+
+
     主要结点: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
             字段名=枚举.结点.主要结点,
             展示名=译.主要结点,
@@ -677,7 +695,7 @@ class 类型_视图结点模型(基类_模型):
             值解释="True or False",
     ))
 
-    # 样板:视图结点属性项 = field(default_factory=lambda :视图结点属性项(
+    # 样板:类型_视图结点属性项 = field(default_factory=lambda :类型_视图结点属性项(
     #     字段名 = 枚举.结点.位置,
     #     展示名 = 译.结点位置,
     #     说明=译,

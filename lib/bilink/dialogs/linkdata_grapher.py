@@ -1535,8 +1535,11 @@ class GViewAdmin(QDialog):
         """关闭的时候自动保存退出, 不提供任意移动功能"""
         funcs.GviewOperation.save(data_li=self.wait_for_update)
         funcs.GviewOperation.delete(uuid_li=self.wait_for_delete)
+        self.wait_for_delete=set()
+        self.wait_for_update=set()
 
     def rebuild(self):
+        self.save()
         if self.displaystate == self.DisplayState.as_tree:
             self.build_tree()
         else:
@@ -1579,6 +1582,7 @@ class GViewAdmin(QDialog):
 
     def on_create(self):
         funcs.GviewOperation.create()
+        self.rebuild()
         pass
 
     def 当_删除多个(self, 项表: "list[GViewData]"):
@@ -1766,8 +1770,6 @@ class GrapherRoamingPreviewer(QMainWindow):
 
         super().__init__()
         self.superior: "Grapher" = superior
-        # self.dueQueue = [card_id for card_id in self.superior.data.gviewdata.nodes]  # 这个需要排序获取 比如从grapher那里搞个
-        # initCard = common_tools.funcs.CardOperation.GetCard(self.dueQueue[0])
         self.当前编码 = ""
         self.导航按钮组 = self.导航组件(self)
         self.listView = self.List(self)
@@ -1786,12 +1788,11 @@ class GrapherRoamingPreviewer(QMainWindow):
     def dueQueue(self)->"list[str]":
         视图数据 = self.superior.data.gviewdata
         if not 视图数据.config:
-            return list(视图数据.nodes)
+            return list(视图数据.nodes.keys())
         else:
-            视图配置= funcs.GviewConfigOperation.从数据库读(视图数据.config)
-            结果队列 = [编号 for 编号 in 视图数据.nodes if funcs.GviewConfigOperation.满足过滤条件(视图数据,编号,视图配置)]
-            funcs.GviewConfigOperation
-            return 结果队列
+            配置数据= funcs.GviewConfigOperation.从数据库读(视图数据.config)
+            队列 = [编号 for 编号 in 视图数据.nodes if funcs.GviewConfigOperation.满足过滤条件(视图数据,编号,配置数据)]
+            return funcs.GviewConfigOperation.漫游路径生成(视图数据,配置数据,队列)
     @property
     def cardView(self):
         """SingleCardPreviewer 第一个参数必须是Card对象,否则就无法启动.

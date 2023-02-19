@@ -345,6 +345,11 @@ class ConfigModelItem:
     def to_dict(self):
         return {"value": self.value}
 
+    def __eq__(self, other):
+        return self.value == other
+
+
+
     # def 组件类型与组件值修改函数映射(self):
     #     w= BaseConfigModel.Widget
     #     return {
@@ -934,7 +939,7 @@ class GviewConfigModel(BaseConfigModel):
             customizeComponent=lambda: widgets.ConfigWidget.GviewConfigApplyTable,
             validate=lambda value, item: sum([0 if GviewConfigModel.ViewExist(uuid) else 1 for uuid in value]) == 0
     ))
-    node_role_enum: ConfigModelItem  = field(default_factory=lambda: ConfigModelItem(
+    node_role_list: ConfigModelItem  = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_结点角色枚举],
             tab_at="main",
             value="[]", # "list[str]"
@@ -998,6 +1003,7 @@ class GviewConfigModel(BaseConfigModel):
 
 
         pass
+
 
 class Validation:
     @staticmethod

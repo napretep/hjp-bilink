@@ -1686,6 +1686,7 @@ class ConfigWidget:
         defaultRowData = ["", ""]
 
         def NewRowFormWidget(self, 上级, 行: "list[baseClass.ConfigTableView.TableItem]" = None, *args, **kwargs):
+            说明 = 译.例子_结点过滤 + "\n" + funcs.GviewConfigOperation.获取eval可用变量与函数的说明()
             class edit_widget(baseClass.组件_表格型配置项_列编辑器_可执行字符串):
                 def on_test(self):
                     # noinspection PyBroadException
@@ -1704,17 +1705,18 @@ class ConfigWidget:
                         return False
                     pass
 
-            return edit_widget(上级, 行, funcs.GviewConfigOperation.获取eval可用变量与函数的说明())
+            return edit_widget(上级, 行, 说明)
 
     class GviewConfigCascadingSorter(baseClass.配置项单选型表格组件):
         colnames = [译.选中, 译.多级排序依据]
         defaultRowData = ["", ""]
 
         def NewRowFormWidget(self, 上级, 行: "list[baseClass.ConfigTableView.TableItem]" = None, *args, **kwargs):
+            说明 = 译.例子_多级排序+"\n"+funcs.GviewConfigOperation.获取eval可用变量与函数的说明()
             class edit_widget(baseClass.组件_表格型配置项_列编辑器_可执行字符串):
                 def on_test(self):
                     _ = baseClass.枚举命名
-                    globals_dict, locals_dict = funcs.GviewConfigOperation.获取eval可用字面量([int,float])
+                    globals_dict, locals_dict = funcs.GviewConfigOperation.获取eval可用字面量()
 
                     try:
                         strings = self.布局[子代][0][组件].toPlainText()
@@ -1737,13 +1739,14 @@ class ConfigWidget:
                         return False
                     pass
 
-            return edit_widget(上级, 行, funcs.GviewConfigOperation.获取eval可用变量与函数的说明([int, float]))
+            return edit_widget(上级, 行, 说明)
 
     class GviewConfigWeightedSorter(baseClass.配置项单选型表格组件):
         colnames = [译.选中, 译.加权公式]
         defaultRowData = ["", ""]
 
         def NewRowFormWidget(self, 上级, 行: "list[baseClass.ConfigTableView.TableItem]" = None, *args, **kwargs):
+            说明 = 译.例子_加权排序 + "\n" + funcs.GviewConfigOperation.获取eval可用变量与函数的说明()
             class edit_widget(baseClass.组件_表格型配置项_列编辑器_可执行字符串):
                 def on_test(self):
                     globals_dict, locals_dict = funcs.GviewConfigOperation.获取eval可用变量与函数()
@@ -1760,7 +1763,7 @@ class ConfigWidget:
                         self.设置说明栏("syntax error:" + err.__str__())
                         return False
 
-            return edit_widget(上级, 行, funcs.GviewConfigOperation.获取eval可用变量与函数的说明())
+            return edit_widget(上级, 行, 说明)
 
     class GviewNodeProperty(QDialog):
         class Enum:
@@ -2083,7 +2086,7 @@ class 自定义组件:
                 视图配置id = self.项.上级.数据源.视图数据.config
                 self.待选角色表 = []
                 if 视图配置id:
-                    字面量 = funcs.GviewConfigOperation.从数据库读(视图配置id).data.node_role_enum.value
+                    字面量 = funcs.GviewConfigOperation.从数据库读(视图配置id).data.node_role_list.value
                     self.待选角色表 = literal_eval(字面量)
                 # self.下拉选框 = QComboBox()
                 [self.addItem(self.待选角色表[i], i) for i in range(len(self.待选角色表))]
