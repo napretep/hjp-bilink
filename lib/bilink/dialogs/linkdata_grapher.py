@@ -1065,7 +1065,7 @@ class Grapher(QMainWindow):
             painter.setBrush(QBrush(self.current_title_style))
             header_height = 24
             header_rect = QRectF(0, 0, int(self.rect().width()), header_height)
-            body_rect = QRectF(0, header_height, int(self.rect().width()), int(self.rect().height()-header_height))
+            body_rect = QRectF(0, header_height, int(self.rect().width()), int(self.rect().height()-2*header_height))
             painter.drawRect(header_rect)
 
             painter.setPen(QColor(255, 255, 255))
@@ -1399,7 +1399,7 @@ class GViewAdmin(QDialog):
         self.model = self.Model(self)
         self.view.setModel(self.model)
         self.data: "dict[str,Optional[GViewData]]" = {}
-        self.wait_for_delete: "list[str]" = []
+        self.wait_for_delete: "set[str]" = set()
         self.wait_for_update: "set[GViewData]" = set()
         self.displaystate = funcs.Config.get().gview_admin_default_display.value
         self.init_UI()
@@ -1421,7 +1421,7 @@ class GViewAdmin(QDialog):
         ]).bind()
 
     def on_help(self):
-        showInfo(译.说明_视图管理器的用法)
+        funcs.Utils.大文本提示框(译.说明_视图管理器的用法)
 
     def on_view_contextmenu_handle(self, pos):
         # item = self.model.itemFromIndex(self.view.indexAt(pos))
@@ -1575,7 +1575,7 @@ class GViewAdmin(QDialog):
         item = self.get_item() if not it else it
         if not item: return
         data: "GViewData" = item.data(Qt.UserRole)
-        self.wait_for_delete.append(data.uuid)
+        self.wait_for_delete.add(data.uuid)
         self.data[data.uuid] = None
         self.rebuild()
         pass
@@ -1587,7 +1587,7 @@ class GViewAdmin(QDialog):
 
     def 当_删除多个(self, 项表: "list[GViewData]"):
         for 项 in 项表:
-            self.wait_for_delete.append(项.uuid)
+            self.wait_for_delete.add(项.uuid)
             self.data[项.uuid] = None
         self.rebuild()
 

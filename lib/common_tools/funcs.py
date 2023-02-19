@@ -252,15 +252,15 @@ class GviewOperation:
     @staticmethod
     def fuzzy_search(search_string: str):
         """在GRAPH_VIEW , GRAPH_VIEW_CACHE 两个表中做模糊搜索, 将用户的空格替换成通配符"""
-        关键词正则 = re.sub(r"\s", ".*", search_string)
-
+        # 关键词正则 = re.sub(r"\s", ".*", search_string)
+        关键词正则 = re.sub(r"\s", "%", search_string)
         DB, Logic = G.DB, objs.Logic
 
         DB.go(DB.table_Gview)
         DB.excute_queue.append(f"""select * from GRAPH_VIEW_TABLE where 
-        name regexp '{关键词正则}' 
-        or uuid regexp '{关键词正则}' 
-        or card_content_cache regexp '{关键词正则}' """)
+        name like '%{关键词正则}%' 
+        or uuid like '%{关键词正则}%' 
+        or card_content_cache like '%{关键词正则}%' """)
         匹配的视图集 = [data.to_GviewData() for data in DB.return_all().zip_up().to_gview_record()]
 
         return 匹配的视图集
@@ -269,6 +269,7 @@ class GviewOperation:
     @staticmethod
     def save(data: GViewData = None, data_li: "Iterable[GViewData]" = None, exclude: "list[str]" = None):
         """"""
+        Logic = objs.Logic
         if data:
             # Utils.print(data,need_logFile=True)
             prepare_data = data.to_DB_format()
@@ -276,7 +277,7 @@ class GviewOperation:
             if exclude is not None:
                 [prepare_data.pop(item) for item in exclude]
             with G.DB.go(G.DB.table_Gview) as DB:
-                DB.replace(**prepare_data).commit()
+                DB.update(values=Logic.LET(**prepare_data),where=Logic.EQ(uuid=data.uuid)).commit()
 
             return
         elif data_li:
@@ -285,7 +286,7 @@ class GviewOperation:
                     prepare_data = data.to_DB_format()
                     if exclude is not None:
                         prepare_data.pop(exclude)
-                    DB.replace(**prepare_data).commit()
+                    DB.update(values=Logic.LET(**prepare_data),where=Logic.EQ(uuid=data.uuid)).commit()
             return
 
     @staticmethod
@@ -1257,7 +1258,7 @@ class GviewConfigOperation(BaseConfig):
     @staticmethod
     def 获取eval可用字面量(指定变量类型=None):
         from . import models
-        return [*models.类型_视图本身模型().获取可访字面量(指定变量类型=指定变量类型), *models.类型_视图结点模型().获取可访字面量(指定变量类型=指定变量类型)]
+        return {**models.类型_视图本身模型().获取可访字面量(指定变量类型=指定变量类型), **models.类型_视图结点模型().获取可访字面量(指定变量类型=指定变量类型)}
         pass
 
     @staticmethod

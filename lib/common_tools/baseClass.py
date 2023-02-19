@@ -475,7 +475,10 @@ class 配置项单选型表格组件(ConfigTableView):
         if w.ok:
             self.AppendRow(w.colItems)
             self.SaveDataToConfigModel()
-            self.set_row_selected(self.table_model.rowCount()-1)
+            if self.table_model.rowCount()>0:
+                self.set_row_selected(self.table_model.rowCount()-1)
+            else:
+                self.set_row_selected(0)
         pass
 
     def ShowRowEditor(self, row: "list[baseClass.ConfigTableView.TableItem]" = None):
@@ -494,16 +497,16 @@ class 配置项单选型表格组件(ConfigTableView):
         for rownum in range(self.table_model.rowCount()):
             item = self.table_model.item(rownum, 0)
             item.setText("")
-
-        idxs = self.viewTable.selectedIndexes() if not 指定行 else [self.table_model.index(指定行,0)]
-
-
+        # showInfo(self.table_model.rowCount().__str__())
+        idxs = self.viewTable.selectedIndexes() if 指定行 is None else [self.table_model.index(指定行,0)]
         if idxs:
             item = self.table_model.itemFromIndex(idxs[0])
             item.setText("✔")
             self.current_selected_row = item.row()
         else:
+
             self.current_selected_row = -1
+        # showInfo(self.current_selected_row.__str__())
         self.SaveDataToConfigModel()
 
     def __init__(self, *args, **kwargs):

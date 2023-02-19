@@ -1716,11 +1716,11 @@ class ConfigWidget:
             class edit_widget(baseClass.组件_表格型配置项_列编辑器_可执行字符串):
                 def on_test(self):
                     _ = baseClass.枚举命名
-                    globals_dict, locals_dict = funcs.GviewConfigOperation.获取eval可用字面量()
+                    locals_dict = funcs.GviewConfigOperation.获取eval可用字面量()
 
                     try:
                         strings = self.布局[子代][0][组件].toPlainText()
-                        literal = eval(strings, globals_dict, {**locals_dict,_.上升:_.上升,_.下降:_.下降})
+                        literal = eval(strings, {}, {**locals_dict,_.上升:_.上升,_.下降:_.下降})
 
                         if type(literal) != list:
                             self.设置说明栏("type error:" + 译.可执行字符串表达式的返回值必须是列表类型)

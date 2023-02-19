@@ -1030,7 +1030,7 @@ class Table:
         def constrain(self):
             return {
         "string":["uuid","name","nodes","edges","config","card_content_cache"],
-        "number":["created_time","last_edited","last_view","view_count"]
+        "number":["view_created_time","view_last_edit","view_last_visit","view_visit_count","view_last_review"]
     }
     @dataclass
     class GRAPH_VIEW_CARD_TABLE(BaseFields):  # 这个表没用

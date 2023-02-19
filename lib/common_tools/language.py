@@ -302,10 +302,10 @@ Example: [[node_priority,descending],[node_visit_count,ascending]]
 means first compare the priority of two nodes, sort by descending, if the priority is the same, then compare the visit count of two nodes, sort by ascending
 descending, ascending are two variables
 """)
-    例子_加权排序=翻译("""例子: max(abs(node_last_view-node_last_review)/86400,-node_role,node_out_degree+node_in_degree)
+    例子_加权排序=翻译("""例子: max(abs(node_last_visit-node_last_review)/86400,-node_role,node_out_degree+node_in_degree)
 表示在以下三种结果中取最大的作为权重值:1结点上次访问与上次复习的差值比上1天的秒数,2结点角色在角色列表中所对应位置的负数, 3 结点出度与入度之和
 最终结果默认按计算所得权重的降序排序
-    ""","""Example: max(abs(node_last_view - node_last_review)/86400,-node_role,node_out_degree+node_in_degree)
+    ""","""Example: max(abs(node_last_visit - node_last_review)/86400,-node_role,node_out_degree+node_in_degree)
 This means that the largest of the following three results is used as the weight value: 1 the number of seconds between the last visit and the last review of the node compared to the last day, 2 the negative number of the node's role in the role list, 3 the sum of the node's out-degree and in-degree.
 The final result is sorted by default in descending order of the calculated weights
     """)
