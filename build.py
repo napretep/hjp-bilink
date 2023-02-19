@@ -80,11 +80,12 @@ if __name__ == "__main__":
     version=input("请输入版本号\n")
     if not re.search("\d+\.\d+\.\d+",version):
         print("请输入符合格式的版本号!")
-    for webOrLocal in ["w","l"]:
-        with open("./__init__.py","r",encoding="utf-8") as f:
-            pyFile = f.read()
-            pyFile = re.sub("""(?<=connectors.funcs.G.src.ADDON_VERSION=")\d+\.\d+\.\d+\.[wl]""",version+"."+webOrLocal, pyFile) # w表示ankiweb,l表示local
-            print(pyFile)
-        with open("./__init__.py","w",encoding="utf-8") as f:
-            f.write(pyFile)
-        ankiaddon_make(version+"."+webOrLocal)
+    else:
+        for webOrLocal in ["w","l"]:
+            with open("./__init__.py","r",encoding="utf-8") as f:
+                pyFile = f.read()
+                pyFile = re.sub("""(?<=connectors.funcs.G.src.ADDON_VERSION=")\d+\.\d+\.\d+\.[wl]""",version+"."+webOrLocal, pyFile) # w表示ankiweb,l表示local
+                print(pyFile)
+            with open("./__init__.py","w",encoding="utf-8") as f:
+                f.write(pyFile)
+            ankiaddon_make(version+"."+webOrLocal)
