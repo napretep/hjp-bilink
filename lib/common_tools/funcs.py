@@ -9,6 +9,7 @@ __time__ = '2021/7/30 9:09'
 import abc
 import dataclasses
 import logging
+import random
 import shutil
 import sys, platform, subprocess
 import tempfile
@@ -17,7 +18,7 @@ from urllib.parse import quote
 
 import uuid
 from collections import Sequence
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 import time
 from math import ceil
 from typing import Union, Optional, NewType, Callable, List, Iterable, Type, Any
@@ -124,37 +125,37 @@ class MenuMaker:
 class GviewOperation:
 
     @staticmethod
-    def 重命名(视图数据:GViewData,新名字):
+    def 重命名(视图数据: GViewData, 新名字):
         视图数据.name = 新名字
         GviewOperation.save(视图数据)
-        tooltip("改名成功".format(view_name=视图数据.name,name=新名字))
+        tooltip("改名成功".format(view_name=视图数据.name, name=新名字))
 
     @staticmethod
-    def 获取主要结点编号(视图数据:GViewData):
-        return [结点 for 结点 in 视图数据.nodes if 视图数据.node_helper[结点].主要结点==True]
+    def 获取主要结点编号(视图数据: GViewData):
+        return [结点 for 结点 in 视图数据.nodes if 视图数据.node_helper[结点].主要结点 == True]
 
     @staticmethod
-    def 判断结点已到期(视图数据:GViewData,结点编号:str):
+    def 判断结点已到期(视图数据: GViewData, 结点编号: str):
         现在 = int(time.time())
         类型 = 视图数据.node_helper[结点编号].数据类型.值
 
         if 类型 == 枚举_视图结点类型.卡片:
-            return int(CardOperation.getLastNextRev(结点编号)[1].timestamp())<=现在
+            return int(CardOperation.getLastNextRev(结点编号)[1].timestamp()) <= 现在
         elif 类型 == 枚举_视图结点类型.视图:
             return True
         else:
             raise NotImplementedError(
                     {枚举_视图结点类型.卡片:
                          [视图数据.node_helper[结点编号].数据类型.值,
-                          {"result1":视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.卡片},
-                          {"result2":视图数据.node_helper[结点编号].数据类型.值 == 枚举_视图结点类型.卡片}],
+                          {"result1": 视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.卡片},
+                          {"result2": 视图数据.node_helper[结点编号].数据类型.值 == 枚举_视图结点类型.卡片}],
                      枚举_视图结点类型.视图:
                          [视图数据.node_helper[结点编号].数据类型.值,
-                          {"result1":视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.视图},
-                          {"result2":视图数据.node_helper[结点编号].数据类型.值 == 枚举_视图结点类型.视图}]})
+                          {"result1": 视图数据.node_helper[结点编号].数据类型 == 枚举_视图结点类型.视图},
+                          {"result2": 视图数据.node_helper[结点编号].数据类型.值 == 枚举_视图结点类型.视图}]})
 
     @staticmethod
-    def 结点上次复习时间(视图数据:GViewData,结点编号:str):
+    def 结点上次复习时间(视图数据: GViewData, 结点编号: str):
         """如果是卡片, 则调用 CardOperation.上次复习时间(结点编号)
         否则另外解决
         """
@@ -167,11 +168,11 @@ class GviewOperation:
             raise NotImplementedError()
 
     @staticmethod
-    def 获取结点出度(视图数据:GViewData,结点编号:str):
+    def 获取结点出度(视图数据: GViewData, 结点编号: str):
         return len([1 for 边 in 视图数据.edges.keys() if 边.startswith(结点编号)])
 
     @staticmethod
-    def 获取结点入度(视图数据:GViewData,结点编号:str):
+    def 获取结点入度(视图数据: GViewData, 结点编号: str):
         return len([1 for 边 in 视图数据.edges.keys() if 边.endswith(结点编号)])
 
     @staticmethod
@@ -256,13 +257,12 @@ class GviewOperation:
         DB, Logic = G.DB, objs.Logic
 
         DB.go(DB.table_Gview)
-        DB.excute_queue.append(f"""select * from GRAPH_VIEW_TABLE where name regexp '{关键词正则}' or uuid regexp '{关键词正则}'""")
+        DB.excute_queue.append(f"""select * from GRAPH_VIEW_TABLE where 
+        name regexp '{关键词正则}' 
+        or uuid regexp '{关键词正则}' 
+        or card_content_cache regexp '{关键词正则}' """)
         匹配的视图集 = [data.to_GviewData() for data in DB.return_all().zip_up().to_gview_record()]
-        DB.excute_queue.append(f"""select uuid from GRAPH_VIEW_CACHE WHERE cache regexp '{关键词正则}'""")
-        for 行 in DB.return_all().results:
-            if 行[0] not in 匹配的视图集:  # 为了保持元素的唯一性
-                匹配的视图集.append(GviewOperation.load(uuid=行[0]))
-        # Utils.print(匹配的视图集)
+
         return 匹配的视图集
         pass
 
@@ -369,16 +369,18 @@ class GviewOperation:
         """"""
         from ..bilink.dialogs.linkdata_grapher import Grapher
         DB = G.DB
+
         def 彻底删除(视图标识):
 
-            if 视图标识 in G.mw_gview and isinstance(G.mw_gview[视图标识],Grapher):
-                视图窗口:Grapher = G.mw_gview[视图标识]
+            if 视图标识 in G.mw_gview and isinstance(G.mw_gview[视图标识], Grapher):
+                视图窗口: Grapher = G.mw_gview[视图标识]
                 视图窗口.close()
             config = GviewOperation.load(视图标识).config
             if config:
                 GviewConfigOperation.从数据库删除(config)
             DB.go(DB.table_Gview)
             DB.delete(where=DB.VALUEEQ(uuid=视图标识)).commit()
+
         if uuid:
             彻底删除(uuid)
         elif uuid_li:
@@ -480,18 +482,18 @@ class GviewOperation:
     def 依参数确定视图结点数据类型模板(结点类型=枚举_视图结点类型.卡片, 数据=None):
         _ = 字典键名
         默认值 = {
-                _.结点.数据类型  : 结点类型,
-                _.结点.位置    : [],
-                _.结点.主要结点  : False,
-                _.结点.需要复习  : True,
-                _.结点.必须复习  : False,
-                _.结点.漫游起点  : False,
-                _.结点.创建时间 : int(time.time()),
+                _.结点.数据类型: 结点类型,
+                _.结点.位置  : [],
+                _.结点.主要结点: False,
+                _.结点.需要复习: True,
+                _.结点.必须复习: False,
+                _.结点.漫游起点: False,
+                _.结点.创建时间: int(time.time()),
                 _.结点.上次访问: int(time.time()),
                 _.结点.上次编辑: int(time.time()),
                 _.结点.访问次数: 0,
-                _.结点.优先级   : 0,
-                _.结点.角色 : -1,
+                _.结点.优先级 : 0,
+                _.结点.角色  : -1,
         }
 
         return Utils.字典缺省值填充器(默认值, 数据)
@@ -501,12 +503,12 @@ class GviewOperation:
         _ = 字典键名.结点
         if not 索引:
             return {
-                    _.出度:0,
-                    _.入度:0,
-                    _.数据源:[],
-                    _.上次复习:int(time.time()),
-                    _.描述:"",
-                    _.已到期:False,
+                    _.出度  : 0,
+                    _.入度  : 0,
+                    _.数据源 : [],
+                    _.上次复习: int(time.time()),
+                    _.描述  : "",
+                    _.已到期 : False,
             }
         else:
             return {}
@@ -603,10 +605,50 @@ class Utils(object):
         """
         return int(time.mktime(time.strptime(日期, "%Y-%m-%d")))
 
+    @staticmethod
+    def 大文本提示框(文本):
+        _ = 字典键名.砖
+
+        组合 = {_.框: QHBoxLayout(), _.子: [{_.件: QWebEngineView()}]}
+        组合[_.子][0][_.件].setHtml(Utils.html默认格式(文本))
+        对话框: QDialog = 组件定制.组件组合(组合, QDialog())
+        对话框.exec()
+        pass
+
+    @staticmethod
+    def html默认格式(内容):
+        文本2 = "<p>" + 内容.replace("\n", "<br>") + "</p>"
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="UTF-8">
+        <title></title>
+        <style>
+        </style>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        <style>
+        body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+        font-size: 17px;
+        line-height: 1.6;
+        }
+        </style>
+        <style>
+        .task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+        </style>
+        </head>
+        <body class="vscode-body vscode-light">
+        """ + 文本2 + """
+        </body>
+        </html>
+                """
+
     class 时间处理:
 
         @staticmethod
-        def 日偏移(日期=None,偏移量:int=0):
+        def 日偏移(日期=None, 偏移量: int = 0):
 
             """
             可用的指标: days
@@ -614,19 +656,19 @@ class Utils(object):
             if 日期 is None:
                 日期 = datetime.today().date()
             偏移时间 = 日期 + timedelta(days=偏移量)
-            时间戳 = time.mktime(偏移时间.timetuple())
+            时间戳 = int(time.mktime(偏移时间.timetuple()))
             return 时间戳
 
         @staticmethod
-        def 月偏移(日期=None,偏移量=0):
+        def 月偏移(日期=None, 偏移量=0):
             if 日期 is None:
                 日期 = datetime.today().date()
             日期年份 = 日期.timetuple().tm_year
             日期月份 = 日期.timetuple().tm_mon
-            所求月份 = 12 if (日期月份+偏移量)%12==0 else (日期月份+偏移量)%12
-            所求年份 = ceil( (日期月份+偏移量)/12)-1+日期年份
-            时间戳 = time.mktime(datetime(所求年份,所求月份,1).timetuple())
-            pass
+            所求月份 = 12 if (日期月份 + 偏移量) % 12 == 0 else (日期月份 + 偏移量) % 12
+            所求年份 = ceil((日期月份 + 偏移量) / 12) - 1 + 日期年份
+            时间戳 = int(time.mktime(datetime(所求年份, 所求月份, 1).timetuple()))
+            return 时间戳
 
         @staticmethod
         def 周偏移(指标=0):
@@ -635,12 +677,15 @@ class Utils(object):
         @staticmethod
         def 今日():
             return Utils.时间处理.日偏移()
+
         @staticmethod
         def 昨日():
-            return Utils.时间处理.日偏移(None,-1)
+            return Utils.时间处理.日偏移(None, -1)
+
         @staticmethod
         def 三天前():
-            return Utils.时间处理.日偏移(None,-3)
+            return Utils.时间处理.日偏移(None, -3)
+
         @staticmethod
         def 本周():
             今天周几 = datetime.today().timetuple().tm_wday
@@ -649,15 +694,15 @@ class Utils(object):
         @staticmethod
         def 上周():
             今天周几 = datetime.today().timetuple().tm_wday
-            return Utils.时间处理.日偏移(None, -今天周几-7)
+            return Utils.时间处理.日偏移(None, -今天周几 - 7)
 
         @staticmethod
         def 本月():
-            return Utils.时间处理.月偏移(None,0)
+            return Utils.时间处理.月偏移(None, 0)
 
         @staticmethod
         def 一个月前():
-            return Utils.时间处理.月偏移(None,-1)
+            return Utils.时间处理.月偏移(None, -1)
 
         @staticmethod
         def 三个月前():
@@ -672,6 +717,8 @@ class Utils(object):
             # 现在 = time.localtime()
             # time.mktime((现在.tm_year,现在.tm_mon,现在.tm_mday-现在.tm_wday,0,0,0,0,0,0))
 
+
+
 class 组件定制:
 
     @staticmethod
@@ -679,6 +726,7 @@ class 组件定制:
         if not 容器: 容器 = QWidget()
         基 = G.objs.Bricks
         布局, 组件, 子代 = 基.三元组
+
         def 子组合(组件树: "dict"):
             if 布局 in 组件树:
                 the_layout: "QHBoxLayout|QVBoxLayout|QGridLayout" = 组件树[布局]
@@ -692,6 +740,7 @@ class 组件定制:
             return 组件树
 
         容器.setLayout(子组合(组件树数据)[布局])
+
         return 容器
 
     @staticmethod
@@ -720,7 +769,7 @@ class 组件定制:
         return 组件
 
     @staticmethod
-    def 对话窗口(标题=None, 图标=None,最大宽度=None,closeEvent=None):
+    def 对话窗口(标题=None, 图标=None, 最大宽度=None, closeEvent=None):
         组件 = QDialog()
         if 标题:
             组件.setWindowTitle(标题)
@@ -729,7 +778,7 @@ class 组件定制:
         if 最大宽度:
             组件.setMaximumWidth(最大宽度)
         if closeEvent:
-            组件.closeEvent=closeEvent
+            组件.closeEvent = closeEvent
         return 组件
 
     @staticmethod
@@ -751,28 +800,54 @@ class 组件定制:
         return 组件
 
     @staticmethod
-    def 长文本获取(预置内容=None,标题=None,获取回调:Callable[[str],Any]=None):
+    def 长文本获取(预置内容=None, 标题=None, 获取回调: Callable[[str], Any] = None):
         布局, 组件, 子代 = 0, 1, 2
-        result=[]
+        result = []
         对话框布局 = {
-                布局:QVBoxLayout(),子代:[
-                        {组件:QTextEdit(预置内容)},
-                        {组件:QPushButton(QIcon(G.src.ImgDir.correct),"")}
+                布局: QVBoxLayout(), 子代: [
+                        {组件: QTextEdit(预置内容)},
+                        {组件: QPushButton(QIcon(G.src.ImgDir.correct), "")}
                 ]
         }
-        对话框:"QDialog" = 组件定制.组件组合(对话框布局,组件定制.对话窗口(标题))
-        对话框布局[子代][1][组件].clicked.connect(lambda:[result.append(对话框布局[子代][0][组件].toPlainText()),对话框.close()])
+        对话框: "QDialog" = 组件定制.组件组合(对话框布局, 组件定制.对话窗口(标题))
+        对话框布局[子代][1][组件].clicked.connect(lambda: [result.append(对话框布局[子代][0][组件].toPlainText()), 对话框.close()])
 
         对话框.exec()
         return result
-    # @staticmethod
-    # def 批量布局(布局:"QVBoxLayout|QHBoxLayout|QFormLayout",布局组件表:"list"):
-    #     if isinstance(布局,QFormLayout):
-    #         for 描述,组件 in 布局组件表:
-    #             布局.addRow(描述,组件)
-    #     else:
-    #         for 组件 in 布局组件表:
-    #             布局.addWidget()更
+
+    @staticmethod
+    def 长文本说明(内容=None):
+        文本 ="""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title></title>
+<style>
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+body {
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+font-size: 14px;
+line-height: 1.6;
+}
+</style>
+<style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+</head>
+<body class="vscode-body vscode-light">
+"""+内容+"""
+</body>
+</html>
+        """
+        主窗口 = QMainWindow()
+        文本框 = QWebEngineView()
+        文本框.setHtml(文本)
+        主窗口.setCentralWidget(文本框)
+        return 主窗口
 #
 # # 2023年2月15日23:42:11 砍掉 group_review功能, 全部相关代码被注释掉.
 # # class GroupReview(object):
@@ -908,7 +983,7 @@ class BaseConfig(metaclass=abc.ABCMeta):
         typ = ConfigModel.Widget
         tipbutton = QToolButton()
         tipbutton.setIcon(QIcon(G.src.ImgDir.help))
-        tipbutton.clicked.connect(lambda: showInfo("<br>".join(配置项.instruction)))
+        tipbutton.clicked.connect(lambda: Utils.大文本提示框("<br>".join(配置项.instruction)))
         container = QWidget(parent=上级)
         layout = QHBoxLayout()
         w = None
@@ -1002,46 +1077,118 @@ class BaseConfig(metaclass=abc.ABCMeta):
         return 容器
 
 
+class IntroductionOperation:
+
+
+
+        pass
+    #
+    # @staticmethod
+    # def eval可用函数的说明():
+    #     _=字典键名.时间
+    #     return {
+    #
+    #     }
+
+
 class GviewConfigOperation(BaseConfig):
 
     @staticmethod
-    def eval可用函数():
+    def 漫游路径生成之多级排序(前一项,后一项,视图数据:GViewData,排序表:"List[Iterable[str,str]]"):
+        for 排序字段,升降序 in 排序表:
+
+            pass
+
+        pass
+    @staticmethod
+    def 漫游路径生成(视图数据:GViewData,配置数据:objs.Record.GviewConfig,队列:"list[str]"):
+        _ = 字典键名.路径生成模式
+        if not 视图数据.config:
+            raise ValueError('config is None')
+        生成模式 = 配置数据.data.roaming_path_mode.value
+        if  生成模式 == _.随机排序:
+            random.shuffle(队列)
+            return 队列
+        elif 生成模式==_.多级排序:
+            待选表,选中序号 = 配置数据.data.cascading_sort.value
+            排序表:"List[Iterable[str,str]]" = eval(待选表[选中序号])
+
+
+        pass
+
+
+
+    @staticmethod
+    def 满足过滤条件(视图数据:GViewData,结点编号:"str",配置数据:objs.Record.GviewConfig):
+        """传到这里的参数, 必须满足视图数据.config存在"""
+        if not 视图数据.config:
+            raise ValueError('config is None')
+        列表 = 配置数据.data.roaming_node_filter.value[0]
+        选项 = 配置数据.data.roaming_node_filter.value[1]
+        if 选项==-1:
+            return True
+        else:
+            return eval(列表[选项], *GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号))
+        pass
+    @staticmethod
+    def 获取eval可用变量与函数的说明(指定变量类型=None):
+        from . import models
+
+        说明 = f"<h1>{译.可用变量与函数}</h1>"
+
+        结点属性模型 = models.类型_视图结点模型()
+        视图属性模型 = models.类型_视图本身模型()
+
+        _ = 字典键名
+        for 属性名 in 结点属性模型.获取可访变量(指定变量类型).keys():
+            说明 +=fr"<p><b>{属性名}</b>,{结点属性模型[属性名].变量使用的解释()}</p>"
+        for 属性名 in 视图属性模型.获取可访变量(指定变量类型).keys():
+            说明 += fr"<p><b>{属性名}</b>,{视图属性模型[属性名].变量使用的解释()}</p>"
+        说明+=f"<p><b>{_.视图配置.结点角色表}</b>,mean:{译.角色待选列表},type:list,example:['apple','banana']</p>"
+        说明+=f"<p><b>time_xxxx</b>,{译.所有time开头的变量都是时间戳}:{[_.时间.今日  ,_.时间.昨日  ,_.时间.上周  ,_.时间.本周  ,_.时间.一个月前,_.时间.本月  ,_.时间.三天前 ,_.时间.三个月前,_.时间.六个月前]}</p>"
+        说明+=f"<p><b>{_.时间.转时间戳}</b>,example:to_timestamp('2023-2-18')->1676649600</p>"
+
+        return BeautifulSoup(说明, "html.parser").__str__()
+
+
+    @staticmethod
+    def 获取eval可用函数():
+        _=字典键名.时间
         return {
-                "to_timestamp"  : Utils.日期转时间戳,
-                "today"         : Utils.时间处理.今日(),
-                "yesterday"     : Utils.时间处理.昨日(),
-                "last_week"     : Utils.时间处理.上周(),
-                "this_week"     : Utils.时间处理.本周(),
-                "last_month"    : Utils.时间处理.一个月前(),
-                "this_mohth"    : Utils.时间处理.本月(),
-                "three_day_ago": Utils.时间处理.三天前(),
-                "three_month_ago" : Utils.时间处理.三个月前() ,
-                "six_month_ago": Utils.时间处理.六个月前(),
+                _.转时间戳   : Utils.日期转时间戳,
+                _.今日       : Utils.时间处理.今日(),
+                _.昨日      : Utils.时间处理.昨日(),
+                _.上周      : Utils.时间处理.上周(),
+                _.本周      : Utils.时间处理.本周(),
+                _.一个月前    : Utils.时间处理.一个月前(),
+                _.本月    : Utils.时间处理.本月(),
+                _.三天前  : Utils.时间处理.三天前(),
+                _.三个月前: Utils.时间处理.三个月前(),
+                _.六个月前  : Utils.时间处理.六个月前(),
         }
 
     @staticmethod
-    def 全部可用变量名():
-
-        return
+    def 获取eval可用字面量(指定变量类型=None):
+        from . import models
+        return [*models.类型_视图本身模型().获取可访变量(指定变量类型=指定变量类型), *models.类型_视图结点模型.获取可访变量(指定变量类型=指定变量类型)]
+        pass
 
     @staticmethod
-    def 获取eval可用变量(视图数据:GViewData=None,结点索引=None):
+    def 获取eval可用变量与函数(视图数据: GViewData = None, 结点索引=None, 指定变量类型=None):
         """"""
+        from . import models
         _ = baseClass.枚举命名
         new_globals = globals().copy()
 
-        if not 结点索引:  # 此时作为测试使用
-            return [
-                    new_globals
-                    , {
-                            **GviewOperation.依参数确定视图结点数据类型模板(),
-                            _.结点.入度       : 0,
-                            _.结点.出度       : 0,
-                            _.结点.名称       : "",
-                            **GviewConfigOperation.eval可用函数()
-                    }]
-        else:
-            return {}
+        变量对儿 = [new_globals,
+                    {
+                            **GviewConfigOperation.获取eval可用函数(),
+                            **(models.类型_视图结点模型().获取可访变量(指定变量类型=指定变量类型) if not 视图数据 else 视图数据.node_helper[结点索引].获取可访变量(指定变量类型=指定变量类型)),
+                            **(models.类型_视图本身模型().获取可访变量(指定变量类型=指定变量类型) if not 视图数据 else 视图数据.meta_helper.获取可访变量(指定变量类型=指定变量类型)),
+                            _.视图配置.结点角色表:eval(GviewConfigOperation.从数据库读(视图数据.config).data.node_role_enum.value) if 视图数据 and 视图数据.config else []
+                    }
+                ]
+        return 变量对儿
 
     @staticmethod
     def 从数据库读(标识):
@@ -1512,7 +1659,7 @@ class CardOperation:
 
     # @staticmethod
     # def 上次复习时间(card_id):
-        # CardOperation.GetCard(card_id).load()
+    # CardOperation.GetCard(card_id).load()
 
     @staticmethod
     def delay_card(card, delay_num):
@@ -2438,10 +2585,10 @@ class Dialogs:
         QDesktopServices.openUrl(QUrl(G.src.path.helpSite))
 
     @staticmethod
-    def open_version():
+    def open_inrtoDoc():
         from ..bilink import dialogs
         p = dialogs.version.VersionDialog()
-        p.exec()
+        p.show()
 
     @staticmethod
     def open_tag_chooser(pair_li: "list[G.objs.LinkDataPair]"):

@@ -1065,7 +1065,7 @@ class Grapher(QMainWindow):
             painter.setBrush(QBrush(self.current_title_style))
             header_height = 24
             header_rect = QRectF(0, 0, int(self.rect().width()), header_height)
-            body_rect = QRectF(0, header_height, int(self.rect().width()), int(self.rect().height()))
+            body_rect = QRectF(0, header_height, int(self.rect().width()), int(self.rect().height()-header_height))
             painter.drawRect(header_rect)
 
             painter.setPen(QColor(255, 255, 255))
@@ -1270,9 +1270,8 @@ class Grapher(QMainWindow):
         def openConfig(self):
             """"""
             布局, 组件, 子代, 描述 = funcs.G.objs.Bricks.四元组
-            视图记录 = funcs.GviewOperation.load(self.superior.data.gviewdata.uuid)
+            视图记录 = self.superior.data.gviewdata
             配置类 = common_tools.objs.Record.GviewConfig
-            self.superior.data.gviewdata.config = 视图记录.config
             if 视图记录.config != "" and 配置类.静态_存在于数据库中(视图记录.config) and 配置类.静态_含有某视图(视图记录.uuid, 视图记录.config):
                 配置记录 = 配置类.readModelFromDB(视图记录.config)
             else:
@@ -1283,16 +1282,6 @@ class Grapher(QMainWindow):
             配置记录 = 配置类.readModelFromDB(配置记录.uuid)
             配置组件 = common_tools.funcs.GviewConfigOperation.makeConfigDialog(调用者=self, 数据=配置记录.data, 关闭时回调=lambda 闲置参数: 配置记录.saveModelToDB())
             配置组件布局: "QVBoxLayout" = 配置组件.layout()
-
-            def 从当前配置窗的应用视图表中移除本视图():
-                模型: "common_tools.configsModel.GviewConfigModel" = 配置组件.参数模型
-                值: "list[str]" = 模型.appliedGview.value
-                视图标识 = self.superior.data.gviewdata.uuid
-                if 视图标识 in 值:
-                    值.remove(self.superior.data.gviewdata.uuid)
-                    模型.appliedGview.设值到组件(值)
-                    if len(值) == 0:
-                        配置记录.data.元信息.确定保存到数据库 = False
 
             def 打开配置选取窗():
                 输入框 = funcs.组件定制.单行输入框(占位符=译.输入关键词并点击查询)
@@ -1777,7 +1766,7 @@ class GrapherRoamingPreviewer(QMainWindow):
 
         super().__init__()
         self.superior: "Grapher" = superior
-        self.dueQueue = [card_id for card_id in self.superior.data.gviewdata.nodes]  # 这个需要排序获取 比如从grapher那里搞个
+        # self.dueQueue = [card_id for card_id in self.superior.data.gviewdata.nodes]  # 这个需要排序获取 比如从grapher那里搞个
         # initCard = common_tools.funcs.CardOperation.GetCard(self.dueQueue[0])
         self.当前编码 = ""
         self.导航按钮组 = self.导航组件(self)
@@ -1793,6 +1782,16 @@ class GrapherRoamingPreviewer(QMainWindow):
         else:
             self.listView.selectRow(0)
 
+    @property
+    def dueQueue(self)->"list[str]":
+        视图数据 = self.superior.data.gviewdata
+        if not 视图数据.config:
+            return list(视图数据.nodes)
+        else:
+            视图配置= funcs.GviewConfigOperation.从数据库读(视图数据.config)
+            结果队列 = [编号 for 编号 in 视图数据.nodes if funcs.GviewConfigOperation.满足过滤条件(视图数据,编号,视图配置)]
+            funcs.GviewConfigOperation
+            return 结果队列
     @property
     def cardView(self):
         """SingleCardPreviewer 第一个参数必须是Card对象,否则就无法启动.

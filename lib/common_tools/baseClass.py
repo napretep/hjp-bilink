@@ -30,7 +30,7 @@ class 枚举命名:
         # 结点推算所得信息
         出度 = "node_out_degree"
         入度 = "node_in_degree"
-        数据源 = "node_role_data_source" #角色数据源用于提供角色的选择范围
+        数据源 = "node_role_list" #角色数据源用于提供角色的选择范围
         上次复习 = "node_last_review"
         名称 = "node_name"
         描述 = "node_desc"
@@ -53,6 +53,7 @@ class 枚举命名:
         pass
     class 视图:
         # 保存得
+        编号 = "view_id"
         名称 = "view_name"
         创建时间 = "view_created_time"
         上次访问 = "view_last_visit"
@@ -61,7 +62,24 @@ class 枚举命名:
         访问次数 = "view_visit_count"
         # 推算得
         到期结点数 = "view_due_node_count"
-        主要结点 = "view_major_Nodes"
+        主要结点 = "view_major_nodes"
+
+    class 视图配置:
+        结点角色表 = "node_role_list"
+        ascending = "ascending"
+        descending = "descending"
+
+    class 时间:
+        转时间戳 = "to_timestamp"
+        今日 = "time_today"
+        昨日 = "time_yesterday"
+        上周 = "time_last_week"
+        本周 = "time_this_week"
+        一个月前 = "time_last_month"
+        本月 = "time_this_mohth"
+        三天前 = "time_three_day_ago"
+        三个月前 = "time_three_month_ago"
+        六个月前 = "time_six_month_ago"
 
 
     class 边:
@@ -83,11 +101,24 @@ class 枚举命名:
         checkbox=12
         time = 13
         editable_label=14
-
+    class 值类型:
+        数值    = "number"
+        时间戳  = "timestamp"
+        布尔    = "bool"
+        枚举    = "enum:"
+        文本    = "text"
+        列表 = "list"
 
     class 砖:
         布局, 组件, 子代 = 0, 1, 2
         框, 件, 子 = 0, 1, 2
+
+    class 路径生成模式:
+        随机排序=0
+        多级排序=1
+        加权排序=2
+        图排序 = 3
+
     范围 = "range"
     组件 = "widget"
     值 = "value"
@@ -489,30 +520,68 @@ class 可执行字符串编辑组件(QDialog):
                               {组件: QPushButton("ok")},
                               ]
                          },
-                        {组件: QLabel()}  # 用于展示信息
+                        {组件: QWebEngineView()}  # 用于展示信息
                 ]
         }
+        self.html_文本 = lambda 内容: """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title></title>
+<style>
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+body {
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+font-size: 14px;
+line-height: 1.6;
+}
+</style>
+<style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+</head>
+<body class="vscode-body vscode-light">
+"""+内容+"""
+</body>
+</html>
+        """
+        self.help_doc:"None|QMainWindow" = None
         self.合法字符串 = ""  # 可用可不用
         self.ok = False  # 可用可不用
         self.说明 = ""  # 可用可不用
         f = [self.on_help, self.on_test, self.on_ok]
         funcs.组件定制.组件组合(self.布局, self)
         [self.布局[子代][1][子代][i][组件].clicked.connect(f[i]) for i in range(3)]
-        label: QLabel = self.布局[子代][2][组件]
-        label.setWordWrap(True)
+        # web: QWebEngineView = self.布局[子代][2][组件]
+        # label.setWordWrap(True)
         self.布局[子代][0][组件].setText(预设文本)
+        self.设置说明栏("")
+        self.布局[子代][2][组件].show()
         self.setWindowTitle("excutable string validation")
 
     def 设置说明栏(self, 内容):
-        self.布局[子代][2][组件].setText(内容)
+        from . import funcs
+        self.布局[子代][2][组件].setHtml(funcs.Utils.html默认格式(内容))
 
     def on_help(self):
         """弹出提示"""
-        help_label: QLabel = self.布局[子代][2][组件]
-        if help_label.text() == self.说明:
-            self.布局[子代][2][组件].setText("")
-        else:
-            self.布局[子代][2][组件].setText(self.说明)
+        self.设置说明栏(self.说明)
+        # if self.help_doc:
+        #     self.help_doc.activateWindow()
+        # else:
+        #     from . import funcs
+        #     self.help_doc = funcs.组件定制.长文本说明(self.说明)
+        #     self.help_doc.closeEvent=lambda e:self.__dict__.__setitem__("help_doc",None)
+        #     self.help_doc.show()
+        # help_label: QLabel = self.布局[子代][2][组件]
+        # if help_label.text() == self.说明:
+        #     self.布局[子代][2][组件].setText("")
+        # else:
+        #     self.布局[子代][2][组件].setText(self.说明)
 
     def on_ok(self):
         if self.on_test():
@@ -530,6 +599,10 @@ class 可执行字符串编辑组件(QDialog):
 
         raise NotImplementedError()
 
+    # def closeEvent(self, QCloseEvent):
+        # if self.help_doc:
+        #     self.help_doc.close()
+        # super().closeEvent()
     # def init_UI(self):
 
     pass
@@ -547,7 +620,7 @@ class 组件_表格型配置项_列编辑器_可执行字符串(可执行字符�
         else:
             super().__init__(行[1].text())
         self.说明 = 说明
-        self.布局[子代][2][组件].setText(说明)
+        # self.布局[子代][2][组件].setText(说明)
         self.colItems = [self.上级.TableItem(self.上级, i) for i in self.上级.defaultRowData] if not 行 else 行
 
     def on_test(self):

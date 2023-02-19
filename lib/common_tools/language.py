@@ -284,6 +284,9 @@ def 翻译(zh="",en="",**kwargs):
 # noinspection NonAsciiCharacters
 class Translate:
 
+    可用变量与函数 = 翻译("可用变量与函数","Available Variables and Functions")
+    角色待选列表 = 翻译("角色待选列表","Role to be selected list")
+    所有time开头的变量都是时间戳=翻译("所有以'time'开头的变量都是时间戳","All variables that start with 'time' are timestamps")
     说明_属性查看 = 翻译("当你没有选中东西,打开视图本身的属性,当你选中了一个东西,打开那个东西的属性","when you don't select node or edge, it will open the property of the view, else open the propery of the selected node or edge")
     边名=翻译("边名","edge name")
     删除结点 = 翻译("删除结点","delete node")
@@ -293,7 +296,7 @@ class Translate:
     视图上次复习 = 翻译("视图上次复习","view_last_review")
     视图访问次数 = 翻译("视图访问次数","view_visit_count")
     视图到期结点数 = 翻译("视图到期结点数","view_due_node_count")
-    视图主要结点 = 翻译("视图主要结点","view_major_Nodes")
+    视图主要结点 = 翻译("视图主要结点","view_major_nodes")
     视图创建时间 = 翻译("视图创建时间","view_created_time")
     该项解释工作未完成= 翻译("该项解释工作未完成","the explanation was not completed")
     双击牌组即可修改卡片所属牌组=翻译("双击牌组即可修改卡片所属牌组","Double click on the deck to change the card's deck")
@@ -385,34 +388,37 @@ The random_sort mode determines the roaming path in a random way, no further set
 
     说明_结点角色枚举 = 翻译(
             zh="""
-你在文本框中输入python语法的字符串列表, 会被转换成 视图结点的 node_tag属性中的 待选标签列表
+你在文本框中输入python语法的字符串列表, 会被转换成 视图结点的 node_role属性中的 待选角色列表
 示例: 
-你在文本框中输入 ["apple","banana","orange"] 后, 那么其他结点的node_tag 待选标签中就会有
-apple banana orange 
+如果你在文本框中输入 ["apple","banana","orange"] 后, 那么视图中结点的node_role属性中就会有 apple, banana, orange 三个可选的角色.   
 注意:
-1. 必须严格遵守python的字符串列表类型格式, 否则会报错, 从而被一个空列表强制覆盖, 空列表则代表无可选标签.
+1. 必须严格遵守python的字符串列表类型格式, 否则无法被保存.
+
 2. 元素的顺序是有意义的, 排在前面的权重更大, 用于加权计算.
             """,
 en="""
-The list of strings you enter into Python syntax in the text box will be converted into a list of tags to be selected in the node_tag property of the view node
+The list of strings you enter in the text box in python syntax will be converted to a list of roles to be selected in the node_role property of the view node
 Example: 
-After you enter ["apple", "banana", "orange"] in the text box, then the node_tag of other nodes will be in the Selected tab
-apple banana orange 
-Note:
-1. The Python string list type format must be strictly observed, otherwise an error will be reported, which will be forcibly overwritten by an empty list, and the empty list means no optional tags.
-2. The order of the elements is meaningful, with greater weight in front of the ranking, used for weighting calculations.
+
+If you type ["apple", "banana", "orange"] in the textbox, then the node_role property of the view node will have apple, banana, orange as optional roles.   
+
+Note: 1:
+1. must strictly adhere to python's string list type format, otherwise it cannot be saved.
+
+2. The order of the elements is meaningful, the first one has more weight, which is used for weighting calculation.
+
 """
     )
 
     说明_加权排序=翻译(
 zh="""
 加权排序:weighted_sort
-如果你在roaming_path_mode中选择了weighted_sort模式, 则漫游路径会根据结点的各类属性的加权排序结果生成.
-在加权排序公式中可用的变量:
-node_in_degree,node_out_degree,priority,last_review,
-""",
+如果你在roaming_path_mode中选择了weighted_sort模式,
+那么在本程序执行生成漫游路径的操作时,会根据当前表格中选中的加权公式, 作为对每个结点评分的依据.最终会以这些结点的加权评分的降序排列结果作为漫游的路径.""",
 en="""
-
+Weighted sort: weighted_sort
+If you select weighted_sort mode in roaming_path_mode,
+Then when this program generates roaming paths, it will use the weighted formula selected in the current table as the basis for scoring each node. The final roaming path will be based on the descending order of the weighted scores of these nodes.
 """
     )
 
@@ -420,7 +426,11 @@ en="""
             zh="""
 多级排序:cascading_sort
 如果你在roaming_path_mode中选择了cascading_sort模式, 则漫游路径会根据结点的各类属性排序结果生成.
-在本配置项中, 如果你想添加一种多级排序规则, 则需要点击加号按钮, 在弹出的对话框中输入一个python语法风格的列表,这个列表的每个元素是一个二元对,在每个二元对中,第一个元素用于填写进行排序比较的变量, 第二元素用于填写升序还是降序排序, 列表中的二元对放置顺序确定了多级排序比较所用变量的顺序, 排在前面的变量优先进行比较.
+在本配置项中, 如果你想添加一种多级排序规则, 则需要点击加号按钮, 在弹出的对话框中输入一个python语法风格的列表.
+这个列表的每个元素是一个二元对,
+在每个二元对中,第一个元素用于填写进行排序比较的变量, 第二元素用于填写升序还是降序排序, 
+列表中的二元对放置顺序确定了多级排序比较所用变量的顺序, 排在前面的变量优先进行比较.
+
 例如,当你填写:
 [[node_priority,ascending],[node_visit_count,descending]]
 
@@ -429,22 +439,25 @@ en="""
 
 注意:
 升序和降序只能用"ascending","descending"来表示,
-排序依据的变量只能是规定的可用变量,
-
-可用的变量有
-
+排序依据的变量只能是规定的可用变量
             """,
 en="""
 Multi-level sorting: cascading_sort
-If you choose cascading_sort mode in roaming_path_mode, the roaming path will be generated according to the sorting result of various attributes of the node.
-This configuration item is a sorting hierarchy table, when comparing two sorting, start from the first row of node attributes saved, if the same, then compare the next row, and so on.
-Example:
-Suppose we have the following sort order table:
-ascending/descending attribute name         
-↑ node_priority
-↓ node_visit_count
-Then the two nodes will be sorted first in ascending order according to node_priority, 
-If both nodes have the same node_priority, then they will be sorted in descending order based on node_visit_count
+If you choose cascading_sort mode in roaming_path_mode, the roaming path will be generated based on the sorting result of various attributes of the node.
+In this configuration, if you want to add a multi-level sorting rule, you need to click the plus button and enter a python syntax style list in the popup dialog.
+Each element of this list is a binary pair,
+In each binary pair, the first element is used to fill in the variables for sorting comparisons, and the second element is used to fill in whether to sort ascending or descending, 
+The order in which the binary pairs are placed in the list determines the order of the variables used in the multilevel sorting comparison, with the first variables being compared first.
+
+For example, when you fill in:
+[[node_priority,ascending],[node_visit_count,descending]]
+
+then the two nodes will be sorted first in ascending order according to node_priority, 
+If both nodes have the same node_priority, they will be sorted according to node_visit_count in descending order
+
+Note:
+Ascending and descending can only be represented by "ascending" and "descending",
+The sorting variables can only be based on the available variables
 """
     )
     说明_图排序 = 翻译(
@@ -475,16 +488,6 @@ node_priority > 50 and node_visit_count <30 and node_tag in ["apple","banana"]
 
 注意:
 条件必须是符合python语法的表达式,返回值只能是布尔类型.
-
-可用于过滤的结点的变量名及其数据类型:
-node_priority,node_visit_count,out_degree,in_degree: 整数型,
-created_time, node_last_edit, last_review, due_date, today, this_week, this_month: 时间戳(秒),
-need_review, must_review,major_node: 布尔型,
-node_name:字符串
-node_tag: 字符串列表,
-data_type: 只能是"card"或"view"
-可用于过滤的函数:
-to_timestamp(time_string):接受YYYY-MM-DD格式时间字符串参数返回时间戳(秒).
         """,
 en="""
 Roaming node filtering: roaming_node_filter
@@ -495,17 +498,7 @@ node_priority > 50 and node_visit_count < 30 and node_tag in ["apple", "banana"]
 After clicking OK, select this row in the table, then the program will filter out nodes that do not meet the criteria based on their priority, visit count and node tag attributes, and then execute the path generation algorithm based on that.
 
 Note:
-The condition must be a python syntax expression, and the return value can only be a boolean, otherwise it will be forced to clear.
-
-The property names and data types of the property that can be used for filtering:
-node_priority, node_visit_count, out_degree, in_degree: integer type,
-created_time, node_last_edit, last_review: timestamp,
-need_review,must_review,major_node: Boolean,
-node_name: string
-node_tag: list of strings,
-data_type: enumeration type ("card", "view"),
-Functions that can be used for filtering:
-to_timestamp(time_string): accepts YYYY-MM-DD format time string parameter to return the timestamp (in seconds).
+The condition must be a python syntax expression, and the return value can only be a boolean.
 """
     )
 
@@ -530,6 +523,7 @@ to_timestamp(time_string): accepts YYYY-MM-DD format time string parameter to re
     Note: In order to search for card descriptions in the view, the program will spend some time to build a cache of card descriptions in the view when closing the view manager, which may cause a lag when closing the view manager, if you do not want to search for card descriptions in the view you can turn it off in the settings.
 """
                          )
+    视图编号 = 翻译("视图编号","view id")
 
     视图名 = 翻译(zh="视图名",en="view name")
     说明_创建时间 = 翻译("结点的创建时间是不可修改的, 除非你删除这个结点, 并再次导入它","The creation time of a node cannot be modified unless you delete the node and import it again")

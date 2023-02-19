@@ -8,8 +8,9 @@ __time__ = '2022/10/26 3:21'
 TODO: 把所有的models移动到这里来
 """
 import datetime
+import time
 from dataclasses import dataclass, field
-from typing import Any,Callable,Optional
+from typing import Any, Callable, Optional, Dict
 
 from .compatible_import import *
 from . import funcs, baseClass, language, widgets
@@ -29,7 +30,7 @@ class 函数库_UI展示:
         # QStyle().SP_MessageBoxQuestion
         btn = QPushButton()
         btn.setIcon(QApplication.style().standardIcon(QStyle.SP_MessageBoxQuestion))
-        btn.clicked.connect((lambda msg: lambda: showInfo(msg))(消息))
+        btn.clicked.connect((lambda msg: lambda: funcs.Utils.大文本提示框(msg))(消息))
         return btn
 
     @staticmethod
@@ -172,6 +173,7 @@ class 函数库_UI展示:
 class 基类_模型:
     UI创建完成 = 0
     数据源: "None|Any" = None
+    属性字典 = None
 
     def 初始化(self, *args):
         raise NotImplementedError()
@@ -191,21 +193,56 @@ class 基类_模型:
         对话框.closeEvent = lambda x: self.__dict__.__setitem__("UI创建完成", 0)
         return 对话框
 
-    def 获取可访变量(self):
-        raise NotImplementedError()
 
-    def 获取可访字面量(self):
-        raise NotImplementedError()
 
-    def __getitem__(self, item):
-        return self.__dict__[item]
+    def 获取可访变量(self,指定变量类型=None)->"Dict":
+        """如果指定了变量类型, 则根据类型返回值"""
+        变量字典 = {}
+        for 变量名 in self.__dict__:
+            if isinstance(self.__dict__[变量名], 基类_属性项):
+                值 = self.__dict__[变量名].值
+                字段名 = self.__dict__[变量名].字段名
+                if 指定变量类型:
+                    if type(值) in 指定变量类型:
+                        变量字典[字段名] = 值
+                else:
+                    变量字典[字段名] = 值
 
+        return 变量字典
+
+    def 获取可访字面量(self,指定变量类型=None)->"Dict":
+        字面量字典 = {}
+
+        for 变量名 in self.__dict__:
+            if isinstance(self.__dict__[变量名], 基类_属性项):
+                值 = self.__dict__[变量名].值
+                字段名 = self.__dict__[变量名].字段名
+                if 指定变量类型:
+                    if type(值) in 指定变量类型:
+                        字面量字典[字段名] = 字段名
+                else:
+                    字面量字典[字段名] = 字段名
+
+        return 字面量字典
+
+    def __getitem__(self, item)->"基类_属性项":
+        return self.属性字典[item]
+        # return self.__dict__[item]
+
+
+    def __post_init__(self):
+
+        for 可能项 in self.__dict__:
+            if isinstance(self.__dict__[可能项], 基类_属性项):
+                项: 基类_属性项 = self.__dict__[可能项]
+                self.属性字典[项.字段名]=项
 
 @dataclass
 class 基类_属性项:
     字段名: "str"
     展示名: "str"
     说明: "str" = 译.该项解释工作未完成
+
     可展示: "int" = 0  # 需要对应的展示组件,
     可展示中编辑: "int" = 0  # 需要对应的可展示中编辑组件, 与可展示联合判断
     推算得到: "int" = 0  # 需要提供推算方法
@@ -220,7 +257,9 @@ class 基类_属性项:
     校验函数: "None|Callable[[基类_属性项],bool]" = None
     自定义组件: "None|Callable[[基类_属性项],QWidget]" = None
     上级 = None
-
+    默认值: "Any|None|list|str|int|float" = None
+    值类型: "str"=None
+    值解释:"str" = None
     @property
     def 值(self):
         raise NotImplementedError()
@@ -238,6 +277,9 @@ class 基类_属性项:
             return self.值.__str__() if not self.组件传值方式 else self.组件传值方式(self)
         else:
             return self.值 if not self.组件传值方式 else self.组件传值方式(self)
+
+    def 变量使用的解释(self):
+        return f"mean:{self.展示名},type:{self.值类型},example:{self.值解释}"
 
     def __str__(self):
         return self.值.__str__()
@@ -263,27 +305,32 @@ class 类型_视图结点属性项(基类_属性项):
 
     @property
     def 值(self):
-        编号 = self.上级.数据源.结点编号
-        数据 = self.上级.数据源.视图数据
-        if self.可保存到视图数据:
-            return 数据.nodes[编号][self.字段名]
-        elif self.推算得到:
-            return self.推算函数(self)
+        if self.上级:
+            编号 = self.上级.数据源.结点编号
+            数据 = self.上级.数据源.视图数据
+            if self.可保存到视图数据:
+                return 数据.nodes[编号][self.字段名]
+            elif self.推算得到:
+                return self.推算函数(self)
+            else:
+                raise ValueError("未知的读取方式")
         else:
-            raise ValueError("未知的读取方式")
+            return self.默认值
+
 
     def 设值(self, value):
-        编号 = self.上级.数据源.结点编号
-        数据 = self.上级.数据源.视图数据
-        if self.可保存到视图数据:
-            数据.nodes[编号][self.字段名] = value
-            funcs.GviewOperation.save(数据)
-        elif self._保存值的函数:
-            self.保存值的函数(self, value)
-        else:
-            raise ValueError("未知的保存方式,或者不该保存")
-        if self.上级.UI创建完成:
-            数据.数据更新.结点编辑发生(编号)
+        if self.上级:
+            编号 = self.上级.数据源.结点编号
+            数据 = self.上级.数据源.视图数据
+            if self.可保存到视图数据:
+                数据.nodes[编号][self.字段名] = value
+                funcs.GviewOperation.save(数据)
+            elif self._保存值的函数:
+                self.保存值的函数(self, value)
+            else:
+                raise ValueError("未知的保存方式,或者不该保存")
+            if self.上级.UI创建完成:
+                数据.数据更新.结点编辑发生(编号)
 
     def __eq__(self, other):
         return self.值 == other
@@ -315,6 +362,7 @@ class 类型_视图结点模型(基类_模型):
 
     # 不可修改->数值/bool/日期/文本
     位置: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
+
             字段名=枚举.结点.位置,
             展示名=译.结点位置,
             可保存到视图数据=1,
@@ -322,6 +370,10 @@ class 类型_视图结点模型(基类_模型):
             可展示中编辑=0,  # 需要对应的可展示中编辑组件, 与可展示联合判断
             用户可访=0,  # 指的是用户自定义python语句是否可访问
             组件类型=枚举.组件类型.label,
+            默认值=[0, 0],
+            值类型=枚举.值类型.列表,
+            值解释="[0,0] or [1.1,0.5]",
+
     ))
 
     出度: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
@@ -334,7 +386,11 @@ class 类型_视图结点模型(基类_模型):
             推算得到=1,  # 需要提供推算方法
             用户可访=1,
             推算函数=lambda 项: funcs.GviewOperation.获取结点出度(项.上级.数据源.视图数据, 项.上级.数据源.结点编号),
-            组件类型=枚举.组件类型.label, ))
+            组件类型=枚举.组件类型.label,
+            默认值=0,
+            值类型=枚举.值类型.数值,
+            值解释="0 or 15",
+    ))
 
     入度: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
             字段名=枚举.结点.入度,
@@ -347,6 +403,9 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,
             推算函数=lambda 项: funcs.GviewOperation.获取结点入度(项.上级.数据源.视图数据, 项.上级.数据源.结点编号),
             组件类型=枚举.组件类型.label,
+            默认值=0,
+            值类型=枚举.值类型.数值,
+            值解释="0 or 15",
     ))
 
     访问次数: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
@@ -358,13 +417,10 @@ class 类型_视图结点模型(基类_模型):
             可展示中编辑=0,  # 需要对应的可展示中编辑组件, 与可展示联合判断
             推算得到=0,  # 需要提供推算方法
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
-            # 推算函数=None,
+            默认值=0,
             组件类型=枚举.组件类型.label,  # 展示用的组件
-            # 组件传值方式=None,
-            # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
-            # 有限制=0,
-            # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
-            # 自定义组件=None,
+            值类型=枚举.值类型.数值,
+            值解释="0 or 15",
     ))
 
     已到期: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
@@ -378,6 +434,9 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             推算函数=lambda 项: funcs.GviewOperation.判断结点已到期(项.上级.数据源.视图数据, 项.上级.数据源.结点编号),
             组件类型=枚举.组件类型.label,  # 展示用的组件
+            默认值=False,
+            值类型=枚举.值类型.布尔,
+            值解释="True or False",
             # 组件传值方式=None,
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
@@ -395,10 +454,9 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,
             推算函数=lambda 项: funcs.GviewOperation.结点上次复习时间(项.上级.数据源.视图数据, 项.上级.数据源.结点编号),
             组件类型=枚举.组件类型.time,  # 展示用的组件
-            # 组件传值方式=lambda 值: 值.__str__(),
-            # 有限制=0,
-            # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
-            # 自定义组件=None,
+            默认值=int(time.time()),
+            值类型=枚举.值类型.时间戳,
+            值解释="1676747497 or 1676661096",
     ))
     上次编辑: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
             字段名=枚举.结点.上次编辑,
@@ -415,7 +473,9 @@ class 类型_视图结点模型(基类_模型):
             # 保存值的函数=None,
             有限制=0,
             限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
-            # 自定义组件=None,
+            默认值=int(time.time()),
+            值类型=枚举.值类型.时间戳,
+            值解释="1676747497 or 1676661096",
     ))
     上次访问: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
             字段名=枚举.结点.上次访问,
@@ -432,7 +492,9 @@ class 类型_视图结点模型(基类_模型):
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
-            # 自定义组件=None,
+            默认值=int(time.time()),
+            值类型=枚举.值类型.时间戳,
+            值解释="1676747497 or 1676661096",
     ))
     创建时间: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
             字段名=枚举.结点.创建时间,
@@ -449,7 +511,9 @@ class 类型_视图结点模型(基类_模型):
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
-            # 自定义组件=None,
+            默认值=int(time.time()),
+            值类型=枚举.值类型.时间戳,
+            值解释="1676747497 or 1676661096",
     ))
     数据类型: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
             字段名=枚举.结点.数据类型,
@@ -466,7 +530,9 @@ class 类型_视图结点模型(基类_模型):
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
-            # 自定义组件=None,
+            默认值="card",
+            值类型=枚举.值类型.枚举+"['card','view']",
+            值解释="'card' or 'view'",
     ))
     # 可修改: 数值/bool/文本
     优先级: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
@@ -484,6 +550,9 @@ class 类型_视图结点模型(基类_模型):
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             有限制=1,
             限制=[-100, 100],
+            默认值=0,
+            值类型=枚举.值类型.数值,
+            值解释="-100 or 100"
             # 自定义组件=lambda 项:widgets.自定义组件.视图结点属性.优先级(项),
     ))
 
@@ -498,7 +567,10 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             推算函数=lambda 项: funcs.GviewOperation.获取视图结点描述(项.上级.数据源.视图数据, 项.上级.数据源.结点编号),
             组件类型=枚举.组件类型.editable_label,  # 展示用的组件
-            _保存值的函数=lambda 项,新值: funcs.GviewOperation.设定视图结点描述(项.上级.数据源.视图数据, 项.上级.数据源.结点编号, 新值)
+            _保存值的函数=lambda 项,新值: funcs.GviewOperation.设定视图结点描述(项.上级.数据源.视图数据, 项.上级.数据源.结点编号, 新值),
+            默认值=0,
+            值类型=枚举.值类型.文本,
+            值解释="'abc' or 'hello'"
             # 组件传值方式=None,
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
@@ -516,11 +588,10 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 推算函数=None,
             组件类型=枚举.组件类型.customize,  # 展示用的组件
-            # 组件传值方式=None,
-            # 保存值的函数=None,
-            #    有限制=0,
-            # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
             自定义组件=lambda 项: widgets.自定义组件.视图结点属性.角色多选(项),
+            默认值=-1,
+            值类型=枚举.值类型.数值,
+            值解释=" -1 or 0 "
     ))
 
     主要结点: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
@@ -532,8 +603,10 @@ class 类型_视图结点模型(基类_模型):
             可展示中编辑=1,  # 需要对应的可展示中编辑组件, 与可展示联合判断
             推算得到=0,  # 需要提供推算方法
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
-            # 推算函数=None,
+            默认值=False,
             组件类型=枚举.组件类型.checkbox,  # 展示用的组件
+            值类型=枚举.值类型.布尔,
+            值解释="True or False",
             # 组件传值方式=None,
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
@@ -557,6 +630,9 @@ class 类型_视图结点模型(基类_模型):
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
             # 自定义组件=None,
+            默认值=False,
+            值类型=枚举.值类型.布尔,
+            值解释="True or False",
     ))
 
     必须复习: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
@@ -575,6 +651,9 @@ class 类型_视图结点模型(基类_模型):
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
             # 自定义组件=None,
+            默认值=False,
+            值类型=枚举.值类型.布尔,
+            值解释="True or False",
     ))
 
     漫游起点: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
@@ -593,6 +672,9 @@ class 类型_视图结点模型(基类_模型):
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
             # 自定义组件=None,
+            默认值=False,
+            值类型=枚举.值类型.布尔,
+            值解释="True or False",
     ))
 
     # 样板:视图结点属性项 = field(default_factory=lambda :视图结点属性项(
@@ -613,12 +695,6 @@ class 类型_视图结点模型(基类_模型):
     #     自定义组件=None,
     # ))
 
-    # def 保存结点信息(self):
-    #     raise NotImplementedError()
-
-    # def 属性(self,key)->类型_视图结点属性项:
-    #     """返回键值对,键是结点的属性名, 值是属性项"""
-    #     return self.__dict__[key]
 
 
 @dataclass
@@ -628,24 +704,29 @@ class 类型_视图本身属性项(基类_属性项):
 
     @property
     def 值(self):
-        if self.可保存:
-            return self.上级.数据源.meta[self.字段名]
-        elif self.推算得到:
-            return self.推算函数(self)
+        if self.上级:
+            if self.可保存:
+                return self.上级.数据源.meta[self.字段名]
+            elif self.推算得到:
+                return self.推算函数(self)
+            else:
+                raise NotImplementedError()
         else:
-            raise NotImplementedError()
+            return self.默认值
 
     def 设值(self, value):
-        if self.可保存:
-            self.上级.数据源.meta[self.字段名] = value
-        elif self._保存值的函数:
-            self.保存值的函数(self, value)
-        else:
-            raise NotImplementedError()
-        if self.上级.UI创建完成:
-            self.上级.数据源.数据更新.视图编辑发生()
+        if self.上级:
+            if self.可保存:
+                self.上级.数据源.meta[self.字段名] = value
+            elif self._保存值的函数:
+                self.保存值的函数(self, value)
+            else:
+                raise NotImplementedError()
+            if self.上级.UI创建完成:
+                self.上级.数据源.数据更新.视图编辑发生()
 
-        funcs.GviewOperation.save(self.上级.数据源)
+            funcs.GviewOperation.save(self.上级.数据源)
+
 
     def __eq__(self, other):
         return self.值 == other
@@ -663,6 +744,24 @@ class 类型_视图本身模型(基类_模型):
                 项.上级 = self
         return self
 
+
+    编号: 类型_视图本身属性项 = field(default_factory=lambda: 类型_视图本身属性项(
+            字段名=枚举.视图.编号,
+            展示名=译.视图编号,
+            说明="",
+            可保存=0,  # 可保存到视图数据的意思是可保存到视图数据到视图数据中,
+            可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
+            可展示中编辑=0,  # 需要对应的可展示中编辑组件, 与可展示联合判断
+            用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
+            组件类型=枚举.组件类型.label,  # 展示用的组件
+            推算得到=1,
+            推算函数=lambda 项: 项.上级.数据源.uuid,
+            _保存值的函数=None,
+            默认值="4b9556bb",
+            值类型=枚举.值类型.文本,
+            值解释="'4b9556bb' or '6acc4bde'"
+    ))
+
     名称: 类型_视图本身属性项 = field(default_factory=lambda: 类型_视图本身属性项(
             字段名=枚举.视图.名称,
             展示名=译.视图名,
@@ -674,7 +773,10 @@ class 类型_视图本身模型(基类_模型):
             组件类型=枚举.组件类型.editable_label,  # 展示用的组件
             推算得到=1,
             推算函数=lambda 项: 项.上级.数据源.name,
-            _保存值的函数=lambda 项,新值: funcs.GviewOperation.重命名(项.上级.数据源, 新值)
+            _保存值的函数=lambda 项,新值: funcs.GviewOperation.重命名(项.上级.数据源, 新值),
+            默认值="",
+            值类型=枚举.值类型.文本,
+            值解释="'abc' or 'apple'"
     ))
 
     创建时间: 类型_视图本身属性项 = field(default_factory=lambda: 类型_视图本身属性项(
@@ -684,6 +786,9 @@ class 类型_视图本身模型(基类_模型):
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             组件类型=枚举.组件类型.time,  # 展示用的组件
+            默认值=int(time.time()),
+            值类型=枚举.值类型.时间戳,
+            值解释="1676747497 or 1676661096",
     ))
     上次访问: 类型_视图本身属性项 = field(default_factory=lambda: 类型_视图本身属性项(
             字段名=枚举.视图.上次访问,
@@ -692,6 +797,9 @@ class 类型_视图本身模型(基类_模型):
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             组件类型=枚举.组件类型.time,  # 展示用的组件
+            默认值=int(time.time()),
+            值类型=枚举.值类型.时间戳,
+            值解释="1676747497 or 1676661096",
     ))
     上次编辑: 类型_视图本身属性项 = field(default_factory=lambda: 类型_视图本身属性项(
             字段名=枚举.视图.上次编辑,
@@ -700,6 +808,9 @@ class 类型_视图本身模型(基类_模型):
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             组件类型=枚举.组件类型.time,  # 展示用的组件
+            默认值=int(time.time()),
+            值类型=枚举.值类型.时间戳,
+            值解释="1676747497 or 1676661096",
     ))
     上次复习: 类型_视图本身属性项 = field(default_factory=lambda: 类型_视图本身属性项(
             字段名=枚举.视图.上次复习,
@@ -708,6 +819,9 @@ class 类型_视图本身模型(基类_模型):
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             组件类型=枚举.组件类型.time,  # 展示用的组件
+            默认值=int(time.time()),
+            值类型=枚举.值类型.时间戳,
+            值解释="1676747497 or 1676661096",
     ))
     访问次数: 类型_视图本身属性项 = field(default_factory=lambda: 类型_视图本身属性项(
             字段名=枚举.视图.访问次数,
@@ -716,6 +830,9 @@ class 类型_视图本身模型(基类_模型):
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             组件类型=枚举.组件类型.label,  # 展示用的组件
+            默认值=0,
+            值类型=枚举.值类型.数值,
+            值解释="1 or 5",
     ))
     到期结点数: 类型_视图本身属性项 = field(default_factory=lambda: 类型_视图本身属性项(
             字段名=枚举.视图.到期结点数,
@@ -726,6 +843,9 @@ class 类型_视图本身模型(基类_模型):
             推算得到=1,
             推算函数=lambda 项: funcs.GviewOperation.getDueCount(项.上级.数据源),
             组件类型=枚举.组件类型.label,  # 展示用的组件
+            默认值=0,
+            值类型=枚举.值类型.数值,
+            值解释="1 or 5",
     ))
 
     主要结点: 类型_视图本身属性项 = field(default_factory=lambda: 类型_视图本身属性项(
@@ -737,6 +857,9 @@ class 类型_视图本身模型(基类_模型):
             推算函数=lambda 项: funcs.GviewOperation.获取主要结点编号(项.上级.数据源),
             组件类型=枚举.组件类型.label,  # 展示用的组件
             组件传值方式=lambda 项: "\n".join([f"{结点编号}:{funcs.GviewOperation.获取视图结点描述(项.上级.数据源, 结点编号)}" for 结点编号 in 项.值]),
+            默认值=[],
+            值类型=枚举.值类型.列表,
+            值解释="['1630171513585','1630171513679'] or ['1630171513585','4b9556bb']",
     ))
 
     # 样板:类型_视图本身属性项 = field(default_factory=lambda :类型_视图本身属性项(
@@ -774,14 +897,18 @@ class 类型_视图边属性项(基类_属性项):
 
     @property
     def 值(self):
-        if self.可保存:
-            return self.上级.数据源.视图数据.edges[self.上级.数据源.边][self.字段名]
-        elif self.推算得到:
-            return self.推算函数(self)
+        if self.上级:
+            if self.可保存:
+                return self.上级.数据源.视图数据.edges[self.上级.数据源.边][self.字段名]
+            elif self.推算得到:
+                return self.推算函数(self)
+        else:
+            return self.默认值
 
     def 设值(self, value):
-        self.上级.数据源.视图数据.edges[self.字段名] = value
-        funcs.GviewOperation.save(self.上级.数据源.视图数据)
+        if self.上级:
+            self.上级.数据源.视图数据.edges[self.字段名] = value
+            funcs.GviewOperation.save(self.上级.数据源.视图数据)
 
     def __eq__(self, other):
         return self.值 == other

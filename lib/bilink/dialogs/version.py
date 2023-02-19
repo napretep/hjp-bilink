@@ -11,23 +11,24 @@ import sys
 
 
 
-from ..imports import *
+
 
 import json
 
 if __name__ == "__main__":
     from lib import common_tools
     from lib.common_tools.language import rosetta as say
-else:
-    from ..imports import common_tools, say
+    from lib.common_tools.compatible_import import *
 
-    # from .tools import funcs
+else:
+    from ..imports import common_tools
+    from ..imports import *
     pass
 
 
 # say = common_tools.language.rosetta
 
-class VersionDialog(QDialog):
+class VersionDialog(QMainWindow):
     """版本信息对话框"""
 
     def __init__(self):
@@ -35,6 +36,7 @@ class VersionDialog(QDialog):
         self.parent_versions = None
         self.parent_introDoc = None
         self.webView1 = None
+        self.中心组件 = QWidget()
         self.horizontalLayout = QHBoxLayout(self)
         self.viewList_HTMLFilename = QTreeView(self)
         self.filelist = []
@@ -42,14 +44,13 @@ class VersionDialog(QDialog):
         self.init_model()
         self.init_events()
         self.init_webview()
-        self.show()
+
 
     def init_UI(self):
         """UI初始化"""
         self.setAttribute(Qt.WA_DeleteOnClose, on=True)
         self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.info))
         self.horizontalLayout.setObjectName("horizontalLayout")
-
         self.viewList_HTMLFilename.setObjectName("versionlist")
         self.horizontalLayout.addWidget(self.viewList_HTMLFilename)
         self.setWindowTitle("HJP-bilink Version intro")
@@ -64,6 +65,8 @@ class VersionDialog(QDialog):
         self.horizontalLayout.addWidget(self.webView1)
         self.horizontalLayout.setStretch(0, 0)
         self.horizontalLayout.setStretch(1, 3)
+        self.中心组件.setLayout(self.horizontalLayout)
+        self.setCentralWidget(self.中心组件)
 
     def init_model(self):
         """初始化模型"""
@@ -129,7 +132,9 @@ class VersionDialog(QDialog):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     # p = AnchorDialog("0")
-    p = VersionDialog()
-    p.exec()
-    sys.exit(app.exec_())
+    p = QMainWindow()
+    p.setCentralWidget(QWebEngineView())
+    # p =
+    p.show()
+    sys.exit(app.exec())
     pass

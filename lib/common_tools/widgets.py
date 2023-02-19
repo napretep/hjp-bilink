@@ -1691,9 +1691,8 @@ class ConfigWidget:
                     # noinspection PyBroadException
                     try:
                         strings = self.布局[子代][0][组件].toPlainText()
-                        new_globals = globals().copy()
-                        literal = eval(strings, *funcs.GviewConfigOperation.获取eval可用变量()
-                                       )
+                        literal = eval(strings, *funcs.GviewConfigOperation.获取eval可用变量与函数())
+
                         if type(literal) != bool:
                             self.设置说明栏("type error:" + 译.可执行字符串表达式的返回值必须是布尔类型)
                             return False
@@ -1705,7 +1704,7 @@ class ConfigWidget:
                         return False
                     pass
 
-            return edit_widget(上级, 行, 译.说明_漫游路径过滤)
+            return edit_widget(上级, 行, funcs.GviewConfigOperation.获取eval可用变量与函数的说明())
 
     class GviewConfigCascadingSorter(baseClass.配置项单选型表格组件):
         colnames = [译.选中, 译.多级排序依据]
@@ -1715,26 +1714,19 @@ class ConfigWidget:
             class edit_widget(baseClass.组件_表格型配置项_列编辑器_可执行字符串):
                 def on_test(self):
                     _ = baseClass.枚举命名
-                    globals_dict, locals_dict = funcs.GviewConfigOperation.获取eval可用变量()
-                    locals_dict[_.上升] = _.上升
-                    locals_dict[_.下降] = _.下降
-                    a_or_d = [_.上升, _.下降]
-                    specified_name = [_.结点.入度, _.结点.出度, _.结点.名称, _.结点.上次访问, _.结点.上次编辑, _.结点.访问次数, _.结点.优先级, _.结点.上次复习, _.结点.角色]
-                    变量名字典 = {}
-                    [变量名字典.__setitem__(name, name) for name in specified_name]
+                    globals_dict, locals_dict = funcs.GviewConfigOperation.获取eval可用字面量([int,float])
 
-                    # noinspection PyBroadException
                     try:
                         strings = self.布局[子代][0][组件].toPlainText()
-                        literal = eval(strings, {}, {**变量名字典, _.上升: _.上升, _.下降: _.下降}
-                                       )
+                        literal = eval(strings, globals_dict, {**locals_dict,_.上升:_.上升,_.下降:_.下降})
+
                         if type(literal) != list:
                             self.设置说明栏("type error:" + 译.可执行字符串表达式的返回值必须是列表类型)
                             return False
                         elif len([tup for tup in literal if len(tup) != 2]) > 0:
                             self.设置说明栏("type error:" + 译.可执行字符串_必须是一个二元元组)
                             return False
-                        elif len([tup for tup in literal if not (tup[0] in 变量名字典 and tup[1] in a_or_d)]) > 0:
+                        elif len([tup for tup in literal if not (tup[0] in locals_dict and tup[1] in [_.上升,_.下降])]) > 0:
                             self.设置说明栏("type error:" + 译.可执行字符串_二元组中的变量名必须是指定名称)
                             return False
                         else:
@@ -1745,7 +1737,7 @@ class ConfigWidget:
                         return False
                     pass
 
-            return edit_widget(上级, 行, 译.说明_多级排序)
+            return edit_widget(上级, 行, funcs.GviewConfigOperation.获取eval可用变量与函数的说明([int, float]))
 
     class GviewConfigWeightedSorter(baseClass.配置项单选型表格组件):
         colnames = [译.选中, 译.加权公式]
@@ -1754,7 +1746,7 @@ class ConfigWidget:
         def NewRowFormWidget(self, 上级, 行: "list[baseClass.ConfigTableView.TableItem]" = None, *args, **kwargs):
             class edit_widget(baseClass.组件_表格型配置项_列编辑器_可执行字符串):
                 def on_test(self):
-                    globals_dict, locals_dict = funcs.GviewConfigOperation.获取eval可用变量()
+                    globals_dict, locals_dict = funcs.GviewConfigOperation.获取eval可用变量与函数()
                     try:
                         strings = self.布局[子代][0][组件].toPlainText()
                         literal = eval(strings, globals_dict, locals_dict)
@@ -1768,7 +1760,7 @@ class ConfigWidget:
                         self.设置说明栏("syntax error:" + err.__str__())
                         return False
 
-            return edit_widget(上级, 行, 译.说明_加权排序)
+            return edit_widget(上级, 行, funcs.GviewConfigOperation.获取eval可用变量与函数的说明())
 
     class GviewNodeProperty(QDialog):
         class Enum:
@@ -1833,7 +1825,7 @@ class ConfigWidget:
                 elif w == _.QComboBox:
                     for name in self.prop_dict[w].keys():
                         widget: QComboBox = self.prop_dict[w][name][__.组件]
-                        data_source: list[str] = self.prop_dict[w][name][__.结点.数据源]
+                        data_source: list[str] = self.prop_dict[w][name][__.视图配置.结点角色表]
                         saved_value = node_data[name]
 
                         for idx in range(len(data_source)):
@@ -1901,17 +1893,16 @@ class ConfigWidget:
 
         class 角色枚举编辑器(baseClass.可执行字符串编辑组件):
 
+            def 设置当前配置项对应展示组件的值(self, value):
+                """此处无用"""
+                pass
+
             def __init__(self, 文本):
                 super().__init__(文本)
-                self.布局[子代][2][组件].setText(译.说明_结点角色枚举)
+                # self.布局[子代][2][组件].setText(译.说明_结点角色枚举)
 
             def on_help(self):
-
-                help_label: QLabel = self.布局[子代][2][组件]
-                if help_label.text() == 译.说明_结点角色枚举:
-                    self.布局[子代][2][组件].setText("")
-                else:
-                    self.布局[子代][2][组件].setText(译.说明_结点角色枚举)
+                self.设置说明栏(译.说明_结点角色枚举)
 
             def on_test(self):
                 # noinspection PyBroadException
@@ -1919,16 +1910,16 @@ class ConfigWidget:
                     strings = self.布局[子代][0][组件].toPlainText()
                     literal = literal_eval(strings)
                     if type(literal) != list:
-                        self.布局[子代][2][组件].setText("type error:input must be a list")
+                        self.设置说明栏("type error:input must be a list")
                         return False
                     elif [i for i in literal if type(i) != str]:
-                        self.布局[子代][2][组件].setText("type error:every element of the list must be string")
+                        self.设置说明栏("type error:every element of the list must be string")
                         return False
                     else:
-                        self.布局[子代][2][组件].setText("ok")
+                        self.设置说明栏("ok")
                         return True
                 except Exception as err:
-                    self.布局[子代][2][组件].setText("syntax error:" + err.__str__())
+                    self.设置说明栏("syntax error:" + err.__str__())
                     return False
 
                 #

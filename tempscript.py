@@ -22,44 +22,20 @@ import abc
 from PyQt5.QtWidgets import QApplication, QDialog, QLabel, QPushButton, QVBoxLayout, QTextEdit
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    print(funcs.组件定制.长文本获取())
+    # app = QApplication(sys.argv)
+    # print(funcs.组件定制.长文本获取())
+    #
+    # sys.exit(app.exec_())
 
-    sys.exit(app.exec_())
-    # class 视图结点类型:
-    #     卡片 = "card"
-    #     视图 = "view"
-    #
-    #
-    # class A:
-    #
-    #
-    #     @staticmethod
-    #     def 打印参数(函数):
-    #         def 包装(*args, **kwargs):
-    #             结果 = 函数(*args, **kwargs)
-    #             print(args, kwargs)
-    #             return 结果
-    #
-    #         return 包装
-    #
-    #     @A.打印参数
-    #     def 一加一(self):
-    #         return 1 + 1
-    #
-    #     @打印参数
-    #     def 一加几(self, num):
-    #         return 1 + num
-    #
-    #
-    # print(A().一加一())
-    # print(A().一加几(2))
-    # class B(A):
-    #     pass
-    #
-    # def T(s):
-    #     print(s == 视图结点类型.卡片)
-    # T(B())
+    class 值类型:
+        数值="number"
+        时间戳="timestamp"
+        布尔 = "bool"
+        枚举 = lambda 枚举表:"enum:"+枚举表.__str__()
+
+    print(值类型.枚举(["1","2","3"]))
+
+
     pass
     # def 播报(内容):
     #     return lambda :print(内容)

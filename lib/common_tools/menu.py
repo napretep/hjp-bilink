@@ -256,7 +256,7 @@ def make__other(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
                 (Translate.支持作者, common_tools.funcs.Dialogs.open_support),
                 (Translate.打开链接数据保存目录, common_tools.funcs.Dialogs.open_link_storage_folder),
                 (Translate.打开代码仓库, common_tools.funcs.Dialogs.open_repository),
-                (Translate.查看更新与文档, common_tools.funcs.Dialogs.open_version)
+                (Translate.查看更新与文档, common_tools.funcs.Dialogs.open_inrtoDoc)
         ]
         for act, func in act_li:
             other.addAction(say(act)).triggered.connect(func)
