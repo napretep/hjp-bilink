@@ -76,7 +76,7 @@ class LinkInfoDB(object):
         DB.go(DB.table_linkinfo)
         card_id,data=linkinfo.to_DB_record
         if LinkInfoDB.exists(card_id):
-            DB.update(values=DB.VALUEEQ(data=data), where=DB.EQ(card_id=card_id))
+            DB.update(values=DB.LET(data=data), where=DB.EQ(card_id=card_id))
         else:
             DB.insert(card_id=card_id, data=data)
         if autocommit:

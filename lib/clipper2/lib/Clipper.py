@@ -2213,7 +2213,7 @@ class ClipInsertCardWorker(QThread):
             if DB.exists(DB.EQ(uuid=record.uuid)):
                 old_record = DB.select(uuid=record.uuid).return_all().zip_up()[0].to_clipbox_data()
                 record.card_id = ",".join(set(old_record.card_id.split(",")) | set(record.card_id.split(",")))
-                DB.update(values=DB.VALUEEQ(**record.__dict__), where=DB.EQ(uuid=record.uuid)).commit()
+                DB.update(values=DB.LET(**record.__dict__), where=DB.EQ(uuid=record.uuid)).commit()
             else:
                 DB.insert(**record.__dict__).commit()
             self.on_progress.emit(

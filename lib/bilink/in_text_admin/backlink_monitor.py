@@ -57,7 +57,7 @@ def handle_editor_will_munge_html(text, editor: "Editor"):
     nowbacklink = set([x["card_id"] for x in BackLinkReader(html_str=text).backlink_get()])
     lastbacklink = set([x["card_id"] for x in BackLinkReader(html_str=last_text).backlink_get()])
     # self_card_id = note.card_ids()[0]
-    common_tools.funcs.Utils.print(f"""nowbacklink={nowbacklink}\n,lastbacklink={lastbacklink}""")
+
     if nowbacklink != lastbacklink:
         backlink_append_remove(self_card_id, nowbacklink, lastbacklink)
         note.hjp_bilink_backlink = nowbacklink

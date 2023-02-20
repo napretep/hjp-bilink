@@ -64,6 +64,7 @@ class 枚举命名:
         # 推算得
         到期结点数 = "view_due_node_count"
         主要结点 = "view_major_nodes"
+        视图卡片内容缓存 = "card_content_cache"
 
     class 视图配置:
         结点角色表 = "node_role_list"
@@ -317,7 +318,7 @@ class ConfigTableView(CustomConfigItemView, metaclass=abc.ABCMeta):
 
     def SetupData(self, raw_data):
         from . import funcs
-        funcs.Utils.print(raw_data)
+        # funcs.Utils.print(raw_data)
         self.viewTable.setModel(self.table_model)
         self.table_model.clear()
         # raw_data = self.ConfigModelItem.value
@@ -583,20 +584,8 @@ line-height: 1.6;
 
     def on_help(self):
         """弹出提示"""
+        from . import funcs
         self.设置说明栏(self.说明)
-        # if self.help_doc:
-        #     self.help_doc.activateWindow()
-        # else:
-        #     from . import funcs
-        #     self.help_doc = funcs.组件定制.长文本说明(self.说明)
-        #     self.help_doc.closeEvent=lambda e:self.__dict__.__setitem__("help_doc",None)
-        #     self.help_doc.show()
-        # help_label: QLabel = self.布局[子代][2][组件]
-        # if help_label.text() == self.说明:
-        #     self.布局[子代][2][组件].setText("")
-        # else:
-        #     self.布局[子代][2][组件].setText(self.说明)
-
     def on_ok(self):
         if self.on_test():
             self.设置当前配置项对应展示组件的值()

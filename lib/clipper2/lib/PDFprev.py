@@ -228,7 +228,7 @@ class PDFPrevDialog(QDialog):
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         # 保存 pageshift ratio
         DB = tools.objs.SrcAdmin.DB
-        DB.go(DB.table_pdfinfo).update(values=DB.VALUEEQ(ratio=self.pageratio, offset=self.pageshift),
+        DB.go(DB.table_pdfinfo).update(values=DB.LET(ratio=self.pageratio, offset=self.pageshift),
                                        where=DB.EQ(uuid=self.pdfuuid)).commit()
         pdf_path = DB.select(uuid=self.pdfuuid).return_all().zip_up()[0].to_pdfinfo_data().pdf_path
         pdfpageuuid = tools.funcs.uuid_hash_make(pdf_path + str(self.pagenum))

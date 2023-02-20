@@ -54,7 +54,7 @@ def ankiaddon_make(version):
     repository = os.path.join(r"D:\备份盘\个人创作成果\代码\hjp-bilink历代版本",version[:-2])
     if not os.path.exists(repository):
         os.mkdir(repository)
-    zip_name = os.path.join(repository,"hjp_bilink.zip")
+    zip_name = os.path.join(repository,"hjp_linkmaster.zip")
     f = zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED)
     # root 是 当前文件夹的路径, dirs 是当前文件夹的直接子文件夹, files是当前文件夹下的文件
     for root, dirs, files in os.walk(THIS_FOLDER, onerror=lambda x: print("wrong direction")):

@@ -79,18 +79,18 @@ class GViewData:
         nodes:{card_id:[posX,posY]}
         edges:[[card_from,card_to]]
     """
-    uuid: str
-    name: str
-    # {"card_Id":{"pos":[posx,posy],"priority":int,"accesstimes":int,"dataType":"card/view"}}
-    nodes: 'dict[str,dict[str,Union[list[float],str,int,float]]]'  # * Done:2022年12月27日00:20:35 key=card_id,value=[posx,posy,priority,accesstimes]
-    # * Done:2022年12月29日23:00:10 edges的结构要大改, 改成 {"fromNode,toNode":{desc:""}}
-
-    edges: 'dict[str,dict[str,Any]]'  # 在取出时就应该保证边的唯一性,而且主要用来存json字符串,所以不用set TODO # {"from_to":{connect:True,desc:"abc"}}
-    meta: "Optional[dict[str,int|None|str]]"=None
-    config: 'str' = ""  # * Done 2022年11月25日22:46:21: 记录配置表uuid, 需要用的时候读取
+    # uuid: str
+    # name: str
+    # # {"card_Id":{"pos":[posx,posy],"priority":int,"accesstimes":int,"dataType":"card/view"}}
+    # nodes: 'models.类型_视图结点集模型'  # * Done:2022年12月27日00:20:35 key=card_id,value=[posx,posy,priority,accesstimes]
+    # # * Done:2022年12月29日23:00:10 edges的结构要大改, 改成 {"fromNode,toNode":{desc:""}}
+    #
+    # edges: 'models.类型_视图边集模型'  # 在取出时就应该保证边的唯一性,而且主要用来存json字符串,所以不用set TODO # {"from_to":{connect:True,desc:"abc"}}
+    # meta: "Optional[dict[str,int|None|str]]"=None
+    # config: 'str' = ""  # * Done 2022年11月25日22:46:21: 记录配置表uuid, 需要用的时候读取
     def __init__(self,**kwargs):
         from . import funcs,models
-        uuid,name,nodes,edges = kwargs["uuid"],kwargs["name"],kwargs["nodes"],kwargs["edges"]
+        uuid,name,结点数据源,边数据源 = kwargs["uuid"],kwargs["name"],kwargs["nodes"],kwargs["edges"]
         if "config" in kwargs:
             config = kwargs["config"]
         else:
@@ -98,53 +98,52 @@ class GViewData:
         版本20221226 = False
         卡片标识=""
         边标识=""
-        for 标识 in nodes.keys():
+        for 标识 in 结点数据源.keys():
             卡片标识=标识
             break
 
-        if 卡片标识 !="" and type(nodes[卡片标识])==list and type(edges)==list:
+        if 卡片标识 !="" and type(结点数据源[卡片标识])==list and type(边数据源)==list:
             版本20221226 = True
 
-        self.uuid = uuid
-        self.name = name
-        self.config = config
+        self.uuid:str = uuid
+        self.name:str = name
+        self.config:str = config
         self.meta=funcs.GviewOperation.默认元信息模板(kwargs["meta"] if "meta" in kwargs else None)
+        结点数据字典 = {}
+        边数据字典 = {}
         if 版本20221226:
-            self.nodes = {}
-            self.edges = {}
-            for 标识,位置 in nodes.items():
-                self.nodes[标识]= funcs.GviewOperation.依参数确定视图结点数据类型模板()
-            for 对儿 in edges:
-                self.edges[f"{对儿[0]},{对儿[1]}"]=funcs.GviewOperation.默认视图边数据模板()
+            for 标识,位置 in 结点数据源.items():
+                结点数据字典[标识]= funcs.GviewOperation.依参数确定视图结点数据类型模板()
+            for 对儿 in 边数据源:
+                边数据字典[f"{对儿[0]},{对儿[1]}"]=funcs.GviewOperation.默认视图边数据模板()
         else:
-            if type(nodes)==dict:
-                self.nodes = {}
-                for 标识, 值 in nodes.items():
-                    self.nodes[标识] = funcs.GviewOperation.依参数确定视图结点数据类型模板(数据=值)
-            if type(edges)==dict:
-                self.edges = {}
-                for 标识, 值 in edges.items():
-                    self.edges[标识]= funcs.GviewOperation.默认视图边数据模板(值)
-        self.node_helper = self.获得结点的详细设定()
-        self.meta_helper = models.类型_视图本身模型().初始化(self)
-        self.edge_helper = self.获得边的详细设定()
+            for 标识, 值 in 结点数据源.items():
+                结点数据字典[标识] = funcs.GviewOperation.依参数确定视图结点数据类型模板(数据=值)
+            for 标识, 值 in 边数据源.items():
+                边数据字典[标识]= funcs.GviewOperation.默认视图边数据模板(值)
+
+        self.nodes:"models.类型_视图结点集模型" = models.类型_视图结点集模型(self,结点数据字典)
+        self.edges:"models.类型_视图结点集模型" = models.类型_视图边集模型(self,边数据字典)
+        # self.node_helper = models.类型_视图结点集模型(self)
+        self.meta_helper:"models.类型_视图本身模型" = models.类型_视图本身模型(数据源=self)
+        # self.edge_helper = models.类型_视图边集模型(self)
         self.数据更新 = self.类_函数库_数据更新(self)
 
         # funcs.Utils.print(self,need_logFile=True)
-    def 获得边的详细设定(self):
-        from . models import 类型_视图边模型
-        助手 = {}
-        for key,value in self.edges.items():
-            助手[key]=类型_视图边模型().初始化(self,key)
-        return 助手
+    # def 获得边的详细设定(self):
+    #     from . models import 类型_视图边模型
+    #     助手 = {}
+    #     for key,value in self.edges.items():
+    #         助手[key]=类型_视图边模型().初始化(self,key)
+    #     return 助手
 
-    def 获得结点的详细设定(self):
-        from . models import 类型_视图结点模型
-        助手 = {}
-        for key,value in self.nodes.items():
-            助手[key]=类型_视图结点模型()
-            助手[key].初始化(self,key)
-        return 助手
+    # def 获得结点的详细设定(self):
+    #     from . models import 类型_视图结点模型
+    #     助手 = {}
+    #     for key,value in self.nodes.items():
+    #         助手[key]=类型_视图结点模型()
+    #         助手[key].初始化(self,key)
+    #     return 助手
 
     def 清除无效结点(self):
         from . import funcs, baseClass
@@ -167,15 +166,15 @@ class GViewData:
     def to_html_repr(self):
         return f"uuid={self.uuid}<br>" \
                f"name={self.name}<br>" \
-               f"node_list={json.dumps(self.nodes,ensure_ascii=False)}<br>" \
-               f"edge_list={json.dumps(self.edges,ensure_ascii=False)}"
+               f"node_list={json.dumps(self.nodes.data,ensure_ascii=False)}<br>" \
+               f"edge_list={json.dumps(self.edges.data,ensure_ascii=False)}"
 
     def to_DB_format(self):
         return {
                 "uuid"  : self.uuid,
                 "name"  : self.name,
-                "nodes" : f"{json.dumps(self.nodes,ensure_ascii=False)}",
-                "edges" : f"{json.dumps(self.edges,ensure_ascii=False)}",
+                "nodes" : f"{json.dumps(self.nodes.data,ensure_ascii=False)}",
+                "edges" : f"{json.dumps(self.edges.data,ensure_ascii=False)}",
                 "config": self.config,
                 **self.meta #保存时将每个字段都提出来
         }
@@ -198,7 +197,7 @@ class GViewData:
         elif type(other) == str:
             return other == self.uuid
         else:
-            raise  ValueError("未知的比较对象")
+            raise ValueError("未知的比较对象")
 
 
 
@@ -206,39 +205,39 @@ class GViewData:
         from . import funcs, models
         a_b = f"{a},{b}"
         self.edges[a_b]=funcs.GviewOperation.默认视图边数据模板({本.边.名称:文字})
-        self.node_helper[a_b] = models.类型_视图边模型().初始化(self, a_b)
+        # self.node_helper[a_b] = models.类型_视图边模型().初始化(self, a_b)
 
     def 删除边(self,a=None,b=None):
         if a and b :
             a_b=f"{a},{b}"
             if a_b in self.edges:
                 del self.edges[a_b]
-            if a_b in self.node_helper:
-                del self.node_helper[a_b]
+            # if a_b in self.node_helper:
+            #     del self.node_helper[a_b]
         else:
             edge_list = list(self.edges.keys())
             for a_b in edge_list:
                 if a in a_b:
                     del self.edges[a_b]
-                    if a_b in self.node_helper:
-                        del self.node_helper[a_b]
+                    # if a_b in self.node_helper:
+                    #     del self.node_helper[a_b]
 
     def 新增结点(self,编号,类型):
         from . import funcs,models
         self.nodes[编号]=funcs.GviewOperation.依参数确定视图结点数据类型模板(类型)
-        self.node_helper[编号]=models.类型_视图结点模型().初始化(self,编号)
+        # self.node_helper[编号]=models.类型_视图结点模型().初始化(self,编号)
 
     def 删除结点(self,编号):
         if 编号 in self.nodes:
             del self.nodes[编号]
-        if 编号 in self.node_helper:
-            del self.node_helper[编号]
+        # if 编号 in self.node_helper:
+        #     del self.node_helper[编号]
         edge_list = list(self.edges.keys())
         for a_b in edge_list:
             if 编号 in a_b:
                 del self.edges[a_b]
-                if a_b in self.node_helper:
-                    del self.node_helper[a_b]
+                # if a_b in self.node_helper:
+                #     del self.node_helper[a_b]
 
     class 类_函数库_数据更新:
         def __init__(self,上级:"GViewData"):
@@ -269,7 +268,7 @@ class GViewData:
 
         def 结点访问发生(self,结点编号):
             self.上级.nodes[结点编号][本.结点.上次访问]=(int(time.time()))
-            self.上级.nodes[结点编号][本.结点.访问次数]+=1
+            self.上级.nodes[结点编号][本.结点.访问次数].设值(1+self.上级.nodes[结点编号][本.结点.访问次数].值)
             self.保存视图数据()
 
 
@@ -919,7 +918,7 @@ class GviewConfigModel(BaseConfigModel):
 
     roamingStart: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["本项设定漫游的起点"],
-            value=0,
+            value=1,
             component=ConfigModel.Widget.combo,
             tab_at="main",
             limit=[ComboItem(Translate.随机选择卡片开始, 0), ComboItem(Translate.手动选择卡片开始, 1), ]

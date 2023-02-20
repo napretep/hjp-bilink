@@ -428,43 +428,7 @@ class AllEventAdmin(object):
         return self
 
 
-class DB_admin(object):
-    """ # dict_TABLE_Field={
-    #     "uuid":"varchar(8) primary key not null unique",
-    #     "x":"float not null",
-    #     "y":"float not null",
-    #     "w":""
-    # }
-    # all_fields=[#用来确保字段对齐
-    #     "x","y","w","h","QA","text_","textQA","card_id","pagenum","ratio","pdfname","pageshift"
-    # ]
-    数据库操作流程: 1 执行go选择一张表,2 执行select或类似的语句,组成SQL,3commit或return_all执行取得结果,
-    其中 2组成SQL的时候会插入队列, 再在3中弹出队列执行,
-    执行时会判断你传入的是list还是str, 如果是前者,则认为list的第二个元素是待插入值,第一个元素是字符串,其中的问号是占位符
-    数据库取回的结果, 是二维表, results[][], 第一个索引指定行, 第二个索引指定列
-    """
-    table_clipbox = 0
-    table_pdfinfo = 1
-    table_linkinfo = 2
-    table_Gview=3
-    table_GviewCard=4
-    table_GviewConfig=5
-    table_Gview_cache=6
-
-    sqlstr_TABLE_CREATE = """create table if not exists {tablename} ({fields})"""
-    sqlstr_TABLE_DROP = """DROP TABLE IF EXISTS {表名}"""
-    sqlstr_TABLE_PRAGMA = """PRAGMA table_info({tablename})"""
-    sqlstr_TABLE_ALTER = """alter table {tablename} add column {colname} {define}"""
-    SQL_移除表字段 = """alter table {表名} drop column {字段名}"""
-    sqlstr_TABLE_EXIST = """select count(*) from sqlite_master where type="table" and name ="{tablename}" """
-    sqlstr_RECORD_EXIST = """select count(*) from {tablename} where {where} """
-    sqlstr_RECORD_SELECT = """select * from {tablename} where {where} """
-    sqlstr_RECORD_SELECT_ALL = """select * from {tablename} """
-    sqlstr_RECORD_UPDATE = """update {tablename} set {values} where {where}"""
-    sqlstr_RECORD_DELETE = """delete from {tablename} where {where} """
-    sqlstr_RECORD_INSERT = """insert into {tablename} ({cols}) values ({vals}) """
-    sqlstr_RECORD_REPLACE = """ replace into {tablename} ({cols}) values ({vals})"""
-    ################################下面是查询语句设计########################
+class Logic:
     class BOX:
         """仅用作传输,不作别的处理, BOX之间可以用 and,or,not,+等运算符 连续拼接字符串, 采用安全的参数输入方法"""
 
@@ -499,12 +463,16 @@ class DB_admin(object):
         """
         Q = ("?," * len(value))[:-1]
         string = colname + f" IN ({Q}) "
-        return DB_admin.BOX(string, list(value))
+        return Logic.BOX(string, list(value))
 
     @staticmethod
     def LIKE(colname, value):
         """需要自己加%进行模糊匹配"""
-        return DB_admin.BOX(colname + " LIKE (?) ", [value])
+        return Logic.BOX(colname + " LIKE (?) ", ["'"+value+"'"])
+
+    @staticmethod
+    def REGEX(colname,value):
+        return Logic.BOX(colname + " REGEXP (?) ", ["'" + value + "'"])
 
     @staticmethod
     def EQ(LOGIC="AND", **kwargs):
@@ -514,24 +482,163 @@ class DB_admin(object):
             string += f" {k}=? {LOGIC} "
             values.append(v)
         string = re.sub(f"{LOGIC}\s+$", "", string)
-        return DB_admin.BOX(string, values)
+        return Logic.BOX(string, values)
 
     @staticmethod
     def LIMIT(count, offset=0):
         value = []
         string = f"LIMIT {count} OFFSET {offset}"
-        return DB_admin.BOX(string, value)
+        return Logic.BOX(string, value)
 
     @staticmethod
-    def VALUEEQ(**kwargs):
-        """确保插入的都是数据库字段, 不然就等着报错吧!,
-        VALUEEQ与EQ的区别:
-            VALUEEQ得到的形式是string: a=?,b=?,c=?, value:[av,bv,cv], 主要用来赋值
+    def LET(**kwargs):
+        """
+        a=?,b=?,c=?
+        确保插入的都是数据库字段, 不然就等着报错吧!,
+        LET与EQ的区别:
+            LET得到的形式是string: a=?,b=?,c=?, value:[av,bv,cv], 主要用来赋值
             EQ的形式是: string: a=av and b=bv ... 主要用来比较
         """
         string = ",".join([k + "=? " for k in list(kwargs.keys())])
         value = list(kwargs.values())
-        return DB_admin.BOX(string, value)
+        return Logic.BOX(string, value)
+
+
+class DB_admin(object):
+    """ # dict_TABLE_Field={
+    #     "uuid":"varchar(8) primary key not null unique",
+    #     "x":"float not null",
+    #     "y":"float not null",
+    #     "w":""
+    # }
+    # all_fields=[#用来确保字段对齐
+    #     "x","y","w","h","QA","text_","textQA","card_id","pagenum","ratio","pdfname","pageshift"
+    # ]
+    数据库操作流程: 1 执行go选择一张表,2 执行select或类似的语句,组成SQL,3commit或return_all执行取得结果,
+    其中 2组成SQL的时候会插入队列, 再在3中弹出队列执行,
+    执行时会判断你传入的是list还是str, 如果是前者,则认为list的第二个元素是待插入值,第一个元素是字符串,其中的问号是占位符
+    数据库取回的结果, 是二维表, results[][], 第一个索引指定行, 第二个索引指定列
+    """
+    table_clipbox = 0
+    table_pdfinfo = 1
+    table_linkinfo = 2
+    table_Gview=3
+    table_GviewCard=4
+    table_GviewConfig=5
+    table_Gview_cache=6
+
+    sqlstr_TABLE_CREATE = """create table if not exists {tablename} ({fields})"""
+    sqlstr_TABLE_DROP = """DROP TABLE IF EXISTS {表名}"""
+    sqlstr_TABLE_PRAGMA = """PRAGMA table_info({tablename})"""
+    sqlstr_TABLE_ALTER = """alter table {tablename} add column {colname} {define}"""
+    SQL_移除表字段 = """alter table {表名} drop column {字段名}"""
+    sqlstr_TABLE_EXIST = """select count(*) from sqlite_master where type="table" and name ="{tablename}" """
+    sqlstr_RECORD_COUNT = """select count(*) from {tablename} where {where} """
+    sqlstr_RECORD_SELECT = """select * from {tablename} where {where} """
+    sqlstr_RECORD_SELECT_ALL = """select * from {tablename} """
+    sqlstr_RECORD_UPDATE = """update {tablename} set {values} where {where}"""
+    sqlstr_RECORD_DELETE = """delete from {tablename} where {where} """
+    sqlstr_RECORD_INSERT = """insert into {tablename} ({cols}) values ({vals}) """
+    sqlstr_RECORD_REPLACE = """ replace into {tablename} ({cols}) values ({vals})"""
+    ################################下面是查询语句设计########################
+
+    # class BOX:
+    #     """仅用作传输,不作别的处理, BOX之间可以用 and,or,not,+等运算符 连续拼接字符串, 采用安全的参数输入方法"""
+    #
+    #     def __init__(self, string, values):
+    #         self.string: str = string
+    #         self.values: list = values
+    #
+    #     def __and__(self, other: "DB_admin.BOX"):
+    #         string = f""" ( {self.string} ) AND ({other.string}) """
+    #         values = self.values + other.values
+    #         return DB_admin.BOX(string, values)
+    #
+    #     def __or__(self, other: "DB_admin.BOX"):
+    #         string = f""" ( {self.string} ) OR ({other.string}) """
+    #         values = self.values + other.values
+    #         return DB_admin.BOX(string, values)
+    #
+    #     def __invert__(self):
+    #         string = f""" NOT ({self.string})"""
+    #         values = self.values
+    #         return DB_admin.BOX(string, values)
+    #
+    #     def __add__(self, other: "DB_admin.BOX"):
+    #         string = f"""( {self.string} ) {other.string}"""
+    #         values = self.values + other.values
+    #         return DB_admin.BOX(string, values)
+
+    BOX=Logic.BOX
+
+    @staticmethod
+    def IN(colname, *value):
+        """
+        *value: 多个值
+        """
+        return Logic.IN(colname, *value)
+
+    @staticmethod
+    def LIKE(colname, value):
+        """需要自己加%进行模糊匹配"""
+        return Logic.BOX(colname + " LIKE (?) ", ["'" + value + "'"])
+
+    @staticmethod
+    def REGEX(colname, value):
+        return Logic.BOX(colname + " REGEXP (?) ", ["'" + value + "'"])
+
+    @staticmethod
+    def EQ(LOGIC="AND", **kwargs):
+        return Logic.EQ(LOGIC=LOGIC, **kwargs)
+
+    @staticmethod
+    def LIMIT(count, offset=0):
+        value = []
+        string = f"LIMIT {count} OFFSET {offset}"
+        return Logic.LIMIT(count,offset=offset)
+
+    @staticmethod
+    def LET(**kwargs):
+        """
+        a=?,b=?,c=?
+        确保插入的都是数据库字段, 不然就等着报错吧!,
+        LET与EQ的区别:
+            LET得到的形式是string: a=?,b=?,c=?, value:[av,bv,cv], 主要用来赋值
+            EQ的形式是: string: a=av and b=bv ... 主要用来比较
+        """
+        return Logic.LET(**kwargs)
+
+    @staticmethod
+    def LIKE(colname, value):
+        """需要自己加%进行模糊匹配"""
+        return Logic.LIKE(colname,value)
+    #
+    # @staticmethod
+    # def EQ(LOGIC="AND", **kwargs):
+    #     string = ""
+    #     values = []
+    #     for k, v in kwargs.items():
+    #         string += f" {k}=? {LOGIC} "
+    #         values.append(v)
+    #     string = re.sub(f"{LOGIC}\s+$", "", string)
+    #     return DB_admin.BOX(string, values)
+
+    # @staticmethod
+    # def LIMIT(count, offset=0):
+    #     value = []
+    #     string = f"LIMIT {count} OFFSET {offset}"
+    #     return DB_admin.BOX(string, value)
+
+    # @staticmethod
+    # def VALUEEQ(**kwargs):
+    #     """确保插入的都是数据库字段, 不然就等着报错吧!,
+    #     VALUEEQ与EQ的区别:
+    #         VALUEEQ得到的形式是string: a=?,b=?,c=?, value:[av,bv,cv], 主要用来赋值
+    #         EQ的形式是: string: a=av and b=bv ... 主要用来比较
+    #     """
+    #     string = ",".join([k + "=? " for k in list(kwargs.keys())])
+    #     value = list(kwargs.values())
+    #     return DB_admin.BOX(string, value)
 
     def __init__(self):
         # self.tab_name = Get._().dir_clipboxTable_name
@@ -643,7 +750,7 @@ class DB_admin(object):
             if card_id in card_idlist:
                 card_idlist.remove(card_id)
             r.card_id = ",".join(card_idlist)
-            self.update(where=self.EQ(uuid=r.uuid), values=self.VALUEEQ(**r.to_dict())).commit(callback=callback)
+            self.update(where=self.EQ(uuid=r.uuid), values=self.LET(**r.to_dict())).commit(callback=callback)
 
     def add_card_id(self, condition: "DB_admin.BOX", card_id, callback=None):
         """使用的前提是在table_clipbox表中,目的是增加对应clipbox没有支持的卡片"""
@@ -654,7 +761,7 @@ class DB_admin(object):
             if card_id not in card_idlist:
                 card_idlist.append(card_id)
             r.card_id = ",".join(card_idlist)
-            self.update(where=self.EQ(uuid=r.uuid), values=self.VALUEEQ(**r.to_dict())).commit(callback=callback)
+            self.update(where=self.EQ(uuid=r.uuid), values=self.LET(**r.to_dict())).commit(callback=callback)
     ########################### use for clipbox ########################
 
 
@@ -675,19 +782,22 @@ class DB_admin(object):
         s = self.sqlstr_TABLE_CREATE.format(tablename=self.tab_name, fields=fields)
         return s
 
-    def exists(self, box: "DB_admin.BOX"):
+    def exists(self, box: "Logic.BOX"):
         """平时用这个比较好"""
-        result = self.exists_check(box).return_all()
+        from . import funcs
+        s = self.sqlstr_RECORD_COUNT.format(tablename=self.tab_name,where=box.string)
+        self.excute_queue.append([s, box.values])
+        result = self.return_all()
         return result[0][0] > 0 # 第一条记录的第一个字段
 
     # 存在性检查
-    def exists_check(self, box: "DB_admin.BOX"):
-        """
-        原理是 select count(*) from table  where box
-        这个检查需要提交commit,不建议使用"""
-        s = self.sqlstr_RECORD_EXIST.format(tablename=self.tab_name, where=box.string)
-        self.excute_queue.append([s, box.values])
-        return self
+    # def exists_check(self, box: "Logic"):
+    #     """
+    #     原理是 select count(*) from table  where box
+    #     这个检查需要提交commit,不建议使用"""
+    #     s = self.sqlstr_RECORD_COUNT.format(tablename=self.tab_name, where=box.string)
+    #     self.excute_queue.append([s, box.values])
+    #     return self
 
     def valCheck(self, k: "str", v: "str"):
         constrain = Table.switch[self.curr_tabtype].constrain()
@@ -854,82 +964,6 @@ class DB_admin(object):
         self.connection.commit()
         self.end()
 
-
-
-class Logic:
-    class BOX:
-        """仅用作传输,不作别的处理, BOX之间可以用 and,or,not,+等运算符 连续拼接字符串, 采用安全的参数输入方法"""
-
-        def __init__(self, string, values):
-            self.string: str = string
-            self.values: list = values
-
-        def __and__(self, other: "DB_admin.BOX"):
-            string = f""" ( {self.string} ) AND ({other.string}) """
-            values = self.values + other.values
-            return DB_admin.BOX(string, values)
-
-        def __or__(self, other: "DB_admin.BOX"):
-            string = f""" ( {self.string} ) OR ({other.string}) """
-            values = self.values + other.values
-            return DB_admin.BOX(string, values)
-
-        def __invert__(self):
-            string = f""" NOT ({self.string})"""
-            values = self.values
-            return DB_admin.BOX(string, values)
-
-        def __add__(self, other: "DB_admin.BOX"):
-            string = f"""( {self.string} ) {other.string}"""
-            values = self.values + other.values
-            return DB_admin.BOX(string, values)
-
-    @staticmethod
-    def IN(colname, *value):
-        """
-        *value: 多个值
-        """
-        Q = ("?," * len(value))[:-1]
-        string = colname + f" IN ({Q}) "
-        return Logic.BOX(string, list(value))
-
-    @staticmethod
-    def LIKE(colname, value):
-        """需要自己加%进行模糊匹配"""
-        return Logic.BOX(colname + " LIKE (?) ", ["'"+value+"'"])
-
-    @staticmethod
-    def REGEX(colname,value):
-        return Logic.BOX(colname + " REGEXP (?) ", ["'" + value + "'"])
-
-    @staticmethod
-    def EQ(LOGIC="AND", **kwargs):
-        string = ""
-        values = []
-        for k, v in kwargs.items():
-            string += f" {k}=? {LOGIC} "
-            values.append(v)
-        string = re.sub(f"{LOGIC}\s+$", "", string)
-        return Logic.BOX(string, values)
-
-    @staticmethod
-    def LIMIT(count, offset=0):
-        value = []
-        string = f"LIMIT {count} OFFSET {offset}"
-        return Logic.BOX(string, value)
-
-    @staticmethod
-    def LET(**kwargs):
-        """
-        a=?,b=?,c=?
-        确保插入的都是数据库字段, 不然就等着报错吧!,
-        LET与EQ的区别:
-            LET得到的形式是string: a=?,b=?,c=?, value:[av,bv,cv], 主要用来赋值
-            EQ的形式是: string: a=av and b=bv ... 主要用来比较
-        """
-        string = ",".join([k + "=? " for k in list(kwargs.keys())])
-        value = list(kwargs.values())
-        return Logic.BOX(string, value)
 
 
 class Table:
@@ -1188,7 +1222,7 @@ class Record(QObject):
             self.data = self.initData(json.loads(data)) if data else self.initData({}) # 这个是模型
             # self.信号 =
             self.一致性检查()
-            print(f"initilizing gview config={self} ")
+            # print(f"initilizing gview config={self} ")
             if self.静态_存在于数据库中(self.uuid):
                 self.saveModelToDB()
             # self.确定保存到数据库=True
