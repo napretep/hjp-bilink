@@ -13,7 +13,7 @@ from .. import common_tools
 
 GViewData = common_tools.configsModel.GViewData
 GraphMode = common_tools.configsModel.GraphMode
-
+译=Translate
 
 class T:
     # 标记不同的来源
@@ -95,7 +95,11 @@ def make__open_GViewAdmin(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs)
 #                 lambda: tooltip(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(G.GroupReview_dict.version)))
 #         ]
 #         list(map(lambda x: func_actionMenuConnector(M2, menus[x], acts[x]), range(len(menus))))
-
+#
+# def make__active_data_backup(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
+#     if atype in {T.mainwin}:
+#         M = get_mainWin_menu()
+#         M2 = M.addMenu(译.插件数据主动备份).triggered.connect(common_tools.funcs)
 
 def make__open_configfile(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
     if atype in {T.mainwin, T.browser}:

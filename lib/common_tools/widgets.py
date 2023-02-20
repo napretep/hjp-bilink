@@ -982,7 +982,7 @@ class Dialog_PDFUrlTool(QDialog):
 
     def get_pdf_str(self, page):
         from . import funcs, terms
-        s = funcs.Config.get().PDFUrlLink_page_num_str.value
+        s = funcs.Config.get().PDFLink_pagenum_str.value
         return re.sub(f"{{{terms.PDFLink.page}}}", f"{page}", s)
 
 

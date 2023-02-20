@@ -641,7 +641,7 @@ class ConfigModel(BaseConfigModel):
 
     descExtractTable: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["在本项设置中,你可以指定提取卡片描述的方式, 比如指定什么模板,提取哪个字段,长度多少,还可以写正则表达式, 双击单元格修改,加号按钮增加规则,减号去掉选中规则"],
-            value=[],  # 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
+            value=[[-1,-1,32,"",True]],  # 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
             component=ConfigModel.Widget.customize,
             tab_at=Translate.链接相关,
             customizeComponent=lambda: widgets.ConfigWidget.DescExtractPresetTable
@@ -836,7 +836,7 @@ class ConfigModel(BaseConfigModel):
             tab_at=Translate.同步与备份,
             display=lambda x: time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(x))
     ))
-    PDFUrlLink_style: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    PDFLink_style: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["PDF链接的通用css样式"],
             value="""
 background-color:green;
@@ -846,7 +846,7 @@ text-decoration:none;""",
             component=ConfigModel.Widget.text
 
     ))
-    PDFUrlLink_cmd: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    PDFLink_cmd: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["当你点击pdf链接时,会根据如下命令执行指定的程序",
                          f"其中{terms.PDFLink.url}表示文件路径会被自动转写成file协议的url编码, {terms.PDFLink.page}代表pdf的页码",
                          f"你可以用{terms.PDFLink.path}代替{terms.PDFLink.url},{terms.PDFLink.path}表示文件路径本身,不转写成url编码格式"],
@@ -854,20 +854,20 @@ text-decoration:none;""",
             value=ConfigModel.pdfurl_default_system_cmd(),
             tab_at=Translate.pdf链接,
     ))
-    PDFUrlLink_page_num_str: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    PDFLink_pagenum_str: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[f"{terms.PDFLink.page}该占位符将会被替换成对应的页码"],
             value=f"|page={{{terms.PDFLink.page}}}",
             component=ConfigModel.Widget.line,
             tab_at=Translate.pdf链接,
     ))
-    PDFUrlLink_default_show_pagenum: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    PDFLink_show_pagenum: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["选中表示开启,例子: 当pdf链接显示名字为 ABC.pdf,页码显示为|page=10,则在最终插入时, 名字会变成 ABC.pdf|page=10"],
             value=True,
             component=ConfigModel.Widget.radio,
             tab_at=Translate.pdf链接,
     ))
 
-    PDFUrlLink_booklist: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    PDFLink_presets: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["遇到指定路径的pdf,提供预先设置好的显示名称,样式, 是否显示页码,双击左侧表格单元修改对应行内容"],
             value=[],
             component=ConfigModel.Widget.customize,

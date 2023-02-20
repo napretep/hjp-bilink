@@ -276,17 +276,23 @@ class GviewOperation:
             # Utils.print(prepare_data,need_logFile=True)
             if exclude is not None:
                 [prepare_data.pop(item) for item in exclude]
-            with G.DB.go(G.DB.table_Gview) as DB:
-                DB.update(values=Logic.LET(**prepare_data),where=Logic.EQ(uuid=data.uuid)).commit()
 
+            with G.DB.go(G.DB.table_Gview) as DB:
+                if DB.exists(Logic.EQ(uuid=data.uuid)):
+                    DB.update(values=Logic.LET(**prepare_data),where=Logic.EQ(uuid=data.uuid)).commit()
+                else:
+                    DB.insert(**prepare_data).commit()
             return
         elif data_li:
             with G.DB.go(G.DB.table_Gview) as DB:
                 for data in data_li:
                     prepare_data = data.to_DB_format()
                     if exclude is not None:
-                        prepare_data.pop(exclude)
-                    DB.update(values=Logic.LET(**prepare_data),where=Logic.EQ(uuid=data.uuid)).commit()
+                        [prepare_data.pop(item) for item in exclude]
+                    if DB.exists(Logic.EQ(uuid=data.uuid)):
+                        DB.update(values=Logic.LET(**prepare_data), where=Logic.EQ(uuid=data.uuid)).commit()
+                    else:
+                        DB.insert(**prepare_data).commit()
             return
 
     @staticmethod
@@ -532,6 +538,9 @@ class Utils(object):
         @staticmethod
         def exists():
             return os.path.exists(G.src.path.logtext)
+    # @staticmethod
+    # def 主动备份():
+    #     path,ok = QFileDialog.getExistingDirectory()
 
     @staticmethod
     def make_backup_file_name(filename, path=""):
@@ -1681,7 +1690,7 @@ class EditorOperation:
 
         dialog = widgets.Dialog_PDFUrlTool()
         dialog.widgets[Translate.pdf路径].setText(text)
-        dialog.widgets[Translate.pdf默认显示页码].setChecked(Config.get().PDFUrlLink_default_show_pagenum.value)
+        dialog.widgets[Translate.pdf默认显示页码].setChecked(Config.get().PDFLink_show_pagenum.value)
         config = PDFLink.GetPathInfoFromPreset(text)
         if config is not None:
             dialog.widgets[Translate.pdf名字].setText(config[1])
@@ -2825,7 +2834,7 @@ class HTML:
         root = BeautifulSoup(html_string, "html.parser")
         href_is_file_li: "List[element.Tag]" = root.select('[href^="file://"]')
         style = root.new_tag("style", attrs={"class": G.src.pdfurl_style_class_name})
-        style.string = f".{G.src.pdfurl_class_name}{{{Config.get().PDFUrlLink_style.value}}}"
+        style.string = f".{G.src.pdfurl_class_name}{{{Config.get().PDFLink_style.value}}}"
         root.insert(1, style)
         if len(href_is_file_li) > 0:
             for href in href_is_file_li:
@@ -3464,7 +3473,7 @@ class AnkiLinks:
 class PDFLink:
     @staticmethod
     def FindIndexOfPathInPreset(url: "str"):
-        booklist = Config.get().PDFUrlLink_booklist.value  # [["PDFpath", "name", "style", "showPage"]...]
+        booklist = Config.get().PDFLink_presets.value  # [["PDFpath", "name", "style", "showPage"]...]
         a = [url == bookunit[0] for bookunit in booklist]
         if True in a:
             return a.index(True)
@@ -3473,7 +3482,7 @@ class PDFLink:
 
     @staticmethod
     def GetPathInfoFromPreset(url):
-        booklist = Config.get().PDFUrlLink_booklist.value  # [["PDFpath", "name", "style", "showPage"]...]
+        booklist = Config.get().PDFLink_presets.value  # [["PDFpath", "name", "style", "showPage"]...]
         index: "int" = PDFLink.FindIndexOfPathInPreset(url)
         if index != -1:
             return booklist[index]

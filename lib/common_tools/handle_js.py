@@ -85,7 +85,7 @@ def on_js_message(handled, url: str, context):
         pdfpath = matches.group("pdfpath")
         pdfurl = quote(pdfpath)
         pagenum = matches.group("page")
-        cmd: "str" = funcs.G.CONFIG.PDFUrlLink_cmd.value
+        cmd: "str" = funcs.G.CONFIG.PDFLink_cmd.value
         if cmd.__contains__(terms.PDFLink.url):
             cmd = re.sub(f"{{{terms.PDFLink.url}}}", pdfurl, cmd)
         else:
