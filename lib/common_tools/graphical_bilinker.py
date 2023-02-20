@@ -373,7 +373,7 @@ class VisualBilinker(QMainWindow):
 
     def init_UI(self):
         self.setWindowTitle("VISUAL bilinker")
-        self.setWindowIcon(QApplication.style().standardIcon(4))
+        self.setWindowIcon(QIcon(funcs.G.src.ImgDir.box))
         self.setWindowFlags(Qt.WindowType.WindowMinMaxButtonsHint | Qt.WindowType.WindowCloseButtonHint)
 
         self.resize(800, 600)
@@ -433,14 +433,7 @@ class VisualBilinker(QMainWindow):
             # if not G.ISLOCALDEBUG:
             #     self.updateNodeDueAll()
 
-        # def updateNodeDue(self, card_id):
-        #     last_, next_ = funcs.CardOperation.getLastNextRev(card_id)
-        #     self.node_dict[card_id].due = next_ <= datetime.datetime.now()
 
-        # def updateNodeDueAll(self):
-        #     for card_id in self.node_dict.keys():
-        #         if self.gviewdata.nodes[card_id][本.结点.数据类型] == 枚举_视图结点类型.卡片:
-        #             self.updateNodeDue(card_id)
 
         @property
         def edge_dict(self) -> 'dict[str,dict[str,Optional[VisualBilinker.Entity.Edge]]]':

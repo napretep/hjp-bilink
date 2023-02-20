@@ -136,7 +136,7 @@ class SrcAdmin:
             self.edit = os.path.join(self.root.path.resource_icon,"icon_edit.png")
             self.save = os.path.join(self.root.path.resource_icon, "icon_save.png")
             self.box2 = os.path.join(self.root.path.resource_icon, "icon_box2.png")
-
+            self.as_group = os.path.join(self.root.path.resource_icon, "icon_as_group.png")
 
     @dataclasses.dataclass
     class _ShortCut:
