@@ -957,17 +957,6 @@ class VisualBilinker(QMainWindow):
                 super().mouseReleaseEvent(event)
                 self.setFlag(QGraphicsRectItemFlags.ItemIsMovable, True)
 
-        # def drawRedDot(self):
-
-        # def 结点数据(self):
-        #     return self.superior.data.gviewdata.nodes[self.索引]
-        #
-        # def 结点类型(self):
-        #     if 本.结点.数据类型 not in self.结点数据():  # 这说明没有
-        #         return baseClass.视图结点类型.卡片
-        #     else:
-        #         return self.结点数据()[本.结点.数据类型]
-
         def 结点描述(self):
             return funcs.CardOperation.desc_extract(self.索引)
 
@@ -993,13 +982,6 @@ class VisualBilinker(QMainWindow):
                 self.setZValue(20)
             else:
                 self.setZValue(10)
-
-            # if self.node.due:
-            #     painter.setPen(self.due_dot_style)
-            #     painter.setBrush(QBrush(self.due_dot_style))
-            #     painter.drawEllipse(header_rect.right() - 5, 0, 5, 5)
-            # TODO 设计读取卡片的flag
-
         pass
 
     class ToolBar(QToolBar):
