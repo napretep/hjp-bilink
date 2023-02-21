@@ -32,26 +32,30 @@ if __name__ == "__main__":
     #
     import sys
     from functools import cmp_to_key
+    DB = funcs.G.DB
+    datas = DB.go(DB.table_Gview).select(DB.LIKE("nodes", "1631853798847")).return_all().zip_up().to_gview_record()
+    print(datas)
+
 
 
     # def 漫游路径生成之深度优先遍历():
-    栈 = ["1"]
-    结点集 = set(["1","2","3","4","5","6"])
-    已访问 = []
-    边集 = ["1,2","2,3","2,4","4,5","5,6","6,2"]
-    while 结点集:
-        if not 栈:
-            栈.append(结点集.pop())
-        while 栈:
-            结点 = 栈.pop()
-            已访问.append(结点)
-            结点为起点的边集 = [边 for 边 in 边集 if 边.startswith(结点)]
-            for 边 in 结点为起点的边集:
-                终点 = 边.split(",")[1]
-                if 终点 not in 已访问:
-                    栈.append(终点)
-        结点集 -= set(已访问)
-    print(已访问)
+    # 栈 = ["1"]
+    # 结点集 = set(["1","2","3","4","5","6"])
+    # 已访问 = []
+    # 边集 = ["1,2","2,3","2,4","4,5","5,6","6,2"]
+    # while 结点集:
+    #     if not 栈:
+    #         栈.append(结点集.pop())
+    #     while 栈:
+    #         结点 = 栈.pop()
+    #         已访问.append(结点)
+    #         结点为起点的边集 = [边 for 边 in 边集 if 边.startswith(结点)]
+    #         for 边 in 结点为起点的边集:
+    #             终点 = 边.split(",")[1]
+    #             if 终点 not in 已访问:
+    #                 栈.append(终点)
+    #     结点集 -= set(已访问)
+    # print(已访问)
 
     # class 值类型:
     #     数值="number"

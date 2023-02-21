@@ -18,7 +18,7 @@ MININT = -2147483646
 class SrcAdmin:
     ADDON_VERSION=""
     addon_name = "hjp_linkmaster"
-    dialog_name = "hjp_linkmaster_dialog"
+    dialog_name = addon_name
     groupreview_update_interval = 3000
 
     pdfurl_class_name="hjp_pdfurl_link"

@@ -299,9 +299,9 @@ def HTMLbutton_make(htmltext, card:"Card"):
     if len(data.link_list) > 0 or len(data.backlink) > 0:
         # funcs.Utils.print(f"{card.id} hasbacklink")
         anchor = BacklinkButtonMaker(anchor, card_id=card.id).build()
-    if funcs.HTML.clipbox_exists(html_string):
-        # funcs.Utils.print(f"{card.id} clipbox_exists")
-        anchor = PDFPageButtonMaker(anchor, card_id=card.id).build()
+    # if funcs.HTML.clipbox_exists(html_string):
+    #     # funcs.Utils.print(f"{card.id} clipbox_exists")
+    #     anchor = PDFPageButtonMaker(anchor, card_id=card.id).build()
     # if G.GroupReview_dict and card.id in G.GroupReview_dict.card_group:
     #     # funcs.Utils.print(f"{card.id} GroupReview")
     #     anchor = GroupReviewButtonMaker(anchor, card_id=card.id).build()

@@ -468,7 +468,8 @@ class Logic:
     @staticmethod
     def LIKE(colname, value):
         """需要自己加%进行模糊匹配"""
-        return Logic.BOX(colname + " LIKE (?) ", ["'"+value+"'"])
+        value = re.sub(r"\s", "%", value)
+        return Logic.BOX(colname + " LIKE (?) ", ["%"+value+"%"]) # 不要加冒号
 
     @staticmethod
     def REGEX(colname,value):
@@ -579,9 +580,11 @@ class DB_admin(object):
         return Logic.IN(colname, *value)
 
     @staticmethod
-    def LIKE(colname, value):
+    def LIKE(colname, value:"str"):
         """需要自己加%进行模糊匹配"""
-        return Logic.BOX(colname + " LIKE (?) ", ["'" + value + "'"])
+
+        return Logic.LIKE(colname , value)
+        # return Logic.LIKE(colname + " LIKE (?) ", ["'%" + 新值 + "%'"])
 
     @staticmethod
     def REGEX(colname, value):
@@ -593,8 +596,6 @@ class DB_admin(object):
 
     @staticmethod
     def LIMIT(count, offset=0):
-        value = []
-        string = f"LIMIT {count} OFFSET {offset}"
         return Logic.LIMIT(count,offset=offset)
 
     @staticmethod
@@ -608,10 +609,10 @@ class DB_admin(object):
         """
         return Logic.LET(**kwargs)
 
-    @staticmethod
-    def LIKE(colname, value):
-        """需要自己加%进行模糊匹配"""
-        return Logic.LIKE(colname,value)
+    # @staticmethod
+    # def LIKE(colname, value):
+    #     """需要自己加%进行模糊匹配"""
+    #     return Logic.LIKE(colname,value)
     #
     # @staticmethod
     # def EQ(LOGIC="AND", **kwargs):

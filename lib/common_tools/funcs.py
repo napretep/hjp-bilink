@@ -360,7 +360,8 @@ class GviewOperation:
 
         def pair_to_gview(pair):
             card_id = pair.card_id
-            datas = DB.select(DB.LIKE("nodes", f"%\"{card_id}\"%")).return_all().zip_up().to_gview_record()
+            datas = DB.select(DB.LIKE("nodes", card_id)).return_all(Utils.print).zip_up().to_gview_record()
+            Utils.print(datas)
             return set(map(
                     lambda data: data.to_GviewData(), datas))
 
@@ -3027,7 +3028,7 @@ def HTML_clipbox_sync_check(card_id, root):
     assert type(root) == BeautifulSoup
     assert type(card_id) == str
     DB = G.DB
-    clipbox_from_DB_ = DB.go(DB.table_clipbox).select(DB.LIKE("card_id", f"%{card_id}%")).return_all().zip_up()
+    clipbox_from_DB_ = DB.go(DB.table_clipbox).select(DB.LIKE("card_id", card_id)).return_all().zip_up()
     clipbox_from_DB = set([clipbox["uuid"] for clipbox in clipbox_from_DB_])
     # 选取 clipbox from field
     fields = "\n".join(mw.col.getCard(CardId(int(card_id))).note().fields)
