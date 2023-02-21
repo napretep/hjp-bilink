@@ -28,12 +28,16 @@ if __name__ == "__main__":
     # print(funcs.组件定制.长文本获取())
     #
     # sys.exit(app.exec_())
+    def 设置结点属性(结点编号: str, 属性名: str, 值):
+        assert type(结点编号) == str and type(属性名) == str
 
 
-    DB = funcs.G.DB
-    if DB.go(DB.table_linkinfo).exists(DB.EQ(card_id="1592550168494")):
-        data_str = DB.select(DB.EQ(card_id="1592550168494")).return_all().zip_up()[0]["data"]
-        print(json.loads(data_str))
+    设置结点属性(1,2,3)
+    #
+    # DB = funcs.G.DB
+    # if DB.go(DB.table_linkinfo).exists(DB.EQ(card_id="1592550168494")):
+    #     data_str = DB.select(DB.EQ(card_id="1592550168494")).return_all().zip_up()[0]["data"]
+    #     print(json.loads(data_str))
 
     # def 漫游路径生成之深度优先遍历():
     # 栈 = ["1"]

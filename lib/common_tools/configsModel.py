@@ -175,9 +175,9 @@ class GViewData:
                 **self.meta #保存时将每个字段都提出来
         }
 
-    def 设置结点属性(self,结点编号,属性名,值):
+    def 设置结点属性(self,结点编号:str,属性名:str,值):
         from . import funcs
-        funcs.Utils.print(结点编号,属性名,值)
+        assert type(结点编号)==str and type(属性名)==str
         self.nodes.data[结点编号][属性名] = 值
 
     def 获取结点描述(self,编号,全部内容=False):

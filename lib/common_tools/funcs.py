@@ -1140,7 +1140,6 @@ class GviewConfigOperation(BaseConfig):
     @staticmethod
     def 获取结点角色名(视图数据:GViewData,结点编号):
         角色序号 = 视图数据.nodes[结点编号].角色.值
-        Utils.print("获取结点角色名1")
         if 角色序号 < 0:
             return ""
         if not 视图数据.config:
@@ -1172,7 +1171,6 @@ class GviewConfigOperation(BaseConfig):
                     if 终点 not in 已访问 and 终点 not in 栈:
                         栈.append(终点)
             结点集-=set(已访问)
-        Utils.print("深度优先排序完成")
         return 已访问
         pass
     @staticmethod
@@ -1259,7 +1257,6 @@ class GviewConfigOperation(BaseConfig):
             return False
         elif 选项==-1:
             全局,局部 = GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号)
-            Utils.print(字典键名.结点.已到期,全局,局部)
             return eval(字典键名.结点.已到期,全局,局部)
         else:
             return eval(列表[选项], *GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号))
@@ -1313,15 +1310,10 @@ class GviewConfigOperation(BaseConfig):
         from . import models
         _ = baseClass.枚举命名
         new_globals = globals().copy()
-        Utils.print(0)
         结点变量 =(models.类型_视图结点模型().获取可访变量(指定变量类型=指定变量类型) if not 视图数据 else 视图数据.nodes[结点索引].获取可访变量(指定变量类型=指定变量类型))
-        Utils.print(1)
         视图变量 =(models.类型_视图本身模型().获取可访变量(指定变量类型=指定变量类型) if not 视图数据 else 视图数据.meta_helper.获取可访变量(指定变量类型=指定变量类型))
-        Utils.print(2)
         配置变量 = eval(GviewConfigOperation.从数据库读(视图数据.config).data.node_role_list.value) if 视图数据 and 视图数据.config else []
-        Utils.print(3)
         函数变量 = GviewConfigOperation.获取eval可用函数()
-        Utils.print(4)
         变量对儿 = [new_globals,
                     {
                             **结点变量,
@@ -1356,7 +1348,6 @@ class GviewConfigOperation(BaseConfig):
 
     @staticmethod
     def 指定视图配置(视图记录: "GViewData|str", 新配置记录: "objs.Record.GviewConfig|str|None" = None):
-        Utils.print(f" assign view config function begin", need_logFile=True)
 
         def 删除前配置中的当前视图():
             前配置记录 = GviewConfigOperation.从数据库读(视图记录.config)
@@ -1809,7 +1800,6 @@ class CardOperation:
                 视图窗口 = Gview.判断视图已经打开(视图数据.uuid)
                 if 视图窗口 is not None:
                     视图窗口.remove_node(结点编号)
-                    Utils.print(3)
                     视图窗口.data.node_edge_packup()
             bilinker = GrapherOperation.判断视图已经打开()
             if bilinker and 结点编号 in bilinker.data.node_dict:
