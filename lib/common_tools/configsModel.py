@@ -175,7 +175,10 @@ class GViewData:
                 **self.meta #保存时将每个字段都提出来
         }
 
-
+    def 设置结点属性(self,结点编号,属性名,值):
+        from . import funcs
+        funcs.Utils.print(结点编号,属性名,值)
+        self.nodes.data[结点编号][属性名] = 值
 
     def 获取结点描述(self,编号,全部内容=False):
         from . import funcs
@@ -219,7 +222,7 @@ class GViewData:
 
     def 新增结点(self,编号,类型):
         from . import funcs,models
-        self.nodes[编号]=funcs.GviewOperation.依参数确定视图结点数据类型模板(类型)
+        self.nodes[编号]=funcs.GviewOperation.依参数确定视图结点数据类型模板(结点类型=类型,编号=编号)
         # self.node_helper[编号]=models.类型_视图结点模型().初始化(self,编号)
 
     def 删除结点(self,编号):

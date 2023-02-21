@@ -323,6 +323,7 @@ class AnchorDialog(QDialog):
         print(data)
         linkdata_admin.write_card_link_info(self.card_id, data)
         common_tools.funcs.LinkPoolOperation.both_refresh(0,2)
+        common_tools.funcs.CardOperation.描述更新(self.card_id)
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
         self.signout()

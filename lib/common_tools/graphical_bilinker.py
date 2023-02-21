@@ -49,6 +49,7 @@ class VisualBilinker(QMainWindow):
     def card_edit_desc(self, item: "VisualBilinker.ItemRect"):
         text, okPressed = QInputDialog.getText(self, "get new description", "", text=funcs.CardOperation.desc_extract(item.索引))
         if okPressed:
+            item.node.desc=text
             funcs.GlobalLinkDataOperation.update_desc_to_db(LinkDataPair(item.索引, text))
             funcs.CardOperation.refresh()
         pass
@@ -929,7 +930,7 @@ class VisualBilinker(QMainWindow):
             painter.setBrush(QBrush(self.current_title_style))
             header_height = 24
             header_rect = QRectF(0, 0, int(self.rect().width()), header_height)
-            body_rect = QRectF(0, header_height, int(self.rect().width()), int(self.rect().height()))
+            body_rect = QRectF(0, header_height, int(self.rect().width()), int(self.rect().height()-header_height))
             painter.drawRect(header_rect)
 
             painter.setPen(QColor(255, 255, 255))

@@ -35,7 +35,8 @@ def backlink_append(self_card_id, add):
 
         if self_card_id not in data.backlink:
             data.backlink.append(self_card_id)  # 此处并不提供 卡片描述
-            linkdata_admin.write_card_link_info(card_id, data.to_DB_record["data"])
+            data.save_to_DB()
+            # linkdata_admin.write_card_link_info(card_id, data.to_DB_record["data"])
             appended = True
     return appended
 
@@ -48,6 +49,7 @@ def backlink_remove(self_card_id, rm):
         data = linkdata_admin.read_card_link_info(card_id)
         if self_card_id in data.backlink:
             data.backlink.remove(self_card_id)
-            linkdata_admin.write_card_link_info(card_id, data.to_DB_record["data"])
+            data.save_to_DB()
+            # linkdata_admin.write_card_link_info(card_id, data.to_DB_record["data"])
             removed = True
     return removed

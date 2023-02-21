@@ -161,9 +161,13 @@ class LinkDescFrom:
 
 @dataclass
 class LinkDataPair:
-    """LinkDataJSONInfo 的子部件, 也可以独立使用"""
+    """LinkDataJSONInfo 的子部件, 也可以独立使用
+    访问desc时,等价于访问 funcs.CardOperation.desc_extract(self.card_id)
+    _desc保存着来自DB的数据内容, 但需要复杂的规则,来确定是否读取DB的内容
+    """
     card_id: "str"
     _desc: "str" = "" #由于引入了新的设定, desc的获取不一定是来自数据库,而是实时与卡片内容保持一致, 所以需要一个中间层来处理问题.
+
     dir: "str" = "→"
     get_desc_from:int=LinkDescFrom.DB
 
@@ -175,9 +179,12 @@ class LinkDataPair:
 
     @property
     def desc(self):
-        # from . import funcs
+        from . import funcs
         # if self.get_desc_from == LinkDescFrom.DB:
-        return self._desc
+        # if  sys._getframe(1).f_code.co_name != "desc_extract":
+        #     raise PermissionError("只能通过CardOperation.desc_extract访问本属性")
+
+        return  funcs.CardOperation.desc_extract(self.card_id)
         # return funcs.CardOperation.desc_extract(self.card_id)
 
 
@@ -191,15 +198,15 @@ class LinkDataPair:
         return int(self.card_id)
 
     def to_self_dict(self):
-        return {"card_id":self.card_id, "desc":self.desc,"dir":self.dir,"get_desc_from":self.get_desc_from}
+        return {"card_id":self.card_id, "desc":self._desc,"dir":self.dir,"get_desc_from":self.get_desc_from}
 
     def todict(self)->'dict[str,str]':
         return {"card_id":self.card_id, "desc":self.desc,"dir":self.dir}
 
-    def update_desc(self):
-        """是从卡片中更新描述"""
-        from . import funcs
-        self.desc = funcs.CardOperation.desc_extract(self.card_id)
+    # def update_desc(self):
+    #     """是从卡片中更新描述"""
+    #     from . import funcs
+    #     self.desc = funcs.CardOperation.desc_extract(self.card_id)
 
     def __eq__(self, other: "LinkDataPair"):
         return self.card_id == other.card_id
@@ -367,6 +374,10 @@ class LinkDataJSONInfo:
 
     def save_to_DB(self):
         from ..bilink import linkdata_admin
+        from .G import DB
+        # data,card_id = self.to_DB_record["data"],self.to_DB_record["card_id"]
+        # DB.go(DB.table_linkinfo).update(DB.LET(data=data),where=DB.EQ(card_id=card_id)).commit()
+
         linkdata_admin.write_card_link_info(**self.to_DB_record)
 
     def __contains__(self, item):
@@ -881,7 +892,7 @@ class DB_admin(object):
         self.excute_queue.append([s, entity])
         return self
 
-
+    # def 保存_不存在则新建(self,):
 
     # 增
     def insert(self, **values):

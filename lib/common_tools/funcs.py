@@ -186,12 +186,16 @@ class GviewOperation:
     @staticmethod
     def 设定视图结点描述(视图数据: GViewData, 结点编号, 设定内容):
         视图类型 = 视图数据.nodes[结点编号].数据类型.值
+        Utils.print(结点编号,设定内容)
         if 视图类型 == 枚举_视图结点类型.卡片:
             CardOperation.desc_save(结点编号, 设定内容)
+            CardOperation.refresh()
         else:
             结点对应视图 = GviewOperation.load(结点编号)
             结点对应视图.name = 设定内容
             GviewOperation.save(结点对应视图)
+        if GviewOperation.判断视图已经打开(视图数据.uuid):
+            视图数据.nodes.data[结点编号][字典键名.结点.描述]=设定内容
 
     @staticmethod
     def 获取视图结点描述(视图数据: "GViewData", 结点编号, 全部内容=False):
@@ -1249,15 +1253,11 @@ class GviewConfigOperation(BaseConfig):
         列表 = 配置数据.data.roaming_node_filter.value[0]
         选项 = 配置数据.data.roaming_node_filter.value[1]
         结点数据 = 视图数据.nodes[结点编号]
-        Utils.print("过滤条件的配置:",列表,选项)
         if 结点数据.必须复习.值==True:
-            Utils.print("结点数据.必须复习.值==True")
             return True
         elif 结点数据.需要复习.值==False :
-            Utils.print("结点数据.需要复习.值==False")
             return False
         elif 选项==-1:
-            Utils.print("选项==-1")
             全局,局部 = GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号)
             Utils.print(字典键名.结点.已到期,全局,局部)
             return eval(字典键名.结点.已到期,全局,局部)
@@ -1531,7 +1531,7 @@ class GlobalLinkDataOperation:
     def update_desc_to_db(pair: "LinkDataPair"):
         """仅根据pair的desc信息更新,别的不做"""
         data = GlobalLinkDataOperation.read_from_db(pair.card_id)
-        data.self_data.desc = pair.desc
+        data.self_data.desc = pair._desc
         data.self_data.get_desc_from = G.objs.LinkDescFrom.DB
         data.save_to_DB()
         if pair.get_desc_from == G.objs.LinkDescFrom.Field:
@@ -1776,6 +1776,21 @@ class CustomProtocol:
 class CardOperation:
 
     @staticmethod
+    def 描述更新(card_id):
+        最新描述=CardOperation.desc_extract(card_id)
+        含card_id视图集 = GviewOperation.find_by_card([card_id])
+        for 视图数据 in 含card_id视图集:
+            视图窗口=GviewOperation.判断视图已经打开(视图数据.uuid)
+            if 视图窗口:
+
+                视图窗口.data.gviewdata.设置结点属性(card_id,字典键名.结点.描述,最新描述)
+        图形助手窗口 = GrapherOperation.判断视图已经打开()
+        if 图形助手窗口 and card_id in 图形助手窗口.data.node_dict:
+            图元 = 图形助手窗口.data.node_dict[card_id]
+            图元.desc = 最新描述
+
+
+    @staticmethod
     def 判断卡片被独立窗口预览(card_id):
         结果 = None
         from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewer
@@ -1909,7 +1924,7 @@ class CardOperation:
         return str(note.card_ids()[0])
 
     @staticmethod
-    def refresh():
+    def refresh(card_id=None):
         def prev_refresh(p: Previewer):
             # return False
             """在被包裹的函数执行完后刷新"""
@@ -1998,7 +2013,7 @@ class CardOperation:
             datainfo = GlobalLinkDataOperation.read_from_db(card_id)
             if datainfo.self_data.get_desc_from == objs.LinkDescFrom.DB:
                 # print("--------=--=-=-=-=       desc  from DB       ")
-                return datainfo.self_data.desc
+                return datainfo.self_data._desc
             else:
                 if ins.sync:
                     # 确定字段
@@ -2006,7 +2021,7 @@ class CardOperation:
                 else:
                     datainfo.self_data.get_desc_from = objs.LinkDescFrom.DB
                     datainfo.save_to_DB()
-                    return datainfo.self_data.desc
+                    return datainfo.self_data._desc
 
     @staticmethod
     def desc_save(card_id, desc):

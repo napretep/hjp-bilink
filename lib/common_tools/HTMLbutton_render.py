@@ -72,7 +72,7 @@ class BacklinkButtonMaker(FieldHTMLData):
         b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor backlink button",
                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
         cardinfo = self.data.link_dict[card_id]
-        b.string = "→" + cardinfo.desc  # funcs.CardOperation.desc_extract(card_id)
+        b.string = "→" + funcs.CardOperation.desc_extract(card_id)
         return b
 
     # 创建 anchor中的backlink专区
@@ -116,7 +116,7 @@ class BacklinkButtonMaker(FieldHTMLData):
             data: "G.objs.LinkDataJSONInfo" = linkdata_admin.read_card_link_info(card_id)
             L2 = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor button",
                                             "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
-            L2.string = "→" + data.self_data.desc
+            L2.string = "→" + funcs.CardOperation.desc_extract(card_id)
             div.append(L2)
 
         self.anchor_body_L1.append(details)
@@ -155,7 +155,7 @@ class InTextButtonMaker(FieldHTMLData):
 
     def button_make(self, data):
         card_id = data["card_id"]
-        desc = data["desc"]
+        desc = funcs.CardOperation.desc_extract(card_id)
         h = self.html_root
         b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor intext button",
                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})

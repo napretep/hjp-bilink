@@ -881,7 +881,7 @@ class Grapher(QMainWindow):
         def 获取关联的结点(self):
             return self.itemStart.索引, self.itemEnd.索引
 
-        def 获取实体数据(self):
+        def 获取边名(self):
             A, B = self.获取关联的结点()
             a_b = f"{A},{B}"
             try:
@@ -896,7 +896,7 @@ class Grapher(QMainWindow):
             paint_center = (self.triangle[1] + self.triangle[2]) / 2
             总是显示 = self.superior.data.gview_config.data.edge_name_always_show.value
 
-            文本 = self.获取实体数据() if self.获取实体数据() \
+            文本 = self.获取边名() if self.获取边名() \
                 else "debug hello world world hello" \
                 if self.superior.data.state == GraphMode.debug_mode \
                 else ""
@@ -1073,7 +1073,7 @@ class Grapher(QMainWindow):
             painter.setBrush(QBrush(self.current_title_style))
             header_height = 24
             header_rect = QRectF(0, 0, int(self.rect().width()), header_height)
-            body_rect = QRectF(0, header_height, int(self.rect().width()), int(self.rect().height()-2*header_height))
+            body_rect = QRectF(0, header_height, int(self.rect().width()), int(self.rect().height()-header_height))
             painter.drawRect(header_rect)
 
             painter.setPen(QColor(255, 255, 255))
