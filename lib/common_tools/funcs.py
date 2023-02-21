@@ -125,6 +125,22 @@ class MenuMaker:
 class GviewOperation:
 
     @staticmethod
+    def 判断视图已经打开(视图编号):
+        """判断且直接返回"""
+        from ..bilink.dialogs.linkdata_grapher import Grapher
+
+        if 视图编号 in G.mw_gview and isinstance(G.mw_gview[视图编号],Grapher):
+            视图窗口:Grapher = G.mw_gview[视图编号]
+            return 视图窗口
+        else:
+            return None
+
+
+    @staticmethod
+    def 更新卡片到期时间(卡片编号):
+
+        pass
+    @staticmethod
     def 重命名(视图数据: GViewData, 新名字):
         视图数据.name = 新名字
         GviewOperation.save(视图数据)
@@ -178,7 +194,8 @@ class GviewOperation:
             GviewOperation.save(结点对应视图)
 
     @staticmethod
-    def 获取视图结点描述(视图数据: GViewData, 结点编号, 全部内容=False):
+    def 获取视图结点描述(视图数据: "GViewData", 结点编号, 全部内容=False):
+
         视图类型 = 视图数据.nodes[结点编号].数据类型.值
         if 视图类型 == 枚举_视图结点类型.卡片:
             return CardOperation.desc_extract(结点编号) if not 全部内容 else CardOperation.获取卡片内容与标题(结点编号)
@@ -186,6 +203,14 @@ class GviewOperation:
             return GviewOperation.load(uuid=结点编号).name
 
         pass
+
+    @staticmethod
+    def 获取视图名字(视图编号):
+        if not GviewOperation.exists(uuid=视图编号):
+            raise ValueError(f"视图:{视图编号}不存在")
+
+        DB = G.DB
+        return DB.go(DB.table_Gview).select(DB.EQ(uuid=视图编号)).return_all().zip_up()[0]["name"]
 
     @staticmethod
     def 列出已打开的视图():
@@ -308,7 +333,7 @@ class GviewOperation:
         return exists
 
     @staticmethod
-    def load(uuid=None, gviewdata: "GViewData" = None, pairli=None):
+    def load(uuid=None, gviewdata: "GViewData" = None):
         """"""
         # print("uuid=",uuid)
         data = None
@@ -318,13 +343,14 @@ class GviewOperation:
             data = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_record()[0].to_GviewData()
 
         elif gviewdata is not None:
-            with G.DB.go(G.DB.table_Gview) as DB:
-                data = DB.select(DB.EQ(uuid=gviewdata.uuid)).return_all().zip_up().to_gview_record()[0].to_GviewData()
+            DB = G.DB
+            DB.go(DB.table_Gview)
+            data = DB.select(DB.EQ(uuid=gviewdata.uuid)).return_all().zip_up().to_gview_record()[0].to_GviewData()
 
-        elif pairli is not None:
-            data = GviewOperation.find_by_card(pairli)
+        # elif pairli is not None:
+        #     data = GviewOperation.find_by_card(pairli)
         if data is None:
-            raise ValueError(f"未知的uuid={uuid},或gviewdata={gviewdata}或pairli={pairli}")
+            raise ValueError(f"未知的uuid={uuid},或gviewdata={gviewdata}")
         return data
 
     @staticmethod
@@ -353,17 +379,22 @@ class GviewOperation:
         return [记录.uuid for 记录 in DB.return_all().zip_up().to_gview_record()]
 
     @staticmethod
-    def find_by_card(pairli: 'list[LinkDataPair]') -> 'set[GViewData]':
+    def 找到结点所属视图(结点编号):
+        DB = G.DB
+        视图记录集 = DB.go(DB.table_Gview).select(DB.LIKE("nodes",结点编号)).return_all().zip_up().to_gview_record()
+        return [视图记录.to_GviewData() for 视图记录 in 视图记录集]
+
+
+    @staticmethod
+    def find_by_card(pairli: 'list[LinkDataPair|str]') -> 'set[GViewData]':
         """找到卡片所属的gview记录 """
         DB = G.DB
         DB.go(DB.table_Gview)
 
         def pair_to_gview(pair):
-            card_id = pair.card_id
-            datas = DB.select(DB.LIKE("nodes", card_id)).return_all(Utils.print).zip_up().to_gview_record()
-            Utils.print(datas)
-            return set(map(
-                    lambda data: data.to_GviewData(), datas))
+            card_id = pair.card_id if isinstance(pair,LinkDataPair) else pair
+            datas = DB.select(DB.LIKE("nodes", card_id)).return_all().zip_up().to_gview_record()
+            return set(map( lambda data: data.to_GviewData(), datas))
 
         all_records = list(map(lambda x: pair_to_gview(x), pairli))
         final_givew = reduce(lambda x, y: x & y, all_records) if len(all_records) > 0 else set()
@@ -485,39 +516,25 @@ class GviewOperation:
         return Utils.字典缺省值填充器(默认值, 数据)
 
     @staticmethod
-    def 依参数确定视图结点数据类型模板(结点类型=枚举_视图结点类型.卡片, 数据=None):
+    def 依参数确定视图结点数据类型模板(结点类型=枚举_视图结点类型.卡片, 数据=None, 编号=None):
+        from . import models
+
         _ = 字典键名
-        默认值 = {
-                _.结点.数据类型: 结点类型,
-                _.结点.位置  : [],
-                _.结点.主要结点: False,
-                _.结点.需要复习: True,
-                _.结点.必须复习: False,
-                _.结点.漫游起点: False,
-                _.结点.创建时间: int(time.time()),
-                _.结点.上次访问: int(time.time()),
-                _.结点.上次编辑: int(time.time()),
-                _.结点.访问次数: 0,
-                _.结点.优先级 : 0,
-                _.结点.角色  : -1,
-        }
+        模型 = models.类型_视图结点模型()
+        默认值模板 = {}
+        for 名字 in 模型.__dict__:
+            if isinstance(模型.__dict__[名字],models.类型_视图结点属性项):
+                属性:models.类型_视图结点属性项 = 模型.__dict__[名字]
+                if 属性.从上级读数据:
+                    默认值模板[属性.字段名]=属性.默认值
+        新值 = Utils.字典缺省值填充器(默认值模板, 数据)
+        if 编号 :
+            新值[_.结点.描述] = CardOperation.desc_extract(编号) if 结点类型 == 枚举_视图结点类型.卡片 else GviewOperation.获取视图名字(编号)
+        # 新值[_.结点.描述] = GviewOperation.获取视图结点描述()
+        return 新值
 
-        return Utils.字典缺省值填充器(默认值, 数据)
 
-    @staticmethod
-    def 推断结点未保存的信息(索引=None):
-        _ = 字典键名.结点
-        if not 索引:
-            return {
-                    _.出度  : 0,
-                    _.入度  : 0,
-                    _.数据源 : [],
-                    _.上次复习: int(time.time()),
-                    _.描述  : "",
-                    _.已到期 : False,
-            }
-        else:
-            return {}
+
 
 
 class Utils(object):
@@ -537,6 +554,8 @@ class Utils(object):
         @staticmethod
         def exists():
             return os.path.exists(G.src.path.logtext)
+
+
     # @staticmethod
     # def 主动备份():
     #     path,ok = QFileDialog.getExistingDirectory()
@@ -1459,6 +1478,14 @@ class Config(BaseConfig):
 class GrapherOperation:
 
     @staticmethod
+    def 判断视图已经打开():
+        from .graphical_bilinker import VisualBilinker
+        if isinstance(G.mw_grapher,VisualBilinker):
+            bilinker:VisualBilinker=G.mw_grapher
+            return bilinker
+        else:
+            return None
+    @staticmethod
     def refresh():
         from ..bilink.dialogs.linkdata_grapher import Grapher
         if isinstance(G.mw_grapher, Grapher):
@@ -1484,7 +1511,7 @@ class GrapherOperation:
         # return sum(filter(g.data.node_dict.keys()))
 
 
-class LinkDataOperation:
+class GlobalLinkDataOperation:
     """针对链接数据库的操作,
     这里的LinkDataOperation.bind/unbind和LinkPoolOperation中的link/unlink是类似但不同,不冲突.
     因为那是一个link池里的操作,而这不是, 这是一个普通的链接操作
@@ -1503,7 +1530,7 @@ class LinkDataOperation:
     @staticmethod
     def update_desc_to_db(pair: "LinkDataPair"):
         """仅根据pair的desc信息更新,别的不做"""
-        data = LinkDataOperation.read_from_db(pair.card_id)
+        data = GlobalLinkDataOperation.read_from_db(pair.card_id)
         data.self_data.desc = pair.desc
         data.self_data.get_desc_from = G.objs.LinkDescFrom.DB
         data.save_to_DB()
@@ -1529,12 +1556,12 @@ class LinkDataOperation:
     @staticmethod
     def unbind(card_idA: 'Union[str,LinkDataJSONInfo]', card_idB: 'Union[str,LinkDataJSONInfo]', needsave=True):
         """needsave关闭后,需要自己进行save"""
-        if isinstance(card_idA, LinkDataJSONInfo) and isinstance(card_idB, LinkDataJSONInfo):
-            cardA, cardB = card_idA, card_idB
-        else:
-            from ..bilink import linkdata_admin
-            cardA = linkdata_admin.read_card_link_info(card_idA)
-            cardB = linkdata_admin.read_card_link_info(card_idB)
+        from ..bilink import linkdata_admin
+
+        cardA = card_idA if isinstance(card_idA, LinkDataJSONInfo) else linkdata_admin.read_card_link_info(card_idA)
+        cardB = card_idB if isinstance(card_idB, LinkDataJSONInfo) else linkdata_admin.read_card_link_info(card_idB)
+
+
         if cardB.self_data in cardA.link_list:
             cardA.remove_link(cardB.self_data)
             if needsave: cardA.save_to_DB()
@@ -1748,6 +1775,44 @@ class CustomProtocol:
 
 class CardOperation:
 
+    @staticmethod
+    def 判断卡片被独立窗口预览(card_id):
+        结果 = None
+        from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewer
+        if card_id in G.mw_card_window and isinstance(G.mw_card_window[card_id],SingleCardPreviewer):
+            结果:SingleCardPreviewer= G.mw_card_window[card_id]
+        return 结果
+    @staticmethod
+    def 删除不存在的结点(结点编号集: "list[str]"):
+        Gview = GviewOperation
+        Card = CardOperation
+        DB= G.DB
+        DB.go(DB.table_linkinfo)
+        for 结点编号 in 结点编号集:
+            视图数据集 = Gview.找到结点所属视图(结点编号)
+            for 视图数据 in 视图数据集:
+                视图窗口 = Gview.判断视图已经打开(视图数据.uuid)
+                if 视图窗口 is not None:
+                    视图窗口.remove_node(结点编号)
+                    Utils.print(3)
+                    视图窗口.data.node_edge_packup()
+            bilinker = GrapherOperation.判断视图已经打开()
+            if bilinker and 结点编号 in bilinker.data.node_dict:
+                bilinker.remove_node(结点编号)
+            if 结点编号.isdigit():
+                卡片独立窗口 = Card.判断卡片被独立窗口预览(结点编号)
+                if 卡片独立窗口:
+                    卡片独立窗口.close()
+            # if DB.exists(DB.EQ(card_id=结点编号)):
+            #     全局链接数据 = DB.select()
+                # 数字类型的必然是卡片, 是卡片就要考虑他有没有全局链接数据
+
+                pass
+                # if DB.exists(DB.EQ(card_id))
+                # 全局链接数据 = DB.select(DB.EQ())
+                # for 文外链接 in 全局链接数据.link_list:
+                #     GlobalLinkDataOperation.unbind(结点编号,文外链接.card_id)
+
     # @staticmethod
     # def group_review(answer: AnswerInfoInterface):
     #     """用来同步复习卡片"""
@@ -1805,6 +1870,7 @@ class CardOperation:
                 time.sleep(0.2)
                 continue
         GrapherOperation.updateDue(f"{card.id}")
+        GviewOperation.更新卡片到期时间(f"{card.id}")
 
     @staticmethod
     def create(model_id: "int" = None, deck_id: "int" = None, failed_callback: "Callable" = None):
@@ -1866,6 +1932,7 @@ class CardOperation:
             if v is not None:
                 prev_refresh(v)
         GrapherOperation.refresh()
+        # GviewOperation.刷新()
         # from ..bilink.dialogs.linkdata_grapher import Grapher
 
         # print("card refreshed")
@@ -1882,7 +1949,7 @@ class CardOperation:
     def 获取卡片内容与标题(card_id):
         note: "Note" = CardOperation.note_get(card_id)
         卡片内容 = "\n".join(note.fields)
-        卡片标题 = LinkDataOperation.read_from_db(card_id).self_data.desc
+        卡片标题 = GlobalLinkDataOperation.read_from_db(card_id).self_data.desc
         return 卡片标题 + "\n" + 卡片内容
 
     @staticmethod
@@ -1928,7 +1995,7 @@ class CardOperation:
             # 确定字段
             return get_desc_from_field(ins, note)
         else:
-            datainfo = LinkDataOperation.read_from_db(card_id)
+            datainfo = GlobalLinkDataOperation.read_from_db(card_id)
             if datainfo.self_data.get_desc_from == objs.LinkDescFrom.DB:
                 # print("--------=--=-=-=-=       desc  from DB       ")
                 return datainfo.self_data.desc
@@ -1943,7 +2010,7 @@ class CardOperation:
 
     @staticmethod
     def desc_save(card_id, desc):
-        LinkDataOperation.update_desc_to_db(LinkDataPair(card_id, desc))
+        GlobalLinkDataOperation.update_desc_to_db(LinkDataPair(card_id, desc))
 
     @staticmethod
     def InstructionOfExtractDesc(card_id):
@@ -2296,9 +2363,9 @@ class LinkPoolOperation:
                     for linkinfoB in flatten:
                         if linkinfoB.self_data.card_id != linkinfoA.self_data.card_id:
                             if self.mode == L.M.complete_map:
-                                LinkDataOperation.bind(linkinfoA, linkinfoB, needsave=False)
+                                GlobalLinkDataOperation.bind(linkinfoA, linkinfoB, needsave=False)
                             elif self.mode == L.M.unlink_by_node:
-                                LinkDataOperation.unbind(linkinfoA, linkinfoB, needsave=False)
+                                GlobalLinkDataOperation.unbind(linkinfoA, linkinfoB, needsave=False)
                         count2 += 1
                         self.on_progress.emit(Utils.percent_calc(total, (count2 / total2 + count), 25, 50))
                     count += 1
@@ -2334,9 +2401,9 @@ class LinkPoolOperation:
                 for linkinfoA in groupA:
                     for linkinfoB in groupB:
                         if self.worker.mode == L.M.group_by_group:
-                            LinkDataOperation.bind(linkinfoA, linkinfoB, needsave=False)
+                            GlobalLinkDataOperation.bind(linkinfoA, linkinfoB, needsave=False)
                         elif self.worker.mode == L.M.unlink_by_path:
-                            LinkDataOperation.unbind(linkinfoA, linkinfoB, needsave=False)
+                            GlobalLinkDataOperation.unbind(linkinfoA, linkinfoB, needsave=False)
                 self.count += 1
                 return groupB
 

@@ -49,7 +49,7 @@ class VisualBilinker(QMainWindow):
     def card_edit_desc(self, item: "VisualBilinker.ItemRect"):
         text, okPressed = QInputDialog.getText(self, "get new description", "", text=funcs.CardOperation.desc_extract(item.索引))
         if okPressed:
-            funcs.LinkDataOperation.update_desc_to_db(LinkDataPair(item.索引, text))
+            funcs.GlobalLinkDataOperation.update_desc_to_db(LinkDataPair(item.索引, text))
             funcs.CardOperation.refresh()
         pass
 
@@ -87,28 +87,6 @@ class VisualBilinker(QMainWindow):
     def on_scene_selectionChanged_handle(self):
         self.switch_edge_highlight()
 
-    # def insert(self, pair_li: "list[LinkDataPair|str]"):
-    #     """根据填入的pair 点亮,聚焦到对应的卡片上"""
-    #     结点集 = self.data.gviewdata.nodes
-    #     if pair_li is None:
-    #         return
-    #     if len(pair_li) == 0:
-    #         tooltip("不存在卡片")
-    #         return
-    #     self.scene.clearSelection()
-    #     if isinstance(pair_li[0], LinkDataPair):
-    #
-    #         for pair in pair_li:
-    #             if pair.card_id not in 结点集:
-    #                 结点集[pair.card_id] = {
-    #                         本.结点.位置  : [],
-    #                         本.结点.数据类型: common_tools.baseClass.视图结点类型.卡片
-    #                 }
-    #                 item = self.create_node(pair)
-    #                 self.arrange_node(item)
-    #         list(map(lambda x: self.data.node_dict[x.card_id].item.setSelected(True), pair_li))
-    #         索引 = pair_li[-1].card_id
-    #         self.view.centerOn(item=self.data.node_dict[索引].item)
 
     def create_view(self):
         name, submitted = funcs.GviewOperation.get_correct_view_name_input()
@@ -224,7 +202,7 @@ class VisualBilinker(QMainWindow):
 
     def load_edges_from_linkdata(self, card_li: "list[str]" = None):
 
-        DB = funcs.LinkDataOperation
+        DB = funcs.GlobalLinkDataOperation
         if card_li is None:
             card_li = list(self.data.node_dict.keys())
         for card_idA in card_li:
@@ -315,30 +293,31 @@ class VisualBilinker(QMainWindow):
         pass
 
     # bilink
-    def remove_node(self, item: "VisualBilinker.ItemRect"):
+    def remove_node(self, item: "VisualBilinker.ItemRect|str"):
+        if type(item)==str:
+            item = self.data.node_dict[item].item
         card_id_li = self.data.node_dict.keys()
         edges = self.data.edge_dict
         card_idA = item.索引
         for card_idB in card_id_li:
             if card_idB == card_idA: continue
             if card_idA in edges and card_idB in edges[card_idA]:
-                # print(f"self.remove_edge({card_idA}, {card_idB})")
-                self.remove_edge(card_idA, card_idB)
-            # if card_idB in edges and card_idA in edges[card_idB]:
-            #     # print(f"self.remove_edge({card_idB}, {card_idA})")
+                self.remove_edge(card_idA, card_idB) # 此时移除就同时移除双向
+            # elif card_idB in edges and card_idA in edges[card_idA]:
             #     self.remove_edge(card_idB, card_idA)
+
         self.scene.removeItem(item)
         self.data.node_dict.pop(card_idA)
 
     def remove_globalLink(self, card_idA, card_idB):
         """globallink就是全局的链接"""
-        funcs.LinkDataOperation.unbind(card_idA, card_idB)
+        funcs.GlobalLinkDataOperation.unbind(card_idA, card_idB)
         funcs.LinkPoolOperation.both_refresh()
         print("remove_globalLink")
         pass
 
     def add_bilink(self, card_idA, card_idB):
-        funcs.LinkDataOperation.bind(card_idA, card_idB)
+        funcs.GlobalLinkDataOperation.bind(card_idA, card_idB)
         funcs.LinkPoolOperation.both_refresh()
         print("add_bilink")
         pass
@@ -351,25 +330,13 @@ class VisualBilinker(QMainWindow):
         last_item = None
         for card_id, node in self.data.node_dict.items():
             item = self.create_node(card_id)
-            # funcs.Utils.print(self.data.gviewdata.nodes[card_id],need_logFile=True)
-            # if self.data.graph_mode == GraphMode.view_mode and card_id in self.data.gviewdata.nodes \
-            #         and self.data.gviewdata.nodes[card_id][本.结点.位置]:  # * Done: 修改数据读取方式
-            #     item.setPos(*self.data.gviewdata.nodes[card_id][本.结点.位置])
-            # else:
             self.arrange_node(item)
             last_item = item
         self.update_all_edges_posi()
         if last_item:
-            # last_item.setSelected(True)
             self.view.centerOn(item=last_item)
-        # if self.data.graph_mode == GraphMode.normal:
         self.load_edges_from_linkdata()
-        # elif self.data.graph_mode == GraphMode.view_mode:
-        #     for cardA_cardB in self.data.gviewdata.edges:
-        #         cardA, cardB = cardA_cardB.split(",")
-        #         if cardA not in self.data.node_dict or cardB not in self.data.node_dict:
-        #             continue
-        #         self.add_edge(cardA, cardB, 描述=self.data.gviewdata.edges[cardA_cardB][本.结点.边名])
+
 
     def init_UI(self):
         self.setWindowTitle("VISUAL bilinker")
@@ -472,12 +439,13 @@ class VisualBilinker(QMainWindow):
             due: bool = False
             item: "Optional[VisualBilinker.ItemRect]" = None
             edges: "list[VisualBilinker.Entity.Edge]" = field(default_factory=list)
-
+            desc=""
             def __init__(self, 索引: "str|LinkDataPair", due=False, item=None, edges=None):
                 self.索引 = 索引 if type(索引) == str else 索引.card_id
                 self.due = due
                 self.item = item
                 self.edges = [] if edges is None else edges
+                self.desc = funcs.CardOperation.desc_extract(self.索引)
 
             def safe_remove(self,value):
                 if value in self.edges:
@@ -848,7 +816,7 @@ class VisualBilinker(QMainWindow):
             return self.superior.data.node_dict[self.索引]
 
         def load_linked_card(self, mode=3):
-            cardinfo = funcs.LinkDataOperation.read_from_db(self.索引)
+            cardinfo = funcs.GlobalLinkDataOperation.read_from_db(self.索引)
             pair_li = [pair for pair in cardinfo.link_list]
             self.superior.load_node(pair_li, begin_item=self)
 
@@ -901,7 +869,7 @@ class VisualBilinker(QMainWindow):
             ]:
                 loadlinkcard.addAction(name).triggered.connect(action)
             outtextmenu = loadlinkcard.addMenu(译.选择文外链接卡片加载)
-            link_list = funcs.LinkDataOperation.read_from_db(self.索引).link_list
+            link_list = funcs.GlobalLinkDataOperation.read_from_db(self.索引).link_list
             shorten = funcs.str_shorten
 
             for pair in link_list:
@@ -951,7 +919,7 @@ class VisualBilinker(QMainWindow):
                 self.setFlag(QGraphicsRectItemFlags.ItemIsMovable, True)
 
         def 结点描述(self):
-            return funcs.CardOperation.desc_extract(self.索引)
+            return self.superior.data.node_dict[self.索引].desc
 
         def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
                   widget: typing.Optional[QWidget] = ...) -> None:

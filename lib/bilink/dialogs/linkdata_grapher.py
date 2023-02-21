@@ -49,7 +49,7 @@ src = common_tools.G.src
 
 本 = common_tools.baseClass.枚举命名
 枚举_视图结点类型 = common_tools.baseClass.视图结点类型
-
+VisualBilinker=common_tools.graphical_bilinker.VisualBilinker
 
 class Grapher(QMainWindow):
     """所有的个性化数据都储存在Entity对象中
@@ -247,7 +247,10 @@ class Grapher(QMainWindow):
         pass
 
     # bilink
-    def remove_node(self, item: "Grapher.ItemRect"):
+    def remove_node(self, item: "Grapher.ItemRect|str"):
+        """"""
+        if type(item)==str:
+            item = self.data.node_dict[item].item
         node_id = item.索引
         for edge in item.node.edges:
             self.scene.removeItem(edge.item)
@@ -1060,12 +1063,7 @@ class Grapher(QMainWindow):
         def 结点描述(self):
             if self.superior.data.graph_mode == GraphMode.debug_mode:
                 return "debug"
-            if self.结点类型 == common_tools.baseClass.视图结点类型.卡片:
-                return funcs.CardOperation.desc_extract(self.索引)
-            elif self.结点类型 == common_tools.baseClass.视图结点类型.视图:
-                return funcs.GviewOperation.load(self.索引).name
-            else:
-                raise ValueError(f"未知的结点数据类型:{self.结点类型}")
+            return self.superior.data.gviewdata.nodes[self.索引].描述.值
 
         def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
                   widget: typing.Optional[QWidget] = ...) -> None:

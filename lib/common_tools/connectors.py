@@ -64,12 +64,15 @@ def run():
 
     # GroupReview
     # signals.on_card_answerd.connect(funcs.CardOperation.group_review)
-    signals.on_card_answerd.connect(lambda answerinfo:funcs.GrapherOperation.updateDue(f"{answerinfo.card_id}"))
+    signals.on_card_answerd.connect(lambda answerinfo:funcs.GviewOperation.updateDue(f"{answerinfo.card_id}"))
     gui_hooks.reviewer_did_answer_card.append(lambda x, y, z: signals.on_card_answerd.emit(
             AnswerInfoInterface(platform=x, card_id=y.id, option_num=z)
     ))
     # signals.on_card_changed.connect(funcs.GroupReview.modified_card_record)
     hooks.note_will_flush.append(lambda x: signals.on_card_changed.emit(x))  # 能检查到更改field,tag,deck,只要显示了都会检测到
+    hooks.notes_will_be_deleted.append(
+            lambda col, nids :funcs.CardOperation.删除不存在的结点([mw.col.get_note(nid).card_ids()[0].__str__() for nid in nids ])
+    )
     # gui_hooks.collection_did_load.append(lambda x: funcs.GroupReview.begin())
     # signals.on_group_review_search_string_changed.connect(funcs.GroupReview.build)
 

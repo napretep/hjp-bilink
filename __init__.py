@@ -5,6 +5,6 @@
 from .lib.common_tools import connectors
 from .lib.common_tools import compatible_import
 
-connectors.funcs.G.src.ADDON_VERSION="2.5.3.l"
+connectors.funcs.G.src.ADDON_VERSION="2.5.4.l"
 
 connectors.run()

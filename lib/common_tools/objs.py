@@ -250,7 +250,7 @@ class LinkDataJSONInfo:
     这个东西, 他是中转站, 当你从DB读取出JSON数据, 需要到这里来加工一下, 变得更好用一些.
     要保证数据的同步性
         {
-    "backlink": [], #backlink只用储存card_id
+    "backlink": [], #backlink只用储存card_id, backlink 是文内链接校对用的
     "version": 2, #将来会用
     "link_list": [ #链接列表,也就是所有有关的卡片
         {
@@ -288,6 +288,7 @@ class LinkDataJSONInfo:
 
     def __init__(self, record: "dict"):
         """一般只用在DB中读取, DB读取先经过zip_up得到字典,字典的第一个键是card_id,第二个键是data"""
+        from . import funcs
         self._src_data = record
         self.non_root_card=[]
         if not isinstance(record["data"], dict):
@@ -306,10 +307,10 @@ class LinkDataJSONInfo:
         self.node = {}
         # 兼容性更新, 将 原来的 nodename 改为 nodeuuid, 并且更改version 1 的组织形式
         if d["version"] == 1:
-            if __name__ == "__main__":
-                from lib.common_tools import funcs
-            else:
-                from . import funcs
+            # if __name__ == "__main__":
+            #     from lib.common_tools import funcs
+            # else:
+            #     from . import funcs
             nodename_nodeuuid_map = {}
             for nodename, nodelist in d["node"].items():
                 nodeuuid = funcs.UUID.by_random()
@@ -325,7 +326,7 @@ class LinkDataJSONInfo:
                                                      children=[LinkDataNode(**node) for node in groupinfo["children"]])
                 self.non_root_card+=list(filter(lambda x:x.card_id!="",self.node[groupuuid].children))
             self.root = [LinkDataNode(**link) for link in d["root"]]
-        self.link_list = [LinkDataPair(**link) for link in d["link_list"]]
+        self.link_list = [LinkDataPair(**link) for link in d["link_list"] if funcs.CardOperation.exists(link["card_id"])]
         self.self_data = LinkDataPair(**d["self_data"])
         self.link_dict = {}
         for pair in self.link_list:
@@ -963,7 +964,7 @@ class DB_admin(object):
         if len(self.excute_queue)>0:
             raise ValueError("你有未执行完的sql语句!")
         self.connection.commit()
-        self.end()
+        # self.end()
 
 
 

@@ -7,5 +7,5 @@ __email__ = '564298339@qq.com'
 __time__ = '2022/9/23 22:30'
 """
 ISDEBUG = True
-ISLOCALDEBUG = True
+ISLOCALDEBUG = False
 

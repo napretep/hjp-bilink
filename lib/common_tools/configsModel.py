@@ -111,16 +111,27 @@ class GViewData:
         self.meta=funcs.GviewOperation.默认元信息模板(kwargs["meta"] if "meta" in kwargs else None)
         结点数据字典 = {}
         边数据字典 = {}
+        不存在的结点集 = []
+        类型 = baseClass.枚举命名.结点.数据类型
+        类型值 =  baseClass.视图结点类型
         if 版本20221226:
             for 标识,位置 in 结点数据源.items():
-                结点数据字典[标识]= funcs.GviewOperation.依参数确定视图结点数据类型模板()
+                结点数据字典[标识]= funcs.GviewOperation.依参数确定视图结点数据类型模板(编号=标识)
             for 对儿 in 边数据源:
                 边数据字典[f"{对儿[0]},{对儿[1]}"]=funcs.GviewOperation.默认视图边数据模板()
         else:
             for 标识, 值 in 结点数据源.items():
-                结点数据字典[标识] = funcs.GviewOperation.依参数确定视图结点数据类型模板(数据=值)
+                if (值[类型] == 类型值.卡片 and not funcs.CardOperation.exists(标识) ) or (值[类型] == 类型值.视图 and not funcs.GviewOperation.exists(uuid=标识)) :
+                    不存在的结点集.append(标识)
+                    continue
+                else:
+                    结点数据字典[标识] = funcs.GviewOperation.依参数确定视图结点数据类型模板(结点类型=值[类型],编号=标识,数据=值)
             for 标识, 值 in 边数据源.items():
-                边数据字典[标识]= funcs.GviewOperation.默认视图边数据模板(值)
+                a,b = 标识.split(",")
+                if a in 不存在的结点集 or b in 不存在的结点集:
+                    continue
+                else:
+                    边数据字典[标识]= funcs.GviewOperation.默认视图边数据模板(值)
 
         self.nodes:"models.类型_视图结点集模型" = models.类型_视图结点集模型(self,结点数据字典)
         self.edges:"models.类型_视图结点集模型" = models.类型_视图边集模型(self,边数据字典)
@@ -128,34 +139,19 @@ class GViewData:
         self.meta_helper:"models.类型_视图本身模型" = models.类型_视图本身模型(数据源=self)
         # self.edge_helper = models.类型_视图边集模型(self)
         self.数据更新 = self.类_函数库_数据更新(self)
+        # self.清除无效结点()
 
-        # funcs.Utils.print(self,need_logFile=True)
-    # def 获得边的详细设定(self):
-    #     from . models import 类型_视图边模型
-    #     助手 = {}
-    #     for key,value in self.edges.items():
-    #         助手[key]=类型_视图边模型().初始化(self,key)
-    #     return 助手
-
-    # def 获得结点的详细设定(self):
-    #     from . models import 类型_视图结点模型
-    #     助手 = {}
-    #     for key,value in self.nodes.items():
-    #         助手[key]=类型_视图结点模型()
-    #         助手[key].初始化(self,key)
-    #     return 助手
 
     def 清除无效结点(self):
         from . import funcs, baseClass
+        类型 = baseClass.枚举命名.结点.数据类型
+        类型值 = baseClass.视图结点类型
         新数据=self.nodes.copy()
-        for uuid in self.nodes.keys():
-            if self.nodes[uuid][baseClass.枚举命名.结点.数据类型] == baseClass.视图结点类型.卡片:
-                if not funcs.CardOperation.exists(uuid):
-                    del 新数据[uuid]
-            else:
-                if not funcs.GviewOperation.exists(uuid=uuid):
-                    del 新数据[uuid]
-        self.nodes=新数据
+        for 标识,值 in self.nodes.items():
+            if (值[类型] == 类型值.卡片 and not funcs.CardOperation.exists(标识) ) or (值[类型] == 类型值.视图 and not funcs.GviewOperation.exists(uuid=标识)):
+                del 新数据[标识]
+                self.删除边(标识)
+        self.nodes.data=新数据
 
     def copy(self,new_name=None):
         from . import funcs
@@ -200,7 +196,6 @@ class GViewData:
             raise ValueError("未知的比较对象")
 
 
-
     def 新增边(self,a,b,文字=""):
         from . import funcs, models
         a_b = f"{a},{b}"
@@ -230,14 +225,14 @@ class GViewData:
     def 删除结点(self,编号):
         if 编号 in self.nodes:
             del self.nodes[编号]
-        # if 编号 in self.node_helper:
-        #     del self.node_helper[编号]
         edge_list = list(self.edges.keys())
         for a_b in edge_list:
             if 编号 in a_b:
                 del self.edges[a_b]
-                # if a_b in self.node_helper:
-                #     del self.node_helper[a_b]
+
+    def 保存(self):
+        from . import funcs
+        funcs.GviewOperation.save(self)
 
     class 类_函数库_数据更新:
         def __init__(self,上级:"GViewData"):

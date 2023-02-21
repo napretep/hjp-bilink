@@ -7,6 +7,8 @@ __email__ = '564298339@qq.com'
 __time__ = '2022/8/17 0:57'
 本文件用于将 linkinfo.db中的全部对象修改其sync行为
 """
+import json
+
 from lib.common_tools import funcs, G
 # from lib.common_tools.compatible_import import *
 # from lib.common_tools.objs import LinkDataPair
@@ -27,16 +29,11 @@ if __name__ == "__main__":
     #
     # sys.exit(app.exec_())
 
-    # class A:
-    #     def __add__(self, other):
-    #
-    import sys
-    from functools import cmp_to_key
+
     DB = funcs.G.DB
-    datas = DB.go(DB.table_Gview).select(DB.LIKE("nodes", "1631853798847")).return_all().zip_up().to_gview_record()
-    print(datas)
-
-
+    if DB.go(DB.table_linkinfo).exists(DB.EQ(card_id="1592550168494")):
+        data_str = DB.select(DB.EQ(card_id="1592550168494")).return_all().zip_up()[0]["data"]
+        print(json.loads(data_str))
 
     # def 漫游路径生成之深度优先遍历():
     # 栈 = ["1"]

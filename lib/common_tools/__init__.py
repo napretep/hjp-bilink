@@ -22,4 +22,5 @@ from . import (objs,
                 menu,
                 configsModel,
                 baseClass,
+                graphical_bilinker,
                )

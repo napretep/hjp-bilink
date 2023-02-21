@@ -38,8 +38,8 @@ def on_profile_will_close_handle():
     if funcs.Utils.LOG.exists():
         funcs.Utils.LOG.file_clear()
     cfg, now = funcs.Config.get(), datetime.now().timestamp()
-    if funcs.LinkDataOperation.need_backup(cfg, now):
-        funcs.LinkDataOperation.backup(cfg, now)
+    if funcs.GlobalLinkDataOperation.need_backup(cfg, now):
+        funcs.GlobalLinkDataOperation.backup(cfg, now)
     funcs.Config.save(funcs.G.CONFIG)
 
 
