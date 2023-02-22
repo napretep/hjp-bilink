@@ -333,7 +333,6 @@ class GviewOperation:
             exists = DB.exists(DB.EQ(name=name))
         elif uuid:
             exists = DB.exists(DB.EQ(uuid=uuid))
-        DB.end()
         return exists
 
     @staticmethod
@@ -2093,7 +2092,6 @@ class CardOperation:
         DB.go(DB.table_clipbox)
         clipbox_ = DB.select(uuid=clipuuid).return_all().zip_up()[0]
         clipbox = G.objs.ClipboxRecord(**clipbox_)
-        DB.end()
         DB.go(DB.table_pdfinfo)
         if timestamp is None:
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -2184,10 +2182,8 @@ class Media:
         DB = G.DB
         clipbox_ = DB.go(DB.table_clipbox).select(uuid=clipuuid).return_all().zip_up()[0]
         clipbox = G.objs.ClipboxRecord(**clipbox_)
-        DB.end()
         pdfinfo_ = DB.go(DB.table_pdfinfo).select(uuid=clipbox.pdfuuid).return_all().zip_up()[0]
         pdfinfo = G.objs.PDFinfoRecord(**pdfinfo_)
-        DB.end()
         doc: "fitz.Document" = fitz.open(pdfinfo.pdf_path)
         # 0.144295302 0.567695962 0.5033557047 0.1187648456
         page = doc.load_page(clipbox.pagenum)
@@ -2351,7 +2347,7 @@ class LinkPoolOperation:
             linkdatali = d.tolinkdata()
             flatten: "list[LinkDataJSONInfo]" = reduce(lambda x, y: x + y, linkdatali, [])
             total, count = len(flatten), 0
-
+            DB = G.DB
             # 先加tag
 
             for pair in flatten:
@@ -2380,13 +2376,14 @@ class LinkPoolOperation:
                 r = self.reducer(count, total, self, d)
                 reduce(r.reduce_link, linkdatali)
             total, count = len(flatten), 0
-
+            DB.go(DB.table_linkinfo)
             with G.DB.go(G.DB.table_linkinfo) as DB:
 
                 for linkinfo in flatten:
-                    temp = linkinfo.to_DB_record
-                    card_id, data = temp["card_id"], temp["data"]
-                    DB.replace(card_id=card_id, data=data).commit(need_commit=False)
+                    # temp = linkinfo.to_DB_record
+                    linkinfo.save_to_DB()
+                    # card_id, data = temp["card_id"], temp["data"]
+                    # DB.replace(card_id=card_id, data=data).commit(need_commit=False)
                     count += 1
                     self.on_progress.emit(Utils.percent_calc(total, count, 75, 25))
 
@@ -3033,7 +3030,7 @@ class HTML:
         DB.go(DB.table_clipbox)
         # print(clipbox_uuid_li)
         true_or_false_li = [DB.exists(DB.EQ(uuid=uuid)) for uuid in clipbox_uuid_li]
-        DB.end()
+
         return (reduce(lambda x, y: x or y, true_or_false_li, False))
 
     @staticmethod
@@ -3138,7 +3135,7 @@ def HTML_clipbox_PDF_info_dict_read(root):
             PDF_info_dict[PDFinfo.uuid] = {"pagenum": set(),  # 页码唯一化
                                            "info"   : PDFinfo}  # 只提取页码, 大小重新再设定.偏移量也重新设定.
         PDF_info_dict[PDFinfo.uuid]["pagenum"].add(record.pagenum)
-    DB.end()
+
     return PDF_info_dict
 
 

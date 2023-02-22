@@ -21,7 +21,6 @@ def card__pdf_page_clipbox_info__collect(card_id):
     DB.go(DB.table_clipbox)
     result = DB.select(DB.LIKE("card_id", f"%{card_id}%")).return_all(
         callback=None).zip_up().to_clipbox_data()
-    DB.end()
     DB.go(DB.table_pdfinfo)
     pdf_page_clip_dict: "dict[str,dict[int,list[str]]]" = {}
     for clip in result:

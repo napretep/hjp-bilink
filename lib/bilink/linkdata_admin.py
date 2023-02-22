@@ -81,8 +81,6 @@ class LinkInfoDB(object):
             DB.insert(card_id=card_id, data=data)
         if autocommit:
             DB.commit()
-            DB.end()
-
     @staticmethod
     def read(card_id: str)->LinkDataJSONInfo:
         return read_card_link_info(card_id)
