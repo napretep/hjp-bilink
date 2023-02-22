@@ -119,7 +119,6 @@ def read_card_link_info(card_id: str) -> LinkDataJSONInfo:
         DB.insert(card_id=card_id, data=data).commit()
     result: "LinkDataJSONInfo" = DB.select(DB.EQ(card_id=card_id)).return_all().zip_up()[0].to_givenformat_data(
         LinkDataJSONInfo)
-    DB.end()
     return result
 
 

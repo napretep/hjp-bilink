@@ -750,6 +750,8 @@ class DB_admin(object):
 
 
     def end(self):
+        from . import funcs
+        funcs.Utils.print("end here")
         if self.connection is not None:
             self.connection.close()
 

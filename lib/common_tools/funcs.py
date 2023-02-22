@@ -397,12 +397,13 @@ class GviewOperation:
 
         def pair_to_gview(pair):
             card_id = pair.card_id if isinstance(pair,LinkDataPair) else pair
-            datas = DB.select(DB.LIKE("nodes", card_id)).return_all().zip_up().to_gview_record()
+            DB.go(DB.table_Gview)
+            datas = DB.select(DB.LIKE("nodes", card_id)).return_all(Utils.print).zip_up().to_gview_record()
             return set(map( lambda data: data.to_GviewData(), datas))
 
         all_records = list(map(lambda x: pair_to_gview(x), pairli))
         final_givew = reduce(lambda x, y: x & y, all_records) if len(all_records) > 0 else set()
-        DB.end()
+
         return final_givew
 
     @staticmethod
