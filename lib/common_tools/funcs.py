@@ -303,23 +303,23 @@ class GviewOperation:
             # Utils.print(prepare_data,need_logFile=True)
             if exclude is not None:
                 [prepare_data.pop(item) for item in exclude]
+            DB = G.DB.go(G.DB.table_Gview)
 
-            with G.DB.go(G.DB.table_Gview) as DB:
-                if DB.exists(Logic.EQ(uuid=data.uuid)):
-                    DB.update(values=Logic.LET(**prepare_data),where=Logic.EQ(uuid=data.uuid)).commit()
-                else:
-                    DB.insert(**prepare_data).commit()
+            if DB.exists(Logic.EQ(uuid=data.uuid)):
+                DB.update(values=Logic.LET(**prepare_data),where=Logic.EQ(uuid=data.uuid)).commit()
+            else:
+                DB.insert(**prepare_data).commit()
             return
         elif data_li:
-            with G.DB.go(G.DB.table_Gview) as DB:
-                for data in data_li:
-                    prepare_data = data.to_DB_format()
-                    if exclude is not None:
-                        [prepare_data.pop(item) for item in exclude]
-                    if DB.exists(Logic.EQ(uuid=data.uuid)):
-                        DB.update(values=Logic.LET(**prepare_data), where=Logic.EQ(uuid=data.uuid)).commit()
-                    else:
-                        DB.insert(**prepare_data).commit()
+            DB = G.DB.go(G.DB.table_Gview)
+            for data in data_li:
+                prepare_data = data.to_DB_format()
+                if exclude is not None:
+                    [prepare_data.pop(item) for item in exclude]
+                if DB.exists(Logic.EQ(uuid=data.uuid)):
+                    DB.update(values=Logic.LET(**prepare_data), where=Logic.EQ(uuid=data.uuid)).commit()
+                else:
+                    DB.insert(**prepare_data).commit()
             return
 
     @staticmethod
@@ -2377,15 +2377,13 @@ class LinkPoolOperation:
                 reduce(r.reduce_link, linkdatali)
             total, count = len(flatten), 0
             DB.go(DB.table_linkinfo)
-            with G.DB.go(G.DB.table_linkinfo) as DB:
-
-                for linkinfo in flatten:
-                    # temp = linkinfo.to_DB_record
-                    linkinfo.save_to_DB()
-                    # card_id, data = temp["card_id"], temp["data"]
-                    # DB.replace(card_id=card_id, data=data).commit(need_commit=False)
-                    count += 1
-                    self.on_progress.emit(Utils.percent_calc(total, count, 75, 25))
+            for linkinfo in flatten:
+                # temp = linkinfo.to_DB_record
+                linkinfo.save_to_DB()
+                # card_id, data = temp["card_id"], temp["data"]
+                # DB.replace(card_id=card_id, data=data).commit(need_commit=False)
+                count += 1
+                self.on_progress.emit(Utils.percent_calc(total, count, 75, 25))
 
             self.on_quit.emit(self.timestamp)
 
