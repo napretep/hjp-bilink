@@ -138,6 +138,11 @@ class GviewOperation:
 
     @staticmethod
     def 更新卡片到期时间(卡片编号):
+        视图数据集 = GviewOperation.找到结点所属视图(卡片编号)
+        for 视图数据 in 视图数据集:
+            视图窗口 = GviewOperation.判断视图已经打开(视图数据.uuid)
+            if 视图窗口:
+                视图窗口.data.node_dict[卡片编号].due = GviewOperation.判断结点已到期(视图数据,卡片编号)
 
         pass
     @staticmethod
@@ -383,6 +388,7 @@ class GviewOperation:
 
     @staticmethod
     def 找到结点所属视图(结点编号):
+        结点编号 = 结点编号.card_id if isinstance(结点编号, LinkDataPair) else 结点编号
         DB = G.DB
         视图记录集 = DB.go(DB.table_Gview).select(DB.LIKE("nodes",结点编号)).return_all().zip_up().to_gview_record()
         return [视图记录.to_GviewData() for 视图记录 in 视图记录集]
@@ -390,17 +396,17 @@ class GviewOperation:
 
     @staticmethod
     def find_by_card(pairli: 'list[LinkDataPair|str]') -> 'set[GViewData]':
-        """找到卡片所属的gview记录 """
+        """找到卡片所属的gview记录,还要去掉重复的, 比如两张卡在同一个视图中, 只取一次 """
         DB = G.DB
         DB.go(DB.table_Gview)
 
-        def pair_to_gview(pair):
-            card_id = pair.card_id if isinstance(pair,LinkDataPair) else pair
-            DB.go(DB.table_Gview)
-            datas = DB.select(DB.LIKE("nodes", card_id)).return_all(Utils.print).zip_up().to_gview_record()
-            return set(map( lambda data: data.to_GviewData(), datas))
+        # def pair_to_gview(pair):
+        #     card_id = pair.card_id if isinstance(pair,LinkDataPair) else pair
+        #     DB.go(DB.table_Gview)
+        #     datas = DB.select(DB.LIKE("nodes", card_id)).return_all(Utils.print).zip_up().to_gview_record()
+        #     return set(map( lambda data: data.to_GviewData(), datas))
 
-        all_records = list(map(lambda x: pair_to_gview(x), pairli))
+        all_records = list(map(lambda x: set(GviewOperation.找到结点所属视图(x)), pairli))
         final_givew = reduce(lambda x, y: x & y, all_records) if len(all_records) > 0 else set()
 
         return final_givew
