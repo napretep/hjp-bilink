@@ -433,7 +433,6 @@ class GviewOperation:
         elif uuid_li:
             for uuid in uuid_li:
                 彻底删除(uuid)
-        DB.end()
         return
 
     @staticmethod
@@ -540,6 +539,7 @@ class GviewOperation:
         新值 = Utils.字典缺省值填充器(默认值模板, 数据)
         if 编号 :
             新值[_.结点.描述] = CardOperation.desc_extract(编号) if 结点类型 == 枚举_视图结点类型.卡片 else GviewOperation.获取视图名字(编号)
+        新值[_.结点.数据类型] = 结点类型
         # 新值[_.结点.描述] = GviewOperation.获取视图结点描述()
         return 新值
 

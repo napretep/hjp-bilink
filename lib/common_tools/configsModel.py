@@ -222,6 +222,7 @@ class GViewData:
 
     def 新增结点(self,编号,类型):
         from . import funcs,models
+        funcs.Utils.print(编号,类型)
         self.nodes[编号]=funcs.GviewOperation.依参数确定视图结点数据类型模板(结点类型=类型,编号=编号)
         # self.node_helper[编号]=models.类型_视图结点模型().初始化(self,编号)
 

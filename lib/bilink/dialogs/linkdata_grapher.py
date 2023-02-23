@@ -437,7 +437,8 @@ class Grapher(QMainWindow):
             self.node_dict[card_id].due = next_ <= datetime.datetime.now()
 
         def updateNodeDueAll(self):
-            for card_id in self.node_dict.keys():
+            for card_id in self.gviewdata.nodes.keys():
+
                 if self.gviewdata.nodes[card_id][本.结点.数据类型].值 == 枚举_视图结点类型.卡片:
                     self.updateNodeDue(card_id)
 
