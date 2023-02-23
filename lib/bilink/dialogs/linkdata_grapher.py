@@ -22,6 +22,8 @@ import typing
 from enum import Enum, unique
 from typing import Optional, Union
 
+import aqt
+
 from ..imports import *
 
 from aqt.utils import showInfo, tooltip
@@ -1181,6 +1183,12 @@ class Grapher(QMainWindow):
             """
             common_tools.G.常量_当前等待新增卡片的视图索引 = self.superior.data.gviewdata.uuid
             mw.onAddCard()
+            addcard:aqt.addcards.AddCards =aqt.DialogManager._dialogs["AddCards"][1]
+            did = self.superior.data.gview_config.data.deck_for_add_card.value
+            if did!=-1:
+                addcard.deck_chooser.selected_deck_id=did
+
+            # addcard.deck_chooser.selected_deck_id
             pass
 
         def create_view(self):
@@ -1809,7 +1817,7 @@ class GrapherRoamingPreviewer(QMainWindow):
             配置数据= self.superior.data.gview_config
             队列 = [编号 for 编号 in 视图数据.nodes.keys() if funcs.GviewConfigOperation.满足过滤条件(视图数据,编号,配置数据)]
             队列2= funcs.GviewConfigOperation.漫游路径生成(视图数据,配置数据,队列)
-            funcs.Utils.print(list(视图数据.nodes.keys()),队列, 队列2,配置数据.__str__())
+            # funcs.Utils.print(list(视图数据.nodes.keys()),队列, 队列2,配置数据.__str__())
             return 队列2
 
     @property

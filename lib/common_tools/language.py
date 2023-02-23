@@ -325,7 +325,7 @@ The final result is sorted by default in descending order of the calculated weig
     视图主要结点 = 翻译("视图主要结点","view_major_nodes")
     视图创建时间 = 翻译("视图创建时间","view_created_time")
     该项解释工作未完成= 翻译("该项解释工作未完成","the explanation was not completed")
-    双击牌组即可修改卡片所属牌组=翻译("双击牌组即可修改卡片所属牌组","Double click on the deck to change the card's deck")
+    双击牌组即可修改卡片所属牌组=翻译("双击牌组即可选中","Double click on the deck to select")
     选择文外链接卡片加载 = 翻译("选择","select")
     加载全部文外链接卡片 = 翻译("全部","all")
     加载文外链接卡片 = 翻译("加载文外链接卡片","load out-link cards")
@@ -725,5 +725,6 @@ Default filter rule: is_due
     新建:str = rosetta("新建")
     结点角色名= 翻译("结点角色名","node role name")
     说明_结点角色名=翻译(f"结点角色名无法在结点属性中修改,如果想更改角色名, 请到视图的配置表中修改{枚举.视图配置.结点角色表}",f"The node role name cannot be changed in the node properties, if you want to change the role name, please go to the configuration table of the view. {枚举.视图配置.结点角色表}")
+    说明_新增卡片指定存放牌组=翻译("当你新增卡片时,在此处指定默认要存放的牌组,如果为空则根据anki默认的指定方式","When you add a card, specify the default deck to be stored here, or if it is empty, specify it according to the anki default")
 if __name__ == "__main__":
     print(Translate.打开配置表)

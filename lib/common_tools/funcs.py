@@ -1357,20 +1357,20 @@ class GviewConfigOperation(BaseConfig):
         def 删除前配置中的当前视图():
             前配置记录 = GviewConfigOperation.从数据库读(视图记录.config)
             应用前配置的视图表: "list[str]" = 前配置记录.data.appliedGview.value
-            Utils.print(f"former model applied config table, before append={应用前配置的视图表}", need_logFile=True)
+            # Utils.print(f"former model applied config table, before append={应用前配置的视图表}", need_logFile=True)
             if 视图记录.uuid in 应用前配置的视图表:
                 应用前配置的视图表.remove(视图记录.uuid)
                 if len(应用前配置的视图表) == 0:
-                    Utils.print(f"应用前配置的视图表={应用前配置的视图表},下面要删除这个配置了", need_logFile=True)
+                    # Utils.print(f"应用前配置的视图表={应用前配置的视图表},下面要删除这个配置了", need_logFile=True)
                     GviewConfigOperation.从数据库删除(前配置记录.uuid)
                 else:
                     前配置记录.data.appliedGview.setValue(应用前配置的视图表)
                     前配置记录.saveModelToDB()
-            Utils.print(f"former model applied config table, after append={应用前配置的视图表}", need_logFile=True)
+            # Utils.print(f"former model applied config table, after append={应用前配置的视图表}", need_logFile=True)
 
         def 将当前视图添加到现配置的支配表中():
             应用配置视图表: "list[str]" = 新配置记录.data.appliedGview.value
-            Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview before append =  {应用配置视图表}", need_logFile=True)
+            # Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview before append =  {应用配置视图表}", need_logFile=True)
 
             if 视图记录.uuid not in 应用配置视图表:
                 应用配置视图表.append(视图记录.uuid)
@@ -1379,7 +1379,7 @@ class GviewConfigOperation(BaseConfig):
             GviewOperation.save(视图记录)
             新配置记录.data.元信息.确定保存到数据库 = True
             新配置记录.saveModelToDB()
-            Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview after append =  {应用配置视图表}, gview.config = {视图记录.config}", need_logFile=True)
+            # Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview after append =  {应用配置视图表}, gview.config = {视图记录.config}", need_logFile=True)
 
         if type(视图记录) == str:
             视图记录 = GviewOperation.load(视图记录)

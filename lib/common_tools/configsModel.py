@@ -222,7 +222,6 @@ class GViewData:
 
     def 新增结点(self,编号,类型):
         from . import funcs,models
-        funcs.Utils.print(编号,类型)
         self.nodes[编号]=funcs.GviewOperation.依参数确定视图结点数据类型模板(结点类型=类型,编号=编号)
         # self.node_helper[编号]=models.类型_视图结点模型().初始化(self,编号)
 
@@ -948,10 +947,19 @@ class GviewConfigModel(BaseConfigModel):
     edge_name_always_show:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_总是显示边名],
             tab_at="main",
-            value=False,
-            component=ConfigModel.Widget.radio
+            value=False,# deck_id
+            component=ConfigModel.Widget.radio,
 
     ))
+
+    default_deck_for_add_card:ConfigModelItem = field(default_factory=lambda:ConfigModelItem(
+            instruction=[译.说明_新增卡片指定存放牌组],
+            tab_at = "main",
+            value=-1,
+            component=ConfigModel.Widget.customize,
+            customizeComponent=lambda:widgets.ConfigWidget.GviewConfigDeckChooser,
+    ))
+
     roaming_path_mode:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_漫游路径算法选择],
             tab_at="roaming",

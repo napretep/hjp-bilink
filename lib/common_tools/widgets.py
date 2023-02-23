@@ -171,17 +171,13 @@ class SupportDialog(QDialog):
         self.setLayout(self.v_layout)
         self.show()
 
-
-class deck_chooser(QDialog):
-
-    def __init__(self, pair_li: "list[G.objs.LinkDataPair]" = None, fromview=None):
+class DeckSelectorProtoType(QDialog):
+    def __init__(self,):
         super().__init__()
-        self.fromview = fromview
-        self.pair_li = pair_li
         self.view = QTreeView(self)
         self.model = QStandardItemModel(self)
         self.model_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
-        self.header = self.Header(self, deckname=self.curr_deck_name)
+        self.header = self.Header(self)
         self.header.button.clicked.connect(self.on_header_button_clicked_handle)
         self.header.new_dec_button.clicked.connect(self.on_header_new_dec_button_clicked_handle)
         self.view.clicked.connect(self.on_view_clicked_handle)
@@ -205,40 +201,9 @@ class deck_chooser(QDialog):
     def on_view_doubleclicked_handle(self, index):
         self.on_item_button_clicked_handle(self.model.itemFromIndex(index))
 
-    @property
-    def curr_deck_name(self):
-        from . import funcs
-        CardId = funcs.CardId
-        if len(self.pair_li) == 1:
-            did = mw.col.getCard(CardId(int(self.pair_li[0].card_id))).did
-            name = mw.col.decks.get(did)["name"]
-            return name
-        else:
-            return "many cards"
 
     def on_item_button_clicked_handle(self, item: "deck_chooser.Item"):
-        from . import funcs
-        # showInfo(self.fromview.__str__())
-        DeckId = funcs.Compatible.DeckId()
-        CardId = funcs.CardId
-        browser: Browser = funcs.BrowserOperation.get_browser()
-
-        if browser is None:
-            dialogs.open("Browser", mw)
-            browser = funcs.BrowserOperation.get_browser()
-        for pair in self.pair_li:
-            set_card_deck(parent=browser, card_ids=[CardId(pair.int_card_id)],
-                          deck_id=DeckId(item.deck_id)).run_in_background()
-        browser.showMinimized()
-        from ..bilink.dialogs.linkdata_grapher import Grapher
-        if isinstance(self.fromview, AnkiWebView):
-            parent: "Union[Previewer,Reviewer]" = self.fromview.parent()
-            parent.activateWindow()
-        elif isinstance(self.fromview, Grapher):
-            self.fromview.activateWindow()
-        QTimer.singleShot(100, funcs.LinkPoolOperation.both_refresh)
-        # QTimer.singleShot(100, lambda: funcs.BrowserOperation.search(f"""deck:{self.get_full_deck_name(item)}"""))
-        self.close()
+        raise NotImplementedError()
 
     def on_model_data_changed_handle(self, topLeft, bottomRight, roles):
         item: "deck_chooser.Item" = self.model.itemFromIndex(topLeft)
@@ -357,9 +322,9 @@ class deck_chooser(QDialog):
     class Header(QWidget):
         deck_tree, deck_list = "deck_tree", "deck_list"
 
-        def __init__(self, parent, deckname="test::test"):
+        def __init__(self, parent, deckname=""):
             super().__init__(parent)
-            self.desc = QLabel("current deck|   " + deckname, self)
+            self.desc = QLabel("current deck|" + deckname, self)
             self.desc.setWordWrap(True)
             self.button = QToolButton(self)
             self.button.setText(self.deck_tree)
@@ -373,6 +338,9 @@ class deck_chooser(QDialog):
             H_layout.setStretch(0, 1)
             H_layout.setStretch(1, 0)
             self.setLayout(H_layout)
+
+        def set_header_label(self,deckname):
+            self.desc.setText("current deck|" + deckname)
 
     class Item(QStandardItem):
         def __init__(self, deck_name):
@@ -397,6 +365,60 @@ class deck_chooser(QDialog):
         deck: "str"
         ID: "int"
 
+
+class deck_chooser(DeckSelectorProtoType):
+
+    @property
+    def curr_deck_name(self):
+        from . import funcs
+        CardId = funcs.CardId
+        if len(self.pair_li) == 1:
+            did = mw.col.getCard(CardId(int(self.pair_li[0].card_id))).did
+            name = mw.col.decks.get(did)["name"]
+            return name
+        else:
+            return "many cards"
+
+    def __init__(self, pair_li: "list[G.objs.LinkDataPair]" = None, fromview=None):
+        super().__init__(fromview)
+        self.fromview = fromview
+        self.pair_li = pair_li
+        # self.header = self.Header(self, deckname=self.curr_deck_name)
+        self.header.set_header_label(self.curr_deck_name)
+
+
+    def on_item_button_clicked_handle(self, item: "deck_chooser.Item"):
+        from . import funcs
+        # showInfo(self.fromview.__str__())
+        DeckId = funcs.Compatible.DeckId()
+        CardId = funcs.CardId
+        browser: Browser = funcs.BrowserOperation.get_browser()
+
+        if browser is None:
+            dialogs.open("Browser", mw)
+            browser = funcs.BrowserOperation.get_browser()
+        for pair in self.pair_li:
+            set_card_deck(parent=browser, card_ids=[CardId(pair.int_card_id)],
+                          deck_id=DeckId(item.deck_id)).run_in_background()
+        browser.showMinimized()
+        from ..bilink.dialogs.linkdata_grapher import Grapher
+        if isinstance(self.fromview, AnkiWebView):
+            parent: "Union[Previewer,Reviewer]" = self.fromview.parent()
+            parent.activateWindow()
+        elif isinstance(self.fromview, Grapher):
+            self.fromview.activateWindow()
+        QTimer.singleShot(100, funcs.LinkPoolOperation.both_refresh)
+        # QTimer.singleShot(100, lambda: funcs.BrowserOperation.search(f"""deck:{self.get_full_deck_name(item)}"""))
+        self.close()
+
+class view_config_deck_chooser(DeckSelectorProtoType):
+    def __init__(self,):
+        super().__init__()
+        self.牌组编号 = -1
+
+    def on_item_button_clicked_handle(self, item: "deck_chooser.Item"):
+        self.牌组编号=item.deck_id
+        self.close()
 
 class tag_chooser(QDialog):
     """添加后需要更新内容, 用 init_data_left方法"""
@@ -1945,7 +1967,27 @@ class ConfigWidget:
 
             pass
 
-    # class CustomConfigItemLabelView(baseClass.CustomConfigItemView):
+    class GviewConfigDeckChooser(baseClass.ConfigItemLabelView):
+
+        def on_edit_btn_clicked(self):
+
+            w = view_config_deck_chooser()
+            w.exec()
+            self.SetupData(w.牌组编号)
+            self.ConfigModelItem.value = w.牌组编号
+            pass
+
+        # def SetupView(self):
+        #
+        #     pass
+
+        def SetupData(self, raw_data):
+            if raw_data!=-1:
+                self.label.setText(mw.col.decks.name(raw_data))
+            else:
+                self.label.setText("no default deck")
+            pass
+# class CustomConfigItemLabelView(baseClass.CustomConfigItemView):
     #     def __init__(self,配置项,上级):
     #         super().__init__(配置项,上级)
     #         self.View =
