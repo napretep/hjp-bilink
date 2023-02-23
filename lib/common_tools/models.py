@@ -22,7 +22,6 @@ from . import funcs, baseClass, language, widgets
 类型_结点编号 = 类型_属性名 = str
 类型_视图数据 = funcs.GViewData
 
-
 class 函数库_UI展示:
     """UI有不同的类型,每种类型都要定制地写一个函数, 最后把它们组合进一个字典, 到时候根据组件类型作为键访问字典的值并调用即可获得组件"""
 
@@ -170,6 +169,16 @@ class 函数库_UI展示:
 
 
 @dataclass
+class 类型_视图结点数据源:
+    模型: "类型_视图结点集模型" = None
+    结点编号: "类型_结点编号" = None
+
+@dataclass
+class 类型_视图边数据源:
+    边集模型: "类型_视图边集模型" = None
+    边: str = ""
+
+@dataclass
 class 基类_集模型:
     data: dict = None
 
@@ -202,6 +211,8 @@ class 基类_集模型:
     def __str__(self):
         return self.data.__str__()
 
+    def __repr__(self):
+        return self.__str__()
     # 成员: "基类_模型" = None
     #
     # @abc.abstractmethod
@@ -285,8 +296,19 @@ class 基类_模型:
                 self.属性字典[项.字段名] = 项
                 项.上级 = self
 
+    def __str__(self):
+        return self.属性字典.__str__()
+
+    def __repr__(self):
+        return self.属性字典.__str__()
+
+
 @dataclass
 class 基类_属性项:
+
+    """
+    """
+
     字段名: "str"
     展示名: "str"
     说明: "str" = 译.该项解释工作未完成
@@ -343,7 +365,7 @@ class 基类_属性项:
         return self.值.__str__()
 
     def __repr__(self):
-        return self.值
+        return self.值.__str__()
 
     def __eq__(self, other):
         raise NotImplementedError()
@@ -352,10 +374,40 @@ class 基类_属性项:
     #     self.设值(self.值+other)
     #     return self
 
+
 @dataclass
-class 类型_视图结点数据源:
-    模型: "类型_视图结点集模型" = None
-    结点编号: "类型_结点编号" = None
+class 类型_视图边属性项(基类_属性项):
+    上级: "类型_视图边模型" = None
+    从上级读数据: "int" = 0
+
+    @property
+    def 值(self):
+        if self.上级 and self.上级.数据源:
+            if self.从上级读数据:
+                return self.上级.数据源.边集模型.data[self.上级.数据源.边][self.字段名]
+            elif self._读取函数:
+                return self.读取函数(self)
+            else:
+                raise NotImplementedError()
+        else:
+            return self.默认值
+
+    def 设值(self, value):
+        if self.上级 and self.上级.数据源:
+            边名 = self.上级.数据源.边
+            if self.保存到上级:
+                self.上级.数据源.边集模型.data[边名][self.字段名]=value
+            elif self._保存值的函数:
+                self.保存值的函数(self,value)
+            else:
+                raise NotImplementedError()
+            if self._保存后执行:
+                self.保存后执行(self)
+            funcs.GviewOperation.save(self.上级.数据源.边集模型.上级)
+
+    def __eq__(self, other):
+        return self.值 == other
+
 
 
 @dataclass
@@ -396,6 +448,45 @@ class 类型_视图结点属性项(基类_属性项):
 
     def __eq__(self, other):
         return self.值 == other
+
+@dataclass
+class 类型_视图本身属性项(基类_属性项):
+    上级: "类型_视图本身模型" = None
+    从上级读数据: "int" = 0
+
+    @property
+    def 值(self):
+        if self.上级 and self.上级.数据源:
+            if self.从上级读数据:
+                return self.上级.数据源.meta[self.字段名]
+            elif self._读取函数:
+                return self.读取函数(self)
+            else:
+                raise NotImplementedError()
+        else:
+            return self.默认值
+
+    def 设值(self, value):
+        if self.上级:
+            if self.从上级读数据:
+                self.上级.数据源.meta[self.字段名] = value
+            elif self._保存值的函数:
+                self.保存值的函数(self, value)
+            else:
+                raise NotImplementedError()
+
+            if self.上级.UI创建完成:
+                self.上级.数据源.数据更新.视图编辑发生()
+            if self._保存后执行:
+                self.保存后执行(self)
+            funcs.GviewOperation.save(self.上级.数据源)
+
+    def __eq__(self, other):
+        return self.值 == other
+
+
+
+
 
 
 @dataclass
@@ -481,6 +572,7 @@ class 类型_视图结点模型(基类_模型):
             展示名=译.到期卡片,
             说明=译.说明_到期结点,
             从上级读数据=0,
+
             可展示=1,  # 需要对应的展示组件,
             可展示中编辑=0,  # 需要对应的可展示中编辑组件, 与可展示联合判断
 
@@ -641,6 +733,7 @@ class 类型_视图结点模型(基类_模型):
             展示名=译.结点角色,
             说明=译.说明_结点角色,
             从上级读数据=1,
+            保存到上级=1,
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             可展示中编辑=1,  # 需要对应的可展示中编辑组件, 与可展示联合判断
 
@@ -674,6 +767,7 @@ class 类型_视图结点模型(基类_模型):
             展示名=译.主要结点,
             说明=译.说明_主要结点,
             从上级读数据=1,  # 从上级读数据的意思是从上级读数据到视图数据中,
+            保存到上级=1,
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             可展示中编辑=1,  # 需要对应的可展示中编辑组件, 与可展示联合判断
 
@@ -694,9 +788,9 @@ class 类型_视图结点模型(基类_模型):
             展示名=译.需要复习,
             说明=译.说明_需要复习,
             从上级读数据=1,  # 从上级读数据的意思是从上级读数据到视图数据中,
+            保存到上级=1,
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             可展示中编辑=1,  # 需要对应的可展示中编辑组件, 与可展示联合判断
-
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.checkbox,  # 展示用的组件
@@ -705,7 +799,7 @@ class 类型_视图结点模型(基类_模型):
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
             # 自定义组件=None,
-            默认值=False,
+            默认值=True,
             值类型=枚举.值类型.布尔,
             值解释="True or False",
     ))
@@ -715,9 +809,9 @@ class 类型_视图结点模型(基类_模型):
             展示名=译.必须复习,
             说明=译.说明_必须复习,
             从上级读数据=1,  # 从上级读数据的意思是从上级读数据到视图数据中,
+            保存到上级=1,
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             可展示中编辑=1,  # 需要对应的可展示中编辑组件, 与可展示联合判断
-
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.checkbox,  # 展示用的组件
@@ -738,7 +832,7 @@ class 类型_视图结点模型(基类_模型):
             从上级读数据=1,  # 从上级读数据的意思是从上级读数据到视图数据中,
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             可展示中编辑=1,  # 需要对应的可展示中编辑组件, 与可展示联合判断
-
+            保存到上级=1,
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.checkbox,  # 展示用的组件
@@ -771,54 +865,6 @@ class 类型_视图结点模型(基类_模型):
     # ))
 
 
-# @dataclass
-class 类型_视图结点集模型(基类_集模型):
-    """
-    本来, 这个对象用于gviewdata.node_helper 属性, 但是难以做到和gviewdata.nodes同步更新, 因此我们融合两者
-
-    """
-    def __init__(self, 上级: "类型_视图数据", data: "dict"):
-        self.data: "dict" = data
-        self.上级: 类型_视图数据 = 上级
-
-    def __getitem__(self, node_id):
-        return 类型_视图结点模型(数据源=类型_视图结点数据源(self, node_id))
-
-
-@dataclass
-class 类型_视图本身属性项(基类_属性项):
-    上级: "类型_视图本身模型" = None
-    从上级读数据: "int" = 0
-
-    @property
-    def 值(self):
-        if self.上级 and self.上级.数据源:
-            if self.从上级读数据:
-                return self.上级.数据源.meta[self.字段名]
-            elif self._读取函数:
-                return self.读取函数(self)
-            else:
-                raise NotImplementedError()
-        else:
-            return self.默认值
-
-    def 设值(self, value):
-        if self.上级:
-            if self.从上级读数据:
-                self.上级.数据源.meta[self.字段名] = value
-            elif self._保存值的函数:
-                self.保存值的函数(self, value)
-            else:
-                raise NotImplementedError()
-
-            if self.上级.UI创建完成:
-                self.上级.数据源.数据更新.视图编辑发生()
-            if self._保存后执行:
-                self.保存后执行(self)
-            funcs.GviewOperation.save(self.上级.数据源)
-
-    def __eq__(self, other):
-        return self.值 == other
 
 
 @dataclass
@@ -878,6 +924,7 @@ class 类型_视图本身模型(基类_模型):
             字段名=枚举.视图.创建时间,
             展示名=译.视图创建时间,
             从上级读数据=1,  # 从上级读数据的意思是从上级读数据到视图数据中,
+            保存到上级=1,
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             组件类型=枚举.组件类型.time,  # 展示用的组件
@@ -889,6 +936,7 @@ class 类型_视图本身模型(基类_模型):
             字段名=枚举.视图.上次访问,
             展示名=译.视图上次访问,
             从上级读数据=1,  # 从上级读数据的意思是从上级读数据到视图数据中,
+            保存到上级=1,
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             组件类型=枚举.组件类型.time,  # 展示用的组件
@@ -900,6 +948,7 @@ class 类型_视图本身模型(基类_模型):
             字段名=枚举.视图.上次编辑,
             展示名=译.视图上次编辑,
             从上级读数据=1,  # 从上级读数据的意思是从上级读数据到视图数据中,
+            保存到上级=1,
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             组件类型=枚举.组件类型.time,  # 展示用的组件
@@ -911,6 +960,7 @@ class 类型_视图本身模型(基类_模型):
             字段名=枚举.视图.上次复习,
             展示名=译.视图上次复习,
             从上级读数据=1,  # 从上级读数据的意思是从上级读数据到视图数据中,
+            保存到上级=1,
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             组件类型=枚举.组件类型.time,  # 展示用的组件
@@ -922,6 +972,7 @@ class 类型_视图本身模型(基类_模型):
             字段名=枚举.视图.访问次数,
             展示名=译.视图访问次数,
             从上级读数据=1,  # 从上级读数据的意思是从上级读数据到视图数据中,
+            保存到上级=1,
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             组件类型=枚举.组件类型.label,  # 展示用的组件
@@ -935,7 +986,6 @@ class 类型_视图本身模型(基类_模型):
             从上级读数据=0,  # 从上级读数据的意思是从上级读数据到视图数据中,
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
-
             _读取函数=lambda 项: funcs.GviewOperation.getDueCount(项.上级.数据源),
             组件类型=枚举.组件类型.label,  # 展示用的组件
             默认值=0,
@@ -976,44 +1026,6 @@ class 类型_视图本身模型(基类_模型):
     pass
 
 
-@dataclass
-class 类型_视图边数据源:
-    边集模型: "类型_视图边集模型" = None
-    边: str = ""
-
-
-@dataclass
-class 类型_视图边属性项(基类_属性项):
-    上级: "类型_视图边模型" = None
-    从上级读数据: "int" = 0
-
-    @property
-    def 值(self):
-        if self.上级 and self.上级.数据源:
-            if self.从上级读数据:
-                return self.上级.数据源.边集模型.data[self.上级.数据源.边][self.字段名]
-            elif self._读取函数:
-                return self.读取函数(self)
-            else:
-                raise NotImplementedError()
-        else:
-            return self.默认值
-
-    def 设值(self, value):
-        if self.上级 and self.上级.数据源:
-            边名 = self.上级.数据源.边
-            if self.保存到上级:
-                self.上级.数据源.边集模型.data[边名][self.字段名]=value
-            elif self._保存值的函数:
-                self.保存值的函数(self,value)
-            else:
-                raise NotImplementedError()
-            if self._保存后执行:
-                self.保存后执行(self)
-            funcs.GviewOperation.save(self.上级.数据源.边集模型.上级)
-
-    def __eq__(self, other):
-        return self.值 == other
 
 
 @dataclass
@@ -1041,6 +1053,21 @@ class 类型_视图边模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             组件类型=枚举.组件类型.editable_label,  # 展示用的组件
     ))
+
+
+# @dataclass
+class 类型_视图结点集模型(基类_集模型):
+    """
+    本来, 这个对象用于gviewdata.node_helper 属性, 但是难以做到和gviewdata.nodes同步更新, 因此我们融合两者
+
+    """
+    def __init__(self, 上级: "类型_视图数据", data: "dict"):
+        self.data: "dict" = data
+        self.上级: 类型_视图数据 = 上级
+
+    def __getitem__(self, node_id):
+        return 类型_视图结点模型(数据源=类型_视图结点数据源(self, node_id))
+
 
 
 @dataclass

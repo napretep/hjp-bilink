@@ -1254,12 +1254,11 @@ class GviewConfigOperation(BaseConfig):
         """传到这里的参数, 必须满足视图数据.config存在"""
         if not 视图数据.config:
             raise ValueError('config is None')
-        列表 = 配置数据.data.roaming_node_filter.value[0]
-        选项 = 配置数据.data.roaming_node_filter.value[1]
+        列表,选项 = 配置数据.data.roaming_node_filter.value
         结点数据 = 视图数据.nodes[结点编号]
-        if 结点数据.必须复习.值==True:
+        if 结点数据.必须复习.值:
             return True
-        elif 结点数据.需要复习.值==False :
+        elif not 结点数据.需要复习.值:
             return False
         elif 选项==-1:
             全局,局部 = GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号)

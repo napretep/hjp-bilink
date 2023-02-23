@@ -1107,7 +1107,7 @@ class Grapher(QMainWindow):
                 self.superior = parent
                 imgDir = common_tools.G.src.ImgDir
                 self.save = QAction(QIcon(imgDir.save), "", parent)
-                self.dueQueue = QAction(QIcon(imgDir.box2), "", parent)
+                self.roaming = QAction(QIcon(imgDir.box2), "", parent)
                 self.config = QAction(QIcon(imgDir.config), "", parent)
                 self.reConfig_Btn =QAction(QIcon(imgDir.config_reset), "", parent)
                 self.help = QAction(QIcon(imgDir.help), "", parent)
@@ -1136,7 +1136,7 @@ class Grapher(QMainWindow):
             def li(self):
                 return [
                         self.save,
-                        self.dueQueue,
+                        self.roaming,
                         self.config,
                         self.reConfig_Btn,
                         self.help,
@@ -1805,13 +1805,12 @@ class GrapherRoamingPreviewer(QMainWindow):
             return list(视图数据.nodes.keys())
         else:
 
-            配置数据= funcs.GviewConfigOperation.从数据库读(视图数据.config)
-
-            队列 = [编号 for 编号 in 视图数据.nodes if funcs.GviewConfigOperation.满足过滤条件(视图数据,编号,配置数据)]
-
+            配置数据= self.superior.data.gview_config
+            队列 = [编号 for 编号 in 视图数据.nodes.keys() if funcs.GviewConfigOperation.满足过滤条件(视图数据,编号,配置数据)]
             队列2= funcs.GviewConfigOperation.漫游路径生成(视图数据,配置数据,队列)
-
+            funcs.Utils.print(list(视图数据.nodes.keys()),队列, 队列2,配置数据.__str__())
             return 队列2
+
     @property
     def cardView(self):
         """SingleCardPreviewer 第一个参数必须是Card对象,否则就无法启动.

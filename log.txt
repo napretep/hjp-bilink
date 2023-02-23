@@ -1,0 +1,34 @@
+20230223184145|<module>>>run:
+ hjp-bilink is debug
+20230223184151|delete>>end:
+ end here
+20230223184154|commit>><lambda>:
+ delete from GRAPH_VIEW_CONFIG where uuid='b60e48c9'
+20230223184154|commit>><lambda>:
+ 即将执行
+20230223184154|commit>><lambda>:
+ 即将commit
+20230223184155|delete>>end:
+ end here
+20230223184157|commit>><lambda>:
+ delete from GRAPH_VIEW_CONFIG where uuid='f91f36f0'
+20230223184157|commit>><lambda>:
+ 即将执行
+20230223184157|commit>><lambda>:
+ 即将commit
+20230223184157|delete>>end:
+ end here
+20230223184203|delete>>end:
+ end here
+20230223184207|指定视图配置>>将当前视图添加到现配置的支配表中:
+ new model uuid=d12bbde5, appliedGview before append =  []
+20230223184207|指定视图配置>>将当前视图添加到现配置的支配表中:
+ new model uuid=d12bbde5, appliedGview after append =  ['f664f852'], gview.config = d12bbde5
+20230223184207|__init__>>指定视图配置:
+ assign view over 
+20230223184207|delete>>end:
+ end here
+20230223184207|delete>>end:
+ end here
+20230223184219|buildData>>dueQueue:
+ ['1634290732299', '1634290735798', '1634293857095', '1634293862529'] ['1634290732299', '1634290735798', '1634293862529', '1634293857095'] ['1634290732299', '1634290735798', '1634293862529', '1634293857095'] {'uuid': 'd12bbde5', 'name': 'new gview config', 'roamingStart': 1, 'appliedGview': ['f664f852'], 'node_role_list': '[]', 'edge_name_always_show': False, 'roaming_path_mode': 0, 'roaming_node_filter': [[], -1], 'cascading_sort': [[], -1], 'weighted_sort': [[], -1], 'graph_sort': 0}
