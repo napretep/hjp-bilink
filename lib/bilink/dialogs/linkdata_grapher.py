@@ -48,7 +48,7 @@ GviewConfig = common_tools.objs.Record.GviewConfig
 Struct = common_tools.objs.Struct
 funcs = common_tools.funcs
 src = common_tools.G.src
-
+models = common_tools.models
 本 = common_tools.baseClass.枚举命名
 枚举_视图结点类型 = common_tools.baseClass.视图结点类型
 VisualBilinker=common_tools.graphical_bilinker.VisualBilinker
@@ -1091,10 +1091,10 @@ class Grapher(QMainWindow):
             else:
                 self.setZValue(10)
 
-            if self.node.due:
-                painter.setPen(self.due_dot_style)
-                painter.setBrush(QBrush(self.due_dot_style))
-                painter.drawEllipse(header_rect.right() - 5, 0, 5, 5)
+            # if self.node.due:
+            #     painter.setPen(self.due_dot_style)
+            #     painter.setBrush(QBrush(self.due_dot_style))
+            #     painter.drawEllipse(header_rect.right() - 5, 0, 5, 5)
             # TODO 设计读取卡片的flag
             # self.update_line()
         pass
@@ -1452,29 +1452,25 @@ class GViewAdmin(QDialog):
         #     tooltip(Translate.请点击叶结点)
         #     return
         else:
-            if len(项表) == 1:
+            菜单 = self.view.contextMenu = QMenu(self.view)
+            if len(项表) == 2:
                 item = 项表[0]
                 data = item.data(Qt.ItemDataRole.UserRole)
-                menu = self.view.contextMenu = QMenu(self.view)
-                menu.addAction(译.重命名, ).triggered.connect(lambda: self.on_rename(item))
-                menu.addAction(译.删除).triggered.connect(lambda: self.on_delete(item))
-                menu.addAction(译.设为默认视图).triggered.connect(lambda: self.on_set_as_default_view(item))
-                menu_copy_as = menu.addMenu(译.复制为)
-                funcs.MenuMaker.gview_ankilink(menu_copy_as, data)
-                menu.popup(QCursor.pos())
-            else:
-                待插视图数据表: "list[GViewData]" = [项.data(Qt.ItemDataRole.UserRole) for 项 in 项表]
-                菜单 = self.view.contextMenu = QMenu(self.view)
-                菜单.addAction(译.删除).triggered.connect(lambda: self.当_删除多个(待插视图数据表))
-                菜单2 = 菜单.addMenu(译.导入到视图)
-                菜单2.addAction(译.选择一个视图).triggered.connect(lambda: self.当_选择视图插入(待插视图数据表))
-                已打开视图菜单 = 菜单2.addMenu(译.插入到已经打开的视图)
-                for 视图编号 in funcs.GviewOperation.列出已打开的视图():
-                    已打开视图: Grapher = funcs.G.mw_gview[视图编号]
-                    已打开视图菜单.addAction(已打开视图.data.gviewdata.name).triggered.connect(lambda: self.当_插入到视图(已打开视图, 待插视图数据表))
-                菜单2.addAction(译.新建视图).triggered.connect(lambda: self.当_创建视图并插入(待插视图数据表))
-                菜单.popup(QCursor.pos())
-        # menu.popup(pos)
+                菜单.addAction(译.重命名,).triggered.connect(lambda: self.on_rename(item))
+                菜单.addAction(译.设为默认视图).triggered.connect(lambda: self.on_set_as_default_view(item))
+            待插视图数据表: "list[GViewData]" = [项.data(Qt.ItemDataRole.UserRole) for 项 in 项表]
+
+            菜单.addAction(译.删除).triggered.connect(lambda: self.当_删除多个(待插视图数据表))
+            菜单2 = 菜单.addMenu(译.导入到视图)
+            菜单2.addAction(译.选择一个视图).triggered.connect(lambda: self.当_选择视图插入(待插视图数据表))
+            已打开视图菜单 = 菜单2.addMenu(译.插入到已经打开的视图)
+            for 视图编号 in funcs.GviewOperation.列出已打开的视图():
+                已打开视图: Grapher = funcs.G.mw_gview[视图编号]
+                已打开视图菜单.addAction(已打开视图.data.gviewdata.name).triggered.connect(lambda: self.当_插入到视图(已打开视图, 待插视图数据表))
+            菜单2.addAction(译.新建视图).triggered.connect(lambda: self.当_创建视图并插入(待插视图数据表))
+            菜单.popup(QCursor.pos())
+
+
 
     def 当_插入到视图(self, 已打开视图: Grapher, 待插视图数据表: "list[GViewData]"):
         已打开视图.load_node(待插视图数据表, 参数_视图结点类型=枚举_视图结点类型.视图)
@@ -1813,9 +1809,11 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.圆满完成()
         else:
             self.listView.selectRow(0)
+        if self.superior.data.gview_config.data.roaming_sidebar_hide.value:
+            self.switch_sidebar_show_hide()
 
     def 更新结点复习(self,node_id):
-        self.superior.data.gviewdata.数据更新.结点复习发生(node_id)
+        self.superior.data.gviewdata.数据更新.结点复习发生(str(node_id))
 
     @property
     def dueQueue(self)->"list[str]":
@@ -1988,19 +1986,20 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.按钮2_打开视图 = QPushButton("open")
             self.按钮2_打开视图.clicked.connect(self.open_current_view_roaming)
             self.按钮1_完成复习.clicked.connect(self.on_review_completed)
-            self.组件_视图信息 = QWidget()
+            self.视图信息组合组件 = QWidget()
+            self.视图信息组件字典 = models.类型_视图本身模型().创建UI字典()
             self.当前视图数据:"None|GViewData"=None
-            # self.视图信息组件_内容 = self.视图信息组件的内容(self)
-            self.表单布局 = QFormLayout()
+            self.视图信息表单布局 = QFormLayout()
+            self.视图信息组件初始化()
             self.垂直布局 = QVBoxLayout()
-            self.垂直布局.addWidget(self.组件_视图信息)
+            self.垂直布局.addWidget(self.视图信息组合组件)
 
             Hbox = QHBoxLayout()
             Hbox.addWidget(self.按钮1_完成复习)
             Hbox.addWidget(self.按钮2_打开视图)
             self.垂直布局.addLayout(Hbox)
             self.setLayout(self.垂直布局)
-            self.初始化UI()
+
 
 
         def on_review_completed(self):
@@ -2011,35 +2010,28 @@ class GrapherRoamingPreviewer(QMainWindow):
 
         def open_current_view_roaming(self):
             uuid = self.上级.获取当前结点的编码()
-            funcs.Dialogs.open_grapher(
-                    gviewdata=funcs.GviewOperation.load(uuid=uuid), mode=GraphMode.view_mode)
+            funcs.Dialogs.open_view(gviewdata=funcs.GviewOperation.load(uuid=uuid))
             g:Grapher=funcs.G.mw_gview[uuid]
             g.toolbar.openRoaming()
 
-        def 初始化UI(self):
+        def 视图信息组件初始化(self):
+            for 名,值 in self.视图信息组件字典.items():
+                self.视图信息表单布局.addRow(值.数据源.展示名,值)
+            funcs.Utils.print(self.视图信息组件字典.__str__())
+            self.视图信息组合组件.setLayout(self.视图信息表单布局)
             pass
-            # for 信息, 组件 in self.视图信息组件_内容.有序信息.items():
-            #     self.表单布局.addRow(信息, 组件)
-            # self.组件_视图信息.setLayout(self.表单布局)
+
 
         def 读取视图信息(self):
             视图编号 = self.上级.获取当前结点的编码()
+            tooltip(视图编号)
             self.当前视图数据 = funcs.GviewOperation.load(uuid=视图编号)
-            self.当前视图数据.meta_helper.创建UI(self.组件_视图信息)
+            视图本身数据 = self.当前视图数据.meta_helper
 
-            # self.视图信息组件_内容.有序信息[译.视图名].setText(视图数据.name)
-            # self.视图信息组件_内容.有序信息[译.结点数].setText(len(list(视图数据.nodes.keys())).__str__())
-            # self.视图信息组件_内容.有序信息[译.边数].setText(len(list(视图数据.edges.keys())).__str__())
-            # self.视图信息组件_内容.有序信息[译.到期卡片数].setText(funcs.GviewOperation.getDueCount(视图数据).__str__())
-            # self.视图信息组件_内容.有序信息[译.创建时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.结点.创建时间]).__str__())
-            # self.视图信息组件_内容.有序信息[译.上次访问时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.结点.上次访问]).__str__())
-            # self.视图信息组件_内容.有序信息[译.上次编辑时间].setText(datetime.datetime.fromtimestamp(视图数据.meta[本.结点.上次编辑]).__str__())
-            # self.视图信息组件_内容.有序信息[译.访问数].setText(视图数据.meta[本.结点.访问次数].__str__())
-            # 代表性结点 = ""
-            # for 索引,数据 in 视图数据.nodes.items():
-            #     if 数据[本.结点.主要结点]:
-            #         代表性结点 += 索引+":"+视图数据.获取结点描述(索引)
-            # self.视图信息组件_内容.有序信息[译.代表性结点].setText(代表性结点)
+            for 属性项 in 视图本身数据.属性字典.values():
+                if 属性项.可展示:
+                    self.视图信息组件字典[属性项.字段名].数据源 = 属性项
+                    self.视图信息组件字典[属性项.字段名].给UI赋值(属性项.值)
             pass
 
 

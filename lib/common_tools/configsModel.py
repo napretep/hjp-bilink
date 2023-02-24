@@ -920,13 +920,18 @@ class GviewConfigModel(BaseConfigModel):
             tab_at="main",
             validate=lambda value, item: re.search(r"\S", value)
     ))
-
+    roaming_sidebar_hide:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_漫游复习侧边栏收起],
+            value=True,
+            component=ConfigModel.Widget.radio,
+            tab_at="main"
+    ))
 
     roamingStart: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["本项设定漫游的起点"],
             value=1,
             component=ConfigModel.Widget.combo,
-            tab_at="main",
+            tab_at="roaming",
             limit=[ComboItem(Translate.随机选择卡片开始, 0), ComboItem(Translate.手动选择卡片开始, 1), ]
     ))
     # groupReview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
@@ -936,6 +941,7 @@ class GviewConfigModel(BaseConfigModel):
     #         tab_at="main",
     #
     # ))
+
     appliedGview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["本项设定本配置表所应用的视图们, 如果你删掉了表中的全部视图, 那么会导致该配置被删除, 并且为当前的视图立即新建一个配置"],
             value=[],

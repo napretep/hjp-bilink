@@ -22,7 +22,7 @@ class 钩子之母(list):
 
     @abc.abstractmethod
     def append(self, *args, **kwargs) -> None:
-        raise NotImplementedError()
+        super().append( *args, **kwargs)
 
 
 class 当ReviewButtonForCardPreviewer完成复习(钩子之母):

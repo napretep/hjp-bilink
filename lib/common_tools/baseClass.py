@@ -511,6 +511,14 @@ class 配置项单选型表格组件(ConfigTableView):
         # showInfo(self.current_selected_row.__str__())
         self.SaveDataToConfigModel()
 
+    def RemoveRow(self):
+        super().RemoveRow()
+        self.current_selected_row = -1
+        for row in range(self.table_model.rowCount()):
+            item = self.table_model.item(row,0)
+            if item.text()=="✔":
+                self.current_selected_row=row
+
     def __init__(self, *args, **kwargs):
         self.current_selected_row = -1
         self.select_btn = QPushButton("select")

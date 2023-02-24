@@ -6,6 +6,7 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/8/1 16:48'
 """
+import abc
 import math
 import os
 import re
@@ -338,8 +339,8 @@ class SelectorProtoType(QDialog):
 
 
 class DeckSelectorProtoType(SelectorProtoType):
-    def __init__(self,title_name="", separator="::", header_name="" ):
-        super().__init__(title_name,separator,header_name)
+    def __init__(self, title_name="", separator="::", header_name=""):
+        super().__init__(title_name, separator, header_name)
 
     def on_header_new_item_button_clicked_handle(self):
         new_item = self.Item(f"""new_deck_{datetime.now().strftime("%Y%m%d%H%M%S")}""")
@@ -381,7 +382,7 @@ class DeckSelectorProtoType(SelectorProtoType):
 class deck_chooser(DeckSelectorProtoType):
 
     def __init__(self, pair_li: "list[G.objs.LinkDataPair]" = None, fromview: "AnkiWebView" = None):
-        super().__init__(title_name="deck_chooser",header_name="deck_name")
+        super().__init__(title_name="deck_chooser", header_name="deck_name")
         self.fromview: "None|AnkiWebView|Previewer|Reviewer" = fromview
         self.pair_li = pair_li
         self.header.set_header_label(self.curr_deck_name)
@@ -424,13 +425,14 @@ class deck_chooser(DeckSelectorProtoType):
 
 class view_config_deck_chooser(DeckSelectorProtoType):
     def on_view_doubleclicked_handle(self, index):
-        item:"DeckSelectorProtoType.Item" = self.model.itemFromIndex(index)
+        item: "DeckSelectorProtoType.Item" = self.model.itemFromIndex(index)
         self.牌组编号 = item.data_id
         self.close()
 
     def __init__(self, ):
         super().__init__()
         self.牌组编号 = -1
+
 
 class view_chooser(SelectorProtoType):
     def on_view_doubleclicked_handle(self, index):
@@ -450,13 +452,13 @@ class view_chooser(SelectorProtoType):
 
     def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
         gview_dict = funcs.GviewOperation.load_all_as_dict()
-        return [self.Id_name(name=data.name, ID=uuid) for uuid,data in gview_dict.items()]
+        return [self.Id_name(name=data.name, ID=uuid) for uuid, data in gview_dict.items()]
         pass
 
-    def __init__(self,title_name="", separator="::", header_name="" ):
-        super().__init__(title_name,separator,header_name)
+    def __init__(self, title_name="", separator="::", header_name=""):
+        super().__init__(title_name, separator, header_name)
         self.header.new_item_button.hide()
-        self.选中的视图编号= -1
+        self.选中的视图编号 = -1
 
 
 class tag_chooser(QDialog):
@@ -2142,7 +2144,7 @@ class ReviewButtonForCardPreviewer:
         G.signals.on_card_answerd.emit(
                 answer(platform=self, card_id=self.card().id, option_num=ease))
         self.update_info()
-        self.当完成复习(self.card().id,ease)
+        self.当完成复习(self.card().id, ease)
 
     def update_info(self):
         self._update_answer_buttons()
@@ -2179,23 +2181,51 @@ class ReviewButtonForCardPreviewer:
 
 class 自定义组件:
     class 视图结点属性:
-        class 角色多选(QComboBox):
-            def __init__(self, 项):
+        class 基类_项组件基础(QWidget):
+            def __init__(self, 上级):
                 super().__init__()
+                from . import models
+                self.上级: models.函数库_UI展示.组件 = 上级
+
+            @abc.abstractmethod
+            def setValue(self, value):
+                raise NotImplementedError()
+
+        class 角色多选(基类_项组件基础):
+            def setValue(self, value):
+                self.ui组件.setCurrentIndex(value)
+                pass
+
+            def __init__(self, 上级):
+                super().__init__(上级)
                 """根据配置中的安排加载对应的多选框"""
-                from . import funcs, models
-                self.项: models.类型_视图结点属性项 = 项
-                视图配置id = self.项.上级.数据源.模型.上级.config
+                self.ui组件 = QComboBox()
                 self.待选角色表 = []
+                self.初始化UI()
+                self.UI赋值()
+                self.初始化事件()
+
+                pass
+
+            def 初始化UI(self):
+
+                pass
+
+            def UI赋值(self):
+                from . import funcs, models
+                视图配置id = self.上级.数据源.上级.数据源.模型.上级.config
                 if 视图配置id:
                     字面量 = funcs.GviewConfigOperation.从数据库读(视图配置id).data.node_role_list.value
                     self.待选角色表 = literal_eval(字面量)
-                # self.下拉选框 = QComboBox()
-                [self.addItem(self.待选角色表[i], i) for i in range(len(self.待选角色表))]
-                self.addItem(QIcon(funcs.G.src.ImgDir.close), 译.无角色, -1)
-                self.setCurrentIndex(self.findData(self.项.值, role=Qt.UserRole))
-                item_set_value = lambda value: self.项.设值(value)
-                self.currentIndexChanged.connect(lambda x: item_set_value(self.currentData()))
+                self.ui组件.clear()
+                [self.ui组件.addItem(self.待选角色表[i], i) for i in range(len(self.待选角色表))]
+                self.ui组件.addItem(QIcon(funcs.G.src.ImgDir.close), 译.无角色, -1)
+                self.ui组件.setCurrentIndex(self.ui组件.findData(self.上级.数据源.值, role=Qt.UserRole))
+                pass
+
+            def 初始化事件(self):
+                item_set_value = lambda value: self.上级.数据源.设值(value)
+                self.ui组件.currentIndexChanged.connect(lambda x: item_set_value(self.ui组件.currentData()))
                 pass
 
         # class 优先级(QWidget):

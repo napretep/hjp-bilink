@@ -22,6 +22,7 @@ from . import funcs, baseClass, language, widgets
 类型_结点编号 = 类型_属性名 = str
 类型_视图数据 = funcs.GViewData
 
+
 class 函数库_UI展示:
     """UI有不同的类型,每种类型都要定制地写一个函数, 最后把它们组合进一个字典, 到时候根据组件类型作为键访问字典的值并调用即可获得组件"""
 
@@ -48,6 +49,14 @@ class 函数库_UI展示:
         布局.setContentsMargins(0, 0, 0, 0)
         return 布局
 
+    # @staticmethod
+    # def 创建类(组件,设值方法):
+    #
+    #     class 类_属性项组件(QWidget):
+    #         def __init__(self,组件,按钮,设值函数):
+    #             self.setLayout(函数库_UI展示.做成行(组件,按钮))
+    #             self.setValue = 设值函数
+
     @staticmethod
     def checkbox(项: "基类_属性项"):
         self = 函数库_UI展示
@@ -56,7 +65,7 @@ class 函数库_UI展示:
         组件.setChecked(项.组件显示值)
         item_set_value = lambda value: 项.设值(value)
         组件.clicked.connect(lambda: item_set_value(组件.isChecked()))
-        return self.做成行(组件, 按钮)
+        return (组件, 按钮)
 
     @staticmethod
     def label(项: "基类_属性项"):
@@ -64,7 +73,7 @@ class 函数库_UI展示:
         按钮 = self.提示按钮(项.说明)
         组件 = QLabel(项.组件显示值)
         组件.setWordWrap(True)
-        return self.做成行(组件, 按钮)
+        return (组件, 按钮)
         pass
 
     @staticmethod
@@ -86,7 +95,7 @@ class 函数库_UI展示:
 
         按钮2.clicked.connect(on_edit)
 
-        return self.做成行(组件, 右侧布局)
+        return (组件, 右侧布局)
         pass
 
     @staticmethod
@@ -110,14 +119,14 @@ class 函数库_UI展示:
                 项.设值(组件.toPlainText())
 
         组件.textChanged.connect(when_need_update)
-        return self.做成行(组件, 按钮)
+        return (组件, 按钮)
 
     @staticmethod
     def customize(项: "基类_属性项"):
         self = 函数库_UI展示
         按钮 = self.提示按钮(项.说明)
         组件 = 项.自定义组件(项)
-        return self.做成行(组件, 按钮)
+        return (组件, 按钮)
         pass
 
     @staticmethod
@@ -137,7 +146,7 @@ class 函数库_UI展示:
             数值显示.setText(value.__str__())
 
         拖动条.valueChanged.connect(item_set_value)
-        return self.做成行(组件, 按钮)
+        return (组件, 按钮)
 
     @staticmethod
     def time(项: "基类_属性项"):
@@ -149,7 +158,7 @@ class 函数库_UI展示:
             组件 = QLabel(funcs.Utils.时间戳转日期(项.值).__str__())
         else:
             raise NotImplementedError(项.值)
-        return self.做成行(组件, 按钮)
+        return (组件, 按钮)
 
     @staticmethod
     def 开始(项: "基类_属性项"):
@@ -165,7 +174,105 @@ class 函数库_UI展示:
         }
         return 函数字典[项.组件类型](项)
 
+    class 组件(QWidget):
+        def __init__(self, 项: "基类_属性项"):
+            super().__init__()
+            self.提示按钮 = 函数库_UI展示.提示按钮(项.说明)
+            self.数据源: "基类_属性项" = 项
+            self.setLayout(函数库_UI展示.做成行(*self.组件生成()))
+
+        def 组件生成(self):
+            左,右 = QWidget(),self.提示按钮
+            if self.数据源.组件类型 == 枚举.组件类型.slider:
+                拖动条 = QSlider(Qt.Orientation.Horizontal)
+
+                数值显示 = QLabel(self.数据源.组件显示值.__str__())
+                拖动条.setValue(self.数据源.组件显示值)
+                if self.数据源.有限制:
+                    拖动条.setRange(self.数据源.限制[0], self.数据源.限制[1])
+                组件 = funcs.组件定制.组件组合({砖.布局: QHBoxLayout(), 砖.子代: [{砖.组件: 数值显示}, {砖.组件: 拖动条}]})
+
+                def item_set_value(value):
+                    self.数据源.设值(value)
+                    数值显示.setText(value.__str__())
+
+                拖动条.valueChanged.connect(item_set_value)
+                self.给UI赋值 = lambda value: 拖动条.setValue(value)
+            elif self.数据源.组件类型 == 枚举.组件类型.label:
+                组件 = QLabel(self.数据源.组件显示值)
+                组件.setWordWrap(True)
+                self.给UI赋值 = lambda value: 组件.setText(value.__str__())
+                pass
+            elif self.数据源.组件类型 == 枚举.组件类型.checkbox:
+                组件 = QCheckBox()
+                组件.setChecked(self.数据源.组件显示值)
+                item_set_value = lambda value: self.数据源.设值(value)
+                组件.clicked.connect(lambda: item_set_value(组件.isChecked()))
+                self.给UI赋值 = lambda value: 组件.setChecked(value)
+                pass
+            elif self.数据源.组件类型 == 枚举.组件类型.text:
+                组件 = QTextEdit()
+                组件.setText(self.数据源.组件显示值)
+                临时文本储存 = [""]
+
+                def when_need_update():
+                    组件.blockSignals(False)
+                    if 临时文本储存[0] != 组件.toPlainText():
+                        临时文本储存[0] = 组件.toPlainText()
+                        组件.blockSignals(True)
+                        return QTimer.singleShot(100, when_need_update)
+                    else:
+                        self.数据源.设值(组件.toPlainText())
+
+                组件.textChanged.connect(when_need_update)
+                self.给UI赋值 = lambda value: 组件.setText(value)
+                pass
+            elif self.数据源.组件类型 == 枚举.组件类型.customize:
+                组件 = self.数据源.自定义组件(self)
+                self.给UI赋值 = lambda value: 组件.setValue(value)
+                pass
+            elif self.数据源.组件类型 == 枚举.组件类型.time:
+                if isinstance(self.数据源.值, datetime.datetime):
+                    组件 = QLabel(self.数据源.值.__str__())
+                elif type(self.数据源.值) in [int, float]:
+                    组件 = QLabel(funcs.Utils.时间戳转日期(self.数据源.值).__str__())
+                else:
+                    raise NotImplementedError(self.数据源.值)
+
+                def setValue(value):
+                    self.数据源.设值(value)
+                    组件.setText(funcs.Utils.时间戳转日期(value).__str__())
+
+                self.给UI赋值 = lambda value: setValue(value)
+                pass
+            elif self.数据源.组件类型 == 枚举.组件类型.editable_label:
+
+                按钮2 = QPushButton(QIcon(funcs.G.src.ImgDir.edit), "")
+                右 = QVBoxLayout()
+                组件 = QLabel(self.数据源.组件显示值)
+                组件.setWordWrap(True)
+                [右.addWidget(i) for i in [self.提示按钮, 按钮2]]
+
+                def on_edit():
+                    结果 = funcs.组件定制.长文本获取(组件.text())
+                    if len(结果) > 0:
+                        组件.setText(结果[0])
+                        self.数据源.设值(结果[0])
+                    pass
+
+                def setValue(value):
+                    组件.setText(value)
+                    self.数据源.设值(value)
+
+                按钮2.clicked.connect(on_edit)
+                self.给UI赋值 = lambda value: setValue(value)
+
+            左 = 组件
+            return (左,右)
+
+
     pass
+
 
 
 @dataclass
@@ -173,15 +280,16 @@ class 类型_视图结点数据源:
     模型: "类型_视图结点集模型" = None
     结点编号: "类型_结点编号" = None
 
+
 @dataclass
 class 类型_视图边数据源:
     边集模型: "类型_视图边集模型" = None
     边: str = ""
 
+
 @dataclass
 class 基类_集模型:
     data: dict = None
-
 
     def keys(self):
         return self.data.keys()
@@ -235,6 +343,16 @@ class 基类_模型:
     def 初始化(self, *args):
         raise NotImplementedError()
 
+    def 创建UI字典(self):
+        字典 = {}
+        for 属性名 in self.__dict__.keys():
+            if isinstance(self.__dict__[属性名], 基类_属性项):
+                项: 类型_视图结点属性项 = self.__dict__[属性名]
+                if 项.可展示:
+                    组件 = 函数库_UI展示.组件(项)
+                    字典[项.字段名] = 组件
+        return 字典
+
     def 创建UI(self, 父类组件: "QWidget" = None):
         对话框 = 父类组件 if 父类组件 else QDialog()
         表单布局 = QFormLayout()
@@ -243,8 +361,9 @@ class 基类_模型:
             if isinstance(self.__dict__[属性名], 基类_属性项):
                 项: 类型_视图结点属性项 = self.__dict__[属性名]
                 if 项.可展示:
-                    组件 = 函数库_UI展示.开始(项)
+                    组件 = 函数库_UI展示.组件(项)
                     表单布局.addRow(项.展示名, 组件)
+
         对话框.setLayout(表单布局)
         self.UI创建完成 = 1
         对话框.closeEvent = lambda x: self.__dict__.__setitem__("UI创建完成", 0)
@@ -256,7 +375,7 @@ class 基类_模型:
         for 变量名 in self.__dict__:
 
             if isinstance(self.__dict__[变量名], 基类_属性项):
-                项:基类_属性项 = self.__dict__[变量名]
+                项: 基类_属性项 = self.__dict__[变量名]
                 if 项.用户可访:
                     if 指定变量类型:
                         if type(项.值) in 指定变量类型:
@@ -289,7 +408,7 @@ class 基类_模型:
         # return self.__dict__[item]
 
     def __post_init__(self):
-        self.属性字典={}
+        self.属性字典 = {}
         for 可能项 in self.__dict__:
             if isinstance(self.__dict__[可能项], 基类_属性项):
                 项: 基类_属性项 = self.__dict__[可能项]
@@ -305,14 +424,13 @@ class 基类_模型:
 
 @dataclass
 class 基类_属性项:
-
     """
     """
 
     字段名: "str"
     展示名: "str"
-    从上级读数据:"int"
-    保存到上级:"int"
+    从上级读数据: "int"
+    保存到上级: "int"
     说明: "str" = 译.该项解释工作未完成
     可展示: "int" = 0  # 需要对应的展示组件,
     可展示中编辑: "int" = 0  # 需要对应的可展示中编辑组件, 与可展示联合判断
@@ -324,10 +442,10 @@ class 基类_属性项:
     组件传值方式: "None|Callable[[基类_属性项],Any]" = None
     _读取函数: "None|Callable[[基类_属性项],Any]" = None
     _保存值的函数: Optional[Callable[["基类_属性项", Any], None]] = None
-    _保存后执行:"None|Callable[[基类_属性项],Any]" = None
+    _保存后执行: "None|Callable[[基类_属性项],Any]" = None
     校验函数: "None|Callable[[基类_属性项],bool]" = None
-    自定义组件: "None|Callable[[基类_属性项],QWidget]" = None
-    上级 = None
+    自定义组件: "None|Callable[[函数库_UI展示.组件],QWidget]" = None
+    上级:"None|基类_模型" = None
     默认值: "Any|None|list|str|int|float" = None
     值类型: "str" = None
     值解释: "str" = None
@@ -395,9 +513,9 @@ class 类型_视图边属性项(基类_属性项):
         if self.上级 and self.上级.数据源:
             边名 = self.上级.数据源.边
             if self.保存到上级:
-                self.上级.数据源.边集模型.data[边名][self.字段名]=value
+                self.上级.数据源.边集模型.data[边名][self.字段名] = value
             elif self._保存值的函数:
-                self.保存值的函数(self,value)
+                self.保存值的函数(self, value)
             else:
                 raise NotImplementedError()
             if self._保存后执行:
@@ -406,7 +524,6 @@ class 类型_视图边属性项(基类_属性项):
 
     def __eq__(self, other):
         return self.值 == other
-
 
 
 @dataclass
@@ -448,6 +565,7 @@ class 类型_视图结点属性项(基类_属性项):
     def __eq__(self, other):
         return self.值 == other
 
+
 @dataclass
 class 类型_视图本身属性项(基类_属性项):
     上级: "类型_视图本身模型" = None
@@ -481,10 +599,6 @@ class 类型_视图本身属性项(基类_属性项):
 
     def __eq__(self, other):
         return self.值 == other
-
-
-
-
 
 
 @dataclass
@@ -887,8 +1001,6 @@ class 类型_视图结点模型(基类_模型):
     # ))
 
 
-
-
 @dataclass
 class 类型_视图本身模型(基类_模型):
     数据源: "类型_视图数据" = None
@@ -1032,28 +1144,25 @@ class 类型_视图本身模型(基类_模型):
             值类型=枚举.值类型.列表,
             值解释="['1630171513585','1630171513679'] or ['1630171513585','4b9556bb']",
     ))
-    缓存:类型_视图本身属性项 = field(default_factory=lambda :类型_视图本身属性项(
-        字段名 = 枚举.视图.视图卡片内容缓存,
-        展示名 = 枚举.视图.视图卡片内容缓存,
-        说明="",
-        保存到上级=0,
-        从上级读数据=0, # 从上级读数据的意思是从上级读数据到视图数据中,
-        可展示=0,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
-        可展示中编辑=0,  # 需要对应的可展示中编辑组件, 与可展示联合判断
-        用户可访=0, # 用户可以用自定义的python语句访问到这个变量的值
-        _读取函数=lambda 项:"",
-        组件类型=枚举.组件类型.none, #展示用的组件
-        # 组件传值方式=None,
-        # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
-        # 有限制=0,
-        # 限制=[0, funcs.G.src_admin.MAXINT],
-        # 自定义组件=None,
+    缓存: 类型_视图本身属性项 = field(default_factory=lambda: 类型_视图本身属性项(
+            字段名=枚举.视图.视图卡片内容缓存,
+            展示名=枚举.视图.视图卡片内容缓存,
+            说明="",
+            保存到上级=0,
+            从上级读数据=0,  # 从上级读数据的意思是从上级读数据到视图数据中,
+            可展示=0,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
+            可展示中编辑=0,  # 需要对应的可展示中编辑组件, 与可展示联合判断
+            用户可访=0,  # 用户可以用自定义的python语句访问到这个变量的值
+            _读取函数=lambda 项: "",
+            组件类型=枚举.组件类型.none,  # 展示用的组件
+            # 组件传值方式=None,
+            # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
+            # 有限制=0,
+            # 限制=[0, funcs.G.src_admin.MAXINT],
+            # 自定义组件=None,
     ))
 
-
     pass
-
-
 
 
 @dataclass
@@ -1089,13 +1198,13 @@ class 类型_视图结点集模型(基类_集模型):
     本来, 这个对象用于gviewdata.node_helper 属性, 但是难以做到和gviewdata.nodes同步更新, 因此我们融合两者
 
     """
+
     def __init__(self, 上级: "类型_视图数据", data: "dict"):
         self.data: "dict" = data
         self.上级: 类型_视图数据 = 上级
 
     def __getitem__(self, node_id):
         return 类型_视图结点模型(数据源=类型_视图结点数据源(self, node_id))
-
 
 
 @dataclass
@@ -1107,7 +1216,6 @@ class 类型_视图边集模型(基类_集模型):
 
     def __getitem__(self, node_id):
         return 类型_视图边模型(数据源=类型_视图边数据源(self, node_id))
-
 
     # def keys(self):
     #     return self.成员.数据源.视图数据.edges.keys()

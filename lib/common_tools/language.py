@@ -733,5 +733,6 @@ Default filter rule: is_due
     说明_设定默认视图=翻译(f"设定mainwindow中{打开默认视图}和{打开默认漫游复习}这两个菜单所对应的视图")
     请先设定默认视图=翻译(f"请先设定默认视图","Please set the default view first")
     设为默认视图 = 翻译("设为默认视图","set as default view")
+    说明_漫游复习侧边栏收起 = 翻译("是否默认收起漫游复习的侧边栏","Whether to tuck away the sidebar for roaming review by default")
 if __name__ == "__main__":
     print(Translate.打开配置表)

@@ -23,4 +23,5 @@ from . import (objs,
                 configsModel,
                 baseClass,
                 graphical_bilinker,
+models,
                )

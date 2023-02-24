@@ -175,7 +175,7 @@ class GviewOperation:
     def 重命名(视图数据: GViewData, 新名字):
         视图数据.name = 新名字
         GviewOperation.save(视图数据)
-        tooltip("改名成功".format(view_name=视图数据.name, name=新名字))
+        # tooltip("改名成功".format(view_name=视图数据.name, name=新名字))
 
     @staticmethod
     def 获取主要结点编号(视图数据: GViewData):
@@ -1152,6 +1152,9 @@ class IntroductionOperation:
 
 
 class GviewConfigOperation(BaseConfig):
+
+
+
     @staticmethod
     def 获取结点角色数据源(gview_uuid=None, gview_data: "GViewData" = None) -> "list[str]":
 
@@ -1253,11 +1256,19 @@ class GviewConfigOperation(BaseConfig):
             return 队列
         elif 生成模式 == _.多级排序:
             待选表, 选中序号 = 配置数据.data.cascading_sort.value
+            if 选中序号>=len(待选表):
+                选中序号=-1
+                配置数据.data.cascading_sort.value[1]=-1
+
             排序表: "List[Iterable[str,str]]" = eval(待选表[选中序号]) if 选中序号 >= 0 else [[字典键名.结点.优先级, 字典键名.下降]]
             队列.sort(key=cmp_to_key(lambda x, y: GviewConfigOperation.漫游路径生成之多级排序(x, y, 视图数据, 排序表)))
             return 队列
         elif 生成模式 == _.加权排序:
             待选表, 选中序号 = 配置数据.data.weighted_sort.value
+            if 选中序号>=len(待选表):
+                选中序号=-1
+                配置数据.data.weighted_sort.value[1]=-1
+
             公式 = 待选表[选中序号] if 选中序号 >= 0 else f"{字典键名.结点.优先级}"
             队列.sort(key=cmp_to_key(lambda x, y: GviewConfigOperation.漫游路径生成之加权排序(x, y, 视图数据, 公式)), reverse=True)
             return 队列
@@ -1280,14 +1291,19 @@ class GviewConfigOperation(BaseConfig):
         if not 视图数据.config:
             raise ValueError('config is None')
         列表, 选项 = 配置数据.data.roaming_node_filter.value
+
+        if 选项 >= len(列表) :
+            配置数据.data.roaming_node_filter.value[1]=选项=-1
+
         结点数据 = 视图数据.nodes[结点编号]
         if 结点数据.必须复习.值:
             return True
         elif not 结点数据.需要复习.值:
             return False
         elif 选项 == -1:
+            默认过滤条件 = f"max({字典键名.结点.上次复习},{字典键名.结点.全局上次复习})<{字典键名.时间.今日} or {字典键名.结点.已到期}"
             全局, 局部 = GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号)
-            return eval(字典键名.结点.已到期, 全局, 局部)
+            return eval(默认过滤条件, 全局, 局部)
         else:
             return eval(列表[选项], *GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号))
         pass
@@ -2821,8 +2837,8 @@ class Dialogs:
         pass
 
     @staticmethod
-    def open_view(gviewdata: "GViewData" = None,need_activate=True,mode=GraphMode.view_mode,):
-        Dialogs.open_grapher(gviewdata=gviewdata,mode=mode)
+    def open_view(gviewdata: "GViewData" = None,need_activate=True):
+        Dialogs.open_grapher(gviewdata=gviewdata,mode=GraphMode.view_mode)
 
     @staticmethod
     def open_grapher(pair_li: "list[G.objs.LinkDataPair|str]" = None, need_activate=True, gviewdata: "GViewData" = None,
