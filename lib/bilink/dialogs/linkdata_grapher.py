@@ -1184,7 +1184,7 @@ class Grapher(QMainWindow):
             common_tools.G.常量_当前等待新增卡片的视图索引 = self.superior.data.gviewdata.uuid
             mw.onAddCard()
             addcard:aqt.addcards.AddCards =aqt.DialogManager._dialogs["AddCards"][1]
-            did = self.superior.data.gview_config.data.deck_for_add_card.value
+            did = self.superior.data.gview_config.data.default_deck_for_add_card.value
             if did!=-1:
                 addcard.deck_chooser.selected_deck_id=did
 
@@ -1458,6 +1458,7 @@ class GViewAdmin(QDialog):
                 menu = self.view.contextMenu = QMenu(self.view)
                 menu.addAction(译.重命名, ).triggered.connect(lambda: self.on_rename(item))
                 menu.addAction(译.删除).triggered.connect(lambda: self.on_delete(item))
+                menu.addAction(译.设为默认视图).triggered.connect(lambda: self.on_set_as_default_view(item))
                 menu_copy_as = menu.addMenu(译.复制为)
                 funcs.MenuMaker.gview_ankilink(menu_copy_as, data)
                 menu.popup(QCursor.pos())
@@ -1576,6 +1577,13 @@ class GViewAdmin(QDialog):
         self.wait_for_update.add(data)
         self.rebuild()
         pass
+
+    def on_set_as_default_view(self,item=None):
+        item: "GViewAdmin.Item" = self.get_item() if not item else item
+        if not item: return
+        data: "GViewData" = item.data(Qt.UserRole)
+        funcs.GviewOperation.设为默认视图(data.uuid)
+        tooltip("ok")
 
     def on_link(self):
         item = self.get_item()
@@ -1806,6 +1814,8 @@ class GrapherRoamingPreviewer(QMainWindow):
         else:
             self.listView.selectRow(0)
 
+    def 更新结点复习(self,node_id):
+        self.superior.data.gviewdata.数据更新.结点复习发生(node_id)
 
     @property
     def dueQueue(self)->"list[str]":
@@ -1833,6 +1843,7 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.initEvent()
             # self._cardView.open()
             self.layoutH.addWidget(self.cardView, stretch=1)
+            self._cardView.revWidget.当完成复习.append(lambda card_Id,ease:self.更新结点复习(card_Id))
             self._cardView.activateAsSubWidget()
             return self._cardView
         elif self._cardView:
@@ -1994,6 +2005,7 @@ class GrapherRoamingPreviewer(QMainWindow):
 
         def on_review_completed(self):
             self.当前视图数据.数据更新.视图复习发生()
+            self.上级.更新结点复习(self.当前视图数据.uuid)
             self.上级.item_finish()
             pass
 
@@ -2030,21 +2042,6 @@ class GrapherRoamingPreviewer(QMainWindow):
             # self.视图信息组件_内容.有序信息[译.代表性结点].setText(代表性结点)
             pass
 
-        # class 视图信息组件的内容:
-        #     def __init__(self, 上级):
-        #         self.上级 = 上级
-        #         self.有序信息 = collections.OrderedDict()
-        #         for 信息名称 in [译.视图名,
-        #                      译.创建时间,
-        #                      译.上次访问时间,
-        #                      译.上次编辑时间,
-        #                      译.上次复习时间,
-        #                      译.访问数,
-        #                      译.结点数,
-        #                      译.边数,
-        #                      译.到期卡片数,
-        #                      译.代表性结点, ]:
-        #             self.有序信息[信息名称] = QLabel("")
 
     class List(QListView):
         def __init__(self, superior):

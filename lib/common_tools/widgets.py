@@ -10,7 +10,7 @@ import math
 import os
 import re
 import urllib
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
@@ -171,22 +171,177 @@ class SupportDialog(QDialog):
         self.setLayout(self.v_layout)
         self.show()
 
-class DeckSelectorProtoType(QDialog):
-    def __init__(self,):
+
+class SelectorProtoType(QDialog):
+    """大部分待选表的一个原型"""
+
+    def __init__(self, title_name="", separator="::", header_name=""):
         super().__init__()
+        self.window_title_name = title_name
+        self.separator = separator
+        self.model_header_name = header_name
         self.view = QTreeView(self)
         self.model = QStandardItemModel(self)
         self.model_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
         self.header = self.Header(self)
+        self.instruction = QLabel()
         self.header.button.clicked.connect(self.on_header_button_clicked_handle)
-        self.header.new_dec_button.clicked.connect(self.on_header_new_dec_button_clicked_handle)
+        self.header.new_item_button.clicked.connect(self.on_header_new_item_button_clicked_handle)
         self.view.clicked.connect(self.on_view_clicked_handle)
         self.view.doubleClicked.connect(self.on_view_doubleclicked_handle)
         self.model.dataChanged.connect(self.on_model_data_changed_handle)
         self.init_UI()
         self.init_model()
 
-    def on_header_new_dec_button_clicked_handle(self):
+    @abstractmethod
+    def on_header_new_item_button_clicked_handle(self):
+        raise NotImplementedError()
+
+    # @abstractmethod
+    # def on_item_button_clicked_handle(self, item: "deck_chooser.Item"):
+    #     raise NotImplementedError()
+
+    @abstractmethod
+    def on_model_data_changed_handle(self, topLeft, bottomRight, roles):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def on_view_clicked_handle(self, index):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
+        raise NotImplementedError()
+
+    @abstractmethod
+    def on_view_doubleclicked_handle(self, index):
+        raise NotImplementedError()
+
+    def get_full_item_name(self, item: "SelectorProtoType.Item"):
+        if self.header.button.text() == self.header.as_list:
+            return item.text()
+        s = ""
+        parent = item
+        while parent != self.model.invisibleRootItem():
+            s = self.separator + parent.deck_name + s
+            parent = parent.parent()
+        s = s[2:]
+        return s
+
+    def on_header_button_clicked_handle(self):
+        if self.header.button.text() == self.header.as_tree:
+            self.header.button.setText(self.header.as_list)
+            self.header.button.setIcon(QIcon(G.src.ImgDir.list))
+        else:
+            self.header.button.setText(self.header.as_tree)
+            self.header.button.setIcon(QIcon(G.src.ImgDir.tree))
+        self.init_data()
+
+    def init_model(self):
+        self.view.setModel(self.model)
+        self.model.setHorizontalHeaderLabels([self.model_header_name])
+        self.view.header().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.init_data()
+        self.view.setColumnWidth(1, 30)
+
+    def init_data(self):
+        self.model.clear()
+        self.model_rootNode = self.model.invisibleRootItem()
+        self.model.setHorizontalHeaderLabels([self.model_header_name])
+        if self.header.button.text() == self.Header.as_tree:
+            self.build_as_tree()
+        else:
+            self.build_as_list()
+        self.view.expandAll()
+
+    def build_as_list(self):
+        data_li: "list[SelectorProtoType.Id_name]" = self.get_all_data_items()
+        for i in data_li:
+            item = self.Item(i.name)
+            item.data_id = i.ID
+            self.model.appendRow([item])
+        pass
+
+    def build_as_tree(self):
+        item_li: "list[SelectorProtoType.Id_name]" = self.get_all_data_items()
+        data_dict = G.objs.Struct.TreeNode(self.model_rootNode, {})
+        for i in item_li:
+            data_name_li = i.name.split(self.separator)
+            parent = data_dict
+            while data_name_li:
+                deckname = data_name_li.pop(0)
+                if deckname not in parent.children:
+                    item = self.Item(deckname)
+                    parent.item.appendRow([item])
+                    parent.children[deckname] = G.objs.Struct.TreeNode(item, {})
+                    if not data_name_li:
+                        item.data_id = i.ID
+                parent = parent.children[deckname]
+
+    def init_UI(self):
+        self.setWindowTitle(self.window_title_name)
+        self.setWindowIcon(QIcon(G.src.ImgDir.box))
+        self.view.setIndentation(8)
+        V_layout = QVBoxLayout(self)
+        V_layout.addWidget(self.header)
+        V_layout.addWidget(self.view)
+        V_layout.addWidget(self.instruction, stretch=0)
+        V_layout.setStretch(1, 1)
+        V_layout.setStretch(0, 0)
+        self.setLayout(V_layout)
+
+    class Header(QWidget):
+        as_tree, as_list = "as_tree", "as_list"
+
+        def __init__(self, parent, deckname=""):
+            super().__init__(parent)
+            self.desc = QLabel("current item|" + deckname, self)
+            self.desc.setWordWrap(True)
+            self.button = QToolButton(self)
+            self.button.setText(self.as_tree)
+            self.button.setIcon(QIcon(G.src.ImgDir.tree))
+            self.new_item_button = QToolButton(self)
+            self.new_item_button.setIcon(QIcon(G.src.ImgDir.item_plus))
+            H_layout = QHBoxLayout(self)
+            H_layout.addWidget(self.desc)
+            H_layout.addWidget(self.new_item_button)
+            H_layout.addWidget(self.button)
+            H_layout.setStretch(0, 1)
+            H_layout.setStretch(1, 0)
+            self.setLayout(H_layout)
+
+        def set_header_label(self, data_name):
+            self.desc.setText("current item|" + data_name)
+
+    class Item(QStandardItem):
+        def __init__(self, data_name):
+            super().__init__(data_name)
+            self.data_id: "Optional[int]" = None
+            self.level: "Optional[int]" = None
+            self.setFlags(self.flags() & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsDropEnabled)
+
+        @property
+        def deck_name(self):
+            return self.text()
+
+        def parent(self) -> "SelectorProtoType.Item":
+            parent: "SelectorProtoType.Item" = super().parent()
+            if parent:
+                return parent
+            else:
+                return self.model().invisibleRootItem()
+
+    @dataclass
+    class Id_name:
+        name: "str"
+        ID: "int|str"
+
+
+class DeckSelectorProtoType(SelectorProtoType):
+    def __init__(self,title_name="", separator="::", header_name="" ):
+        super().__init__(title_name,separator,header_name)
+
+    def on_header_new_item_button_clicked_handle(self):
         new_item = self.Item(f"""new_deck_{datetime.now().strftime("%Y%m%d%H%M%S")}""")
         if self.view.selectedIndexes():
             item: "deck_chooser.Item" = self.model.itemFromIndex(self.view.selectedIndexes()[0])
@@ -195,178 +350,41 @@ class DeckSelectorProtoType(QDialog):
             parent_item = self.model.invisibleRootItem()
         parent_item.appendRow([new_item])
         self.view.edit(new_item.index())
-        deck = mw.col.decks.add_normal_deck_with_name(self.get_full_deck_name(new_item))
+        deck = mw.col.decks.add_normal_deck_with_name(self.get_full_item_name(new_item))
         new_item.deck_id = deck.id
 
     def on_view_doubleclicked_handle(self, index):
-        self.on_item_button_clicked_handle(self.model.itemFromIndex(index))
-
-
-    def on_item_button_clicked_handle(self, item: "deck_chooser.Item"):
         raise NotImplementedError()
+
+    # def on_item_button_clicked_handle(self, item: "deck_chooser.Item"):
+    #     raise NotImplementedError()
 
     def on_model_data_changed_handle(self, topLeft, bottomRight, roles):
         item: "deck_chooser.Item" = self.model.itemFromIndex(topLeft)
         from . import funcs
         DeckId = funcs.Compatible.DeckId()
-        new_deck_name = self.get_full_deck_name(item)
+        new_deck_name = self.get_full_item_name(item)
         mw.col.decks.rename(DeckId(item.deck_id), new_deck_name)
         # print(item.deck_name)
 
     def on_view_clicked_handle(self, index):
         item: deck_chooser.Item = self.model.itemFromIndex(index)
-        # tooltip(self.get_full_deck_name(item))
+        # tooltip(self.get_full_item_name(item))
 
-    def on_header_button_clicked_handle(self):
-        if self.header.button.text() == self.header.deck_tree:
-            self.header.button.setText(self.header.deck_list)
-            self.header.button.setIcon(QIcon(G.src.ImgDir.list))
-        else:
-            self.header.button.setText(self.header.deck_tree)
-            self.header.button.setIcon(QIcon(G.src.ImgDir.tree))
-        self.init_data()
+    def get_all_data_items(self):
 
-    def init_model(self):
-        self.view.setModel(self.model)
-        self.model.setHorizontalHeaderLabels(["deckname"])
-        self.view.header().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.init_data()
-        self.view.setColumnWidth(1, 30)
-
-    def init_data(self):
-        self.model.clear()
-        self.model_rootNode = self.model.invisibleRootItem()
-        self.model.setHorizontalHeaderLabels(["deckname"])
-        if self.header.button.text() == self.Header.deck_tree:
-            self.build_deck_tree()
-        else:
-            self.build_deck_list()
-        self.view.expandAll()
-
-    def build_deck_list(self):
-        deck_li: "list[deck_chooser.Id_deck]" = self.get_all_decks()
-        for i in deck_li:
-            item = self.Item(i.deck)
-            item.deck_id = i.ID
-            self.model.appendRow([item])
-        pass
-
-    def build_deck_tree(self):
-        deck_li: "list[deck_chooser.Id_deck]" = self.get_all_decks()
-        deck_dict = G.objs.Struct.TreeNode(self.model_rootNode, {})
-        for i in deck_li:
-            deckname_li = i.deck.split("::")
-            parent = deck_dict
-            while deckname_li:
-                deckname = deckname_li.pop(0)
-                if deckname not in parent.children:
-                    item = self.Item(deckname)
-                    parent.item.appendRow([item])
-                    parent.children[deckname] = G.objs.Struct.TreeNode(item, {})
-                    if not deckname_li:
-                        item.deck_id = i.ID
-                parent = parent.children[deckname]
-
-    def get_full_deck_name(self, item: "deck_chooser.Item"):
-        if self.header.button.text() == self.header.deck_list:
-            return item.text()
-        s = ""
-        parent = item
-        while parent != self.model.invisibleRootItem():
-            s = "::" + parent.deck_name + s
-            parent = parent.parent()
-        s = s[2:]
-        return s
-
-    def get_all_decks(self):
-        if __name__ == "__main__":
-            return [self.Id_deck(*i) for i in [
-                    ['0总库', 1601526645310],
-                    ['0活动', 1602850575642],
-                    ['0活动::0dailynotes', 1604795557392],
-                    ['0活动::0dailynotes::0文章', 1607826406813],
-                    ['0活动::0dailynotes::1随记', 1607828983488],
-                    ['0活动::1短期组', 1604795498696],
-                    ['0活动::2中期组', 1604795524293],
-                    ['0活动::3长期组', 1604795533215],
-                    ['0活动::4手机组', 1605919084022],
-                    ['PDF Review', 1610961897321],
-                    ['废堆', 1602984243504],
-                    ['测试用', 1608350433000],
-                    ['睡眠组', 1604795430927],
-                    ['老友记 Friends', 1610645864792],
-                    ['老友记 Friends::Season 01', 1610645864791],
-                    ['老友记 Friends::Season 01::Episode 01', 1610645864793],
-                    ['考研词汇5500', 1610646719431],
-                    ['考研词汇5500::3 Dictation', 1610646719432],
-                    ['默认', 1]
-            ]
-                    ]
-        else:
-            decks = mw.col.decks
-            return [self.Id_deck(deck=i.name, ID=i.id) for i in decks.all_names_and_ids() if
-                    not decks.is_filtered(i.id)]
-
-    def init_UI(self):
-        self.setWindowTitle("deck_chooser")
-        self.setWindowIcon(QIcon(G.src.ImgDir.box))
-        self.view.setIndentation(8)
-        V_layout = QVBoxLayout(self)
-        V_layout.addWidget(self.header)
-        V_layout.addWidget(self.view)
-        V_layout.addWidget(QLabel(译.双击牌组即可修改卡片所属牌组),stretch=0)
-        V_layout.setStretch(1, 1)
-        V_layout.setStretch(0, 0)
-        self.setLayout(V_layout)
-
-    class Header(QWidget):
-        deck_tree, deck_list = "deck_tree", "deck_list"
-
-        def __init__(self, parent, deckname=""):
-            super().__init__(parent)
-            self.desc = QLabel("current deck|" + deckname, self)
-            self.desc.setWordWrap(True)
-            self.button = QToolButton(self)
-            self.button.setText(self.deck_tree)
-            self.button.setIcon(QIcon(G.src.ImgDir.tree))
-            self.new_dec_button = QToolButton(self)
-            self.new_dec_button.setIcon(QIcon(G.src.ImgDir.item_plus))
-            H_layout = QHBoxLayout(self)
-            H_layout.addWidget(self.desc)
-            H_layout.addWidget(self.new_dec_button)
-            H_layout.addWidget(self.button)
-            H_layout.setStretch(0, 1)
-            H_layout.setStretch(1, 0)
-            self.setLayout(H_layout)
-
-        def set_header_label(self,deckname):
-            self.desc.setText("current deck|" + deckname)
-
-    class Item(QStandardItem):
-        def __init__(self, deck_name):
-            super().__init__(deck_name)
-            self.deck_id: "Optional[int]" = None
-            self.level: "Optional[int]" = None
-            self.setFlags(self.flags() & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsDropEnabled)
-
-        @property
-        def deck_name(self):
-            return self.text()
-
-        def parent(self) -> "deck_chooser.Item":
-            parent = super().parent()
-            if parent:
-                return parent
-            else:
-                return self.model().invisibleRootItem()
-
-    @dataclass
-    class Id_deck:
-        deck: "str"
-        ID: "int"
+        decks = mw.col.decks
+        return [self.Id_name(name=i.name, ID=i.id) for i in decks.all_names_and_ids() if
+                not decks.is_filtered(i.id)]
 
 
 class deck_chooser(DeckSelectorProtoType):
+
+    def __init__(self, pair_li: "list[G.objs.LinkDataPair]" = None, fromview: "AnkiWebView" = None):
+        super().__init__(title_name="deck_chooser",header_name="deck_name")
+        self.fromview: "None|AnkiWebView|Previewer|Reviewer" = fromview
+        self.pair_li = pair_li
+        self.header.set_header_label(self.curr_deck_name)
 
     @property
     def curr_deck_name(self):
@@ -379,15 +397,8 @@ class deck_chooser(DeckSelectorProtoType):
         else:
             return "many cards"
 
-    def __init__(self, pair_li: "list[G.objs.LinkDataPair]" = None, fromview=None):
-        super().__init__(fromview)
-        self.fromview = fromview
-        self.pair_li = pair_li
-        # self.header = self.Header(self, deckname=self.curr_deck_name)
-        self.header.set_header_label(self.curr_deck_name)
-
-
-    def on_item_button_clicked_handle(self, item: "deck_chooser.Item"):
+    def on_view_doubleclicked_handle(self, index):
+        item = self.model.itemFromIndex(index)
         from . import funcs
         # showInfo(self.fromview.__str__())
         DeckId = funcs.Compatible.DeckId()
@@ -399,7 +410,7 @@ class deck_chooser(DeckSelectorProtoType):
             browser = funcs.BrowserOperation.get_browser()
         for pair in self.pair_li:
             set_card_deck(parent=browser, card_ids=[CardId(pair.int_card_id)],
-                          deck_id=DeckId(item.deck_id)).run_in_background()
+                          deck_id=DeckId(item.data_id)).run_in_background()
         browser.showMinimized()
         from ..bilink.dialogs.linkdata_grapher import Grapher
         if isinstance(self.fromview, AnkiWebView):
@@ -408,17 +419,45 @@ class deck_chooser(DeckSelectorProtoType):
         elif isinstance(self.fromview, Grapher):
             self.fromview.activateWindow()
         QTimer.singleShot(100, funcs.LinkPoolOperation.both_refresh)
-        # QTimer.singleShot(100, lambda: funcs.BrowserOperation.search(f"""deck:{self.get_full_deck_name(item)}"""))
         self.close()
 
+
 class view_config_deck_chooser(DeckSelectorProtoType):
-    def __init__(self,):
+    def on_view_doubleclicked_handle(self, index):
+        item:"DeckSelectorProtoType.Item" = self.model.itemFromIndex(index)
+        self.牌组编号 = item.data_id
+        self.close()
+
+    def __init__(self, ):
         super().__init__()
         self.牌组编号 = -1
 
-    def on_item_button_clicked_handle(self, item: "deck_chooser.Item"):
-        self.牌组编号=item.deck_id
+class view_chooser(SelectorProtoType):
+    def on_view_doubleclicked_handle(self, index):
+        item: "DeckSelectorProtoType.Item" = self.model.itemFromIndex(index)
+        self.选中的视图编号 = item.data_id
         self.close()
+        pass
+
+    def on_header_new_item_button_clicked_handle(self):
+        pass
+
+    def on_model_data_changed_handle(self, topLeft, bottomRight, roles):
+        pass
+
+    def on_view_clicked_handle(self, index):
+        pass
+
+    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
+        gview_dict = funcs.GviewOperation.load_all_as_dict()
+        return [self.Id_name(name=data.name, ID=uuid) for uuid,data in gview_dict.items()]
+        pass
+
+    def __init__(self,title_name="", separator="::", header_name="" ):
+        super().__init__(title_name,separator,header_name)
+        self.header.new_item_button.hide()
+        self.选中的视图编号= -1
+
 
 class tag_chooser(QDialog):
     """添加后需要更新内容, 用 init_data_left方法"""
@@ -1709,6 +1748,7 @@ class ConfigWidget:
 
         def NewRowFormWidget(self, 上级, 行: "list[baseClass.ConfigTableView.TableItem]" = None, *args, **kwargs):
             说明 = 译.例子_结点过滤 + "\n" + funcs.GviewConfigOperation.获取eval可用变量与函数的说明()
+
             class edit_widget(baseClass.组件_表格型配置项_列编辑器_可执行字符串):
                 def on_test(self):
                     # noinspection PyBroadException
@@ -1734,7 +1774,8 @@ class ConfigWidget:
         defaultRowData = ["", ""]
 
         def NewRowFormWidget(self, 上级, 行: "list[baseClass.ConfigTableView.TableItem]" = None, *args, **kwargs):
-            说明 = 译.例子_多级排序+"\n"+funcs.GviewConfigOperation.获取eval可用变量与函数的说明()
+            说明 = 译.例子_多级排序 + "\n" + funcs.GviewConfigOperation.获取eval可用变量与函数的说明()
+
             class edit_widget(baseClass.组件_表格型配置项_列编辑器_可执行字符串):
                 def on_test(self):
                     _ = baseClass.枚举命名
@@ -1742,7 +1783,7 @@ class ConfigWidget:
 
                     try:
                         strings = self.布局[子代][0][组件].toPlainText()
-                        literal = eval(strings, {}, {**locals_dict,_.上升:_.上升,_.下降:_.下降})
+                        literal = eval(strings, {}, {**locals_dict, _.上升: _.上升, _.下降: _.下降})
 
                         if type(literal) != list:
                             self.设置说明栏("type error:" + 译.可执行字符串表达式的返回值必须是列表类型)
@@ -1750,7 +1791,7 @@ class ConfigWidget:
                         elif len([tup for tup in literal if len(tup) != 2]) > 0:
                             self.设置说明栏("type error:" + 译.可执行字符串_必须是一个二元元组)
                             return False
-                        elif len([tup for tup in literal if not (tup[0] in locals_dict and tup[1] in [_.上升,_.下降])]) > 0:
+                        elif len([tup for tup in literal if not (tup[0] in locals_dict and tup[1] in [_.上升, _.下降])]) > 0:
                             self.设置说明栏("type error:" + 译.可执行字符串_二元组中的变量名必须是指定名称)
                             return False
                         else:
@@ -1769,6 +1810,7 @@ class ConfigWidget:
 
         def NewRowFormWidget(self, 上级, 行: "list[baseClass.ConfigTableView.TableItem]" = None, *args, **kwargs):
             说明 = 译.例子_加权排序 + "\n" + funcs.GviewConfigOperation.获取eval可用变量与函数的说明()
+
             class edit_widget(baseClass.组件_表格型配置项_列编辑器_可执行字符串):
                 def on_test(self):
                     globals_dict, locals_dict = funcs.GviewConfigOperation.获取eval可用变量与函数()
@@ -1977,29 +2019,46 @@ class ConfigWidget:
             self.ConfigModelItem.value = w.牌组编号
             pass
 
-        # def SetupView(self):
-        #
-        #     pass
-
         def SetupData(self, raw_data):
-            if raw_data!=-1:
+            if raw_data != -1:
                 self.label.setText(mw.col.decks.name(raw_data))
             else:
                 self.label.setText("no default deck")
             pass
+
+    class GlobalConfigDefaultViewChooser(baseClass.ConfigItemLabelView):
+
+        def on_edit_btn_clicked(self):
+
+            w = view_chooser()
+            w.exec()
+            self.SetupData(w.选中的视图编号)
+            self.ConfigModelItem.value = w.选中的视图编号
+            pass
+
+        def SetupData(self, raw_data):
+            if raw_data != -1:
+                self.label.setText(funcs.GviewOperation.load(raw_data).name)
+            else:
+                self.label.setText("no default view")
+            pass
+
+
 # class CustomConfigItemLabelView(baseClass.CustomConfigItemView):
-    #     def __init__(self,配置项,上级):
-    #         super().__init__(配置项,上级)
-    #         self.View =
+#     def __init__(self,配置项,上级):
+#         super().__init__(配置项,上级)
+#         self.View =
 
 
 class ReviewButtonForCardPreviewer:
     def __init__(self, papa, layout: "QGridLayout"):
+        from . import hookers
         from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewer
         self.papa: "SingleCardPreviewer" = papa
         self.ease_button: "dict[int,QPushButton]" = {}
         self.review_buttons = self._create_review_buttons()
         self.due_info = self._create_due_info_widget()
+        self.当完成复习 = hookers.当ReviewButtonForCardPreviewer完成复习()
         layout.addWidget(self.due_info, 0, 0, 1, 1)
         self.initEvent()
 
@@ -2083,6 +2142,7 @@ class ReviewButtonForCardPreviewer:
         G.signals.on_card_answerd.emit(
                 answer(platform=self, card_id=self.card().id, option_num=ease))
         self.update_info()
+        self.当完成复习(self.card().id,ease)
 
     def update_info(self):
         self._update_answer_buttons()

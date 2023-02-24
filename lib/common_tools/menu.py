@@ -83,6 +83,7 @@ def make__open_GViewAdmin(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs)
         M.addAction(Translate.打开视图管理器).triggered.connect(common_tools.funcs.Dialogs.open_GviewAdmin)
 
 
+
 # def make__group_review_operation(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
 #     if atype in {T.browser} and common_tools.funcs.Config.get().group_review.value == True:
 #         view: "Browser" = args[0]
@@ -303,7 +304,14 @@ def make__open_grapher(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
                                                         mode=GraphMode.view_mode, gviewdata=x), viewdata_L))
     elif atype in {T.mainwin}:
         M = get_browser_menu(args[0]) if atype == T.browser else get_mainWin_menu()
-        M.addAction(Translate.图形化双链操作界面).triggered.connect(lambda: funcs.Dialogs.open_grapher())
+        M.addAction(Translate.图形化双链操作界面).triggered.connect(funcs.Dialogs.open_grapher)
+
+def make__open_default_view(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
+    if atype in {T.browser, T.mainwin}:
+        M = get_browser_menu(args[0]) if atype == T.browser else get_mainWin_menu()
+        M.addAction(Translate.打开默认视图).triggered.connect(common_tools.funcs.GviewOperation.打开默认视图)
+        M.addAction(Translate.打开默认漫游复习).triggered.connect(common_tools.funcs.GviewOperation.打开默认漫游复习)
+
 
 
 make_list = [globals()[name] for name in globals() if name.startswith("make__")]

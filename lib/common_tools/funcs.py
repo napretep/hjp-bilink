@@ -19,7 +19,7 @@ from urllib.parse import quote
 import uuid
 from collections import Sequence
 from datetime import datetime, timedelta
-import time,math
+import time, math
 # from math import ceil
 from typing import Union, Optional, NewType, Callable, List, Iterable, Type, Any
 import json
@@ -125,16 +125,41 @@ class MenuMaker:
 class GviewOperation:
 
     @staticmethod
+    def 设为默认视图(uuid):
+        cfg = Config.get()
+        cfg.set_default_view.value=uuid
+        cfg.save_to_file(G.src.path.userconfig)
+
+
+    @staticmethod
+    def 打开默认视图():
+        cfg = Config.get()
+        if cfg.set_default_view.value != -1:
+            Dialogs.open_view(gviewdata=GviewOperation.load(uuid=cfg.set_default_view.value))
+        else:
+            showInfo(译.请先设定默认视图)
+
+    @staticmethod
+    def 打开默认漫游复习():
+        cfg = Config.get()
+        if cfg.set_default_view.value != -1:
+            GviewOperation.打开默认视图()
+            from ..bilink.dialogs.linkdata_grapher import Grapher
+            view: Grapher = G.mw_gview[cfg.set_default_view.value]
+            view.toolbar.openRoaming()
+        else:
+            showInfo(译.请先设定默认视图)
+
+    @staticmethod
     def 判断视图已经打开(视图编号):
         """判断且直接返回"""
         from ..bilink.dialogs.linkdata_grapher import Grapher
 
-        if 视图编号 in G.mw_gview and isinstance(G.mw_gview[视图编号],Grapher):
-            视图窗口:Grapher = G.mw_gview[视图编号]
+        if 视图编号 in G.mw_gview and isinstance(G.mw_gview[视图编号], Grapher):
+            视图窗口: Grapher = G.mw_gview[视图编号]
             return 视图窗口
         else:
             return None
-
 
     @staticmethod
     def 更新卡片到期时间(卡片编号):
@@ -142,9 +167,10 @@ class GviewOperation:
         for 视图数据 in 视图数据集:
             视图窗口 = GviewOperation.判断视图已经打开(视图数据.uuid)
             if 视图窗口:
-                视图窗口.data.node_dict[卡片编号].due = GviewOperation.判断结点已到期(视图数据,卡片编号)
+                视图窗口.data.node_dict[卡片编号].due = GviewOperation.判断结点已到期(视图数据, 卡片编号)
 
         pass
+
     @staticmethod
     def 重命名(视图数据: GViewData, 新名字):
         视图数据.name = 新名字
@@ -191,7 +217,7 @@ class GviewOperation:
     @staticmethod
     def 设定视图结点描述(视图数据: GViewData, 结点编号, 设定内容):
         视图类型 = 视图数据.nodes[结点编号].数据类型.值
-        Utils.print(结点编号,设定内容)
+        Utils.print(结点编号, 设定内容)
         if 视图类型 == 枚举_视图结点类型.卡片:
             CardOperation.desc_save(结点编号, 设定内容)
             CardOperation.refresh()
@@ -200,7 +226,7 @@ class GviewOperation:
             结点对应视图.name = 设定内容
             GviewOperation.save(结点对应视图)
         if GviewOperation.判断视图已经打开(视图数据.uuid):
-            视图数据.nodes.data[结点编号][字典键名.结点.描述]=设定内容
+            视图数据.nodes.data[结点编号][字典键名.结点.描述] = 设定内容
 
     @staticmethod
     def 获取视图结点描述(视图数据: "GViewData", 结点编号, 全部内容=False):
@@ -278,9 +304,10 @@ class GviewOperation:
     @staticmethod
     def 刷新所有已打开视图的配置():
         from ..bilink.dialogs.linkdata_grapher import Grapher
-        for 视图编号,视图窗口 in G.mw_gview.items():
-            if isinstance(视图窗口,Grapher):
+        for 视图编号, 视图窗口 in G.mw_gview.items():
+            if isinstance(视图窗口, Grapher):
                 视图窗口.data.gview_config = GviewConfigOperation.从数据库读(视图窗口.data.gviewdata.config)
+
     @staticmethod
     def fuzzy_search(search_string: str):
         """在GRAPH_VIEW , GRAPH_VIEW_CACHE 两个表中做模糊搜索, 将用户的空格替换成通配符"""
@@ -311,7 +338,7 @@ class GviewOperation:
             DB = G.DB.go(G.DB.table_Gview)
 
             if DB.exists(Logic.EQ(uuid=data.uuid)):
-                DB.update(values=Logic.LET(**prepare_data),where=Logic.EQ(uuid=data.uuid)).commit()
+                DB.update(values=Logic.LET(**prepare_data), where=Logic.EQ(uuid=data.uuid)).commit()
             else:
                 DB.insert(**prepare_data).commit()
             return
@@ -370,7 +397,7 @@ class GviewOperation:
         return records
 
     @staticmethod
-    def load_all_as_dict():
+    def load_all_as_dict()->"dict[str,GViewData]":
         DB = G.DB
         DB.go(DB.table_Gview)
         DB.excute_queue.append(DB.sqlstr_RECORD_SELECT_ALL.format(tablename=DB.tab_name))
@@ -390,9 +417,8 @@ class GviewOperation:
     def 找到结点所属视图(结点编号):
         结点编号 = 结点编号.card_id if isinstance(结点编号, LinkDataPair) else 结点编号
         DB = G.DB
-        视图记录集 = DB.go(DB.table_Gview).select(DB.LIKE("nodes",结点编号)).return_all().zip_up().to_gview_record()
+        视图记录集 = DB.go(DB.table_Gview).select(DB.LIKE("nodes", 结点编号)).return_all().zip_up().to_gview_record()
         return [视图记录.to_GviewData() for 视图记录 in 视图记录集]
-
 
     @staticmethod
     def find_by_card(pairli: 'list[LinkDataPair|str]') -> 'set[GViewData]':
@@ -532,19 +558,16 @@ class GviewOperation:
         模型 = models.类型_视图结点模型()
         默认值模板 = {}
         for 名字 in 模型.__dict__:
-            if isinstance(模型.__dict__[名字],models.类型_视图结点属性项):
-                属性:models.类型_视图结点属性项 = 模型.__dict__[名字]
+            if isinstance(模型.__dict__[名字], models.类型_视图结点属性项):
+                属性: models.类型_视图结点属性项 = 模型.__dict__[名字]
                 if 属性.从上级读数据:
-                    默认值模板[属性.字段名]=属性.默认值
+                    默认值模板[属性.字段名] = 属性.默认值
         新值 = Utils.字典缺省值填充器(默认值模板, 数据)
-        if 编号 :
+        if 编号:
             新值[_.结点.描述] = CardOperation.desc_extract(编号) if 结点类型 == 枚举_视图结点类型.卡片 else GviewOperation.获取视图名字(编号)
         新值[_.结点.数据类型] = 结点类型
         # 新值[_.结点.描述] = GviewOperation.获取视图结点描述()
         return 新值
-
-
-
 
 
 class Utils(object):
@@ -564,7 +587,6 @@ class Utils(object):
         @staticmethod
         def exists():
             return os.path.exists(G.src.path.logtext)
-
 
     # @staticmethod
     # def 主动备份():
@@ -756,7 +778,6 @@ class Utils(object):
             # time.mktime((现在.tm_year,现在.tm_mon,现在.tm_mday-现在.tm_wday,0,0,0,0,0,0))
 
 
-
 class 组件定制:
 
     @staticmethod
@@ -855,7 +876,7 @@ class 组件定制:
 
     @staticmethod
     def 长文本说明(内容=None):
-        文本 ="""
+        文本 = """
 <!DOCTYPE html>
 <html>
 <head>
@@ -877,7 +898,7 @@ line-height: 1.6;
 </style>
 </head>
 <body class="vscode-body vscode-light">
-"""+内容+"""
+""" + 内容 + """
 </body>
 </html>
         """
@@ -886,6 +907,8 @@ line-height: 1.6;
         文本框.setHtml(文本)
         主窗口.setCentralWidget(文本框)
         return 主窗口
+
+
 #
 # # 2023年2月15日23:42:11 砍掉 group_review功能, 全部相关代码被注释掉.
 # # class GroupReview(object):
@@ -1116,17 +1139,16 @@ class BaseConfig(metaclass=abc.ABCMeta):
 
 
 class IntroductionOperation:
+    pass
 
 
-
-        pass
-    #
-    # @staticmethod
-    # def eval可用函数的说明():
-    #     _=字典键名.时间
-    #     return {
-    #
-    #     }
+#
+# @staticmethod
+# def eval可用函数的说明():
+#     _=字典键名.时间
+#     return {
+#
+#     }
 
 
 class GviewConfigOperation(BaseConfig):
@@ -1143,8 +1165,9 @@ class GviewConfigOperation(BaseConfig):
             return role_enum
         else:
             return []
+
     @staticmethod
-    def 获取结点角色名(视图数据:GViewData,结点编号):
+    def 获取结点角色名(视图数据: GViewData, 结点编号):
         角色序号 = 视图数据.nodes[结点编号].角色.值
         if 角色序号 < 0:
             return ""
@@ -1152,16 +1175,16 @@ class GviewConfigOperation(BaseConfig):
             return ""
         else:
             角色列表 = GviewConfigOperation.从数据库读(视图数据.config).data.node_role_list.value
-            if 角色序号>=len(角色列表):
+            if 角色序号 >= len(角色列表):
                 视图数据.nodes[结点编号].角色.设值(-1)
                 return ""
             else:
                 return 角色列表[角色序号]
 
     @staticmethod
-    def 漫游路径生成之深度优先遍历(视图数据:GViewData,结点队列:"list[str]",起点:"list[str]"):
+    def 漫游路径生成之深度优先遍历(视图数据: GViewData, 结点队列: "list[str]", 起点: "list[str]"):
         Utils.print("深度优先排序开始")
-        栈=[]
+        栈 = []
         结点集 = set(结点队列)
         已访问 = []
         边集 = 视图数据.edges.keys()
@@ -1176,11 +1199,12 @@ class GviewConfigOperation(BaseConfig):
                     终点 = 边.split(",")[1]
                     if 终点 not in 已访问 and 终点 not in 栈:
                         栈.append(终点)
-            结点集-=set(已访问)
+            结点集 -= set(已访问)
         return 已访问
         pass
+
     @staticmethod
-    def 漫游路径生成之广度优先遍历(视图数据:GViewData,结点队列:"list[str]",起点:"list[str]"):
+    def 漫游路径生成之广度优先遍历(视图数据: GViewData, 结点队列: "list[str]", 起点: "list[str]"):
         队 = []
         结点集 = set(结点队列)
         已访问 = []
@@ -1200,41 +1224,42 @@ class GviewConfigOperation(BaseConfig):
             结点集 -= set(已访问)
         return 已访问
         pass
+
     @staticmethod
-    def 漫游路径生成之多级排序(前一项,后一项,视图数据:GViewData,排序表:"List[Iterable[str,str]]"):
+    def 漫游路径生成之多级排序(前一项, 后一项, 视图数据: GViewData, 排序表: "List[Iterable[str,str]]"):
         """默认升序排序,默认的比较是 前一项>后一项"""
-        前一项结点数据,后一项结点数据=视图数据.nodes[前一项],视图数据.nodes[后一项]
+        前一项结点数据, 后一项结点数据 = 视图数据.nodes[前一项], 视图数据.nodes[后一项]
         _ = 字典键名
-        for 排序字段,升降序 in 排序表:
-            if 前一项结点数据[排序字段].值==后一项结点数据[排序字段].值:
+        for 排序字段, 升降序 in 排序表:
+            if 前一项结点数据[排序字段].值 == 后一项结点数据[排序字段].值:
                 continue
             else:
-                return (前一项结点数据[排序字段].值-后一项结点数据[排序字段].值)*(1 if 升降序==_.上升 else -1)
+                return (前一项结点数据[排序字段].值 - 后一项结点数据[排序字段].值) * (1 if 升降序 == _.上升 else -1)
         return 0
         pass
 
     @staticmethod
-    def 漫游路径生成之加权排序(前一项,后一项,视图数据:GViewData,排序公式):
-        return eval(排序公式,*GviewConfigOperation.获取eval可用变量与函数(视图数据,前一项)) - eval(排序公式,*GviewConfigOperation.获取eval可用变量与函数(视图数据,后一项))
+    def 漫游路径生成之加权排序(前一项, 后一项, 视图数据: GViewData, 排序公式):
+        return eval(排序公式, *GviewConfigOperation.获取eval可用变量与函数(视图数据, 前一项)) - eval(排序公式, *GviewConfigOperation.获取eval可用变量与函数(视图数据, 后一项))
 
     @staticmethod
-    def 漫游路径生成(视图数据:GViewData,配置数据:objs.Record.GviewConfig,队列:"list[str]"):
+    def 漫游路径生成(视图数据: GViewData, 配置数据: objs.Record.GviewConfig, 队列: "list[str]"):
         _ = 字典键名.路径生成模式
         if not 视图数据.config:
             raise ValueError('config is None')
         生成模式 = 配置数据.data.roaming_path_mode.value
-        if  生成模式 == _.随机排序:
+        if 生成模式 == _.随机排序:
             random.shuffle(队列)
             return 队列
-        elif 生成模式==_.多级排序:
-            待选表,选中序号 = 配置数据.data.cascading_sort.value
-            排序表:"List[Iterable[str,str]]" = eval(待选表[选中序号]) if 选中序号>=0 else [[字典键名.结点.优先级,字典键名.下降]]
-            队列.sort(key=cmp_to_key(lambda x,y:GviewConfigOperation.漫游路径生成之多级排序(x,y,视图数据,排序表)))
+        elif 生成模式 == _.多级排序:
+            待选表, 选中序号 = 配置数据.data.cascading_sort.value
+            排序表: "List[Iterable[str,str]]" = eval(待选表[选中序号]) if 选中序号 >= 0 else [[字典键名.结点.优先级, 字典键名.下降]]
+            队列.sort(key=cmp_to_key(lambda x, y: GviewConfigOperation.漫游路径生成之多级排序(x, y, 视图数据, 排序表)))
             return 队列
-        elif 生成模式==_.加权排序:
+        elif 生成模式 == _.加权排序:
             待选表, 选中序号 = 配置数据.data.weighted_sort.value
-            公式 = 待选表[选中序号] if 选中序号>=0 else f"{字典键名.结点.优先级}"
-            队列.sort(key=cmp_to_key(lambda x,y:GviewConfigOperation.漫游路径生成之加权排序(x,y,视图数据,公式)),reverse=True)
+            公式 = 待选表[选中序号] if 选中序号 >= 0 else f"{字典键名.结点.优先级}"
+            队列.sort(key=cmp_to_key(lambda x, y: GviewConfigOperation.漫游路径生成之加权排序(x, y, 视图数据, 公式)), reverse=True)
             return 队列
         else:
             Utils.print("图排序开始")
@@ -1242,30 +1267,31 @@ class GviewConfigOperation(BaseConfig):
             开始结点 = [random.choice(队列)]
             if 配置数据.data.roamingStart.value == 字典键名.视图配置.roamingStart.手动选择卡片开始:
                 可能的开始结点 = [结点编号 for 结点编号 in 队列 if 视图数据.nodes[结点编号].漫游起点.值]
-                if len(可能的开始结点)>0:
-                    开始结点=可能的开始结点
+                if len(可能的开始结点) > 0:
+                    开始结点 = 可能的开始结点
             if 图排序模式 == 字典键名.视图配置.图排序模式.广度优先遍历:
-                return GviewConfigOperation.漫游路径生成之广度优先遍历(视图数据,队列,开始结点)
+                return GviewConfigOperation.漫游路径生成之广度优先遍历(视图数据, 队列, 开始结点)
             else:
-                return GviewConfigOperation.漫游路径生成之深度优先遍历(视图数据,队列,开始结点)
+                return GviewConfigOperation.漫游路径生成之深度优先遍历(视图数据, 队列, 开始结点)
 
     @staticmethod
-    def 满足过滤条件(视图数据:GViewData,结点编号:"str",配置数据:objs.Record.GviewConfig):
+    def 满足过滤条件(视图数据: GViewData, 结点编号: "str", 配置数据: objs.Record.GviewConfig):
         """传到这里的参数, 必须满足视图数据.config存在"""
         if not 视图数据.config:
             raise ValueError('config is None')
-        列表,选项 = 配置数据.data.roaming_node_filter.value
+        列表, 选项 = 配置数据.data.roaming_node_filter.value
         结点数据 = 视图数据.nodes[结点编号]
         if 结点数据.必须复习.值:
             return True
         elif not 结点数据.需要复习.值:
             return False
-        elif 选项==-1:
-            全局,局部 = GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号)
-            return eval(字典键名.结点.已到期,全局,局部)
+        elif 选项 == -1:
+            全局, 局部 = GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号)
+            return eval(字典键名.结点.已到期, 全局, 局部)
         else:
             return eval(列表[选项], *GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号))
         pass
+
     @staticmethod
     def 获取eval可用变量与函数的说明(指定变量类型=None):
         from . import models
@@ -1277,30 +1303,29 @@ class GviewConfigOperation(BaseConfig):
 
         _ = 字典键名
         for 属性名 in 结点属性模型.获取可访变量(指定变量类型).keys():
-            说明 +=fr"<p><b>{属性名}</b>,{结点属性模型[属性名].变量使用的解释()}</p>"
+            说明 += fr"<p><b>{属性名}</b>,{结点属性模型[属性名].变量使用的解释()}</p>"
         for 属性名 in 视图属性模型.获取可访变量(指定变量类型).keys():
             说明 += fr"<p><b>{属性名}</b>,{视图属性模型[属性名].变量使用的解释()}</p>"
-        说明+=f"<p><b>{_.视图配置.结点角色表}</b>,mean:{译.角色待选列表},type:list,example:['apple','banana']</p>"
-        说明+=f"<p><b>time_xxxx</b>,{译.所有time开头的变量都是时间戳}:{', '.join([_.时间.今日  ,_.时间.昨日  ,_.时间.上周  ,_.时间.本周  ,_.时间.一个月前,_.时间.本月  ,_.时间.三天前 ,_.时间.三个月前,_.时间.六个月前])}</p>"
-        说明+=f"<p><b>{_.时间.转时间戳}</b>,example:to_timestamp('2023-2-18')->1676649600</p>"
-        说明+=f"<p><b>supported python module:</b> math,random,re</p>"
+        说明 += f"<p><b>{_.视图配置.结点角色表}</b>,mean:{译.角色待选列表},type:list,example:['apple','banana']</p>"
+        说明 += f"<p><b>time_xxxx</b>,{译.所有time开头的变量都是时间戳}:{', '.join([_.时间.今日, _.时间.昨日, _.时间.上周, _.时间.本周, _.时间.一个月前, _.时间.本月, _.时间.三天前, _.时间.三个月前, _.时间.六个月前])}</p>"
+        说明 += f"<p><b>{_.时间.转时间戳}</b>,example:to_timestamp('2023-2-18')->1676649600</p>"
+        说明 += f"<p><b>supported python module:</b> math,random,re</p>"
         return BeautifulSoup(说明, "html.parser").__str__()
-
 
     @staticmethod
     def 获取eval可用函数():
-        _=字典键名.时间
+        _ = 字典键名.时间
         return {
-                _.转时间戳   : Utils.日期转时间戳,
-                _.今日       : Utils.时间处理.今日(),
-                _.昨日      : Utils.时间处理.昨日(),
-                _.上周      : Utils.时间处理.上周(),
-                _.本周      : Utils.时间处理.本周(),
-                _.一个月前    : Utils.时间处理.一个月前(),
-                _.本月    : Utils.时间处理.本月(),
-                _.三天前  : Utils.时间处理.三天前(),
+                _.转时间戳: Utils.日期转时间戳,
+                _.今日  : Utils.时间处理.今日(),
+                _.昨日  : Utils.时间处理.昨日(),
+                _.上周  : Utils.时间处理.上周(),
+                _.本周  : Utils.时间处理.本周(),
+                _.一个月前: Utils.时间处理.一个月前(),
+                _.本月  : Utils.时间处理.本月(),
+                _.三天前 : Utils.时间处理.三天前(),
                 _.三个月前: Utils.时间处理.三个月前(),
-                _.六个月前  : Utils.时间处理.六个月前(),
+                _.六个月前: Utils.时间处理.六个月前(),
         }
 
     @staticmethod
@@ -1315,20 +1340,19 @@ class GviewConfigOperation(BaseConfig):
         from . import models
         _ = baseClass.枚举命名
         new_globals = globals().copy()
-        结点变量 =(models.类型_视图结点模型().获取可访变量(指定变量类型=指定变量类型) if not 视图数据 else 视图数据.nodes[结点索引].获取可访变量(指定变量类型=指定变量类型))
-        视图变量 =(models.类型_视图本身模型().获取可访变量(指定变量类型=指定变量类型) if not 视图数据 else 视图数据.meta_helper.获取可访变量(指定变量类型=指定变量类型))
+        结点变量 = (models.类型_视图结点模型().获取可访变量(指定变量类型=指定变量类型) if not 视图数据 else 视图数据.nodes[结点索引].获取可访变量(指定变量类型=指定变量类型))
+        视图变量 = (models.类型_视图本身模型().获取可访变量(指定变量类型=指定变量类型) if not 视图数据 else 视图数据.meta_helper.获取可访变量(指定变量类型=指定变量类型))
         配置变量 = eval(GviewConfigOperation.从数据库读(视图数据.config).data.node_role_list.value) if 视图数据 and 视图数据.config else []
         函数变量 = GviewConfigOperation.获取eval可用函数()
         变量对儿 = [new_globals,
-                    {
-                            **结点变量,
-                            **视图变量,
-                            **函数变量,
-                            _.视图配置.结点角色表:配置变量
-                    }
+                {
+                        **结点变量,
+                        **视图变量,
+                        **函数变量,
+                        _.视图配置.结点角色表: 配置变量
+                }
                 ]
         return 变量对儿
-
 
     @staticmethod
     def 从数据库读(标识):
@@ -1348,7 +1372,7 @@ class GviewConfigOperation(BaseConfig):
     def 存在(标识):
         if not 标识:
             return False
-        DB= G.DB
+        DB = G.DB
         return DB.go(DB.table_GviewConfig).exists(DB.EQ(uuid=标识))
 
     @staticmethod
@@ -1397,7 +1421,6 @@ class GviewConfigOperation(BaseConfig):
         GviewOperation.save(视图记录)
         Utils.print("assign view over ", need_logFile=True)
 
-
     @staticmethod
     def 移除视图配置(视图标识: "str", 配置标识: "str"):
         视图模型 = GviewOperation.load(uuid=视图标识)
@@ -1417,8 +1440,6 @@ class GviewConfigOperation(BaseConfig):
         """)
         result = G.DB.commit()
         return list(result)
-
-
 
     pass
 
@@ -1476,11 +1497,12 @@ class GrapherOperation:
     @staticmethod
     def 判断视图已经打开():
         from .graphical_bilinker import VisualBilinker
-        if isinstance(G.mw_grapher,VisualBilinker):
-            bilinker:VisualBilinker=G.mw_grapher
+        if isinstance(G.mw_grapher, VisualBilinker):
+            bilinker: VisualBilinker = G.mw_grapher
             return bilinker
         else:
             return None
+
     @staticmethod
     def refresh():
         from ..bilink.dialogs.linkdata_grapher import Grapher
@@ -1556,7 +1578,6 @@ class GlobalLinkDataOperation:
 
         cardA = card_idA if isinstance(card_idA, LinkDataJSONInfo) else linkdata_admin.read_card_link_info(card_idA)
         cardB = card_idB if isinstance(card_idB, LinkDataJSONInfo) else linkdata_admin.read_card_link_info(card_idB)
-
 
         if cardB.self_data in cardA.link_list:
             cardA.remove_link(cardB.self_data)
@@ -1773,31 +1794,30 @@ class CardOperation:
 
     @staticmethod
     def 描述更新(card_id):
-        最新描述=CardOperation.desc_extract(card_id)
+        最新描述 = CardOperation.desc_extract(card_id)
         含card_id视图集 = GviewOperation.find_by_card([card_id])
         for 视图数据 in 含card_id视图集:
-            视图窗口=GviewOperation.判断视图已经打开(视图数据.uuid)
+            视图窗口 = GviewOperation.判断视图已经打开(视图数据.uuid)
             if 视图窗口:
-
-                视图窗口.data.gviewdata.设置结点属性(card_id,字典键名.结点.描述,最新描述)
+                视图窗口.data.gviewdata.设置结点属性(card_id, 字典键名.结点.描述, 最新描述)
         图形助手窗口 = GrapherOperation.判断视图已经打开()
         if 图形助手窗口 and card_id in 图形助手窗口.data.node_dict:
             图元 = 图形助手窗口.data.node_dict[card_id]
             图元.desc = 最新描述
 
-
     @staticmethod
     def 判断卡片被独立窗口预览(card_id):
         结果 = None
         from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewer
-        if card_id in G.mw_card_window and isinstance(G.mw_card_window[card_id],SingleCardPreviewer):
-            结果:SingleCardPreviewer= G.mw_card_window[card_id]
+        if card_id in G.mw_card_window and isinstance(G.mw_card_window[card_id], SingleCardPreviewer):
+            结果: SingleCardPreviewer = G.mw_card_window[card_id]
         return 结果
+
     @staticmethod
     def 删除不存在的结点(结点编号集: "list[str]"):
         Gview = GviewOperation
         Card = CardOperation
-        DB= G.DB
+        DB = G.DB
         DB.go(DB.table_linkinfo)
         for 结点编号 in 结点编号集:
             视图数据集 = Gview.找到结点所属视图(结点编号)
@@ -1813,8 +1833,8 @@ class CardOperation:
                 卡片独立窗口 = Card.判断卡片被独立窗口预览(结点编号)
                 if 卡片独立窗口:
                     卡片独立窗口.close()
-            # if DB.exists(DB.EQ(card_id=结点编号)):
-            #     全局链接数据 = DB.select()
+                # if DB.exists(DB.EQ(card_id=结点编号)):
+                #     全局链接数据 = DB.select()
                 # 数字类型的必然是卡片, 是卡片就要考虑他有没有全局链接数据
 
                 pass
@@ -2799,6 +2819,10 @@ class Dialogs:
         tooltip("完成")
 
         pass
+
+    @staticmethod
+    def open_view(gviewdata: "GViewData" = None,need_activate=True,mode=GraphMode.view_mode,):
+        Dialogs.open_grapher(gviewdata=gviewdata,mode=mode)
 
     @staticmethod
     def open_grapher(pair_li: "list[G.objs.LinkDataPair|str]" = None, need_activate=True, gviewdata: "GViewData" = None,

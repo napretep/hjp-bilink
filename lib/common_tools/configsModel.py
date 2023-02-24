@@ -269,8 +269,9 @@ class GViewData:
             self.上级.nodes[结点编号][本.结点.访问次数].设值(1+self.上级.nodes[结点编号][本.结点.访问次数].值)
             self.保存视图数据()
 
-
-
+        def 结点复习发生(self,结点编号):
+            self.上级.nodes[结点编号][本.结点.上次复习]=(int(time.time()))
+            self.保存视图数据()
 
 @dataclass
 class GraphMode:
@@ -870,6 +871,13 @@ text-decoration:none;""",
             component=ConfigModel.Widget.customize,
             customizeComponent=lambda: widgets.ConfigWidget.PDFUrlLinkBooklist,
             tab_at=Translate.pdf链接,
+    ))
+    set_default_view: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_设定默认视图],
+            value=-1,
+            component=ConfigModel.Widget.customize,
+            customizeComponent=lambda: widgets.ConfigWidget.GlobalConfigDefaultViewChooser,
+            tab_at="view"
     ))
 
     # PDFUrlLink_path_arg:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(

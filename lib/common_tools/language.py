@@ -356,9 +356,11 @@ The final result is sorted by default in descending order of the calculated weig
     说明_结点描述 = 翻译(zh="结点名称是与视图无关的属性, 你在任何地方修改结点名称都会导致所有视图中含有该对象的名称被同步改变,若结点类型为视图,则结点名称就是这个视图的名称, 若结点类型为卡片, 则结点名称是从卡片中提取的, 卡片结点的名称提取方法可以在全局设置中修改",
                  en="The node name is a view-independent property, where you change the node name anywhere, the name of the object in all views will be changed simultaneously, if the node type is a view, then the node name is the name of the view, if the node type is a card, then the node name is extracted from the card, the method of extracting the name of the card node can be changed in the global settings")
     结点描述 = 翻译(zh="结点名称",en="node name")
-    上次复习 = 翻译(zh="上次复习",en="last review")
-    说明_上次复习 = 翻译(zh="卡片的上次复习时间是与视图无关的, 任何地方只要你点过复习按钮, 点击按钮的时间就会计算为上次复习时间",
-                 en="The last review time of the card is view independent, anywhere you click the review button, the time you click the button will be counted as the last review time")
+    结点上次复习 = 翻译(zh="结点上次复习",en="node last review")
+    全局上次复习 = 翻译("全局上次复习","global last review")
+    说明_结点上次复习=翻译("结点的上次复习时间与视图有关,在你的每次漫游复习中更新","The last review time of the node is related to the view, and is updated in each of your roaming reviews")
+    说明_全局上次复习 = 翻译(zh="卡片的全局上次复习时间是与视图无关的,与anki自身的复习系统有关",
+                 en="The global last review time of the card is not related to the view, but to anki's own review system")
     到达结点的边的数量 = 翻译(zh="到达结点的边的数量", en="Number of edges that reach the node")
     从结点出发的边的数量 = 翻译(zh="从结点出发的边的数量",en="Number of edges from the node")
     结点入度 = 翻译(zh="结点入度", en="node in-degree")
@@ -726,5 +728,10 @@ Default filter rule: is_due
     结点角色名= 翻译("结点角色名","node role name")
     说明_结点角色名=翻译(f"结点角色名无法在结点属性中修改,如果想更改角色名, 请到视图的配置表中修改{枚举.视图配置.结点角色表}",f"The node role name cannot be changed in the node properties, if you want to change the role name, please go to the configuration table of the view. {枚举.视图配置.结点角色表}")
     说明_新增卡片指定存放牌组=翻译("当你新增卡片时,在此处指定默认要存放的牌组,如果为空则根据anki默认的指定方式","When you add a card, specify the default deck to be stored here, or if it is empty, specify it according to the anki default")
+    打开默认视图 = 翻译("打开默认视图","open default view")
+    打开默认漫游复习 = 翻译("打开默认漫游复习","open default roaming")
+    说明_设定默认视图=翻译(f"设定mainwindow中{打开默认视图}和{打开默认漫游复习}这两个菜单所对应的视图")
+    请先设定默认视图=翻译(f"请先设定默认视图","Please set the default view first")
+    设为默认视图 = 翻译("设为默认视图","set as default view")
 if __name__ == "__main__":
     print(Translate.打开配置表)

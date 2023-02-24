@@ -31,6 +31,7 @@ class 枚举命名:
         出度 = "node_out_degree"
         入度 = "node_in_degree"
         数据源 = "node_role_list" #角色数据源用于提供角色的选择范围
+        全局上次复习= "global_last_review"
         上次复习 = "node_last_review"
         名称 = "node_name"
         描述 = "node_desc"
