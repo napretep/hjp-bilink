@@ -72,6 +72,7 @@ def ankiaddon_make(version):
         os.remove(filename)
     os.rename(zip_name, filename)
     print(f"{version}构建完成!")
+    os.startfile(repository)
     pass
 
 

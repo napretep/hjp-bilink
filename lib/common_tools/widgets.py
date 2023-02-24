@@ -2201,6 +2201,7 @@ class 自定义组件:
                 """根据配置中的安排加载对应的多选框"""
                 self.ui组件 = QComboBox()
                 self.待选角色表 = []
+                self.布局 = QHBoxLayout()
                 self.初始化UI()
                 self.UI赋值()
                 self.初始化事件()
@@ -2208,7 +2209,8 @@ class 自定义组件:
                 pass
 
             def 初始化UI(self):
-
+                self.布局.addWidget(self.ui组件)
+                self.setLayout(self.布局)
                 pass
 
             def UI赋值(self):

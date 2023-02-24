@@ -666,12 +666,15 @@ class Utils(object):
         return int(time.mktime(time.strptime(日期, "%Y-%m-%d")))
 
     @staticmethod
-    def 大文本提示框(文本):
+    def 大文本提示框(文本,取消模态=False):
         _ = 字典键名.砖
 
         组合 = {_.框: QHBoxLayout(), _.子: [{_.件: QWebEngineView()}]}
         组合[_.子][0][_.件].setHtml(Utils.html默认格式(文本))
         对话框: QDialog = 组件定制.组件组合(组合, QDialog())
+        if 取消模态:
+            对话框.setModal(False)
+            对话框.setWindowModality(Qt.NonModal)
         对话框.exec()
         pass
 
@@ -843,6 +846,7 @@ class 组件定制:
     @staticmethod
     def 文本框(文本="", 开启自动换行=None):
         组件 = QLabel(文本)
+        组件.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
         if 开启自动换行:
             组件.setWordWrap(True)
         return 组件

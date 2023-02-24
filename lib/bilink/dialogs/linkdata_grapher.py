@@ -97,6 +97,7 @@ class Grapher(QMainWindow):
         ]).bind()
         self.init_graph_item()
         self.data.gviewdata.数据更新.视图访问发生()
+        QShortcut(Qt.Key.Key_Delete, self).activated.connect(self.toolbar.deleteItem)
 
     def 自身属性查看器(self):
         self.data.gviewdata.meta_helper.创建UI(funcs.组件定制.对话窗口(标题="info of view",最大宽度=600)).exec()
@@ -618,6 +619,8 @@ class Grapher(QMainWindow):
             self.draw_line_start_item: "Optional[Grapher.ItemRect]" = None
             self.draw_line_end_item: "Optional[Grapher.ItemRect]" = None
 
+
+
         def centerOn(self, pos: "Union[QPoint]" = None, item: "QGraphicsItem" = None):
             """居中显示"""
             assert pos is not None or item is not None
@@ -721,6 +724,13 @@ class Grapher(QMainWindow):
             self.superior.data.state.mouseRightClicked = False
             self.superior.data.state.mouseIsMovingAndLeftClicked = False
             self.superior.data.state.mouseIsMovingAndRightClicked = False
+            选中结点 = self.superior.selected_nodes()
+            if 选中结点:
+                for 结点 in 选中结点:
+                    for 边 in 结点.node.edges:
+                        边.item.update_line()
+                    for 边 in 结点.node.inver_edges:
+                        边.item.update_line()
 
             # self.superior.data.mouse_moved = False
             # self.Auxiliary_line.hide()
@@ -778,6 +788,8 @@ class Grapher(QMainWindow):
         def __init__(self,superior):
             super().__init__(superior)
             self.superior:Grapher = superior
+
+
 
         # def addItem(self, item: "Grapher.ItemRect|Grapher.ItemEdge"):
         #     super().addItem(item)
@@ -1247,15 +1259,15 @@ class Grapher(QMainWindow):
         def deleteItem(self):  # 0=rect,1=line
             rectItem: "list[Grapher.ItemRect]" = [item for item in self.superior.scene.selectedItems() if isinstance(item, Grapher.ItemRect)]
             lineItem: "list[Grapher.ItemEdge]" = [item for item in self.superior.scene.selectedItems() if isinstance(item, Grapher.ItemEdge)]
-
-            code = QMessageBox.information(self, 译.你将删除这些结点,译.你将删除这些结点, QMessageBox.Yes | QMessageBox.No)
-            if code == QMessageBox.Yes:
-                if len(rectItem) > 0:
-                    for item in rectItem:
-                        self.deleteRectItem(item)
-                if len(lineItem) > 0:
-                    for item in lineItem:
-                        self.deleteEdgeItem(item)
+            if rectItem or lineItem:
+                code = QMessageBox.information(self, 译.你将删除这些结点,译.你将删除这些结点, QMessageBox.Yes | QMessageBox.No)
+                if code == QMessageBox.Yes:
+                    if len(rectItem) > 0:
+                        for item in rectItem:
+                            self.deleteRectItem(item)
+                    if len(lineItem) > 0:
+                        for item in lineItem:
+                            self.deleteEdgeItem(item)
             # item = self.superior.scene.selectedItems()[0]
             # if isinstance(item, Grapher.ItemRect):
             #     self.deleteRectItem(item)
@@ -1378,7 +1390,8 @@ How to move the canvas: First click on the canvas to unselect the items, then yo
 How to select more cards: First click on the canvas to unselect the items, then drag the right click on the canvas, a rectangle will appear and all the cards covered by the rectangle will be selected.
 How to link cards: First select a card, hold the left button and press ctrl, then drag the mouse to create a line that follows the mouse, drag it to another card, and finally release the left button to create a link between the two cards.
             """
-            showInfo(zh)
+            funcs.Utils.大文本提示框(zh,取消模态=True)
+            # showInfo(zh)
             pass
 
         @property
