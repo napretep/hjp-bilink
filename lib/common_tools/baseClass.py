@@ -8,7 +8,7 @@ __time__ = '2022/7/15 23:09'
 
 这个文件用于提供基类,
 """
-import typing, re,dataclasses
+import typing, re, dataclasses
 
 from .compatible_import import *
 import abc
@@ -30,14 +30,14 @@ class 枚举命名:
         # 结点推算所得信息
         出度 = "node_out_degree"
         入度 = "node_in_degree"
-        数据源 = "node_role_list" #角色数据源用于提供角色的选择范围
-        全局上次复习= "global_last_review"
+        数据源 = "node_role_list"  # 角色数据源用于提供角色的选择范围
+        全局上次复习 = "global_last_review"
         上次复习 = "node_last_review"
         名称 = "node_name"
         描述 = "node_desc"
         边名 = "edge_name"
         角色名 = "node_role_name"
-        已到期 = "is_due"  #视图结点总是到期
+        已到期 = "is_due"  # 视图结点总是到期
         # 结点自身保存信息
         角色 = "node_role"
         上次编辑 = "node_last_edit"
@@ -53,6 +53,7 @@ class 枚举命名:
         漫游起点 = "node_roaming_start"
 
         pass
+
     class 视图:
         # 保存得
         编号 = "view_id"
@@ -71,12 +72,14 @@ class 枚举命名:
         结点角色表 = "node_role_list"
         ascending = "ascending"
         descending = "descending"
+
         class 图排序模式:
-            深度优先遍历=0
-            广度优先遍历=1
+            深度优先遍历 = 0
+            广度优先遍历 = 1
+
         class roamingStart:
-            随机选择卡片开始=0
-            手动选择卡片开始=1
+            随机选择卡片开始 = 0
+            手动选择卡片开始 = 1
 
     class 时间:
         转时间戳 = "to_timestamp"
@@ -90,10 +93,10 @@ class 枚举命名:
         三个月前 = "time_three_month_ago"
         六个月前 = "time_six_month_ago"
 
-
     class 边:
-        名称= "edge_name"
+        名称 = "edge_name"
         pass
+
     class 组件类型:
         spin = 0
         radio = 1
@@ -107,25 +110,35 @@ class 枚举命名:
         text = 9
         customize = 10
         slider = 11
-        checkbox=12
+        checkbox = 12
         time = 13
-        editable_label=14
+        editable_label = 14
+
     class 值类型:
-        数值    = "number"
-        时间戳  = "timestamp"
-        布尔    = "bool"
-        枚举    = "enum:"
-        文本    = "text"
+        数值 = "number"
+        时间戳 = "timestamp"
+        布尔 = "bool"
+        枚举 = "enum:"
+        文本 = "text"
         列表 = "list"
+        枚举_结点类型 = "enum_node_type"
+        字典 = {
+                数值     : (int, float),
+                时间戳    : (int, float),
+                布尔     : [bool],
+                文本     : [str],
+                列表     : [list],
+                枚举_结点类型: ["card", "view"]
+        }
 
     class 砖:
         布局, 组件, 子代 = 0, 1, 2
         框, 件, 子 = 0, 1, 2
 
     class 路径生成模式:
-        随机排序=0
-        多级排序=1
-        加权排序=2
+        随机排序 = 0
+        多级排序 = 1
+        加权排序 = 2
         图排序 = 3
 
     范围 = "range"
@@ -153,6 +166,7 @@ class 枚举命名:
     # 结点描述 = "node_desc"
     上升 = "ascending"
     下降 = "descending"
+
 
 class ConfigTableNewRowFormView:
     """
@@ -478,8 +492,8 @@ class 配置项单选型表格组件(ConfigTableView):
         if w.ok:
             self.AppendRow(w.colItems)
             self.SaveDataToConfigModel()
-            if self.table_model.rowCount()>0:
-                self.set_row_selected(self.table_model.rowCount()-1)
+            if self.table_model.rowCount() > 0:
+                self.set_row_selected(self.table_model.rowCount() - 1)
             else:
                 self.set_row_selected(0)
         pass
@@ -496,12 +510,12 @@ class 配置项单选型表格组件(ConfigTableView):
 
         pass
 
-    def set_row_selected(self,指定行=None):
+    def set_row_selected(self, 指定行=None):
         for rownum in range(self.table_model.rowCount()):
             item = self.table_model.item(rownum, 0)
             item.setText("")
         # showInfo(self.table_model.rowCount().__str__())
-        idxs = self.viewTable.selectedIndexes() if 指定行 is None else [self.table_model.index(指定行,0)]
+        idxs = self.viewTable.selectedIndexes() if 指定行 is None else [self.table_model.index(指定行, 0)]
         if idxs:
             item = self.table_model.itemFromIndex(idxs[0])
             item.setText("✔")
@@ -516,9 +530,9 @@ class 配置项单选型表格组件(ConfigTableView):
         super().RemoveRow()
         self.current_selected_row = -1
         for row in range(self.table_model.rowCount()):
-            item = self.table_model.item(row,0)
-            if item.text()=="✔":
-                self.current_selected_row=row
+            item = self.table_model.item(row, 0)
+            if item.text() == "✔":
+                self.current_selected_row = row
 
     def __init__(self, *args, **kwargs):
         self.current_selected_row = -1
@@ -570,11 +584,11 @@ line-height: 1.6;
 </style>
 </head>
 <body class="vscode-body vscode-light">
-"""+内容+"""
+""" + 内容 + """
 </body>
 </html>
         """
-        self.help_doc:"None|QMainWindow" = None
+        self.help_doc: "None|QMainWindow" = None
         self.合法字符串 = ""  # 可用可不用
         self.ok = False  # 可用可不用
         self.说明 = ""  # 可用可不用
@@ -596,6 +610,7 @@ line-height: 1.6;
         """弹出提示"""
         from . import funcs
         self.设置说明栏(self.说明)
+
     def on_ok(self):
         if self.on_test():
             self.设置当前配置项对应展示组件的值()
@@ -609,13 +624,12 @@ line-height: 1.6;
 
     @abc.abstractmethod
     def 设置当前配置项对应展示组件的值(self, value):
-
         raise NotImplementedError()
 
     # def closeEvent(self, QCloseEvent):
-        # if self.help_doc:
-        #     self.help_doc.close()
-        # super().closeEvent()
+    # if self.help_doc:
+    #     self.help_doc.close()
+    # super().closeEvent()
     # def init_UI(self):
 
     pass
@@ -625,6 +639,7 @@ class 组件_表格型配置项_列编辑器_可执行字符串(可执行字符�
     """
     colItems是表格的列展示项集
     """
+
     def __init__(self, 上级, 行: "list[ConfigTableView.TableItem]" = None, 说明="", *args, **kwargs):
         from .widgets import ConfigWidget
         self.上级: "ConfigWidget.GviewConfigNodeFilter" = 上级

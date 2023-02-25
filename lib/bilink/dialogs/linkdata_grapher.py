@@ -6,7 +6,6 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/8/10 21:18'
 
-TODO grapher的全部操作类型要列出来,方便以后调试:
 
 """
 import datetime
@@ -55,13 +54,10 @@ VisualBilinker=common_tools.graphical_bilinker.VisualBilinker
 
 class Grapher(QMainWindow):
     """所有的个性化数据都储存在Entity对象中
-    FOCUS 图中图Item设计, 边可加描述
-    TODO CTRL+A全选,CTRL+F查找
-    TODO 漫游复习遇到视图，可以选择跳过，也可以选择加载视图中的卡片, 加载视图的代表卡片, 递归加载视图(可指定哪些视图进行递归加载)
-    TODO 卡片优先级, 浏览次数, 自定义排序
-    TODO: 为了方便调试, 应该设计一种可以2脱离anki环境运行的方案
     启动grapher的方式, 1 临时视图, 此时不需要边名, 直接禁用, 2 普通视图, 此时可以用边名,
     普通视图可以是读取的, 也可以是新建的,
+    TODO 2023年2月25日15:24:28
+        1 写一个放大缩小的功能 2 写一个搜索卡片的功能 3 写一个批量修改卡片属性的功能, 4结点要提供一个属性重置按钮
     """
     on_card_updated = pyqtSignal(object)
 
@@ -70,7 +66,7 @@ class Grapher(QMainWindow):
                  gviewdata: "GViewData" = None,  # 读取已经保存过的视图数据
                  mode=GraphMode.view_mode, ):
         super().__init__()
-        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, on=True)  # TODO: 'Qt.WA_DeleteOnClose' will stop working. Please use 'Qt.WidgetAttribute.WA_DeleteOnClose' instead.
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
         self.data = self.Entity(self)
         self.data.gviewdata = gviewdata
         if not funcs.GviewConfigOperation.存在(gviewdata.config):
@@ -821,8 +817,6 @@ class Grapher(QMainWindow):
             self.setPen(self.normal_pen)
             self.setFlag(QGraphicsLineItem.GraphicsItemFlag.ItemIsSelectable, True)
 
-            # * Done:2022年12月27日00:13:23 设计边名的显示
-
         def update_line(self):
             p1:QPointF = self.itemStart.mapToScene(self.itemStart.boundingRect().center())
             p2:QPointF = self.itemEnd.mapToScene(self.itemEnd.boundingRect().center())
@@ -880,7 +874,7 @@ class Grapher(QMainWindow):
         #
         def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
                   widget: typing.Optional[QWidget] = ...) -> None:
-            option.state &= ~QStyle_StateFlag.State_Selected  # TODO: 'QStyle.State_Selected' will stop working. Please use 'QStyle.StateFlag.State_Selected' instead.
+            option.state &= ~QStyle_StateFlag.State_Selected
             super().paint(painter, option, widget)
 
             if self.isSelected():
@@ -1109,13 +1103,11 @@ class Grapher(QMainWindow):
             #     painter.setPen(self.due_dot_style)
             #     painter.setBrush(QBrush(self.due_dot_style))
             #     painter.drawEllipse(header_rect.right() - 5, 0, 5, 5)
-            # TODO 设计读取卡片的flag
             # self.update_line()
         pass
 
     class ToolBar(QToolBar):
         """这是一个工具栏
-        TODO 插入卡片,新建卡片,插入视图,新建视图,查找对象,
 
         """
 
@@ -1207,7 +1199,8 @@ class Grapher(QMainWindow):
 
         def create_view(self):
             视图索引 = common_tools.funcs.GviewOperation.create()
-            self.superior.load_node([视图索引], 参数_视图结点类型=枚举_视图结点类型.视图)
+            if 视图索引:
+                self.superior.load_node([视图索引], 参数_视图结点类型=枚举_视图结点类型.视图)
             pass
 
         def initEvent(self):
@@ -1329,7 +1322,6 @@ class Grapher(QMainWindow):
                         tooltip("搜索结果为空/empty result")
 
                 def 开始更换配置():
-                    """* Done:2022年11月25日22:53:35 这里有bug, 我暂时没找出来, 更换配置后, 没有添加到对应配置的应用本配置视图表中"""
                     if 结果表.selectedIndexes():
                         模型: "QStandardItemModel" = 结果表.model()
                         选中行: "list[QStandardItem]" = [模型.itemFromIndex(索引) for 索引 in 结果表.selectedIndexes()]
@@ -1794,11 +1786,6 @@ class GrapherRoamingPreviewer(QMainWindow):
     同时要保持侧边栏更新(当在其他视图里回答了相关卡片,刷新)
     漫游复习列表为空时: 弹出提示, 点击确定后关闭漫游复习, 为空时预览窗停留在最后一张卡片.
     2022年10月25日05:49:12
-
-    TODO:    漫游复习模式按钮禁用条件: 没有满足的复习队列
-    TODO:    当漫游复习开启后, 视图需要记录当前的实例, 再次点击时若已经打开则激活对应的窗口
-    TODO:    当点击视图中的卡片时, 如果这个卡片也存在于漫游复习中, 则在漫游复习中打开他.
-    TODO:    关闭视图时, 关闭对应的漫游
     TODO:    编辑卡片时,需要同步更新, 先做出来看看吧
 
     """
@@ -1856,7 +1843,8 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.initEvent()
             # self._cardView.open()
             self.layoutH.addWidget(self.cardView, stretch=1)
-            self._cardView.revWidget.当完成复习.append(lambda card_Id,ease:self.更新结点复习(card_Id))
+            self._cardView.revWidget.当完成复习.append(lambda 卡片编号,难度,平台:self.更新结点复习(卡片编号))
+            self._cardView.revWidget.当完成复习.append(lambda 卡片编号,难度,平台,: self.item_finish())
             self._cardView.activateAsSubWidget()
             return self._cardView
         elif self._cardView:
@@ -1872,7 +1860,7 @@ class GrapherRoamingPreviewer(QMainWindow):
         return 项.data()
 
     def item_finish(self, 自动关闭=True):
-        """可以理解为 item finish"""
+        """可以理解为 item finish 每次点击复习后调用他来到下一个对象"""
         if self.还有结点():
             选中行号 = self.listView.currentIndex().row()
             self.listView.removeCurrentItem()
@@ -1886,22 +1874,24 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.圆满完成()
             self.close()
 
-    def 圆满完成(self):
-        self.同时隐藏卡片与视图展示组件()
-        self.导航按钮组.hide()
-        showInfo(f"roaming of the view: {self.superior.data.gviewdata.name} is finished!")
-        pass
-
     def last_item(self):
+        """这是给向上箭头调用的, 完成复习不用这个箭头"""
         行号 = self.listView.currentIndex().row() - 1
         总行数 = self.listView.tempModel.rowCount()
         self.listView.selectRow(行号 % 总行数)
         pass
 
     def next_item(self):
+        """这是给向下箭头调用的, 完成复习不用这个箭头"""
         行号 = self.listView.currentIndex().row() + 1
         总行数 = self.listView.tempModel.rowCount()
         self.listView.selectRow(行号 % 总行数)
+
+    def 圆满完成(self):
+        self.同时隐藏卡片与视图展示组件()
+        self.导航按钮组.hide()
+        showInfo(f"roaming of the view: {self.superior.data.gviewdata.name} is finished!")
+        pass
 
     def switch_sidebar_show_hide(self):
         self.导航按钮组.切换收起展开状态()
@@ -1913,8 +1903,8 @@ class GrapherRoamingPreviewer(QMainWindow):
         return self.listView.tempModel.rowCount() > 1
 
     def initEvent(self):
-        btns = self._cardView.revWidget.ease_button
-        [btns[i].clicked.connect(self.item_finish) for i in btns]
+        # btns = self._cardView.revWidget.ease_button
+        # [btns[i].clicked.connect(self.item_finish) for i in btns]
 
         pass
 
@@ -2145,21 +2135,6 @@ class GrapherRoamingPreviewer(QMainWindow):
 
     pass
 
-
-class GrapherConfig(QDialog):
-    """
-
-    TODO:    配置表是一个窗口, 依附于某个视图
-    TODO:    配置表的数据是一个独立于视图的东西, 要独立建数据库表, 然后写应用到哪些视图上
-    TODO:        配置表数据:名称,uuid,应用视图的范围,
-        漫游复习
-    TODO:        选择卡片的方法: 全部卡片, 到期卡片, 选中的卡片, 选中的路径
-    TODO:        漫游卡片的方法: 广度优先, 深度优先, 拓扑排序, 到期时间排序, 随机顺序,
-    TODO:        漫游卡片的起点: 给定或随机, 可以右键选择
-    TODO:    设置为群组复习(通常设置为群组复习后就没有必要再开启他们的漫游复习)
-    TODO:    应用当前配置到其他视图
-    TODO:    为当前视图选择另一个配置
-    """
 
 
 

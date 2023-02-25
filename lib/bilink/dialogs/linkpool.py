@@ -266,8 +266,9 @@ class LinkPoolDialog(QDialog):
         pass
 
     def init_UI(self):
+
         self.setAttribute(Qt.WA_DeleteOnClose, on=True)
-        self.setWindowTitle("link_pool")
+        self.setWindowTitle(common_tools.funcs.译.双链分组器)
         self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.input))
         self.setAcceptDrops(True)
         self.view.setSelectionMode(common_tools.compatible_import.QAbstractItemViewSelectMode.ExtendedSelection)

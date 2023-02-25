@@ -8,7 +8,6 @@ __time__ = '2021/8/9 11:46'
 为了考虑兼容性而统一处理他们
 目前2022年6月29日02:32:11,49版没有问题.用的是3.8的Python
 54的Qt6和5版用的都是3.9.7的python
-TODO:'Qt.UserRole' will stop working. Please use 'Qt.ItemDataRole.UserRole' instead
 """
 import sys
 from ..debugState import *
@@ -74,20 +73,15 @@ class Anki:
 
     pass
 
-isMac = sys.platform.startswith("darwin")
-isWin = sys.platform.startswith("win32")
+isMac = is_mac = sys.platform.startswith("darwin")
+isWin=is_win = sys.platform.startswith("win32")
 # also covers *BSD
 isLin = not isMac and not isWin
 
 
-# if ISDEBUG and ISLOCALDEBUG:
-#     mw = None
-#     tooltip = showInfo = print
-#     isMac= isWin=True
 # else:
 mw = Anki.aqt.mw
 from aqt.utils import tooltip, showInfo
-# from anki.utils import is_mac as isMac, is_win as isWin
 from aqt.utils import saveGeom, restoreGeom, tr
 from aqt import dialogs, AnkiQt, gui_hooks
 from aqt.browser import Browser, SidebarItem, SidebarItemType, SidebarTreeView
@@ -105,7 +99,6 @@ from aqt.operations.scheduling import answer_card
 # NEEDQT6 = ISQT6 if ISLOCALDEBUG else Anki.isQt6
 
 if Utils.isQt6():
-    # TODO 'QStyle.State_Selected' will stop working. Please use 'QStyle.StateFlag.State_Selected' instead.
     from PyQt6 import QtGui, QtCore, QtWidgets
     from PyQt6.QtCore import *
     from PyQt6.QtWidgets import *
@@ -116,8 +109,6 @@ if Utils.isQt6():
     # QSettings_NativeFormat = QSettings.Format.NativeFormat
 
 
-    class QStyle_StateFlag:
-        State_Selected = QStyle.StateFlag.State_Selected
 
     class TextFlag:
         TextSingleLine = Qt.TextFlag.TextSingleLine
@@ -199,12 +190,7 @@ if Utils.isQt6():
         AlignAbsolute = Qt.AlignmentFlag.AlignAbsolute
         AlignBaseline = Qt.AlignmentFlag.AlignBaseline
 else:
-    # TODO: 'Qt.UserRole' will stop working. Please use 'Qt.ItemDataRole.UserRole' instead.
-    # TODO: isWin is deprecated: please use 'is_win'
-    # TODO: Qt.WA_DeleteOnClose' will stop working. Please use 'Qt.WidgetAttribute.WA_DeleteOnClose' instead.
-    # todo: 'QAbstractItemView.SelectRows' will stop working. Please use 'QAbstractItemView.SelectionBehavior.SelectRows' instead.
-    # TODO: 'QAbstractItemView.NoEditTriggers' will stop working. Please use 'QAbstractItemView.EditTrigger.NoEditTriggers' instead.
-    # todo: :'QItemSelectionModel.Select' will stop working. Please use 'QItemSelectionModel.SelectionFlag.Select' instead.
+
     # from PyQt5 import Qt
     from PyQt5 import QtGui, QtCore
     from PyQt5.QtCore import *
@@ -361,6 +347,20 @@ else:
         TextIncludeTrailingSpaces = Qt.TextIncludeTrailingSpaces
         TextJustificationForced = Qt.TextJustificationForced
 
+class Qt_ItemDataRole:
+    UserRole=Qt.ItemDataRole.UserRole if Utils.isQt6() else Qt.UserRole
+
+class QAbstractItemView_SelectionBehavior:
+    SelectRows = QAbstractItemView.SelectionBehavior.SelectRows if Utils.isQt6() else QAbstractItemView.SelectRows
+
+class QAbstractItemView_EditTrigger:
+    NoEditTriggers = QAbstractItemView.EditTrigger.NoEditTriggers if Utils.isQt6() else QAbstractItemView.NoEditTriggers
+
+class QItemSelectionModel_SelectionFlag:
+    Select = QItemSelectionModel.SelectionFlag.Select if Utils.isQt6() else QItemSelectionModel.Select
+
+class QStyle_StateFlag:
+    State_Selected = QStyle.StateFlag.State_Selected if Utils.isQt6() else QStyle.State_Selected
 
 def qconnect(
     signal: Union[Callable, pyqtSignal, pyqtBoundSignal], func: Callable

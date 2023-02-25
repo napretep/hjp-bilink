@@ -187,7 +187,10 @@ class GviewOperation:
         类型 = 视图数据.nodes[结点编号].数据类型.值
 
         if 类型 == 枚举_视图结点类型.卡片:
-            return int(CardOperation.getLastNextRev(结点编号)[1].timestamp()) <= 现在
+            _,nextRev = CardOperation.getLastNextRev(结点编号)
+            # Utils.print("card_id=",结点编号,"nextRev=",nextRev,)
+            # Utils.print(nextRev.timetuple())
+            return int(time.mktime(nextRev.timetuple()))<=现在
         elif 类型 == 枚举_视图结点类型.视图:
             return True
         else:
@@ -490,12 +493,13 @@ class GviewOperation:
             name, submitted = GviewOperation.get_correct_view_name_input()
         else:
             submitted = True
-        if not submitted: return
+        if not submitted:
+            return None
         uuid = UUID.by_random()
         data = GViewData(uuid=uuid, name=name, nodes=nodes if nodes else {}, edges=edges if edges else {})
         # 去检查一下scene变大时,item的scene坐标是否会改变
         GviewOperation.save(data)
-        Dialogs.open_grapher(gviewdata=data, mode=GraphMode.view_mode)
+        Dialogs.open_view(gviewdata=data)
         if G.GViewAdmin_window:
             from ..bilink.dialogs.linkdata_grapher import GViewAdmin
             win: GViewAdmin = G.GViewAdmin_window
@@ -503,11 +507,13 @@ class GviewOperation:
         return uuid
 
     @staticmethod
-    def create_from_pair(pairs_li: 'list[G.objs.LinkDataPair]', name=""):
-        nodes: "dict[str,list[Optional[float,int],Optional[float,int]]]" = {}
-        list(map(lambda x: nodes.__setitem__(x.card_id, [None, None]), pairs_li))
-        edges: "list[list[str,str]]" = []
-        GviewOperation.create(nodes, edges, name=name)
+    def create_from_pair(cid_li: 'list[str|LinkDataPair]', name=""):
+        nodes={}
+        for cid in cid_li:
+            if isinstance(cid,LinkDataPair):
+                cid=cid.card_id
+            nodes[cid]=GviewOperation.依参数确定视图结点数据类型模板(编号=cid)
+        GviewOperation.create(nodes=nodes,edges={}, name=name)
 
     @staticmethod
     def choose_insert(pairs_li: 'list[G.objs.LinkDataPair]' = None):
@@ -557,12 +563,14 @@ class GviewOperation:
         _ = 字典键名
         模型 = models.类型_视图结点模型()
         默认值模板 = {}
+        类型对照={}
         for 名字 in 模型.__dict__:
             if isinstance(模型.__dict__[名字], models.类型_视图结点属性项):
                 属性: models.类型_视图结点属性项 = 模型.__dict__[名字]
                 if 属性.从上级读数据:
                     默认值模板[属性.字段名] = 属性.默认值
-        新值 = Utils.字典缺省值填充器(默认值模板, 数据)
+                    类型对照[属性.字段名] = 属性.值类型
+        新值 = Utils.字典缺省值填充器(默认值模板, 数据,类型对照)
         if 编号:
             新值[_.结点.描述] = CardOperation.desc_extract(编号) if 结点类型 == 枚举_视图结点类型.卡片 else GviewOperation.获取视图名字(编号)
         新值[_.结点.数据类型] = 结点类型
@@ -644,14 +652,32 @@ class Utils(object):
                 print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs)
 
     @staticmethod
-    def 字典默认键值对(默认值, 键名, 对应值):
-        return 默认值 if not 对应值 or 键名 not in 对应值 else 对应值[键名]
+    def 字典默认键值对(默认值, 键名, 对应值,类型对照:"dict"=None):
+
+
+        if not 对应值 or not 键名 in 对应值:
+            return 默认值
+        else:
+            if 类型对照:
+                if type(对应值[键名]) in 字典键名.值类型.字典[类型对照[键名]]:
+                    return 对应值[键名]
+                else:
+                    return 默认值
+            else:
+                return 对应值[键名]
+        # if not 对应值 or 键名 not in 对应值:
+        #     return 默认值
+        # elif 类型对照 and type(对应值) in 字典键名.值类型.字典[类型对照[键名]]:
+        #     return 对应值
+        #
+        #
+        # return 默认值 if not 对应值 or 键名 not in 对应值 else 对应值[键名]
 
     @staticmethod
-    def 字典缺省值填充器(默认值: dict, 对应值: "Optional[dict]" = None):
+    def 字典缺省值填充器(默认值: dict, 对应值: "Optional[dict]" = None,类型对照=None):
         新值 = {}
         for 键, 值 in 默认值.items():
-            新值[键] = Utils.字典默认键值对(值, 键, 对应值)
+            新值[键] = Utils.字典默认键值对(值, 键, 对应值,类型对照)
         return 新值
 
     @staticmethod
@@ -2206,7 +2232,7 @@ class CardOperation:
             next_date = datetime.fromtimestamp(0) # (Y,M,D,H,M,S,MS)
             last_date = datetime.fromtimestamp(0)  # (Y,M,D,H,M,S,MS)
         # today = datetime.today()  # (Y,M,D,H,M,S,MS)
-
+        Utils.print(last_date, next_date)
         return last_date, next_date
 
 

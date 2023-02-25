@@ -68,11 +68,6 @@ from typing import TYPE_CHECKING
 class GViewData:
     """视图数据类
     警告:当你要修改数据类的结构时,请你务必检查所有的调用方是否正确调用了这个类
-    # TODO 根据调查,
-        data1 = DB.select(DB.EQ(uuid=uuid)).return_all().zip_up().to_gview_data()[0]
-        data = GViewData(uuid=data1.uuid, name=data1.name, nodes=json.loads(data1.nodes), edges=json.loads(data1.edges), config=data1.config)
-        是主要的使用方式, 所以, 根据这个参数特点, 我们再来设计内部结构.
-    # FOCUS 修改GViewData的结构使之能兼容过去和现在的配置
     edges的结构:
         {"from_to":{connect:True,desc:"abc"}}
     20221226之前的结构:
@@ -82,15 +77,15 @@ class GViewData:
     # uuid: str
     # name: str
     # # {"card_Id":{"pos":[posx,posy],"priority":int,"accesstimes":int,"dataType":"card/view"}}
-    # nodes: 'models.类型_视图结点集模型'  # * Done:2022年12月27日00:20:35 key=card_id,value=[posx,posy,priority,accesstimes]
-    # # * Done:2022年12月29日23:00:10 edges的结构要大改, 改成 {"fromNode,toNode":{desc:""}}
+    # nodes: 'models.类型_视图结点集模型'  #
     #
-    # edges: 'models.类型_视图边集模型'  # 在取出时就应该保证边的唯一性,而且主要用来存json字符串,所以不用set TODO # {"from_to":{connect:True,desc:"abc"}}
+    #
+    # edges: 'models.类型_视图边集模型'  # 在取出时就应该保证边的唯一性,而且主要用来存json字符串,所以不用set
     # meta: "Optional[dict[str,int|None|str]]"=None
-    # config: 'str' = ""  # * Done 2022年11月25日22:46:21: 记录配置表uuid, 需要用的时候读取
+    # config: 'str' = ""
     def __init__(self,**kwargs):
         from . import funcs,models
-        uuid,name,结点数据源,边数据源 = kwargs["uuid"],kwargs["name"],kwargs["nodes"],kwargs["edges"]
+        uuid, name, 结点集数据源, 边集数据源 = kwargs["uuid"], kwargs["name"], kwargs["nodes"], kwargs["edges"]
         if "config" in kwargs:
             config = kwargs["config"]
         else:
@@ -98,48 +93,53 @@ class GViewData:
         版本20221226 = False
         卡片标识=""
         边标识=""
-        for 标识 in 结点数据源.keys():
+        for 标识 in 结点集数据源.keys():
             卡片标识=标识
             break
 
-        if 卡片标识 !="" and type(结点数据源[卡片标识])==list and type(边数据源)==list:
+        if 卡片标识 !="" and type(结点集数据源[卡片标识])==list and type(边集数据源)==list:
             版本20221226 = True
 
         self.uuid:str = uuid
         self.name:str = name
         self.config:str = config
         self.meta=funcs.GviewOperation.默认元信息模板(kwargs["meta"] if "meta" in kwargs else None)
-        结点数据字典 = {}
-        边数据字典 = {}
+        结点数据集字典 = {}
+        结点数据模板 = funcs.GviewOperation.依参数确定视图结点数据类型模板()
+        边数据集字典 = {}
+        边数据模板 = funcs.GviewOperation.默认视图边数据模板()
         不存在的结点集 = []
         类型 = baseClass.枚举命名.结点.数据类型
         类型值 =  baseClass.视图结点类型
         if 版本20221226:
-            for 标识,位置 in 结点数据源.items():
-                结点数据字典[标识]= funcs.GviewOperation.依参数确定视图结点数据类型模板(编号=标识)
-            for 对儿 in 边数据源:
-                边数据字典[f"{对儿[0]},{对儿[1]}"]=funcs.GviewOperation.默认视图边数据模板()
+            for 标识,位置 in 结点集数据源.items():
+                结点数据集字典[标识]= funcs.GviewOperation.依参数确定视图结点数据类型模板(编号=标识)
+            for 对儿 in 边集数据源:
+                边数据集字典[f"{对儿[0]},{对儿[1]}"]=funcs.GviewOperation.默认视图边数据模板()
         else:
-            for 标识, 值 in 结点数据源.items():
-                if (值[类型] == 类型值.卡片 and not funcs.CardOperation.exists(标识) ) or (值[类型] == 类型值.视图 and not funcs.GviewOperation.exists(uuid=标识)) :
+
+            for 标识,值 in 结点集数据源.items():
+                if 类型 not in 值:
+                    if "data_type" in 值:
+                        值[类型]=值["data_type"] # 2023.2.25版本兼容
+                    else:
+                        raise ValueError(f"{值}的{类型}无法确定")
+                if (值[类型] == 类型值.卡片 and not funcs.CardOperation.exists(标识)) or (值[类型] == 类型值.视图 and not funcs.GviewOperation.exists(uuid=标识)) :
                     不存在的结点集.append(标识)
                     continue
                 else:
-                    结点数据字典[标识] = funcs.GviewOperation.依参数确定视图结点数据类型模板(结点类型=值[类型],编号=标识,数据=值)
-            for 标识, 值 in 边数据源.items():
+                    结点数据集字典[标识] = funcs.GviewOperation.依参数确定视图结点数据类型模板(结点类型=值[类型],编号=标识,数据=值)
+            for 标识,值 in 边集数据源.items():
                 a,b = 标识.split(",")
                 if a in 不存在的结点集 or b in 不存在的结点集:
                     continue
                 else:
-                    边数据字典[标识]= funcs.GviewOperation.默认视图边数据模板(值)
+                    边数据集字典[标识]= funcs.GviewOperation.默认视图边数据模板(值)
 
-        self.nodes:"models.类型_视图结点集模型" = models.类型_视图结点集模型(self,结点数据字典)
-        self.edges:"models.类型_视图结点集模型" = models.类型_视图边集模型(self,边数据字典)
-        # self.node_helper = models.类型_视图结点集模型(self)
+        self.nodes:"models.类型_视图结点集模型" = models.类型_视图结点集模型(self,结点数据集字典)
+        self.edges:"models.类型_视图结点集模型" = models.类型_视图边集模型(self,边数据集字典)
         self.meta_helper:"models.类型_视图本身模型" = models.类型_视图本身模型(数据源=self)
-        # self.edge_helper = models.类型_视图边集模型(self)
         self.数据更新 = self.类_函数库_数据更新(self)
-        # self.清除无效结点()
 
 
     def 清除无效结点(self):
@@ -897,7 +897,7 @@ text-decoration:none;""",
 class GviewConfigModel(BaseConfigModel):
     @staticmethod
     def json_load(source: "dict"):
-        """TODO: 设计json数据的读取,保存在objs.Record.GviewConfig.data中"""
+        """"""
         template = GviewConfigModel()
         for k, v in source.items():
             template[k].value = v

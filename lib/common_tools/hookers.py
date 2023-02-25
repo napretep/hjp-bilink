@@ -10,9 +10,9 @@ import abc
 from typing import Callable
 from .compatible_import import *
 
-Card_id = str
-Ease = int
-
+类型_卡片编号 = str
+类型_难度 = int
+类型_平台 = object
 
 class 钩子之母(list):
 
@@ -24,8 +24,11 @@ class 钩子之母(list):
     def append(self, *args, **kwargs) -> None:
         super().append( *args, **kwargs)
 
+    # def remove(self,func):
+    #     self.remove(func)
 
 class 当ReviewButtonForCardPreviewer完成复习(钩子之母):
 
-    def append(self, fun: "Callable[[Card_id,Ease],None]") -> None:
+    def append(self, fun: "Callable[[类型_卡片编号,类型_难度,类型_平台],None]") -> None:
         super().append(fun)
+

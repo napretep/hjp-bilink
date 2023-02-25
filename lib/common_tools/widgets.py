@@ -1465,11 +1465,6 @@ class ConfigWidget:
 
     class GviewConfigApplyTable(baseClass.ConfigTableView):
         """
-        TODO: 需要的功能: 增删改gview的uuid和名字列表
-        TODO: 保存的时候要保存item.data(), 展示时, 展示为item.text()要分开
-        TODO: 当应用表中点击删除项的时候, 如果是最后一项了, 也就是说删了以后, 表空了, 则立即将当前配置删除, 并将视图的config置空, 重新载入
-        TODO: 当应用表中点击删除项的时候, 如果点击的是视图本身, 则立即发动视图的config置空, 重新载入配置表
-
         """
         colnames = [译.视图名]
         defaultRowData = [("",)]
@@ -1645,7 +1640,6 @@ class ConfigWidget:
 
             def SetupEvent(self):
                 """
-                laterDO: 在搜索框中按回车触发搜索事件 (这个好像不是很重要)
 
                 """
 
@@ -2066,17 +2060,17 @@ class ReviewButtonForCardPreviewer:
 
     def initEvent(self):
         G.signals.on_card_answerd.connect(self.handle_on_card_answerd)
-        self
+
         pass
 
     def handle_on_card_answerd(self, answer: "configsModel.AnswerInfoInterface"):
-        from ..bilink.dialogs.linkdata_grapher import GrapherRoamingPreviewer
-
-        notself, equalId, isRoaming = answer.platform != self, answer.card_id == self.card().id, isinstance(self.papa.superior, GrapherRoamingPreviewer)
-        # print(f"handle_on_card_answerd,{notself},{equalId},{isRoaming}")
-        if notself and equalId and isRoaming:
-            # print("handle_on_card_answerd>if>ok")
-            self.papa.superior.nextCard()
+        # from ..bilink.dialogs.linkdata_grapher import GrapherRoamingPreviewer
+        #
+        # notself, equalId, isRoaming = answer.platform != self, answer.card_id == self.card().id, isinstance(self.papa.superior, GrapherRoamingPreviewer)
+        # # print(f"handle_on_card_answerd,{notself},{equalId},{isRoaming}")
+        # if notself and equalId and isRoaming:
+        #     # print("handle_on_card_answerd>if>ok")
+        #     self.papa.superior.nextCard()
         pass
 
     def card(self):
@@ -2144,7 +2138,7 @@ class ReviewButtonForCardPreviewer:
         G.signals.on_card_answerd.emit(
                 answer(platform=self, card_id=self.card().id, option_num=ease))
         self.update_info()
-        self.当完成复习(self.card().id, ease)
+        self.当完成复习(self.card().id, ease, self.papa)
 
     def update_info(self):
         self._update_answer_buttons()

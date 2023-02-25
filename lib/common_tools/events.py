@@ -77,7 +77,8 @@ def on_browser_sidebar_will_show_context_menu_handle(view: "SidebarTreeView", me
         else:
             raise TypeError("未知的类型!")
         final = f"{search_in}:{full_name}"
-        pairs_li = [funcs.LinkDataPair(str(cid), funcs.CardOperation.desc_extract(cid)) for cid in mw.col.find_cards(final)]
+        pairs_li = [str(cid) for cid in mw.col.find_cards(final)]
+        tooltip(pairs_li)
         # view.browser.search_for(final)
         # view.browser.table._view.selectAll()
         # pairs_li = [ objs.LinkDataPair(str(card_id),funcs.desc_extract(card_id)) for card_id in view.browser.selected_cards()]

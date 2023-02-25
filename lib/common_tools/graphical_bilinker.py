@@ -95,7 +95,7 @@ class VisualBilinker(QMainWindow):
             return
         nodes, edges = self.data.node_edge_packup()
         uuid = funcs.GviewOperation.create(nodes, edges, name)
-        funcs.Dialogs.open_grapher(gviewdata=funcs.GviewOperation.load(uuid), mode=funcs.GraphMode.view_mode)
+        funcs.Dialogs.open_view(gviewdata=funcs.GviewOperation.load(uuid))
 
     # node
     def create_node(self, pair: "LinkDataPair|str"):
@@ -152,7 +152,7 @@ class VisualBilinker(QMainWindow):
             self.scene.clearSelection()
             last_item.setSelected(True)
         self.load_edges_from_linkdata()
-        self.data.node_edge_packup()
+
         # self.data.updateNodeDueAll()
 
     def arrange_node(self, new_item: "VisualBilinker.ItemRect", center_item=None):
@@ -404,16 +404,15 @@ class VisualBilinker(QMainWindow):
                     for cardB in self.edge_dict[cardA].keys():
                         if self.edge_dict[cardA][cardB] is not None and self.edge_dict[cardA][cardB].item is not None:
                             边 = f"{cardA},{cardB}"
-                            反边 = f"{cardB},{cardA}"
-                            新边集[边] = {}
-                            新边集[反边] = {}
+                            新边集[边]=funcs.GviewOperation.默认视图边数据模板()
                 return 新边集
 
             def get_nodeinfo_list():
                 d = {}
-
                 for 索引, 值 in self.node_dict.items():
-                    d[索引] = {本.结点.位置: [值.item.scenePos().x(), 值.item.scenePos().y()]}
+                    d[索引] = funcs.GviewOperation.依参数确定视图结点数据类型模板(数据={
+                            本.结点.位置:[值.item.scenePos().x(),值.item.scenePos().y()]
+                    },编号=索引)
                 return d
 
             return get_nodeinfo_list(), get_edgeinfo_list()
@@ -704,7 +703,7 @@ class VisualBilinker(QMainWindow):
         #
         def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
                   widget: Optional[QWidget] = ...) -> None:
-            option.state &= ~QStyle_StateFlag.State_Selected  # TODO: 'QStyle.State_Selected' will stop working. Please use 'QStyle.StateFlag.State_Selected' instead.
+            option.state &= ~QStyle_StateFlag.State_Selected
             super().paint(painter, option, widget)
 
             if self.isSelected():
@@ -918,8 +917,6 @@ class VisualBilinker(QMainWindow):
 
     class ToolBar(QToolBar):
         """这是一个工具栏
-        TODO 插入卡片,新建卡片,插入视图,新建视图,查找对象,
-
         """
 
         class Actions:
