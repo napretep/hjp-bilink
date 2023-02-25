@@ -503,8 +503,10 @@ class Grapher(QMainWindow):
 
         def remove_from_edge_data(self,a:"str",b:"str"):
             edge = self.edge_dict[a][b]
-            self.node_dict[a].edges.remove(edge)
-            self.node_dict[b].inver_edges.remove(edge)
+            if a in self.node_dict:
+                self.node_dict[a].edges.remove(edge)
+            if b in self.node_dict:
+                self.node_dict[b].inver_edges.remove(edge)
             del self.edge_dict[a][b]
             del self.inverse_edge[a,b]
             self.gviewdata.删除边(a,b)

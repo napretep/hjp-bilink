@@ -626,7 +626,7 @@ Default filter rule: is_due
     视图命名规则:str=rosetta("视图名不能有空白字符,不能有连续4个':',即'::::'非法")
     视图名必须是JSON合法的字符串:str=rosetta("视图名必须是JSON合法的字符串")
     打开于视图:str=rosetta("打开于视图")
-    图形化双链操作界面:str=翻译("图形化双链操作界面","visual bilinker")
+    图形化双链操作界面:str=翻译("图形化双链器","visual bilinker")
     删除边:str=rosetta("删除边")
     隐藏边:str=rosetta("隐藏边")
     Anki搜索:str=rosetta("Anki搜索")

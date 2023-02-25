@@ -2190,7 +2190,7 @@ class CardOperation:
     def getLastNextRev(card_id):
         """获取上次复习与下次复习时间"""
         result = mw.col.db.execute(
-                # 从 revlog 中获取 上次回顾时间, 间隔, 推算出下次回顾的时间, 之所以直接从数据库提取是因为anki的接口做的很不清楚, 无法判断一个卡片是否可复习
+                # 从 数据库表revlog 中获取 上次回顾时间, 下次间隔, 推算出下次回顾的时间, 之所以直接从数据库提取是因为anki的接口做的很不清楚, 无法判断一个卡片是否可复习
                 # 比如他的 card.due 值是时间戳, 表示到期时间, 但 也有一些到期时间比如746,1817480这种显然就不是时间戳
                 f"select id,ivl from revlog where id = (select  max(id) from revlog where cid = {card_id})"
         )
@@ -2200,11 +2200,11 @@ class CardOperation:
             if ivl >= 0:  # ivl 正表示天为单位,负表示秒为单位
                 next_date = datetime.fromtimestamp(last / 1000 + ivl * 86400)  # (Y,M,D,H,M,S,MS)
             else:
-                next_date = datetime.fromtimestamp(last / 1000 - ivl)
+                next_date = datetime.fromtimestamp(last / 1000 - ivl) # 此时的 ivl保存为负值,因此要减去
         else:
-            ivl = 0
-            next_date = datetime.now()  # (Y,M,D,H,M,S,MS)
-            last_date = datetime.now()  # (Y,M,D,H,M,S,MS)
+            # 没有记录表示新卡片, 直接给他设个1970年就完事
+            next_date = datetime.fromtimestamp(0) # (Y,M,D,H,M,S,MS)
+            last_date = datetime.fromtimestamp(0)  # (Y,M,D,H,M,S,MS)
         # today = datetime.today()  # (Y,M,D,H,M,S,MS)
 
         return last_date, next_date

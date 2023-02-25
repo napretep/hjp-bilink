@@ -47,10 +47,10 @@ class VisualBilinker(QMainWindow):
         self.init_graph_item()
 
     def card_edit_desc(self, item: "VisualBilinker.ItemRect"):
-        text, okPressed = QInputDialog.getText(self, "get new description", "", text=funcs.CardOperation.desc_extract(item.索引))
-        if okPressed:
-            item.node.desc=text
-            funcs.GlobalLinkDataOperation.update_desc_to_db(LinkDataPair(item.索引, text))
+        结果 = funcs.组件定制.长文本获取(funcs.CardOperation.desc_extract(item.索引), "get new description", "",)
+        if 结果:
+            item.node.desc=结果[0]
+            funcs.GlobalLinkDataOperation.update_desc_to_db(LinkDataPair(item.索引, 结果[0]))
             funcs.CardOperation.refresh()
         pass
 
@@ -352,20 +352,6 @@ class VisualBilinker(QMainWindow):
         self.scene.setBackgroundBrush(QColor(143,188,143))
         pass
 
-    # def saveAsGroupReviewCondition(self):
-    #
-    #     common_tools.funcs.GroupReview.saveGViewAsGroupReviewCondition(self.data.gviewdata.uuid)
-
-    # def 结点访问记录更新(self, 索引):
-    #     self.data.gviewdata.nodes[索引][本.结点.访问次数] += 1
-    #     self.data.gviewdata.nodes[索引][本.结点.上次访问] = int(time.time())
-    #     self.data.node_edge_packup()
-    #
-    # # class
-    #
-    # def 结点编辑记录更新(self, 索引):
-    #     self.data.gviewdata.nodes[索引][本.结点.上次编辑] = int(time.time())
-    #     self.data.node_edge_packup()
 
     class Entity:
 
@@ -746,22 +732,6 @@ class VisualBilinker(QMainWindow):
             A, B = self.获取关联的结点()
             return self.superior.data.edge_dict[A][B]
 
-        # def 绘制边名(self, painter):
-        #     paint_center = (self.triangle[1] + self.triangle[2]) / 2
-        #     总是显示 = False
-        #     if self.superior.data.gviewdata.config:
-        #         cfg = funcs.GviewConfigOperation.从数据库读(self.superior.data.gviewdata.config)
-        #         总是显示 = cfg.data.edge_name_always_show.value
-        #
-        #     文本 = self.获取实体数据().描述 if self.获取实体数据().描述 != "" \
-        #         else "debug hello world world hello" \
-        #         if self.superior.data.state == GraphMode.debug_mode \
-        #         else ""
-        #     if 总是显示 or (文本 != "" and self.pen() == self.selected_pen or self.pen() == self.highlight_pen):
-        #         painter.setPen(QColor(50, 205, 50))
-        #         painter.setBrush(QBrush(QColor(50, 205, 50)))
-        #         painter.drawText(QRectF(paint_center, QSizeF(100.0, 100.0)), Qt.TextFlag.TextWordWrap, 文本)
-
         pass
 
     class ItemRect(QGraphicsRectItem):
@@ -1107,110 +1077,6 @@ class VisualBilinker(QMainWindow):
         def saveAsNewGview(self):
             self.superior.create_view()
             pass
-
-        # def registGviewAsGroupReview(self):
-        #     self.superior.saveAsGroupReviewCondition()
-        #     pass
-
-        # def openRoaming(self):
-        #     """这是个大工程, 需要
-        #     1一个算法计算队列,
-        #     2一个多卡片窗口,
-        #     3一个队列创跨
-        #     """
-        #     if not self.superior.roaming:
-        #         self.superior.roaming = GrapherRoamingPreviewer(self.superior)
-        #     self.superior.roaming.show()
-        #     self.superior.roaming.activateWindow()
-        #     pass
-
-        # def openConfig(self):
-        #     """"""
-        #     布局, 组件, 子代, 描述 = funcs.G.objs.Bricks.四元组
-        #     视图记录 = funcs.GviewOperation.load(self.superior.data.gviewdata.uuid)
-        #     配置类 = objs.Record.GviewConfig
-        #     self.superior.data.gviewdata.config = 视图记录.config
-        #     if 视图记录.config != "" and 配置类.静态_存在于数据库中(视图记录.config) and 配置类.静态_含有某视图(视图记录.uuid, 视图记录.config):
-        #         配置记录 = 配置类.readModelFromDB(视图记录.config)
-        #     else:
-        #         tooltip(f"创建新配置")
-        #         配置记录 = 配置类()
-        #         funcs.GviewConfigOperation.指定视图配置(视图记录, 配置记录)
-        #         视图记录.config = 配置记录.uuid
-        #     配置记录 = 配置类.readModelFromDB(配置记录.uuid)
-        #     配置组件 = funcs.GviewConfigOperation.makeConfigDialog(调用者=self, 数据=配置记录.data, 关闭时回调=lambda 闲置参数: 配置记录.saveModelToDB())
-        #     配置组件布局: "QVBoxLayout" = 配置组件.layout()
-        #
-        #     def 从当前配置窗的应用视图表中移除本视图():
-        #         模型: "configsModel.GviewConfigModel" = 配置组件.参数模型
-        #         值: "list[str]" = 模型.appliedGview.value
-        #         视图标识 = self.superior.data.gviewdata.uuid
-        #         if 视图标识 in 值:
-        #             值.remove(self.superior.data.gviewdata.uuid)
-        #             模型.appliedGview.设值到组件(值)
-        #             if len(值) == 0:
-        #                 配置记录.data.元信息.确定保存到数据库 = False
-        #
-        #     def 打开配置选取窗():
-        #         输入框 = funcs.组件定制.单行输入框(占位符=译.输入关键词并点击查询)
-        #         结果表 = funcs.组件定制.表格()
-        #
-        #         def 搜索关键词():
-        #             关键词 = 输入框.text()
-        #             搜索结果 = funcs.GviewConfigOperation.据关键词同时搜索视图与配置数据库表(关键词)
-        #             结果表模型 = funcs.组件定制.模型(["类型/type", "名称/name"])
-        #             项 = baseClass.Standard.Item
-        #             [结果表模型.appendRow([项(类型), 项(名字, data=标识)]) for 类型, 名字, 标识 in 搜索结果 if (类型 == 译.配置 and 标识 != 配置记录.uuid) or (类型 == 译.视图 and 标识 not in 配置记录.data.appliedGview.value)]
-        #             结果表.setModel(结果表模型)
-        #             if 结果表模型.rowCount() == 0:
-        #                 tooltip("搜索结果为空/empty result")
-        #
-        #         def 开始更换配置():
-        #             """* Done:2022年11月25日22:53:35 这里有bug, 我暂时没找出来, 更换配置后, 没有添加到对应配置的应用本配置视图表中"""
-        #             if 结果表.selectedIndexes():
-        #                 模型: "QStandardItemModel" = 结果表.model()
-        #                 选中行: "list[QStandardItem]" = [模型.itemFromIndex(索引) for 索引 in 结果表.selectedIndexes()]
-        #                 类型, 标识 = 选中行[0].text(), 选中行[1].data()
-        #                 最终标识 = 标识 if 类型 == 译.配置 else funcs.GviewOperation.load(uuid=标识).config
-        #                 新配置模型 = 配置类.readModelFromDB(最终标识)
-        #
-        #                 funcs.GviewConfigOperation.指定视图配置(self.superior.data.gviewdata, 新配置模型)
-        #                 self.superior.data.gviewdata = funcs.GviewOperation.load(self.superior.data.gviewdata.uuid)
-        #                 配置记录.data.元信息.确定保存到数据库 = False
-        #                 总组件.close()
-        #                 配置组件.close()
-        #                 self.openConfig()
-        #
-        #         搜索按钮 = funcs.组件定制.按钮(funcs.G.src.ImgDir.open, "", 触发函数=搜索关键词)
-        #         确认按钮 = funcs.组件定制.按钮(funcs.G.src.ImgDir.correct, "", 触发函数=开始更换配置)
-        #         说明 = funcs.组件定制.文本框(文本=译.说明_同时搜索配置与视图的配置, 开启自动换行=True)
-        #         布局树 = {布局: QVBoxLayout(), 子代: [{布局: QHBoxLayout(), 子代: [{组件: 输入框}, {组件: 搜索按钮}]}, {组件: 结果表}, {组件: 确认按钮}, {组件: 说明}]}
-        #         总组件 = funcs.组件定制.组件组合(布局树, 容器=funcs.组件定制.对话窗口(标题=译.搜索并选择配置))
-        #         总组件.exec()
-        #         pass
-        #
-        #     def 触发新建配置():
-        #         funcs.GviewConfigOperation.指定视图配置(视图记录, None)
-        #         配置记录.data.元信息.确定保存到数据库 = False
-        #         配置组件.close()
-        #         self.openConfig()
-        #
-        #     更换配置说明 = funcs.组件定制.文本框(译.说明_视图配置与视图的区别, 开启自动换行=True)
-        #     更换配置按钮 = funcs.组件定制.按钮(G.src.ImgDir.refresh, 译.更换本视图的配置, 触发函数=打开配置选取窗)
-        #     新建配置按钮 = funcs.组件定制.按钮(G.src.ImgDir.item_plus, 译.新建配置, 触发函数=触发新建配置)
-        #     配置组件的底部组件 = funcs.组件定制.组件组合({布局: QVBoxLayout(), 子代: [{布局: QHBoxLayout(), 子代: [{组件: 更换配置按钮}, {组件: 新建配置按钮}]}, {组件: 更换配置说明}]})
-        #     配置组件布局.addWidget(配置组件的底部组件)
-        #     配置组件.setLayout(配置组件布局)
-        #     配置组件.exec()
-        #     pass
-
-        # def resetConfig(self):
-        #     code = QMessageBox.information(self, 译.你将重置本视图的配置, 译.你将重置本视图的配置, QMessageBox.Yes | QMessageBox.No)
-        #     if code == QMessageBox.Yes:
-        #         funcs.GviewConfigOperation.指定视图配置(self.superior.data.gviewdata.uuid)
-        #         tooltip("reset configuration ok")
-        #
-        #     pass
 
         def helpFunction(self):
             """一个默认弹窗即可"""

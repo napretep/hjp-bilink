@@ -329,7 +329,8 @@ class ConfigTableView(CustomConfigItemView, metaclass=abc.ABCMeta):
         elif self.IsSelectTable:
             [self.AppendRow(self.GetRowFromData(["", row])) for row in raw_data[0]]
             if raw_data[1] > -1:
-                self.table_model.item(raw_data[1], 0).setText("✔")
+                item = self.table_model.item(raw_data[1], 0)
+                if item: item.setText("✔")
         else:
             list(map(lambda row: self.AppendRow(self.GetRowFromData(row)), raw_data))
         self.table_model.setHorizontalHeaderLabels(self.colnames)

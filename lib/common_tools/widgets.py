@@ -2211,6 +2211,9 @@ class 自定义组件:
             def 初始化UI(self):
                 self.布局.addWidget(self.ui组件)
                 self.setLayout(self.布局)
+                self.ui组件.setContentsMargins(0,0,0,0)
+                self.布局.setContentsMargins(0,0,0,0)
+                self.setContentsMargins(0,0,0,0)
                 pass
 
             def UI赋值(self):
