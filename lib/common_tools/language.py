@@ -443,18 +443,18 @@ zh=f"""
 加权排序:weighted_sort
 如果你在roaming_path_mode中选择了weighted_sort模式,
 那么在本程序执行生成漫游路径的操作时,会根据当前表格中选中的加权公式, 作为对每个结点评分的依据.最终会以这些结点的加权评分的降序排列结果作为漫游的路径.
-如果没有选中任何加权公式, 那么会采用默认的公式来排序结点:  {枚举.结点.优先级}
+如果没有选中任何加权公式, 那么会采用默认的公式来排序结点:  {baseClass.漫游预设.默认加权排序规则}
 """,
 en=f"""
 Weighted sort: weighted_sort
 If you select weighted_sort mode in roaming_path_mode,
 Then when this program generates roaming paths, it will use the weighted formula selected in the current table as the basis for scoring each node. The final roaming path will be based on the descending order of the weighted scores of these nodes.
-If no weighting formula is selected or the table is empty, then the default formula will be used to sort the nodes:{枚举.结点.优先级}
+If no weighting formula is selected or the table is empty, then the default formula will be used to sort the nodes:{baseClass.漫游预设.默认加权排序规则}
 """
     )
 
     说明_多级排序 = 翻译(
-            zh="""
+            zh=f"""
 多级排序:cascading_sort
 如果你在roaming_path_mode中选择了cascading_sort模式, 则漫游路径会根据结点的各类属性排序结果生成.
 在本配置项中, 如果你想添加一种多级排序规则, 则需要点击加号按钮, 在弹出的对话框中输入一个python语法风格的列表.
@@ -472,9 +472,9 @@ If no weighting formula is selected or the table is empty, then the default form
 升序和降序只能用"ascending","descending"来表示,
 排序依据的变量只能是规定的可用变量
 
-默认的多级排序规则:[[node_priority,descending]]
+默认的多级排序规则:{baseClass.漫游预设.默认多级排序规则}
             """,
-en="""
+en=f"""
 cascading sorting: cascading_sort
 If you select cascading_sort mode in roaming_path_mode, the roaming path will be generated based on the sorting result of various attributes of the node.
 In this configuration, if you want to add a multi-level sorting rule, you need to click the plus button and enter a python syntax style list in the popup dialog.
@@ -492,7 +492,7 @@ Note:
 Ascending and descending can only be represented by "ascending" and "descending",
 The sorting variables can only be based on the available variables.
 
-Default cascading sorting rule: [[node_priority,descending]]
+Default cascading sorting rule: {baseClass.漫游预设.默认多级排序规则}
 """
     )
     说明_图排序 = 翻译(
@@ -512,7 +512,7 @@ If you have already selected a node, the graph sort will start the traversal wit
 
 
     说明_漫游路径过滤 = 翻译(
-        zh="""
+        zh=f"""
 漫游结点过滤:roaming_node_filter
 本配置项将根据用户所设条件, 先将不满足条件的结点过滤剔除, 再在剩余满足条件的结点上执行漫游路径生成算法,
 
@@ -524,9 +524,9 @@ node_priority > 50 and node_visit_count <30 and node_role_name in ["apple","bana
 注意:
 条件必须是符合python语法的表达式,返回值只能是布尔类型.
 
-默认的过滤规则: is_due
+默认的过滤规则: {baseClass.漫游预设.默认过滤规则}
         """,
-en="""
+en=f"""
 Roaming node filtering: roaming_node_filter
 This configuration item will filter out the nodes that do not meet the conditions according to the conditions set by the user, and then execute the roaming path generation algorithm on the remaining nodes that meet the conditions,
 
@@ -537,7 +537,7 @@ After clicking OK, select this row in the table, then the program will filter ou
 Note:
 The condition must be a python syntax expression, and the return value can only be a boolean.
 
-Default filter rule: is_due
+Default filter rule:  {baseClass.漫游预设.默认过滤规则}
 """
     )
 
@@ -735,5 +735,13 @@ Default filter rule: is_due
     设为默认视图 = 翻译("设为默认视图","set as default view")
     说明_漫游复习侧边栏收起 = 翻译("是否默认收起漫游复习的侧边栏","Whether to tuck away the sidebar for roaming review by default")
     双链分组器=翻译("双链分组器","bilink grouper")
+    描述提取规则_标签=翻译("标签","tags")
+    描述提取规则_牌组=翻译("牌组","deck")
+    描述提取规则_正则=翻译("正则表达式","regex")
+    描述提取规则_字段=翻译("字段","field")
+    描述提取规则_同步=翻译("内容同步","content sync")
+    描述提取规则_模板=翻译("卡片模板","card template")
+    描述提取规则_长度=翻译("字符长度","text length")
+    不选等于全选 = 翻译("你没有选择任何一项, 程序默认你选择了全部项","You have not selected any item, the program defaults to your selection of all items")
 if __name__ == "__main__":
     print(Translate.打开配置表)

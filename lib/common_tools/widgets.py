@@ -24,7 +24,7 @@ from .language import Translate, rosetta
 from . import configsModel
 
 from .compatible_import import *
-from . import funcs, baseClass
+from . import funcs, baseClass,hookers,funcs2
 
 布局 = 0
 组件 = 1
@@ -178,6 +178,7 @@ class SelectorProtoType(QDialog):
 
     def __init__(self, title_name="", separator="::", header_name=""):
         super().__init__()
+        self.tree_structure=True
         self.window_title_name = title_name
         self.separator = separator
         self.model_header_name = header_name
@@ -230,12 +231,13 @@ class SelectorProtoType(QDialog):
         return s
 
     def on_header_button_clicked_handle(self):
-        if self.header.button.text() == self.header.as_tree:
-            self.header.button.setText(self.header.as_list)
-            self.header.button.setIcon(QIcon(G.src.ImgDir.list))
-        else:
-            self.header.button.setText(self.header.as_tree)
-            self.header.button.setIcon(QIcon(G.src.ImgDir.tree))
+        if self.tree_structure:
+            if self.header.button.text() == self.header.as_tree:
+                self.header.button.setText(self.header.as_list)
+                self.header.button.setIcon(QIcon(G.src.ImgDir.list))
+            else:
+                self.header.button.setText(self.header.as_tree)
+                self.header.button.setIcon(QIcon(G.src.ImgDir.tree))
         self.init_data()
 
     def init_model(self):
@@ -249,8 +251,11 @@ class SelectorProtoType(QDialog):
         self.model.clear()
         self.model_rootNode = self.model.invisibleRootItem()
         self.model.setHorizontalHeaderLabels([self.model_header_name])
-        if self.header.button.text() == self.Header.as_tree:
-            self.build_as_tree()
+        if self.tree_structure:
+            if self.header.button.text() == self.Header.as_tree:
+                self.build_as_tree()
+            else:
+                self.build_as_list()
         else:
             self.build_as_list()
         self.view.expandAll()
@@ -345,7 +350,7 @@ class DeckSelectorProtoType(SelectorProtoType):
     def on_header_new_item_button_clicked_handle(self):
         new_item = self.Item(f"""new_deck_{datetime.now().strftime("%Y%m%d%H%M%S")}""")
         if self.view.selectedIndexes():
-            item: "deck_chooser.Item" = self.model.itemFromIndex(self.view.selectedIndexes()[0])
+            item: "DeckSelectorProtoType.Item" = self.model.itemFromIndex(self.view.selectedIndexes()[0])
             parent_item = item.parent()
         else:
             parent_item = self.model.invisibleRootItem()
@@ -361,7 +366,7 @@ class DeckSelectorProtoType(SelectorProtoType):
     #     raise NotImplementedError()
 
     def on_model_data_changed_handle(self, topLeft, bottomRight, roles):
-        item: "deck_chooser.Item" = self.model.itemFromIndex(topLeft)
+        item: "DeckSelectorProtoType.Item" = self.model.itemFromIndex(topLeft)
         from . import funcs
         DeckId = funcs.Compatible.DeckId()
         new_deck_name = self.get_full_item_name(item)
@@ -369,7 +374,7 @@ class DeckSelectorProtoType(SelectorProtoType):
         # print(item.deck_name)
 
     def on_view_clicked_handle(self, index):
-        item: deck_chooser.Item = self.model.itemFromIndex(index)
+        item: DeckSelectorProtoType.Item = self.model.itemFromIndex(index)
         # tooltip(self.get_full_item_name(item))
 
     def get_all_data_items(self):
@@ -379,7 +384,7 @@ class DeckSelectorProtoType(SelectorProtoType):
                 not decks.is_filtered(i.id)]
 
 
-class deck_chooser(DeckSelectorProtoType):
+class deck_chooser_for_changecard(DeckSelectorProtoType):
 
     def __init__(self, pair_li: "list[G.objs.LinkDataPair]" = None, fromview: "AnkiWebView" = None):
         super().__init__(title_name="deck_chooser", header_name="deck_name")
@@ -423,21 +428,49 @@ class deck_chooser(DeckSelectorProtoType):
         self.close()
 
 
-class view_config_deck_chooser(DeckSelectorProtoType):
+class universal_deck_chooser(DeckSelectorProtoType):
     def on_view_doubleclicked_handle(self, index):
         item: "DeckSelectorProtoType.Item" = self.model.itemFromIndex(index)
-        self.牌组编号 = item.data_id
+        self.结果 = item.data_id
         self.close()
 
     def __init__(self, ):
-        super().__init__()
-        self.牌组编号 = -1
+        super().__init__(title_name="deck chooser",header_name="deck name")
+        self.结果 = -1
+
+
+class universal_template_chooser(SelectorProtoType):
+    def __init__(self, ):
+        super().__init__(title_name="template chooser",header_name="template name")
+        self.结果 = -1
+        self.tree_structure=False
+        self.header.button.hide()
+        self.header.new_item_button.hide()
+
+    def on_header_new_item_button_clicked_handle(self):
+        pass
+
+    def on_model_data_changed_handle(self, topLeft, bottomRight, roles):
+        pass
+
+    def on_view_clicked_handle(self, index):
+        pass
+
+    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
+        all_models = mw.col.models.all_names_and_ids()
+        return [self.Id_name(name=i.name,ID=i.id) for i in all_models]
+        pass
+
+    def on_view_doubleclicked_handle(self, index):
+        item: "DeckSelectorProtoType.Item" = self.model.itemFromIndex(index)
+        self.结果 = item.data_id
+        self.close()
 
 
 class view_chooser(SelectorProtoType):
     def on_view_doubleclicked_handle(self, index):
         item: "DeckSelectorProtoType.Item" = self.model.itemFromIndex(index)
-        self.选中的视图编号 = item.data_id
+        self.编号 = item.data_id
         self.close()
         pass
 
@@ -458,15 +491,42 @@ class view_chooser(SelectorProtoType):
     def __init__(self, title_name="", separator="::", header_name=""):
         super().__init__(title_name, separator, header_name)
         self.header.new_item_button.hide()
-        self.选中的视图编号 = -1
+        self.编号 = -1
+
+class universal_field_chooser(SelectorProtoType):
+    def __init__(self,模板编号, title_name="", separator="::", header_name=""):
+        super().__init__("choose a field", separator, "field name")
+        self.tree_structure=False
+        self.header.new_item_button.hide()
+        self.header.button.hide()
+        self.结果 = -1
+        self.模板编号:"int" = 模板编号
+
+    def on_header_new_item_button_clicked_handle(self):
+        pass
+
+    def on_model_data_changed_handle(self, topLeft, bottomRight, roles):
+        pass
+
+    def on_view_clicked_handle(self, index):
+        pass
+
+    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
+        字段名集 = mw.col.models.field_names(mw.col.models.get(self.模板编号))
+        return [self.Id_name(name=字段名集[i],ID=i) for i in range(len(字段名集))]
+        pass
+
+    def on_view_doubleclicked_handle(self, index):
+        item: "DeckSelectorProtoType.Item" = self.model.itemFromIndex(index)
+        self.结果 = item.data_id
+        self.close()
+        pass
 
 
-class tag_chooser(QDialog):
-    """添加后需要更新内容, 用 init_data_left方法"""
-
-    def __init__(self, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
+class universal_tag_chooser(QDialog):
+    def __init__(self,preset:"iter[str]"=None):
         super().__init__()
-        self.pair_li = pair_li
+
         self.view_left = self.View(self)
         self.view_right = self.View(self)
         self.view_left.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -474,7 +534,8 @@ class tag_chooser(QDialog):
         self.model_right = QStandardItemModel(self)
         self.model_right_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
         self.model_left_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
-        self.tag_list = self.get_all_tags_from_pairli()
+        self.tag_list = set() if not preset else set(preset) #self.get_all_tags_from_pairli()
+        self.结果 = self.tag_list
         self.left_button_group = self.button_group(self, 0, self.view_left, self.model_left)
         self.right_button_group = self.button_group(self, 1, self.view_right, self.model_right)
         self.init_UI()
@@ -485,27 +546,14 @@ class tag_chooser(QDialog):
                 # [self.view_left.customContextMenuRequested, self.on_view_show_context_menu]
         ]).bind()
 
-    # def on_view_show_context_menu(self, pos: QtCore.QPoint):
-    #     selected_items: "list[tag_chooser.Item]" = [ self.model_left.itemFromIndex(idx) for idx in  self.view_left.selectedIndexes()]
-    #     selected_item = selected_items[0] if len(selected_items) > 0 else None
-    #
-    #     def add_syncReview_tag(item: 'Optional[tag_chooser.Item]'):
-    #         tag_name = item.tag_name if item is not None else ""
-    #         tag_name = "::".join(tag_name.split("::")[2:]) if  "hjp-bilink" in tag_name.split("::") else tag_name
-    #         new_tag_name = G.src.autoreview_header + tag_name
-    #         self.left_button_group.on_card_tag_new_handle(tag_name=new_tag_name,from_posi=self.model_left)
-    #
-    #     menu = self.view_left.contextMenu = QMenu()
-    #     menu.addAction(Translate.添加同步复习标签).triggered.connect(lambda: add_syncReview_tag(selected_item))
-    #     menu.popup(QCursor.pos())
-    #     menu.show()
 
     def on_view_right_doubleClicked_handle(self, index):
         self.right_button_group.on_collection_tag_add_handle()
 
     def on_model_left_datachanged_handle(self, index):
-        item: "tag_chooser.Item" = self.model_left.itemFromIndex(index)
-        stack: "list[tag_chooser.Item]" = [item]
+        """左边的数据改变了, 就要保存一次"""
+        item: "tag_chooser_for_cards.Item" = self.model_left.itemFromIndex(index)
+        stack: "list[tag_chooser_for_cards.Item]" = [item]
         while stack:
             it = stack.pop()
             if it.tag_name is not None:
@@ -544,23 +592,11 @@ class tag_chooser(QDialog):
 
         pass
 
-    def reject(self) -> None:
-        self.close()
-        super().reject()
-
-    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
-        s = self.save()
-        from . import funcs
-        CardId = funcs.CardId
-        for pair in self.pair_li:
-            note = mw.col.getCard(CardId(pair.int_card_id)).note()
-            note.set_tags_from_str(" ".join(s))
-            note.flush()
-        from . import funcs
-        funcs.LinkPoolOperation.both_refresh()
+    def closeEvent(self, QCloseEvent):
+        self.tag_list = self.save()
 
     def save(self):
-        stack: "list[tag_chooser.Item]" = [self.model_left.item(i, 0) for i in range(self.model_left.rowCount())]
+        stack: "list[universal_tag_chooser.Item]" = [self.model_left.item(i, 0) for i in range(self.model_left.rowCount())]
         s = set()
         while stack:
             item = stack.pop()
@@ -570,7 +606,7 @@ class tag_chooser(QDialog):
                 stack.append(item.child(i, 0))
         return s
 
-    def get_full_tag_name(self, item: "tag_chooser.Item"):
+    def get_full_tag_name(self, item: "universal_tag_chooser.Item"):
         text_li = []
         parent = item
         while parent:
@@ -580,161 +616,12 @@ class tag_chooser(QDialog):
         text = "::".join(reversed(text_li))
         return text
 
-    def add_tag(self, tag_name: str):
-        from . import funcs
-        CardId = funcs.CardId
-        if tag_name is None:
-            return
-        for pair in self.pair_li:
-            note = mw.col.getCard(CardId(pair.int_card_id)).note()
-            note.add_tag(tag_name)
-            note.flush()
 
     def get_all_tags_from_collection(self) -> 'list[str]':
-        if __name__ == "__main__":
-            return ['0dailynotes',
-                    '0dailynotes::1随记',
-                    '0dailynotes::2项目',
-                    '0dailynotes::2项目::0文章',
-                    '0dailynotes::2项目::hjp-bilink',
-                    '0dailynotes::2项目::hjp-bilink::开发目标',
-                    '0dailynotes::3笔记',
-                    '0dailynotes::time::2020::12::13',
-                    '0dailynotes::time::2020::12::14',
-                    '总结::笔记',
-                    '总结::证明方法',
-                    '总结::证明方法::反证法',
-                    '总结::证明方法::多项式与解空间',
-                    '总结::证明方法::扩基',
-                    '总结::证明方法::找同构映射的方法',
-                    '总结::证明方法::数学归纳法',
-                    '总结::证明方法::矩阵分解',
-                    '总结::证明方法::逆射证明',
-                    '总结::重要结论',
-                    '总结::难点必背',
-                    '总结::难点必背::不等式',
-                    '总结::难点必背::中值定理',
-                    '总结::难点必背::可积性定理',
-                    '总结::难点必背::实数理论',
-                    '总结::难点必背::等式',
-                    '总结::难点必背::高代::AB可交换',
-                    '总结::难点必背::高代::上下三角矩阵',
-                    '总结::难点必背::高代::互素因子与直和',
-                    '总结::难点必背::高代::同构（可逆）',
-                    '总结::难点必背::高代::名词',
-                    '总结::难点必背::高代::域扩张',
-                    '总结::难点必背::高代::矩阵乘法',
-                    '总结::难点必背::高代::线性空间',
-                    '数学::习题',
-                    '数学::习题::数学分析::华师初试题::2005',
-                    '数学::习题::数学分析::华师初试题::2006',
-                    '数学::习题::数学分析::华师初试题::2007',
-                    '数学::习题::数学分析::华师初试题::2008',
-                    '数学::习题::数学分析::华师初试题::2009',
-                    '数学::习题::数学分析::华师初试题::2010',
-                    '数学::习题::数学分析::华师初试题::2011',
-                    '数学::习题::数学分析::华师初试题::2012',
-                    '数学::习题::数学分析::华师初试题::2013',
-                    '数学::习题::数学分析::华师初试题::2014',
-                    '数学::习题::数学分析::华师初试题::2015',
-                    '数学::习题::数学分析::华师初试题::2016',
-                    '数学::习题::数学分析::华师初试题::2017',
-                    '数学::习题::数学分析::华师初试题::2018',
-                    '数学::习题::数学分析::华师初试题::2019',
-                    '数学::习题::数学分析::华科初试题::2020',
-                    '数学::习题::数学分析::湘潭大学初试题::1997',
-                    '数学::习题::数学分析::湘潭大学初试题::1998',
-                    '数学::习题::数学分析::湘潭大学初试题::1999',
-                    '数学::习题::数学分析::湘潭大学初试题::2000',
-                    '数学::习题::数学分析::湘潭大学初试题::2001',
-                    '数学::习题::数学分析::湘潭大学初试题::2002',
-                    '数学::习题::数学分析::湘潭大学初试题::2003',
-                    '数学::习题::数学分析::湘潭大学初试题::2004',
-                    '数学::习题::数学分析::湘潭大学初试题::2005',
-                    '数学::习题::数学分析::湘潭大学初试题::2006',
-                    '数学::习题::数学分析::湘潭大学初试题::2007',
-                    '数学::习题::数学分析::湘潭大学初试题::2008',
-                    '数学::习题::数学分析::湘潭大学初试题::2009',
-                    '数学::习题::数学分析::湘潭大学初试题::2010',
-                    '数学::习题::数学分析::湘潭大学初试题::2011',
-                    '数学::习题::数学分析::湘潭大学初试题::2012',
-                    '数学::习题::数学分析::湘潭大学初试题::2013',
-                    '数学::习题::数学分析::湘潭大学初试题::2014',
-                    '数学::习题::数学分析::湘潭大学初试题::2015',
-                    '数学::习题::数学分析::湘潭大学初试题::2016',
-                    '数学::习题::数学分析::湘潭大学初试题::2017',
-                    '数学::习题::数学分析::湘潭大学初试题::2018',
-                    '数学::习题::数学分析::湘潭大学初试题::2020',
-                    '数学::习题::无答案',
-                    '数学::习题::疑问',
-                    '数学::习题::面试题',
-                    '数学::习题::高等代数::华师初试题::2004',
-                    '数学::习题::高等代数::华师初试题::2005',
-                    '数学::习题::高等代数::华师初试题::2006',
-                    '数学::习题::高等代数::华师初试题::2007',
-                    '数学::习题::高等代数::华师初试题::2008',
-                    '数学::习题::高等代数::华师初试题::2009',
-                    '数学::习题::高等代数::华师初试题::2010',
-                    '数学::习题::高等代数::华师初试题::2011',
-                    '数学::习题::高等代数::华师初试题::2012',
-                    '数学::习题::高等代数::华师初试题::2013',
-                    '数学::习题::高等代数::华师初试题::2014',
-                    '数学::习题::高等代数::华师初试题::2015',
-                    '数学::习题::高等代数::华师初试题::2016',
-                    '数学::习题::高等代数::华师初试题::2017',
-                    '数学::习题::高等代数::华师初试题::2018',
-                    '数学::习题::高等代数::华师初试题::2019',
-                    '数学::习题::高等代数::湘潭大学初试题::1997',
-                    '数学::习题::高等代数::湘潭大学初试题::1998',
-                    '数学::习题::高等代数::湘潭大学初试题::1999',
-                    '数学::习题::高等代数::湘潭大学初试题::2001',
-                    '数学::习题::高等代数::湘潭大学初试题::2002',
-                    '数学::习题::高等代数::湘潭大学初试题::2003',
-                    '数学::习题::高等代数::湘潭大学初试题::2004',
-                    '数学::习题::高等代数::湘潭大学初试题::2005',
-                    '数学::习题::高等代数::湘潭大学初试题::2006',
-                    '数学::习题::高等代数::湘潭大学初试题::2007',
-                    '数学::习题::高等代数::湘潭大学初试题::2008',
-                    '数学::习题::高等代数::湘潭大学初试题::2009',
-                    '数学::习题::高等代数::湘潭大学初试题::2010',
-                    '数学::习题::高等代数::湘潭大学初试题::2011',
-                    '数学::习题::高等代数::湘潭大学初试题::2012',
-                    '数学::习题::高等代数::湘潭大学初试题::2013',
-                    '数学::习题::高等代数::湘潭大学初试题::2014',
-                    '数学::习题::高等代数::湘潭大学初试题::2015',
-                    '数学::习题::高等代数::湘潭大学初试题::2016',
-                    '数学::习题::高等代数::湘潭大学初试题::2017',
-                    '数学::习题::高等代数::湘潭大学初试题::2018',
-                    '数学::习题::高等代数::湘潭大学初试题::2020',
-                    '数学::课本::复变',
-                    '数学::课本::复变::华科应用复分析',
-                    '数学::课本::复变::复变函数@钟玉泉',
-                    '数学::课本::复变::复变函数与积分变换_华科李红',
-                    '数学::课本::复变::复变函数与积分变换_焦红伟PDF',
-                    '数学::课本::复变::慕课国防科大',
-                    '数学::课本::拓扑::点集拓扑讲义@熊金城::01朴素集合论',
-                    '数学::课本::拓扑::点集拓扑讲义@熊金城::02拓扑空间与连续映射',
-                    '数学::课本::拓扑::点集拓扑讲义@熊金城::04连通性',
-                    '数学::课本::拓扑::点集拓扑讲义@熊金城::05可数性公理',
-                    '数学::课本::拓扑::点集拓扑讲义@熊金城::07紧致性',
-                    ]
-        else:
-            return mw.col.tags.all()
+        return mw.col.tags.all()
 
-    def get_all_tags_from_pairli(self) -> 'set[str]':
-        """多张卡片要取公共的"""
-        tags = set()
-        for pair in self.pair_li:
-            tag = set(mw.col.getCard(pair.int_card_id).note().tags)
-            if tags == set():
-                tags |= tag
-            else:
-                tags &= tag
-        return tags
-        pass
-
-    def build_tag_tree(self, tag_set: "set[str]", model: "QStandardItemModel", view: "tag_chooser.View",
-                       button_group: "tag_chooser.button_group"):
+    def build_tag_tree(self, tag_set: "set[str]", model: "QStandardItemModel", view: "tag_chooser_for_cards.View",
+                       button_group: "tag_chooser_for_cards.button_group"):
         tag_list = sorted(list(tag_set))
         tag_dict = G.objs.Struct.TreeNode(model.invisibleRootItem(), {})
         total_tag = button_group.L_or_R == button_group.R
@@ -754,8 +641,8 @@ class tag_chooser(QDialog):
         view.setAcceptDrops(True)
         pass
 
-    def build_tag_list(self, tag_set: "set[str]", model: "QStandardItemModel", view: "tag_chooser.View",
-                       button_group: "tag_chooser.button_group"):
+    def build_tag_list(self, tag_set: "set[str]", model: "QStandardItemModel", view: "tag_chooser_for_cards.View",
+                       button_group: "tag_chooser_for_cards.button_group"):
         tag_list = sorted(list(tag_set))
         total_tag = button_group.L_or_R == button_group.R
         for i in tag_list:
@@ -770,7 +657,6 @@ class tag_chooser(QDialog):
         model.clear()
         self.model_right_rootNode = model.invisibleRootItem()
         model.setHorizontalHeaderLabels(["selected tag"])
-        # tag_list = self.get_all_tags_from_pairli() if init else self.save()
         if button_group.arrange_button.text() == button_group.tag_tree:
             self.build_tag_tree(self.tag_list, model, view, button_group)
         else:
@@ -791,23 +677,11 @@ class tag_chooser(QDialog):
         self.view_right.expandAll()
         pass
 
-    @property
-    def curr_tag_name(self):
-        return "tag_name"
-
-        # class Tag_list(list):
-        #     def append(self, item) -> None:
-        #         super().append(item)
-        #         self
-        #         self.sort()
-
-        pass
-
     class button_group(QWidget):
         L, R = 0, 1
         tag_tree, tag_list = "tag_tree", "tag_list"
 
-        def __init__(self, superior: "tag_chooser", L_or_R=0, fromView: "QTreeView" = None,
+        def __init__(self, superior: "tag_chooser_for_cards", L_or_R=0, fromView: "QTreeView" = None,
                      fromModel: "QStandardItemModel" = None):
             super().__init__()
             self.superior = superior
@@ -891,7 +765,7 @@ class tag_chooser(QDialog):
 
                 stack = item_li
                 while stack:
-                    stack_item: "tag_chooser.Item" = stack.pop()
+                    stack_item: "tag_chooser_for_cards.Item" = stack.pop()
                     if stack_item.tag_name:
                         # to_be_deleted.append(stack_item.tag_name)
                         self.superior.tag_list.remove(stack_item.tag_name)
@@ -920,20 +794,20 @@ class tag_chooser(QDialog):
             old: "str"
             new: "str"
 
-        def __init__(self, parent: "tag_chooser"):
+        def __init__(self, parent: "tag_chooser_for_cards"):
             super().__init__(parent)
-            self.superior: "tag_chooser" = parent
+            self.superior: "tag_chooser_for_cards" = parent
             self.viewmode: "Optional[int]" = None
             self.setDragDropOverwriteMode(False)
             self.setSelectionMode(QAbstractItemViewSelectMode.ExtendedSelection)
             # self.on_did_drop.connect(self.change_base_tag_after_dropEvent)
 
         def dropEvent(self, event: QtGui.QDropEvent) -> None:
-            item_from: "list[tag_chooser.Item]" = [self.model().itemFromIndex(index) for index in
-                                                   self.selectedIndexes()]
-            item_to: "tag_chooser.Item" = self.model().itemFromIndex(self.indexAt(event.pos()))
-            parent_from: "list[tag_chooser.Item]" = [item.parent() for item in item_from]
-            parent_to: "tag_chooser.Item" = item_to.parent() if item_to is not None else self.model().invisibleRootItem()
+            item_from: "list[tag_chooser_for_cards.Item]" = [self.model().itemFromIndex(index) for index in
+                                                             self.selectedIndexes()]
+            item_to: "tag_chooser_for_cards.Item" = self.model().itemFromIndex(self.indexAt(event.pos()))
+            parent_from: "list[tag_chooser_for_cards.Item]" = [item.parent() for item in item_from]
+            parent_to: "tag_chooser_for_cards.Item" = item_to.parent() if item_to is not None else self.model().invisibleRootItem()
             for i in range(len(parent_from)):
                 item = parent_from[i].takeRow(item_from[i].row())
                 if self.dropIndicatorPosition() == dropIndicatorPosition.OnItem:
@@ -964,7 +838,7 @@ class tag_chooser(QDialog):
         def set_tag_name(self, name):
             self._tag_name = name
 
-        def parent(self) -> "tag_chooser.Item":
+        def parent(self) -> "tag_chooser_for_cards.Item":
             if super().parent() is None:
                 return self.model().invisibleRootItem()
             else:
@@ -974,6 +848,55 @@ class tag_chooser(QDialog):
     class Id_tag:
         tag: "str"
         ID: "int"
+
+class tag_chooser_for_cards(universal_tag_chooser):
+    def __init__(self, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
+        super().__init__()
+        self.pair_li = pair_li
+
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        s = self.save()
+        from . import funcs
+        CardId = funcs.CardId
+        for pair in self.pair_li:
+            note = mw.col.getCard(CardId(pair.int_card_id)).note()
+            note.set_tags_from_str(" ".join(s))
+            note.flush()
+        from . import funcs
+        funcs.LinkPoolOperation.both_refresh()
+
+    def save(self):
+        stack: "list[tag_chooser_for_cards.Item]" = [self.model_left.item(i, 0) for i in range(self.model_left.rowCount())]
+        s = set()
+        while stack:
+            item = stack.pop()
+            if item.tag_name:
+                s.add(self.get_full_tag_name(item))
+            for i in range(item.rowCount()):
+                stack.append(item.child(i, 0))
+        return s
+
+    def add_tag(self, tag_name: str):
+        from . import funcs
+        CardId = funcs.CardId
+        if tag_name is None:
+            return
+        for pair in self.pair_li:
+            note = mw.col.getCard(CardId(pair.int_card_id)).note()
+            note.add_tag(tag_name)
+            note.flush()
+
+    def get_all_tags_from_pairli(self) -> 'set[str]':
+        """多张卡片要取公共的"""
+        tags = set()
+        for pair in self.pair_li:
+            tag = set(mw.col.getCard(pair.int_card_id).note().tags)
+            if tags == set():
+                tags |= tag
+            else:
+                tags &= tag
+        return tags
+        pass
 
 
 class Dialog_PDFUrlTool(QDialog):
@@ -1181,6 +1104,15 @@ class ConfigWidget:
                           (32, "32", colEnum.length),
                           ("", "", colEnum.regexp),
                           (True, "True", colEnum.autoUpdateDesc)]
+
+        def 获取默认行(self):
+            from . import models
+            模型 = models.类型_模型_描述提取规则()
+            属性列表 = 模型.获取属性项有序列表()
+            默认行 = []
+            for 属性名 in 属性列表:
+
+                默认行.append((模型.属性字典[属性名].默认值,模型.属性字典[属性名].组件显示值))
 
         def GetRowFromData(self, data: "list[str]"):
             """这里data是一行对象"""
@@ -1391,19 +1323,6 @@ class ConfigWidget:
                 self.SetupLengthSpinbox()
                 self.SetupRegexTextedit()
                 self.SetupSyncRadiobutton()
-
-            # def SetupUI(self):
-            #     from . import G
-            #     hlayout = QHBoxLayout()
-            #     self.okbtn.setIcon(QIcon(G.src.ImgDir.correct))
-            #
-            #     self.mainLayout.addLayout(self.layout)
-            #     hlayout.addWidget(self.okbtn)
-            #     self.mainLayout.addLayout(hlayout)
-            #     self.mainLayout.setAlignment(Qt.AlignRight)
-            #     self.widget.setLayout(self.mainLayout)
-            #     funcs.Map.do(range(len(self.superior.colnames)), lambda i: self.layout.addRow(self.superior.colnames[i], self.__dict__[f"col{i}"]))
-
             def SetupTemplateCombox(self):
                 templateId = self.colItems[0].data(role=ItemDataRole.UserRole)
 
@@ -2009,10 +1928,9 @@ class ConfigWidget:
 
         def on_edit_btn_clicked(self):
 
-            w = view_config_deck_chooser()
+            w = universal_deck_chooser()
             w.exec()
-            self.SetupData(w.牌组编号)
-            self.ConfigModelItem.value = w.牌组编号
+            self.ConfigModelItem.setValue(w.结果)
             pass
 
         def SetupData(self, raw_data):
@@ -2023,13 +1941,13 @@ class ConfigWidget:
             pass
 
     class GlobalConfigDefaultViewChooser(baseClass.ConfigItemLabelView):
-
+        """默认视图用的他"""
         def on_edit_btn_clicked(self):
 
             w = view_chooser()
             w.exec()
-            self.SetupData(w.选中的视图编号)
-            self.ConfigModelItem.value = w.选中的视图编号
+            self.SetupData(w.编号)
+            self.ConfigModelItem.value = w.编号
             pass
 
         def SetupData(self, raw_data):
@@ -2040,10 +1958,7 @@ class ConfigWidget:
             pass
 
 
-# class CustomConfigItemLabelView(baseClass.CustomConfigItemView):
-#     def __init__(self,配置项,上级):
-#         super().__init__(配置项,上级)
-#         self.View =
+
 
 
 class ReviewButtonForCardPreviewer:
@@ -2179,7 +2094,7 @@ class 自定义组件:
             def __init__(self, 上级):
                 super().__init__()
                 from . import models
-                self.上级: models.函数库_UI展示.组件 = 上级
+                self.上级: models.函数库_UI生成.组件 = 上级
 
             @abc.abstractmethod
             def setValue(self, value):
@@ -2226,30 +2141,88 @@ class 自定义组件:
                 item_set_value = lambda value: self.上级.数据源.设值(value)
                 self.ui组件.currentIndexChanged.connect(lambda x: item_set_value(self.ui组件.currentData()))
                 pass
+        class 基本选择类(基类_项组件基础):
+            def __init__(self, 上级):
+                super().__init__(上级)
+                self.ui组件 = funcs.组件定制.文本框()
+                self.修改按钮 = funcs.组件定制.按钮_修改()
+                self.修改按钮.clicked.connect(self.on_edit_button_clicked)
+                self.当完成选择 = hookers.当全局配置_描述提取规则_模板选择器完成选择()
 
-        # class 优先级(QWidget):
-        #     def __init__(self, 项):
-        #         """优先级是个滑动条, 要显示滑动的数值,每次滑动完都要保存"""
-        #         super().__init__()
-        #         from . import funcs, models
-        #         self.项: models.类型_视图结点属性项 = 项
-        #         self.拖动条 = QSlider()
-        #         self.数值显示 = QLabel()
-        #         if self.项.有限制:
-        #             self.拖动条.setRange(self.项.限制[0],self.项.限制[1])
-        #         funcs.组件定制.组件组合({布局:QHBoxLayout(),子代:[self.数值显示,self.拖动条]},self)
-        #
-        #         def item_set_value(value):
-        #             self.项.设值(value)
-        #             self.数值显示.setText(value.__str__())
-        #         self.拖动条.valueChanged.connect(item_set_value)
-        #
-        #
-        #         pass
+            def on_edit_button_clicked(self):
+                w = self.chooser()
+                w.exec()
+                if (type(w.结果) in [int,float] and w.结果 < 0) or \
+                        (type(w.结果)==list and len(w.结果)==0):
+                    showInfo(译.不选等于全选)
+
+                self.setValue(w.结果)
+
+            def setValue(self, value):
+                self.ui组件.setText(self.get_name(value))
+                self.上级.数据源.设值(value)
+                self.当完成选择(self,value)
+                pass
+
+            def chooser(self):raise NotImplementedError() #"""打开某一种选择器"""
+
+            def get_name(self, value): raise NotImplementedError()
+
+        class 牌组选择(基本选择类):
+
+            def chooser(self): return universal_deck_chooser()
+
+            def get_name(self, value):return mw.col.decks.name_if_exists(value) if value > 0 else "ALL DECKS"
+
+            def __init__(self, 上级):
+                super().__init__(上级)
+                self.ui组件.setText(self.get_name(self.上级.数据源.值))
+
+
+        class 模板选择(基本选择类):
+
+            def get_name(self,value):return mw.col.models.get(value)["name"] if value>0 else "ALL TEMPLATES"
+
+            def chooser(self):return universal_template_chooser()
+
+            def __init__(self, 上级):
+                super().__init__(上级)
+                self.ui组件.setText(self.get_name(self.上级.数据源.值))
+
+        class 字段选择(基本选择类):
+            def __init__(self, 上级,模板编号):
+                super().__init__(上级)
+                self.模板编号=模板编号
+                self.检查模板编号合法性()
+
+            def 检查模板编号合法性(self):
+                if self.模板编号<0:
+                    self.修改按钮.setEnabled(False)
+                else:
+                    self.修改按钮.setEnabled(True)
+                self.ui组件.setText(self.get_name(self.上级.数据源.值))
+
+            def chooser(self):return universal_field_chooser(self.模板编号)
+
+            def get_name(self, value):
+                return funcs.卡片字段操作.获取字段名(self.模板编号,value,"ALL FIELDS")
+
+        class 标签选择(基本选择类):
+            def chooser(self):
+                return universal_tag_chooser(self.上级.数据源.值)
+                pass
+
+            def get_name(self, value):
+
+                return funcs2.逻辑.缺省值(value,lambda x:x,"ALL TAGS").__str__()
+                # if len(value)==0:
+                #     return "ALL TAGS"
+                # return value.__str__()
+                # pass
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    f = tag_chooser()
+    f = tag_chooser_for_cards()
     f.show()
     sys.exit(app.exec_())

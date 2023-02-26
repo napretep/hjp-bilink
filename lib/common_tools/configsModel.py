@@ -110,7 +110,7 @@ class GViewData:
         边数据模板 = funcs.GviewOperation.默认视图边数据模板()
         不存在的结点集 = []
         类型 = baseClass.枚举命名.结点.数据类型
-        类型值 =  baseClass.视图结点类型
+        类型值 = baseClass.视图结点类型
         if 版本20221226:
             for 标识,位置 in 结点集数据源.items():
                 结点数据集字典[标识]= funcs.GviewOperation.依参数确定视图结点数据类型模板(编号=标识)
@@ -455,6 +455,7 @@ class ConfigModel(BaseConfigModel):
 
     TODO:
         翻译instruction
+        修改描述提取函数,  增加指定牌组和指定标签的功能
     """
 
     @staticmethod
@@ -639,7 +640,15 @@ class ConfigModel(BaseConfigModel):
 
     descExtractTable: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["在本项设置中,你可以指定提取卡片描述的方式, 比如指定什么模板,提取哪个字段,长度多少,还可以写正则表达式, 双击单元格修改,加号按钮增加规则,减号去掉选中规则"],
-            value=[[-1,-1,32,"",True]],  # 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
+            value=[{
+                    本.全局配置.描述提取规则.标签:[],
+                    本.全局配置.描述提取规则.牌组:-1,  # 表全部牌组
+                    本.全局配置.描述提取规则.同步:True,
+                    本.全局配置.描述提取规则.模板:-1,  # 表全部模板
+                    本.全局配置.描述提取规则.字段:-1,  # -1 表全部字段,-2表正面,-3表背面
+                    本.全局配置.描述提取规则.正则: "",
+
+            }],  # 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
             component=ConfigModel.Widget.customize,
             tab_at=Translate.链接相关,
             customizeComponent=lambda: widgets.ConfigWidget.DescExtractPresetTable

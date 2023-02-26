@@ -81,6 +81,8 @@ class 枚举命名:
             随机选择卡片开始 = 0
             手动选择卡片开始 = 1
 
+
+
     class 时间:
         转时间戳 = "to_timestamp"
         今日 = "time_today"
@@ -141,6 +143,16 @@ class 枚举命名:
         加权排序 = 2
         图排序 = 3
 
+    class 全局配置:
+        class 描述提取规则:
+            牌组= "deck_id"
+            模板= "model_id"
+            字段= "field_id"
+            标签= "tag_list"
+            正则= "regexp"
+            同步 = "sync"
+            长度 = "length"
+
     范围 = "range"
     组件 = "widget"
     值 = "value"
@@ -167,6 +179,10 @@ class 枚举命名:
     上升 = "ascending"
     下降 = "descending"
 
+class 漫游预设:
+    默认过滤规则 = f"max({枚举命名.结点.上次复习},{枚举命名.结点.全局上次复习})<{枚举命名.时间.今日}+86400 or {枚举命名.结点.已到期}"
+    默认多级排序规则 = f"[[{枚举命名.结点.优先级}, {枚举命名.下降}]]"
+    默认加权排序规则 = f"{枚举命名.结点.优先级}"
 
 class ConfigTableNewRowFormView:
     """
@@ -559,7 +575,7 @@ class 可执行字符串编辑组件(QDialog):
                               {组件: QPushButton("ok")},
                               ]
                          },
-                        {组件: QWebEngineView()}  # 用于展示信息
+                        {组件: QTextBrowser()}  # 用于展示信息
                 ]
         }
         self.html_文本 = lambda 内容: """
@@ -595,12 +611,11 @@ line-height: 1.6;
         f = [self.on_help, self.on_test, self.on_ok]
         funcs.组件定制.组件组合(self.布局, self)
         [self.布局[子代][1][子代][i][组件].clicked.connect(f[i]) for i in range(3)]
-        # web: QWebEngineView = self.布局[子代][2][组件]
-        # label.setWordWrap(True)
         self.布局[子代][0][组件].setText(预设文本)
         self.设置说明栏("")
         self.布局[子代][2][组件].show()
         self.setWindowTitle("excutable string validation")
+        self.resize(600,500)
 
     def 设置说明栏(self, 内容):
         from . import funcs

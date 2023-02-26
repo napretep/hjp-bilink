@@ -1270,7 +1270,8 @@ class Record(QObject):
         def saveModelToDB(self):
             if self.data.元信息.确定保存到数据库:
                 # self.一致性检查()
-                from . import G
+                from . import G,funcs
+                # funcs.Utils.print(self.data.get_dict())
                 G.DB.go(G.DB.table_GviewConfig)
                 self.name = self.data.name.value
                 if G.DB.exists(Logic.EQ(uuid=self.uuid)):

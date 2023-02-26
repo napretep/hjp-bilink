@@ -104,7 +104,7 @@ if Utils.isQt6():
     from PyQt6.QtWidgets import *
     from PyQt6.QtGui import *
     from PyQt6.QtWebEngineWidgets import *
-
+    from PyQt6.QtWebEngineCore import *
 
     # QSettings_NativeFormat = QSettings.Format.NativeFormat
 
@@ -196,7 +196,7 @@ else:
     from PyQt5.QtCore import *
     from PyQt5.QtWidgets import *
     from PyQt5.QtGui import *
-    from PyQt5.QtWebEngineWidgets import QWebEngineView
+    from PyQt5.QtWebEngineWidgets import *
     # if not ISLOCALDEBUG:
     Qt.WidgetAttribute.WA_DeleteOnClose = Qt.WA_DeleteOnClose
     QSettings_NativeFormat = QSettings.NativeFormat

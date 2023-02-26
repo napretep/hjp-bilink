@@ -11,7 +11,7 @@ from typing import Callable
 from .compatible_import import *
 
 类型_卡片编号 = str
-类型_难度 = int
+类型_难度 = 类型_选的值 = int
 类型_平台 = object
 
 class 钩子之母(list):
@@ -32,3 +32,7 @@ class 当ReviewButtonForCardPreviewer完成复习(钩子之母):
     def append(self, fun: "Callable[[类型_卡片编号,类型_难度,类型_平台],None]") -> None:
         super().append(fun)
 
+
+class 当全局配置_描述提取规则_模板选择器完成选择(钩子之母):
+    def append(self,fun:"Callable[[类型_平台,类型_选的值],None]"):
+        super().append(fun)

@@ -1303,7 +1303,7 @@ class Grapher(QMainWindow):
                 配置记录 = 配置类()
                 funcs.GviewConfigOperation.指定视图配置(视图记录, 配置记录)
                 视图记录.config = 配置记录.uuid
-            配置记录 = 配置类.readModelFromDB(配置记录.uuid)
+                配置记录 = 配置类.readModelFromDB(配置记录.uuid)
             配置组件 = common_tools.funcs.GviewConfigOperation.makeConfigDialog(调用者=self, 数据=配置记录.data, 关闭时回调=lambda 闲置参数: 配置记录.saveModelToDB())
             配置组件布局: "QVBoxLayout" = 配置组件.layout()
 

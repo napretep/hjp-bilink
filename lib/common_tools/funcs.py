@@ -103,6 +103,8 @@ class Filter:
         return list(filter(func, li))
 
 
+
+
 class MenuMaker:
 
     @staticmethod
@@ -601,6 +603,13 @@ class Utils(object):
     #     path,ok = QFileDialog.getExistingDirectory()
 
     @staticmethod
+    def 正则合法性(值):
+        try:
+            re.compile(值)
+            return True
+        except:
+            return False
+    @staticmethod
     def make_backup_file_name(filename, path=""):
         file = "backup_" + datetime.now().strftime("%Y%m%d%H%M%S") + "_" + os.path.split(filename)[-1]
         if not path:
@@ -652,19 +661,19 @@ class Utils(object):
                 print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs)
 
     @staticmethod
-    def 字典默认键值对(默认值, 键名, 对应值,类型对照:"dict"=None):
+    def 字典默认键值对(默认值, 键名, 对应值字典, 类型对照: "dict"=None):
 
 
-        if not 对应值 or not 键名 in 对应值:
+        if not 对应值字典 or not 键名 in 对应值字典:
             return 默认值
         else:
             if 类型对照:
-                if type(对应值[键名]) in 字典键名.值类型.字典[类型对照[键名]]:
-                    return 对应值[键名]
+                if type(对应值字典[键名]) in 字典键名.值类型.字典[类型对照[键名]]:
+                    return 对应值字典[键名]
                 else:
                     return 默认值
             else:
-                return 对应值[键名]
+                return 对应值字典[键名]
         # if not 对应值 or 键名 not in 对应值:
         #     return 默认值
         # elif 类型对照 and type(对应值) in 字典键名.值类型.字典[类型对照[键名]]:
@@ -674,10 +683,10 @@ class Utils(object):
         # return 默认值 if not 对应值 or 键名 not in 对应值 else 对应值[键名]
 
     @staticmethod
-    def 字典缺省值填充器(默认值: dict, 对应值: "Optional[dict]" = None,类型对照=None):
+    def 字典缺省值填充器(默认值字典: dict, 对应值字典: "Optional[dict]" = None,类型对照=None):
         新值 = {}
-        for 键, 值 in 默认值.items():
-            新值[键] = Utils.字典默认键值对(值, 键, 对应值,类型对照)
+        for 键, 值 in 默认值字典.items():
+            新值[键] = Utils.字典默认键值对(值, 键, 对应值字典,类型对照)
         return 新值
 
     @staticmethod
@@ -692,15 +701,16 @@ class Utils(object):
         return int(time.mktime(time.strptime(日期, "%Y-%m-%d")))
 
     @staticmethod
-    def 大文本提示框(文本,取消模态=False):
+    def 大文本提示框(文本,取消模态=False,尺寸=(600,400)):
         _ = 字典键名.砖
 
-        组合 = {_.框: QHBoxLayout(), _.子: [{_.件: QWebEngineView()}]}
+        组合 = {_.框: QHBoxLayout(), _.子: [{_.件: QTextBrowser()}]}
         组合[_.子][0][_.件].setHtml(Utils.html默认格式(文本))
         对话框: QDialog = 组件定制.组件组合(组合, QDialog())
         if 取消模态:
             对话框.setModal(False)
             对话框.setWindowModality(Qt.NonModal)
+        对话框.resize(*尺寸)
         对话框.exec()
         pass
 
@@ -810,7 +820,7 @@ class Utils(object):
 class 组件定制:
 
     @staticmethod
-    def 组件组合(组件树数据: "dict", 容器: "QWidget" = None):
+    def 组件组合(组件树数据: "dict", 容器: "QWidget" = None)->"QWidget|QDialog":
         if not 容器: 容器 = QWidget()
         基 = G.objs.Bricks
         布局, 组件, 子代 = 基.三元组
@@ -823,7 +833,10 @@ class 组件定制:
                     if 布局 in 子组件:
                         the_layout.addLayout(子组件[布局])
                     else:
-                        the_layout.addWidget(子组件[组件])
+                        if isinstance(子组件[组件],QWidget):
+                            the_layout.addWidget(子组件[组件])
+                        else:
+                            the_layout.addLayout(子组件[组件])
 
             return 组件树
 
@@ -905,40 +918,14 @@ class 组件定制:
         return result
 
     @staticmethod
-    def 长文本说明(内容=None):
-        文本 = """
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title></title>
-<style>
-</style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
-<style>
-body {
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
-font-size: 14px;
-line-height: 1.6;
-}
-</style>
-<style>
-.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
-</style>
-</head>
-<body class="vscode-body vscode-light">
-""" + 内容 + """
-</body>
-</html>
-        """
-        主窗口 = QMainWindow()
-        文本框 = QWebEngineView()
-        文本框.setHtml(文本)
-        主窗口.setCentralWidget(文本框)
-        return 主窗口
+    def 按钮_修改(文字="", 图标地址=G.src.ImgDir.rename):
+        # 组件 = QPushButton(QIcon(图标地址),文字)
 
+        return 组件定制.按钮(图标地址,文字)
 
+    @staticmethod
+    def 按钮_提示(文字="", 图标地址=G.src.ImgDir.info,触发函数=None):
+        return 组件定制.按钮(图标地址, 文字, 触发函数)
 #
 # # 2023年2月15日23:42:11 砍掉 group_review功能, 全部相关代码被注释掉.
 # # class GroupReview(object):
@@ -1278,6 +1265,7 @@ class GviewConfigOperation(BaseConfig):
     @staticmethod
     def 漫游路径生成(视图数据: GViewData, 配置数据: objs.Record.GviewConfig, 队列: "list[str]"):
         _ = 字典键名.路径生成模式
+
         if not 视图数据.config:
             raise ValueError('config is None')
         生成模式 = 配置数据.data.roaming_path_mode.value
@@ -1290,7 +1278,7 @@ class GviewConfigOperation(BaseConfig):
                 选中序号=-1
                 配置数据.data.cascading_sort.value[1]=-1
 
-            排序表: "List[Iterable[str,str]]" = eval(待选表[选中序号]) if 选中序号 >= 0 else [[字典键名.结点.优先级, 字典键名.下降]]
+            排序表: "List[Iterable[str,str]]" = eval(待选表[选中序号]) if  len(待选表)> 选中序号 >=0 else baseClass.漫游预设.默认多级排序规则
             队列.sort(key=cmp_to_key(lambda x, y: GviewConfigOperation.漫游路径生成之多级排序(x, y, 视图数据, 排序表)))
             return 队列
         elif 生成模式 == _.加权排序:
@@ -1299,7 +1287,7 @@ class GviewConfigOperation(BaseConfig):
                 选中序号=-1
                 配置数据.data.weighted_sort.value[1]=-1
 
-            公式 = 待选表[选中序号] if 选中序号 >= 0 else f"{字典键名.结点.优先级}"
+            公式 = 待选表[选中序号] if len(待选表)> 选中序号 >=0  else baseClass.漫游预设.默认加权排序规则
             队列.sort(key=cmp_to_key(lambda x, y: GviewConfigOperation.漫游路径生成之加权排序(x, y, 视图数据, 公式)), reverse=True)
             return 队列
         else:
@@ -1331,7 +1319,7 @@ class GviewConfigOperation(BaseConfig):
         elif not 结点数据.需要复习.值:
             return False
         elif 选项 == -1:
-            默认过滤条件 = f"max({字典键名.结点.上次复习},{字典键名.结点.全局上次复习})<{字典键名.时间.今日} or {字典键名.结点.已到期}"
+            默认过滤条件 = baseClass.漫游预设.默认过滤规则
             全局, 局部 = GviewConfigOperation.获取eval可用变量与函数(视图数据, 结点编号)
             return eval(默认过滤条件, 全局, 局部)
         else:
@@ -2479,6 +2467,33 @@ class LinkPoolOperation:
                 self.count += 1
                 return groupB
 
+class 卡片模板操作:
+    @staticmethod
+    def 获取模板名(模板编号,缺省值:"str"=None):
+        if 模板编号>0:
+            return mw.col.models.get(模板编号)
+        else:
+            return 缺省值
+
+class 牌组操作:
+    @staticmethod
+    def 获取牌组名(模板编号, 缺省值: "str" = None):
+        if 模板编号 > 0:
+            return mw.col.models.get(模板编号)
+        else:
+            return 缺省值
+
+class 卡片字段操作:
+    @staticmethod
+    def 获取字段名(模板编号,字段编号,缺省值:"str"=None):
+        字段名列表 = []
+        if 模板编号>0:
+            字段名列表 = mw.col.models.field_names(模板编号)
+        if len(字段名列表)>字段编号>=0:
+            return mw.col.models.field_names(模板编号)[字段编号]
+        else:
+            return 缺省值
+
 
 class ModelOperation:
     @staticmethod
@@ -2852,7 +2867,7 @@ class Dialogs:
     @staticmethod
     def open_tag_chooser(pair_li: "list[G.objs.LinkDataPair]"):
         from . import widgets
-        p = widgets.tag_chooser(pair_li)
+        p = widgets.tag_chooser_for_cards(pair_li)
         p.exec()
         pass
 
@@ -2860,7 +2875,7 @@ class Dialogs:
     def open_deck_chooser(pair_li: "list[G.objs.LinkDataPair]", view=None):
         from . import widgets
 
-        p = widgets.deck_chooser(pair_li, view)
+        p = widgets.deck_chooser_for_changecard(pair_li, view)
         p.exec()
         tooltip("完成")
 
