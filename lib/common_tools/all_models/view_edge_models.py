@@ -7,7 +7,7 @@ __email__ = '564298339@qq.com'
 __time__ = '2023/2/27 6:01'
 """
 from .basic_models import *
-类型_视图数据 = funcs.GViewData
+
 
 @dataclass
 class 类型_视图边数据源:
@@ -79,7 +79,7 @@ class 类型_视图边集模型(基类_集模型):
 
     def __init__(self, 上级: "类型_视图数据", data: "dict"):
         self.data: "dict" = data
-        self.上级: 类型_视图数据 = 上级
+        self.上级: "类型_视图数据" = 上级
 
     def __getitem__(self, node_id):
         return 类型_视图边模型(数据源=类型_视图边数据源(self, node_id))

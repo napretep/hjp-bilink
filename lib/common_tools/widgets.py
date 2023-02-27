@@ -24,11 +24,12 @@ from .language import Translate, rosetta
 from . import configsModel
 
 from .compatible_import import *
-from . import funcs, baseClass,hookers,funcs2
+from . import funcs, baseClass, hookers, funcs2
 
-布局 = 0
-组件 = 1
-子代 = 2
+布局=框 = 0
+组件=件 = 1
+子代=子 = 2
+占 = 占据 = 3
 # from ..bilink.dialogs.linkdata_grapher import Grapher
 
 if __name__ == "__main__":
@@ -42,6 +43,16 @@ if TYPE_CHECKING:
     from .configsModel import *
 
 译 = Translate
+
+
+class SafeImport:
+    @property
+    def models(self):
+        from . import models
+        return models
+
+
+safe = SafeImport()
 
 
 class GridHDescUnit(QWidget):
@@ -178,7 +189,7 @@ class SelectorProtoType(QDialog):
 
     def __init__(self, title_name="", separator="::", header_name=""):
         super().__init__()
-        self.tree_structure=True
+        self.tree_structure = True
         self.window_title_name = title_name
         self.separator = separator
         self.model_header_name = header_name
@@ -186,7 +197,7 @@ class SelectorProtoType(QDialog):
         self.model = QStandardItemModel(self)
         self.model_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
         self.header = self.Header(self)
-        self.instruction = QLabel()
+        self.instruction = QLabel(译.双击以选中项)
         self.header.button.clicked.connect(self.on_header_button_clicked_handle)
         self.header.new_item_button.clicked.connect(self.on_header_new_item_button_clicked_handle)
         self.view.clicked.connect(self.on_view_clicked_handle)
@@ -295,6 +306,7 @@ class SelectorProtoType(QDialog):
         V_layout.setStretch(1, 1)
         V_layout.setStretch(0, 0)
         self.setLayout(V_layout)
+
 
     class Header(QWidget):
         as_tree, as_list = "as_tree", "as_list"
@@ -435,15 +447,15 @@ class universal_deck_chooser(DeckSelectorProtoType):
         self.close()
 
     def __init__(self, ):
-        super().__init__(title_name="deck chooser",header_name="deck name")
+        super().__init__(title_name="deck chooser", header_name="deck name")
         self.结果 = -1
 
 
 class universal_template_chooser(SelectorProtoType):
     def __init__(self, ):
-        super().__init__(title_name="template chooser",header_name="template name")
+        super().__init__(title_name="template chooser", header_name="template name")
         self.结果 = -1
-        self.tree_structure=False
+        self.tree_structure = False
         self.header.button.hide()
         self.header.new_item_button.hide()
 
@@ -458,7 +470,7 @@ class universal_template_chooser(SelectorProtoType):
 
     def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
         all_models = mw.col.models.all_names_and_ids()
-        return [self.Id_name(name=i.name,ID=i.id) for i in all_models]
+        return [self.Id_name(name=i.name, ID=i.id) for i in all_models]
         pass
 
     def on_view_doubleclicked_handle(self, index):
@@ -493,14 +505,15 @@ class view_chooser(SelectorProtoType):
         self.header.new_item_button.hide()
         self.编号 = -1
 
+
 class universal_field_chooser(SelectorProtoType):
-    def __init__(self,模板编号, title_name="", separator="::", header_name=""):
+    def __init__(self, 模板编号, title_name="", separator="::", header_name=""):
+        self.模板编号: "int" = 模板编号
+        self.tree_structure = False
         super().__init__("choose a field", separator, "field name")
-        self.tree_structure=False
         self.header.new_item_button.hide()
         self.header.button.hide()
         self.结果 = -1
-        self.模板编号:"int" = 模板编号
 
     def on_header_new_item_button_clicked_handle(self):
         pass
@@ -513,7 +526,7 @@ class universal_field_chooser(SelectorProtoType):
 
     def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
         字段名集 = mw.col.models.field_names(mw.col.models.get(self.模板编号))
-        return [self.Id_name(name=字段名集[i],ID=i) for i in range(len(字段名集))]
+        return [self.Id_name(name=字段名集[i], ID=i) for i in range(len(字段名集))]
         pass
 
     def on_view_doubleclicked_handle(self, index):
@@ -524,7 +537,7 @@ class universal_field_chooser(SelectorProtoType):
 
 
 class universal_tag_chooser(QDialog):
-    def __init__(self,preset:"iter[str]"=None):
+    def __init__(self, preset: "iter[str]" = None):
         super().__init__()
 
         self.view_left = self.View(self)
@@ -534,7 +547,7 @@ class universal_tag_chooser(QDialog):
         self.model_right = QStandardItemModel(self)
         self.model_right_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
         self.model_left_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
-        self.tag_list = set() if not preset else set(preset) #self.get_all_tags_from_pairli()
+        self.tag_list = set() if not preset else set(preset)  # self.get_all_tags_from_pairli()
         self.结果 = self.tag_list
         self.left_button_group = self.button_group(self, 0, self.view_left, self.model_left)
         self.right_button_group = self.button_group(self, 1, self.view_right, self.model_right)
@@ -545,7 +558,6 @@ class universal_tag_chooser(QDialog):
                 [self.view_right.doubleClicked, self.on_view_right_doubleClicked_handle],
                 # [self.view_left.customContextMenuRequested, self.on_view_show_context_menu]
         ]).bind()
-
 
     def on_view_right_doubleClicked_handle(self, index):
         self.right_button_group.on_collection_tag_add_handle()
@@ -594,6 +606,7 @@ class universal_tag_chooser(QDialog):
 
     def closeEvent(self, QCloseEvent):
         self.tag_list = self.save()
+        self.结果 = list(self.tag_list)
 
     def save(self):
         stack: "list[universal_tag_chooser.Item]" = [self.model_left.item(i, 0) for i in range(self.model_left.rowCount())]
@@ -615,7 +628,6 @@ class universal_tag_chooser(QDialog):
             parent = parent.parent()
         text = "::".join(reversed(text_li))
         return text
-
 
     def get_all_tags_from_collection(self) -> 'list[str]':
         return mw.col.tags.all()
@@ -849,6 +861,7 @@ class universal_tag_chooser(QDialog):
         tag: "str"
         ID: "int"
 
+
 class tag_chooser_for_cards(universal_tag_chooser):
     def __init__(self, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
         super().__init__()
@@ -941,7 +954,7 @@ class Dialog_PDFUrlTool(QDialog):
         self.widgets[Translate.pdf路径].blockSignals(False)
         self.widgets[Translate.pdf名字].setText(pdffilename)
 
-    def get_url_name_num(self) -> (str, str, str):
+    def get_url_name_num(self) -> tuple[str, str, str]:
         return self.widgets[Translate.pdf路径].toPlainText(), \
                self.widgets[Translate.pdf名字].toPlainText(), \
                self.widgets[Translate.pdf页码].value()
@@ -1064,7 +1077,7 @@ class ConfigWidget:
                                    QTextEdit(),
                                    QRadioButton()]
                 self.colItems = colItems
-                super().__init__(superior, colItems)
+                super().__init__(superior, colItems,self.colWidgets)
                 # funcs.Map.do(range(3), lambda idx: self.colWidgets[idx].textChanged.connect(lambda: self.colItems[idx].setText(self.__dict__[idx""].toPlainText())))
                 # self.colWidgets[3].clicked.connect(lambda: self.colItems[3].setText(str(self.colWidgets[3].isChecked())))
 
@@ -1086,47 +1099,31 @@ class ConfigWidget:
 
     class DescExtractPresetTable(baseClass.ConfigTableView):
         """
-        提取描述方式预设表
-        模板Id:combo, field:受模板影响显示可选combo, length为spinbox, regexp为字符串用textedit
-
         """
-        colnames = ["templateName", "fieldName", "length", "regexp", "autoUpdateDesc"]
 
-        class colEnum:
-            template = 1
-            field = 2
-            length = 3
-            regexp = 4
-            autoUpdateDesc = 5
-
-        defaultRowData = [(-1, "ALL_TEMPLATES", colEnum.template),
-                          ((-1, -1), "ALL_FIELDS", colEnum.field),  # (dataformat.templateId, dataformat.fieldId), dataformat.fieldName, colType.field)
-                          (32, "32", colEnum.length),
-                          ("", "", colEnum.regexp),
-                          (True, "True", colEnum.autoUpdateDesc)]
-
-        def 获取默认行(self):
+        def __init__(self, *args, **kwargs):
             from . import models
-            模型 = models.类型_模型_描述提取规则()
-            属性列表 = 模型.获取属性项有序列表()
-            默认行 = []
-            for 属性名 in 属性列表:
+            self.默认属性字典:list[models.类型_属性项_描述提取规则] = []
+            super().__init__(*args, **kwargs)
+            self.初始化默认行()
+            self.table_model.setHorizontalHeaderLabels(self.colnames)
 
-                默认行.append((模型.属性字典[属性名].默认值,模型.属性字典[属性名].组件显示值))
+        def 初始化默认行(self):
+            from . import models
+            默认模型 = models.类型_模型_描述提取规则()
+            self.默认属性字典 = 默认模型.获取属性项有序列表_属性字典()
 
-        def GetRowFromData(self, data: "list[str]"):
-            """这里data是一行对象"""
-            if len(data) < len(self.colnames):
-                data += self.defaultRowData[len(data):]
-            dataformat = self.DataFormat(*data)
-            colType = self.colEnum
-            return [
-                    self.TableItem(self, dataformat.templateId, dataformat.templateName, colType.template),
-                    self.TableItem(self, (dataformat.templateId, dataformat.fieldId), dataformat.fieldName, colType.field),
-                    self.TableItem(self, dataformat.length, str(dataformat.length), colType.length),
-                    self.TableItem(self, dataformat.regexp, dataformat.regexp, colType.regexp),
-                    self.TableItem(self, dataformat.autoUpdateDesc, str(dataformat.autoUpdateDesc), colType.autoUpdateDesc)
-            ]
+            self.defaultRowData = [(属性.组件显示值, 属性) for 属性 in self.默认属性字典]
+            self.colnames = [列[1].展示名 for 列 in self.defaultRowData]
+            funcs.Utils.print(self.colnames.__str__())
+            return 默认模型
+
+        def GetRowFromData(self, raw_data: "dict"):
+            from . import models
+            有序属性字典 = models.类型_模型_描述提取规则(数据源=raw_data).获取属性项有序列表_属性字典()
+            return [self.TableItem(self, 属性.组件显示值, 属性) for 属性 in 有序属性字典]
+
+
 
         def NewRow(self):
             w = self.NewRowFormWidget(self)
@@ -1139,248 +1136,66 @@ class ConfigWidget:
             w = self.NewRowFormWidget(self, colItems=row)
             w.widget.exec()
             if w.ok:
-                w.setValueToTableRowFromForm()  # 从新建表单设置回到表格
+                # w.setValueToTableRowFromForm()  # 从新建表单设置回到表格 这一步是不需要的, 在onokclicked上已经完成了
                 self.SaveDataToConfigModel()  # 从表格回到配置项
 
-        def OnTemplateComboBoxChanged(self, item: "ConfigWidget.DescExtractPresetTable.TableItem", templateId):
-            row = self.table_model.indexFromItem(item).row()
-            # templateId = item.data(ItemDataRole.UserRole)
-            fieldItem: "ConfigWidget.DescExtractPresetTable.TableItem" = self.table_model.item(row, 1)
-            fieldItem.SetupFieldCombo(templateId)
-            self.rowEditor.update()
-
+        #
         def SaveDataToConfigModel(self):
+
             data = []
             for row in range(self.table_model.rowCount()):
-                rowdata = []
-                for col in range(len(self.colnames)):
-                    item: "ConfigWidget.DescExtractPresetTable.TableItem" = self.table_model.item(row, col)
-                    value = item.GetValue()
-                    rowdata.append(value)
-                data.append(rowdata)
+                item:ConfigWidget.DescExtractPresetTable.TableItem = self.table_model.item(row, 0)
+                data.append(item.GetData().上级.数据源)
             self.ConfigModelItem.setValue(data, 需要设值回到组件=False)
+            #     rowdata = []
+            #     for col in range(len(self.colnames)):
+            #         item: "ConfigWidget.DescExtractPresetTable.TableItem" = self.table_model.item(row, col)
+            #         value = item.GetValue()
+            #         rowdata.append(value)
+            #     data.append(rowdata)
+            # self.ConfigModelItem.setValue(data, 需要设值回到组件=False)
+            pass
+        #
+        class TableItem(baseClass.ConfigTableView.TableItem):
+
+            def GetData(self):
+                from . import models
+                data:models.类型_属性项_描述提取规则 = self.data()
+                return data
+                pass
             pass
 
-        class TableItem(baseClass.ConfigTableView.TableItem):
-            """他是大表的项"""
-
-            def __init__(self, superior, value, name, valueType):
-                super().__init__(superior, name)
-                self.superior: "ConfigWidget.DescExtractPresetTable" = superior
-                self.valueType = valueType
-                self.setData(value, ItemDataRole.UserRole)
-
-            def SetupFieldCombo(self, templateId: "int", fieldId: "int" = None):
-                """text=字段的名字, value=[模板id,字段id]"""
-                colType = self.superior.colEnum
-                # print("call: SetupFieldCombo")
-                if self.valueType == colType.field:
-                    for i in range(self.innerWidget.count()):
-                        self.innerWidget.removeItem(i)
-                    self.innerWidget.clear()
-                    # print("self.valueType == colType.field,templateId=" + templateId.__str__() + " clear()")
-
-                    if templateId > 0:
-                        fields = funcs.CardTemplateOperation.GetModelFromId(templateId)["flds"]
-                        self.innerWidget.addItem("ALL_FIELDS", (templateId, -1))
-                        for _field in fields:
-                            # print(f"templateId={templateId}, fieldId={_field['ord']}")
-                            self.innerWidget.addItem(_field["name"], (templateId, _field["ord"]))
-                            # self.innerWidget
-                        idx = sum([i + 1 if self.innerWidget.itemData(i, role=ItemDataRole.UserRole) == (templateId, fieldId) else 0 for i in range(self.innerWidget.count())]) - 1 if fieldId is not None else 0
-                        # print(f"templateId > 0, fieldId={fieldId},idx={idx}")
-                    else:
-                        self.innerWidget.addItem("ALL_FIELDS", (-1, -1))
-                        self.innerWidget.addItem("front", (-1, -2))
-                        self.innerWidget.addItem("back", (-1, -3))
-                        idx = sum([i + 1 if self.innerWidget.itemData(i, role=ItemDataRole.UserRole) == (-1, fieldId) else 0 for i in range(self.innerWidget.count())]) - 1 if fieldId is not None else 0
-                        if idx == -1:
-                            idx = 0
-                        # print(f"templateId <= 0, fieldId={fieldId},idx={idx}")
-                    self.innerWidget.setCurrentIndex(idx)
-
-                    return
-
-            def SetupTemplateCombo(self, templateId):
-                """text=模板名字, value=模板Id"""
-                data = self.data(ItemDataRole.UserRole)
-
-                def CurIndexChanged(idx: "int"):
-                    # print(f"currentIndexChanged={idx}")
-                    self.setData(self.innerWidget.itemData(idx, ItemDataRole.UserRole), ItemDataRole.UserRole)
-                    self.setText(self.innerWidget.itemText(idx))
-                    newTemplateId = self.innerWidget.itemData(idx, ItemDataRole.UserRole)
-                    self.superior.OnTemplateComboBoxChanged(self, newTemplateId)
-                    # print(f"{newTemplateId}")
-
-                templates = funcs.CardTemplateOperation.GetAllTemplates()
-                self.innerWidget.addItem("ALL_TEMPLATES", -1)
-                for template in templates:
-                    self.innerWidget.addItem(template["name"], template["id"])
-                idx = self.innerWidget.findData(data)
-                self.innerWidget.setCurrentIndex(idx)
-
-                return
-
-            def ShowAsWidget(self):
-                """"""
-                self.widget = QWidget()
-                layout = QVBoxLayout()
-                colType = self.superior.colEnum
-                data = self.data(ItemDataRole.UserRole)
-                # print(f"ShowAsWidget: data={data},self.valueType={self.valueType},self.text={self.text()}")
-                if self.valueType in [colType.field, colType.template]:
-                    self.innerWidget = QComboBox()
-                    if self.valueType == colType.field:
-                        templateId, fieldId = data
-                        self.SetupFieldCombo(templateId, fieldId)
-
-                        def CurIndexChanged(idx: "int"):
-                            self.setData(self.innerWidget.itemData(idx), ItemDataRole.UserRole)
-                            self.setText(self.innerWidget.itemText(idx))
-                        # self.innerWidget.currentIndexChanged.connect(lambda Idx: CurIndexChanged(Idx))
-
-                    else:
-                        templateId = data
-                        self.SetupTemplateCombo(templateId)
-                else:
-                    if self.valueType == colType.length:
-                        self.innerWidget = QSpinBox()
-                        self.innerWidget.setValue(int(data))
-                        # self.innerWidget.valueChanged.connect(lambda val: self.setText(str(val)))
-                    elif self.valueType == colType.regexp:
-                        self.innerWidget = QTextEdit()
-                        self.innerWidget.setText(data)
-                    else:
-                        self.innerWidget = QRadioButton()
-                        self.innerWidget.setChecked(data == "True")
-                        # self.innerWidget.textChanged.connect(lambda : self.setText(self.innerWidget.toPlainText()))
-                # layout.addWidget(self.innerWidget)
-                # self.widget.setLayout(layout)
-                return self.innerWidget
-
-            def GetValue(self):
-                colType = self.superior.colEnum
-                if self.valueType == colType.field:
-                    return self.data(ItemDataRole.UserRole)[1]  # 1表示保存field id
-                elif self.valueType == colType.template:
-                    return self.data(ItemDataRole.UserRole)  # template id
-                elif self.valueType == colType.regexp:
-                    return self.text()
-                elif self.valueType == colType.autoUpdateDesc:
-                    return self.text() == "True"
-                else:
-                    return int(self.text())
-
-        class RowItem:
-            def __init__(self, itemLi: "list[ConfigWidget.DescExtractPresetTable.TableItem]"):
-                pass
-
-        class DataFormat:
-            templateId: "int"
-            fieldId: "int"
-            length: "int"
-            regexp: "str"
-
-            def __init__(self, templateId, fieldId, length, regexp, autoUpdateDesc):
-                self.templateId = templateId
-                self.fieldId = fieldId
-                self.autoUpdateDesc = autoUpdateDesc
-                if templateId < 0:
-                    self.model = None
-                    self.templateName = "ALL_TEMPLATES"
-                else:
-                    self.model = funcs.CardTemplateOperation.GetModelFromId(templateId)
-                    if not self.model:
-                        self.templateId = -1
-                        self.templateName = "ALL_TEMPLATES"
-                    else:
-                        self.templateName = self.model["name"]
-
-                if self.model:
-                    self.fieldName = self.model["flds"][self.fieldId]["name"]
-                elif self.fieldId < 0:
-                    self.fieldName = "ALL_FIELDS"
-                else:
-                    self.fieldName = self.fieldId.__str__()
-
-                self.length = length
-                self.regexp = regexp
-
         class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
-            def __init__(self, superior: "ConfigWidget.DescExtractPresetTable", colItems: "list[ConfigWidget.DescExtractPresetTable.TableItem]" = None):
-                self.colWidgets = [QComboBox(),
-                                   QComboBox(),
-                                   QSpinBox(),
-                                   QTextEdit(),
-                                   QRadioButton()
-                                   ]
-                super().__init__(superior, colItems)
+            def SetupEvent(self):
+                pass
 
             def SetupWidget(self):
-                self.SetupTemplateCombox()
-                self.SetupFieldCombox()
-                self.SetupLengthSpinbox()
-                self.SetupRegexTextedit()
-                self.SetupSyncRadiobutton()
-            def SetupTemplateCombox(self):
-                templateId = self.colItems[0].data(role=ItemDataRole.UserRole)
-
-                templates = funcs.CardTemplateOperation.GetAllTemplates()
-                self.colWidgets[0].addItem("ALL_TEMPLATES", -1)
-                for template in templates:
-                    self.colWidgets[0].addItem(template["name"], template["id"])
-                idx = self.colWidgets[0].findData(templateId)
-                self.colWidgets[0].setCurrentIndex(idx)
-                pass
-
-            def SetupFieldCombox(self, templateId=None, fieldId=None):
-                templateId = self.colItems[0].data(role=ItemDataRole.UserRole) if templateId is None else templateId
-                fieldId = self.colItems[1].data(role=ItemDataRole.UserRole)[1] if fieldId is None else fieldId
-                self.colWidgets[1].clear()
-
-                if templateId > 0:
-                    fields = funcs.CardTemplateOperation.GetModelFromId(templateId)["flds"]
-                    self.colWidgets[1].addItem("ALL_FIELDS", (templateId, -1))
-                    for _field in fields:
-                        # print(f"templateId={templateId}, fieldId={_field['ord']}")
-                        self.colWidgets[1].addItem(_field["name"], (templateId, _field["ord"]))
-                        # self.innerWidget
-                    idx = sum([i + 1 if self.colWidgets[1].itemData(i, role=ItemDataRole.UserRole) == (templateId, fieldId) else 0 for i in range(self.colWidgets[1].count())]) - 1 if fieldId is not None else 0
-                else:
-                    self.colWidgets[1].addItem("ALL_FIELDS", (-1, -1))
-                    self.colWidgets[1].addItem("front", (-1, -2))
-                    self.colWidgets[1].addItem("back", (-1, -3))
-                    idx = sum([i + 1 if self.colWidgets[1].itemData(i, role=ItemDataRole.UserRole) == (-1, fieldId) else 0 for i in range(self.colWidgets[1].count())]) - 1 if fieldId is not None else 0
-                    if idx == -1:
-                        idx = 0
-                self.colWidgets[1].setCurrentIndex(idx)
-
-                pass
-
-            def SetupLengthSpinbox(self):
-                self.colWidgets[2].setValue(self.colItems[2].data(role=ItemDataRole.UserRole))
-                pass
-
-            def SetupRegexTextedit(self):
-                self.colWidgets[3].setText(self.colItems[3].data(role=ItemDataRole.UserRole))
-                pass
-
-            def SetupSyncRadiobutton(self):
-                self.colWidgets[4].setChecked(self.colItems[4].data(role=ItemDataRole.UserRole))
-                pass
-
-            def SetupEvent(self):
-                self.okbtn.clicked.connect(self.OnOkClicked)
-                self.colWidgets[0].currentIndexChanged.connect(lambda idx: self.SetupFieldCombox(self.colWidgets[0].currentData(), -1))
                 pass
 
             def setValueToTableRowFromForm(self):
-                self.colItems[0].SetValue(self.colWidgets[0].currentText(), self.colWidgets[0].currentData(ItemDataRole.UserRole))
-                self.colItems[1].SetValue(self.colWidgets[1].currentText(), self.colWidgets[1].currentData(ItemDataRole.UserRole))
-                self.colItems[2].SetValue(self.colWidgets[2].text(), self.colWidgets[2].value())
-                self.colItems[3].SetValue(self.colWidgets[3].toPlainText(), self.colWidgets[3].toPlainText())
-                self.colItems[4].SetValue(f"{self.colWidgets[4].isChecked()}", self.colWidgets[4].isChecked())
+                if self.isNew:
+                    self.模型.数据源={}
+                    [self.模型.数据源.__setitem__(字段名,属性.值) for 字段名,属性 in self.模型.属性字典.items()]
+                for 列 in self.colItems:
+                    属性项:safe.models.类型_属性项_描述提取规则 = 列.GetData()
+                    列.setText(属性项.组件显示值)
+                pass
+
+            def __init__(self, 上级:"ConfigWidget.DescExtractPresetTable",
+                         colItems:"ConfigWidget.DescExtractPresetTable.TableItem"=None):
+                self.isNew=False
+                self.superior:ConfigWidget.DescExtractPresetTable = 上级
+                if not colItems:
+                    self.isNew=True
+                    self.模型 = 上级.初始化默认行()
+                    colItems = [上级.TableItem(上级,属性.组件显示值,属性) for 属性 in 上级.默认属性字典]
+                self.模型 = colItems[0].GetData().上级
+                self.UI字典 = self.模型.创建UI字典()
+                colWidget = [self.UI字典[属性[1].字段名] for 属性 in 上级.defaultRowData]
+                super().__init__(上级,colItems,colWidget)
+                模板选择组件:"自定义组件.视图结点属性.模板选择" = self.UI字典[self.模型.模板.字段名].核心组件
+                字段选择组件:"自定义组件.视图结点属性.字段选择" = self.UI字典[self.模型.字段.字段名].核心组件
+                模板选择组件.当完成选择.append(lambda 自己,值:字段选择组件.检查模板编号合法性(值))
 
     class GviewConfigApplyTable(baseClass.ConfigTableView):
         """
@@ -1550,7 +1365,7 @@ class ConfigWidget:
                 self.containerWidget = QWidget()
                 self.containerWidget.setLayout(self.layoutTree)
                 self.colWidgets = [self.containerWidget]
-                super().__init__(superior, colItems)
+                super().__init__(superior, colItems,self.colWidgets)
 
                 self.SetupWidget()
                 self.SetupEvent()
@@ -1942,6 +1757,7 @@ class ConfigWidget:
 
     class GlobalConfigDefaultViewChooser(baseClass.ConfigItemLabelView):
         """默认视图用的他"""
+
         def on_edit_btn_clicked(self):
 
             w = view_chooser()
@@ -1956,9 +1772,6 @@ class ConfigWidget:
             else:
                 self.label.setText("no default view")
             pass
-
-
-
 
 
 class ReviewButtonForCardPreviewer:
@@ -2101,6 +1914,7 @@ class 自定义组件:
                 raise NotImplementedError()
 
         class 角色多选(基类_项组件基础):
+            """卡片角色多选"""
             def setValue(self, value):
                 self.ui组件.setCurrentIndex(value)
                 pass
@@ -2120,9 +1934,9 @@ class 自定义组件:
             def 初始化UI(self):
                 self.布局.addWidget(self.ui组件)
                 self.setLayout(self.布局)
-                self.ui组件.setContentsMargins(0,0,0,0)
-                self.布局.setContentsMargins(0,0,0,0)
-                self.setContentsMargins(0,0,0,0)
+                self.ui组件.setContentsMargins(0, 0, 0, 0)
+                self.布局.setContentsMargins(0, 0, 0, 0)
+                self.setContentsMargins(0, 0, 0, 0)
                 pass
 
             def UI赋值(self):
@@ -2141,19 +1955,25 @@ class 自定义组件:
                 item_set_value = lambda value: self.上级.数据源.设值(value)
                 self.ui组件.currentIndexChanged.connect(lambda x: item_set_value(self.ui组件.currentData()))
                 pass
+
         class 基本选择类(基类_项组件基础):
             def __init__(self, 上级):
                 super().__init__(上级)
-                self.ui组件 = funcs.组件定制.文本框()
+
+                self.ui组件 = funcs.组件定制.文本框(开启自动换行=True)
                 self.修改按钮 = funcs.组件定制.按钮_修改()
                 self.修改按钮.clicked.connect(self.on_edit_button_clicked)
                 self.当完成选择 = hookers.当全局配置_描述提取规则_模板选择器完成选择()
+                funcs.组件定制.组件组合({框:QHBoxLayout(),子:[
+                        {件:self.ui组件,占:1},{件:self.修改按钮,占:0}]},
+                                self)
+                self.ui组件.setText(self.get_name(self.上级.数据源.值))
 
             def on_edit_button_clicked(self):
                 w = self.chooser()
                 w.exec()
-                if (type(w.结果) in [int,float] and w.结果 < 0) or \
-                        (type(w.结果)==list and len(w.结果)==0):
+                if (type(w.结果) in [int, float] and w.结果 < 0) or \
+                        (type(w.结果) == list and len(w.结果) == 0):
                     showInfo(译.不选等于全选)
 
                 self.setValue(w.结果)
@@ -2161,10 +1981,10 @@ class 自定义组件:
             def setValue(self, value):
                 self.ui组件.setText(self.get_name(value))
                 self.上级.数据源.设值(value)
-                self.当完成选择(self,value)
+                self.当完成选择(self, value)
                 pass
 
-            def chooser(self):raise NotImplementedError() #"""打开某一种选择器"""
+            def chooser(self): raise NotImplementedError()  # """打开某一种选择器"""
 
             def get_name(self, value): raise NotImplementedError()
 
@@ -2172,40 +1992,41 @@ class 自定义组件:
 
             def chooser(self): return universal_deck_chooser()
 
-            def get_name(self, value):return mw.col.decks.name_if_exists(value) if value > 0 else "ALL DECKS"
+            def get_name(self, value): return mw.col.decks.name_if_exists(value) if value > 0 else "ALL DECKS"
 
-            def __init__(self, 上级):
-                super().__init__(上级)
-                self.ui组件.setText(self.get_name(self.上级.数据源.值))
-
+            # def __init__(self, 上级):
+            #     super().__init__(上级)
+            #     self.ui组件.setText(self.get_name(self.上级.数据源.值))
 
         class 模板选择(基本选择类):
 
-            def get_name(self,value):return mw.col.models.get(value)["name"] if value>0 else "ALL TEMPLATES"
+            def get_name(self, value): return mw.col.models.get(value)["name"] if value > 0 else "ALL TEMPLATES"
 
-            def chooser(self):return universal_template_chooser()
+            def chooser(self): return universal_template_chooser()
 
-            def __init__(self, 上级):
-                super().__init__(上级)
-                self.ui组件.setText(self.get_name(self.上级.数据源.值))
+            # def __init__(self, 上级):
+            #     super().__init__(上级)
+            #     self.ui组件.setText(self.get_name(self.上级.数据源.值))
 
         class 字段选择(基本选择类):
-            def __init__(self, 上级,模板编号):
+            def __init__(self, 上级, 模板编号):
+                self.模板编号 = -1
                 super().__init__(上级)
-                self.模板编号=模板编号
-                self.检查模板编号合法性()
+                self.检查模板编号合法性(模板编号)
 
-            def 检查模板编号合法性(self):
-                if self.模板编号<0:
+            def 检查模板编号合法性(self,value):
+                self.模板编号=value
+                if self.模板编号 < 0:
                     self.修改按钮.setEnabled(False)
                 else:
                     self.修改按钮.setEnabled(True)
                 self.ui组件.setText(self.get_name(self.上级.数据源.值))
 
-            def chooser(self):return universal_field_chooser(self.模板编号)
+            def chooser(self):
+                return universal_field_chooser(self.模板编号)
 
             def get_name(self, value):
-                return funcs.卡片字段操作.获取字段名(self.模板编号,value,"ALL FIELDS")
+                return funcs.卡片字段操作.获取字段名(self.模板编号, value, "ALL FIELDS")
 
         class 标签选择(基本选择类):
             def chooser(self):
@@ -2213,8 +2034,7 @@ class 自定义组件:
                 pass
 
             def get_name(self, value):
-
-                return funcs2.逻辑.缺省值(value,lambda x:x,"ALL TAGS").__str__()
+                return funcs2.逻辑.缺省值(value, lambda x: x, "ALL TAGS").__str__()
                 # if len(value)==0:
                 #     return "ALL TAGS"
                 # return value.__str__()

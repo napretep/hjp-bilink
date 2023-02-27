@@ -7,12 +7,9 @@ __email__ = '564298339@qq.com'
 __time__ = '2023/2/27 5:44'
 """
 
-# from .. import widgets
-# from .basic_import import *
 from .basic_models import *
-# from . import *
 
-类型_视图数据 = funcs.GViewData
+
 @dataclass
 class 类型_视图结点数据源:
     模型: "类型_视图结点集模型" = None
@@ -57,6 +54,7 @@ class 类型_视图结点属性项(基类_属性项):
     def __eq__(self, other):
         return self.值 == other
 
+
 @dataclass
 class 类型_视图结点模型(基类_模型):
     """
@@ -67,13 +65,15 @@ class 类型_视图结点模型(基类_模型):
         将用户可访的变量提供给对应的接口. -> 可访变量, 可访字面量
     """
 
+    def 初始化(self, *args):
+        pass
+
     # def __init__(self,视图数据:"funcs.GViewData",视图结点编号:"str"):
     #     self.数据源 = self.数据源类(视图数据,视图结点编号)
 
     数据源: "None|类型_视图结点数据源" = None
 
     位置: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
-
             字段名=枚举.结点.位置,
             展示名=译.结点位置,
             从上级读数据=1,

@@ -201,7 +201,7 @@ class LinkDataPair:
         return {"card_id":self.card_id, "desc":self._desc,"dir":self.dir,"get_desc_from":self.get_desc_from}
 
     def todict(self)->'dict[str,str]':
-        return {"card_id":self.card_id, "desc":self.desc,"dir":self.dir}
+        return {"card_id":self.card_id, "desc":self._desc,"dir":self.dir}
 
     # def update_desc(self):
     #     """是从卡片中更新描述"""
@@ -1374,10 +1374,11 @@ class Bricks:
     布局=layout=0
     组件=widget=1
     子代=kids=2
-    描述=3
+
+    占 = 占据 = 3
     triple = [layout,widget,kids]
     三元组 = [布局,组件,子代]
-    四元组 = [布局,组件,子代,描述]
+    四元组 = [布局,组件,子代,占据]
 
     @staticmethod
     def build(b:"dict"):

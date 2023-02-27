@@ -184,27 +184,34 @@ class 漫游预设:
     默认多级排序规则 = f"[[{枚举命名.结点.优先级}, {枚举命名.下降}]]"
     默认加权排序规则 = f"{枚举命名.结点.优先级}"
 
+
+
+
 class ConfigTableNewRowFormView:
     """
     一个表格, 新增一行的时候, 调用这个组件会出来一个用户填写的表单, 填完点确定, 就会插入新的一行
+    第一个参数superior是自己的调用方, 
+    第二个参数colItems当不为空,则代表修改一行, 将该行数据获取填入, 为空则代表新建一行, 使用默认数据填入, 
+    第三个参数colWidgets表示每个列所对应的组件, 如果没有提供, 则需要自己继承后__init__新建的时候创建
     """
-
-    def __init__(self, superior, colItems: "list[ConfigTableView.TableItem]" = None, colWidgets: "list[QWidget]" = None):
+    def __init__(self, superior:"ConfigTableView", colItems: "list[ConfigTableView.TableItem]" = None, colWidgets: "list[QWidget]" = None):
         self.superior: "ConfigTableView" = superior
+        from . import funcs
         self.layout = QFormLayout()
-        self.mainLayout = QVBoxLayout()
+        # self.mainLayout = QVBoxLayout()
         self.ok = False
         self.isNew = False
-        self.okbtn = QToolButton()
+        self.okbtn = funcs.组件定制.按钮_确认()
         self.widget = QDialog()
         self.widget.setWindowTitle("new")
-        self.widget.resize(500, 300)
+        # self.widget.resize(500, 300)
         if not colItems:
             from . import funcs
             colItems = funcs.Map.do(superior.defaultRowData, lambda data: superior.TableItem(superior, *data))
             self.isNew = True
         # colItems 是 配置项对应的table的Item, 在查看行组件中, 当完成操作点击确定, 会把 colItem对应的项加入到配置项对应的table中
         self.colItems: "list[ConfigTableView.TableItem]" = colItems
+        self.colWidgets: "list[QWidget]"=colWidgets
 
         self.SetupUI()
         self.SetupWidget()
@@ -213,15 +220,19 @@ class ConfigTableNewRowFormView:
     def SetupUI(self):
         """在这里,每一列按照QFormLayout以名字-组件的方式添加,最后加上ok按钮"""
         from . import G
-        hlayout = QHBoxLayout()
-        self.okbtn.setIcon(QIcon(G.src.ImgDir.correct))
+        # hlayout = QHBoxLayout()
 
-        self.mainLayout.addLayout(self.layout)
-        hlayout.addWidget(self.okbtn)
-        self.mainLayout.addLayout(hlayout)
-        self.mainLayout.setAlignment(Qt.AlignRight)
-        self.widget.setLayout(self.mainLayout)
+        # self.mainLayout.addLayout(self.layout)
+        # hlayout.addWidget(self.okbtn)
+        # self.mainLayout.addLayout(hlayout)
+        # self.mainLayout.setAlignment(Qt.AlignRight)
         self.okbtn.clicked.connect(self.OnOkClicked)
+        if self.colWidgets:
+            self.setUpColWidgets()
+        self.layout.addRow("",self.okbtn)
+        self.widget.setLayout(self.layout)
+
+    def setUpColWidgets(self):
         [self.layout.addRow(self.superior.colnames[i], self.colWidgets[i]) for i in range(len(self.superior.colnames))]
 
     def OnOkClicked(self):
@@ -297,10 +308,32 @@ class CustomConfigItemView(metaclass=abc.ABCMeta):
         self.View: "QWidget" = QWidget(上级)
 
 
+# class 基类_配置项_表格型(CustomConfigItemView):
+#
+#
+#     pass
+
 class ConfigTableView(CustomConfigItemView, metaclass=abc.ABCMeta):
     """只提供基础的表格功能, 双击修改行, 点加号增加空记录, 点减号减去对应行
     这个类自定义了配置表的基本功能, 把很多设置提前设置好减少代码量
     2023年2月6日18:31:46 这个东西非常复杂, 我后面需要写一个调用的结构图
+    这个东西是表格型配置项的UI,
+    需要考虑的东西:
+    1 设计列名, 缺省行数据
+    2 判断表格形式, 单列表,/单选表
+    数据加载:
+    3 数据从 配置项上保存的raw_data 转换成 表格展示的值 需要通过setupData实现
+        3.1 setupdata 中 需要用到 GetRowFromData 来具体地转换数据源为一行数据的形式,
+        3.2 GetRowFromData 中 需要指定 表格的项(TableItem) 如果有特殊需要, 需要指定, 没有特殊需要, 可以用预置的
+    新建/修改数据:
+    4 点击加号新建数据, 会调用 NewRow->NewRowFormWidget(superior, colitems, colWidgets)->setValueToTableRowFromForm->SaveDataToConfigModel
+        4.1 NewRowFormWidget 通常继承自 ConfigTableNewRowFormView
+        4.2 NewRowFormWidget 通常需要三个参数, 1 调用者, 2 colitems 行数据, 3 colWidgets 行数据对应的组件, 你需要把这三个都传入
+        4.3 新建时, colitems 为None, 函数会调用默认的行来创建, 修改时, 直接把行对应的组件保存到 colitems中即可.
+        4.4 保存时, 点击ok按钮会发生,
+        4.4.1 先调用 setValueToTableRowFromForm 将colWidgets的值转移到colitems中, 然后关闭自己
+        4.4.2 再在NewRow函数中,用函数 SaveDataToConfigModel 保存到配置模型上
+
     """
     colnames = []
     defaultRowData = []  # 默认行数据用来新建行,  (dataformat.templateId, dataformat.fieldId), dataformat.fieldName, colType.field)
@@ -315,8 +348,6 @@ class ConfigTableView(CustomConfigItemView, metaclass=abc.ABCMeta):
         self.modelRoot = self.table_model.invisibleRootItem()
         self.btnAdd = QPushButton("+")
         self.btnDel = QPushButton("-")
-        # self.btnDel.setMaximumWidth(30)
-        # self.btnAdd.setMaximumWidth(30)
         self.rowEditor = QDialog()
         self.rowEditor.resize(300, 600)
         self.SetupData(self.ConfigModelItem.value)
@@ -347,13 +378,11 @@ class ConfigTableView(CustomConfigItemView, metaclass=abc.ABCMeta):
         self.View.setLayout(viewLayout)
         self.View.layout()
 
-    def SetupData(self, raw_data):
+    def SetupData(self, raw_data:"list[Any]"):
         from . import funcs
         # funcs.Utils.print(raw_data)
         self.viewTable.setModel(self.table_model)
         self.table_model.clear()
-        # raw_data = self.ConfigModelItem.value
-        # print("uuid_list=",raw_data)
         if self.IsList:
             list(map(lambda row: self.AppendRow(self.GetRowFromData([row])), raw_data))
         elif self.IsSelectTable:
@@ -395,7 +424,9 @@ class ConfigTableView(CustomConfigItemView, metaclass=abc.ABCMeta):
         self.SaveDataToConfigModel()
 
     def GetRowFromData(self, data: "list[str]"):
-        """根据所获取的数据生成行, 由于这个组件通常用于列表类型的配置, 因此data通常是list结构
+        """
+        make TableRow from raw_data
+        根据所获取的数据生成行, 由于这个组件通常用于列表类型的配置, 因此data通常是list结构
         如果有特殊结构请自己处理
         """
         # return list(map(lambda itemname: self.TableItem(self, itemname), data))
@@ -426,11 +457,11 @@ class ConfigTableView(CustomConfigItemView, metaclass=abc.ABCMeta):
         """保存到self.ConfigModelItem中, 而非数据库或json文件之类的内存之外的东西中"""
         raise NotImplementedError()
 
-    class TableItem(QStandardItem):
+    class TableItem(QStandardItem,):
 
-        def __init__(self, superior, name, value=None):
+        def __init__(self, superior:"ConfigTableView", name, value=None):
             if not isinstance(superior, ConfigTableView):
-                raise ValueError(f"superior must be instance of Configtablevie not {superior}")
+                raise ValueError(f"superior must be instance of Configtableview not {superior}")
             self.superior: "ConfigTableView" = superior
 
             if type(name) != str:
@@ -444,7 +475,9 @@ class ConfigTableView(CustomConfigItemView, metaclass=abc.ABCMeta):
                 self.setData(value)
 
         def ShowAsWidget(self):
-            """这个数据项要展示为用户可操作的交互对象时,所用的组件"""
+            """这个数据项要展示为用户可操作的交互对象时,所用的组件,
+            这个功能现在已经废弃了
+            """
             return None
 
         def copySelf(self):
@@ -455,6 +488,9 @@ class ConfigTableView(CustomConfigItemView, metaclass=abc.ABCMeta):
             self.setToolTip(text)
             self.setData(value)
 
+        def GetData(self):
+            raise NotImplementedError()
+        
 
 class ConfigItemLabelView(CustomConfigItemView):
     """这个东西,是当配置项需要表示为

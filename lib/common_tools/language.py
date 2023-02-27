@@ -727,10 +727,10 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     新建:str = rosetta("新建")
     结点角色名= 翻译("结点角色名","node role name")
     说明_结点角色名=翻译(f"结点角色名无法在结点属性中修改,如果想更改角色名, 请到视图的配置表中修改{枚举.视图配置.结点角色表}",f"The node role name cannot be changed in the node properties, if you want to change the role name, please go to the configuration table of the view. {枚举.视图配置.结点角色表}")
-    说明_新增卡片指定存放牌组=翻译("当你新增卡片时,在此处指定默认要存放的牌组,如果为空则根据anki默认的指定方式","When you add a card, specify the default deck to be stored here, or if it is empty, specify it according to the anki default")
+    说明_新增卡片指定存放牌组=翻译("当你在视图中新增卡片时,在此处指定默认要存放的牌组,如果为空则根据anki默认的指定方式","When you add a card in this view, specify the default deck to be stored here, or if it is empty, specify it according to the anki default")
     打开默认视图 = 翻译("打开默认视图","open default view")
     打开默认漫游复习 = 翻译("打开默认漫游复习","open default roaming")
-    说明_设定默认视图=翻译(f"设定mainwindow中{打开默认视图}和{打开默认漫游复习}这两个菜单所对应的视图")
+    说明_设定默认视图=翻译(f"设定mainwindow中 '{打开默认视图}' 和 '{打开默认漫游复习}' 这两个菜单所对应的视图",f"Set the view corresponding to the menus '{打开默认视图}' and '{打开默认漫游复习}' in mainwindow")
     请先设定默认视图=翻译(f"请先设定默认视图","Please set the default view first")
     设为默认视图 = 翻译("设为默认视图","set as default view")
     说明_漫游复习侧边栏收起 = 翻译("是否默认收起漫游复习的侧边栏","Whether to tuck away the sidebar for roaming review by default")
@@ -743,5 +743,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     描述提取规则_模板=翻译("卡片模板","card template")
     描述提取规则_长度=翻译("字符长度","text length")
     不选等于全选 = 翻译("你没有选择任何一项, 程序默认你选择了全部项","You have not selected any item, the program defaults to your selection of all items")
+    双击以选中项 = 翻译("双击以完成选中","double-click to select item")
+
 if __name__ == "__main__":
     print(Translate.打开配置表)

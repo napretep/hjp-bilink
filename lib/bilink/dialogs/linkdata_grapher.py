@@ -1293,7 +1293,7 @@ class Grapher(QMainWindow):
 
         def openConfig(self):
             """"""
-            布局, 组件, 子代, 描述 = funcs.G.objs.Bricks.四元组
+            布局, 组件, 子代 = funcs.G.objs.Bricks.三元组
             视图记录 = self.superior.data.gviewdata
             配置类 = common_tools.objs.Record.GviewConfig
             if 视图记录.config != "" and 配置类.静态_存在于数据库中(视图记录.config) and 配置类.静态_含有某视图(视图记录.uuid, 视图记录.config):

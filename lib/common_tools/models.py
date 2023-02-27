@@ -14,11 +14,11 @@ from typing import Any, Callable, Optional, Dict, NewType
 
 from .compatible_import import *
 from . import funcs, baseClass, language, widgets,funcs2
-from .all_models import *
+from .all_models.basic_models import *
+from .all_models.view_node_models import *
+from .all_models.view_self_models import *
+from .all_models.view_edge_models import *
+from .all_models.view_batch_node_models import *
+from .all_models.global_config_desc_extract_models import *
 
-译 = language.Translate
-枚举 = baseClass.枚举命名
-砖 = 枚举.砖
-类型_结点编号 = 类型_属性名 = str
-类型_视图数据 = funcs.GViewData
 

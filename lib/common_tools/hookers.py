@@ -36,3 +36,7 @@ class 当ReviewButtonForCardPreviewer完成复习(钩子之母):
 class 当全局配置_描述提取规则_模板选择器完成选择(钩子之母):
     def append(self,fun:"Callable[[类型_平台,类型_选的值],None]"):
         super().append(fun)
+
+class 当模型的属性项组件_完成赋值(钩子之母):
+    def append(self,fun:"Callable[[类型_平台,类型_选的值],None]"):
+        super().append(fun)

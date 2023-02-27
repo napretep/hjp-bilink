@@ -10,13 +10,28 @@ import abc
 import datetime, time
 
 from dataclasses import dataclass, field
-from typing import Dict, Any,NewType
+from typing import Dict, Any, NewType
 
 from ..compatible_import import *
-from .. import language, baseClass, funcs, funcs2, widgets
+from .. import language, baseClass, funcs, funcs2,configsModel,widgets,hookers
 
+
+class 安全导入:
+    @property
+    def widgets(self):
+        from .. import widgets
+        return widgets
+
+    @property
+    def funcs(self):
+        from .. import funcs
+        return funcs
+
+safe = 安全导入()
 
 译 = language.Translate
 枚举 = baseClass.枚举命名
 砖 = 枚举.砖
 类型_结点编号 = 类型_属性名 = str
+类型_视图数据=configsModel.GViewData
+类型_数据源_提取规则 = NewType("类型_数据源_提取规则",dict)

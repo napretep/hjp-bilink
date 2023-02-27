@@ -6,10 +6,9 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2023/2/27 5:56'
 """
-from .basic_models import *
-from . import *
 
-类型_视图数据 = funcs.GViewData
+
+from .basic_models import *
 
 @dataclass
 class 类型_视图本身属性项(基类_属性项):

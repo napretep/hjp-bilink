@@ -6,15 +6,9 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2023/2/27 6:04'
 """
-# from .basic_models import *
-# from .view_node_models import 类型_视图结点属性项
-# from . import widgets
 
-from .imports import *
 from .basic_models import *
-# from .view_node_models import 类型_视图结点属性项
-# from . import dataclass
-from . import 类型_视图结点属性项
+from .view_node_models import 类型_视图结点属性项
 
 @dataclass
 class 类型_视图批量结点数据源:

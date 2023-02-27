@@ -823,20 +823,21 @@ class 组件定制:
     def 组件组合(组件树数据: "dict", 容器: "QWidget" = None)->"QWidget|QDialog":
         if not 容器: 容器 = QWidget()
         基 = G.objs.Bricks
-        布局, 组件, 子代 = 基.三元组
+        布局,组件,子代,占据= 基.四元组
 
         def 子组合(组件树: "dict"):
             if 布局 in 组件树:
                 the_layout: "QHBoxLayout|QVBoxLayout|QGridLayout" = 组件树[布局]
+                the_layout.setContentsMargins(0,0,0,0)
                 for 孩子 in 组件树[子代]:
                     子组件 = 子组合(孩子)
                     if 布局 in 子组件:
                         the_layout.addLayout(子组件[布局])
                     else:
                         if isinstance(子组件[组件],QWidget):
-                            the_layout.addWidget(子组件[组件])
+                            the_layout.addWidget(子组件[组件],stretch=子组件[占据] if 占据 in 子组件 else 0 )
                         else:
-                            the_layout.addLayout(子组件[组件])
+                            the_layout.addLayout(子组件[组件],stretch=子组件[占据] if 占据 in 子组件 else 0)
 
             return 组件树
 
@@ -925,6 +926,9 @@ class 组件定制:
 
     @staticmethod
     def 按钮_提示(文字="", 图标地址=G.src.ImgDir.info,触发函数=None):
+        return 组件定制.按钮(图标地址, 文字, 触发函数)
+    @staticmethod
+    def 按钮_确认(文字="", 图标地址=G.src.ImgDir.correct,触发函数=None):
         return 组件定制.按钮(图标地址, 文字, 触发函数)
 #
 # # 2023年2月15日23:42:11 砍掉 group_review功能, 全部相关代码被注释掉.
@@ -1139,13 +1143,15 @@ class BaseConfig(metaclass=abc.ABCMeta):
         for 名, 值 in 分栏字典.items():
             值.widget.setLayout(值.layout)
             分栏.addTab(值.widget, 名)
-        滚动组件 = QScrollArea()
+        滚动组件 = QScrollArea(容器)
         滚动组件.setWidget(分栏)
         滚动组件.setContentsMargins(0, 0, 0, 0)
         滚动组件.setMinimumHeight(500)
-        总布局.addWidget(滚动组件)
+        滚动组件.setWidgetResizable(True)
+        滚动组件.setAlignment(Qt.AlignCenter)
+        总布局.addWidget(滚动组件,stretch=1)
         容器.setLayout(总布局)
-        容器.resize(int(分栏.width() * 1.1), 500)
+        # 容器.resize(int(分栏.width() * 1.1), 500)
         容器.setContentsMargins(0, 0, 0, 0)
         容器.setWindowIcon(QIcon(G.src.ImgDir.config))
         容器.setWindowTitle("配置表/configuration")
@@ -1158,14 +1164,6 @@ class BaseConfig(metaclass=abc.ABCMeta):
 class IntroductionOperation:
     pass
 
-
-#
-# @staticmethod
-# def eval可用函数的说明():
-#     _=字典键名.时间
-#     return {
-#
-#     }
 
 
 class GviewConfigOperation(BaseConfig):
@@ -2030,20 +2028,16 @@ class CardOperation:
                     1.2.1.2 无预定方案, 则根据默认的方案读取.
        """
         cfg = Config.get()
-
-        def get_desc_from_field(ins, note) -> str:
-            if ins.fieldId == -1:
+        from . import models
+        def get_desc_from_field(ins:"models.类型_模型_描述提取规则", note) -> str:
+            if ins.字段.值 == -1:
                 StrReadyToExtract = "".join(note.fields)
-            elif ins.fieldId == -2:
-                StrReadyToExtract = note.fields[0]
-            elif ins.fieldId == -3:
-                StrReadyToExtract = note.fields[1]
             else:
-                StrReadyToExtract = note.fields[ins.fieldId]
+                StrReadyToExtract = note.fields[ins.字段.值]
             step1_desc = HTML.TextContentRead(StrReadyToExtract)
-            step2_desc = step1_desc if ins.length == 0 else step1_desc[0:int(ins.length)]
-            if ins.regex != "":
-                search = re.search(ins.regex, step2_desc)
+            step2_desc = step1_desc if ins.长度.值 == 0 else step1_desc[0:int(ins.长度.值)]
+            if ins.正则 != "":
+                search = re.search(ins.正则, step2_desc)
                 if search is None:
                     tooltip("根据设置中预留的正则表达式, 没有找到描述")
                 else:
@@ -2064,7 +2058,7 @@ class CardOperation:
                 # print("--------=--=-=-=-=       desc  from DB       ")
                 return datainfo.self_data._desc
             else:
-                if ins.sync:
+                if ins.同步.值:
                     # 确定字段
                     return get_desc_from_field(ins, note)
                 else:
@@ -2078,20 +2072,39 @@ class CardOperation:
 
     @staticmethod
     def InstructionOfExtractDesc(card_id):
-        from . import objs
+        from . import  models
         cfg = Config.get()
-        specialModelIdLi = [desc[0] for desc in cfg.descExtractTable.value]
-        modelId = CardOperation.note_get(card_id).mid
-        returnData = []
-        if modelId in specialModelIdLi:
-            idx = specialModelIdLi.index(modelId)
-            returnData = cfg.descExtractTable.value[idx]
-        elif -1 in specialModelIdLi:
-            idx = specialModelIdLi.index(-1)
-            returnData = cfg.descExtractTable.value[idx]
-        else:
-            returnData = [-1, -1, cfg.length_of_desc.value, "", cfg.desc_sync.value]
-        return objs.descExtractTable(*returnData)
+        空规则 = models.类型_模型_描述提取规则()
+        全部描述提取规则 = [models.类型_模型_描述提取规则(规则) for 规则 in cfg.descExtractTable.value]
+        卡片信息 = mw.col.get_card(int(card_id))
+        牌组编号 = 卡片信息.did
+        模板编号 = 卡片信息.note().mid
+        标签集 = set(卡片信息.note().tags)
+        选中规则 = 空规则
+        for 规则 in 全部描述提取规则:
+            规则的标签集 = set(规则.标签.值)
+            # 三个东西全部满足, 说明这条规则对上了, 就可以用,
+            if (牌组编号 == 规则.牌组.值 or 规则.牌组.值==-1) and\
+                (模板编号 == 规则.模板.值 or 规则.模板.值==-1) and \
+                (标签集&规则的标签集!=set() or len(规则.标签.值)==0):
+                # 牌组相同或不限, 模板相同或不限, 标签集含有或不限
+                选中规则 = 规则
+                break
+        return 选中规则
+        # from . import objs
+        # cfg = Config.get()
+        # specialModelIdLi = [desc[0] for desc in cfg.descExtractTable.value]
+        # modelId = CardOperation.note_get(card_id).mid
+        # returnData = []
+        # if modelId in specialModelIdLi:
+        #     idx = specialModelIdLi.index(modelId)
+        #     returnData = cfg.descExtractTable.value[idx]
+        # elif -1 in specialModelIdLi:
+        #     idx = specialModelIdLi.index(-1)
+        #     returnData = cfg.descExtractTable.value[idx]
+        # else:
+        #     returnData = [-1, -1, cfg.length_of_desc.value, "", cfg.desc_sync.value]
+        # return objs.descExtractTable(*returnData)
 
     @staticmethod
     def get_correct_id(card_id):
@@ -2471,7 +2484,7 @@ class 卡片模板操作:
     @staticmethod
     def 获取模板名(模板编号,缺省值:"str"=None):
         if 模板编号>0:
-            return mw.col.models.get(模板编号)
+            return mw.col.models.get(模板编号)["name"]
         else:
             return 缺省值
 
@@ -2479,7 +2492,7 @@ class 牌组操作:
     @staticmethod
     def 获取牌组名(模板编号, 缺省值: "str" = None):
         if 模板编号 > 0:
-            return mw.col.models.get(模板编号)
+            return mw.col.decks.name(模板编号)
         else:
             return 缺省值
 
@@ -2488,9 +2501,12 @@ class 卡片字段操作:
     def 获取字段名(模板编号,字段编号,缺省值:"str"=None):
         字段名列表 = []
         if 模板编号>0:
-            字段名列表 = mw.col.models.field_names(模板编号)
-        if len(字段名列表)>字段编号>=0:
-            return mw.col.models.field_names(模板编号)[字段编号]
+            模板 = mw.col.models.get(模板编号)
+            字段名列表 = mw.col.models.field_names(模板)
+            if len(字段名列表)>字段编号>=0:
+                return 字段名列表[字段编号]
+            else:
+                return 缺省值
         else:
             return 缺省值
 
