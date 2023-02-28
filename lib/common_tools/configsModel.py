@@ -25,7 +25,12 @@ from .compatible_import import *
 from .compatible_import import tooltip, isMac, isWin
 from typing import TYPE_CHECKING
 
-
+class SafeImport:
+    @property
+    def funcs(self):
+        from . import funcs
+        return funcs
+safe = SafeImport()
 # class CustomConfigItemView(metaclass=abc.ABCMeta):
 #
 #     @property
@@ -104,11 +109,15 @@ class GViewData:
         self.name:str = name
         self.config:str = config
         self.meta=funcs.GviewOperation.默认元信息模板(kwargs["meta"] if "meta" in kwargs else None)
+        if not self.config:
+            safe.funcs.GviewConfigOperation.指定视图配置(self)
+        self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
         结点数据集字典 = {}
         结点数据模板 = funcs.GviewOperation.依参数确定视图结点数据类型模板()
         边数据集字典 = {}
         边数据模板 = funcs.GviewOperation.默认视图边数据模板()
         不存在的结点集 = []
+        结点属性 = baseClass.枚举命名.结点
         类型 = baseClass.枚举命名.结点.数据类型
         类型值 = baseClass.视图结点类型
         if 版本20221226:
@@ -124,6 +133,10 @@ class GViewData:
                         值[类型]=值["data_type"] # 2023.2.25版本兼容
                     else:
                         raise ValueError(f"{值}的{类型}无法确定")
+                if 结点属性.角色 in 值 and type(值[结点属性.角色])==int: # 2023.2.28版本兼容
+                    值[结点属性.角色]=[值[结点属性.角色]]
+
+                值[结点属性.角色] = [角色位置 for 角色位置 in 值[结点属性.角色] if 角色位置 in range(len(self.获取结点角色表()))]
                 if (值[类型] == 类型值.卡片 and not funcs.CardOperation.exists(标识)) or (值[类型] == 类型值.视图 and not funcs.GviewOperation.exists(uuid=标识)) :
                     不存在的结点集.append(标识)
                     continue
@@ -184,8 +197,17 @@ class GViewData:
         from . import funcs
         return funcs.GviewOperation.获取视图结点描述(self,编号,全部内容)
 
+    def 获取结点角色表(self):
+        if self.config:
+            return eval(self.config_model.data.node_role_list.value)
+        else:
+            return  []
 
-
+    def 更新结点角色位置表(self,node_id):
+        结点属性 = baseClass.枚举命名.结点
+        角色表 = self.获取结点角色表()
+        角色位置表 = self.nodes[node_id].角色.值
+        self.nodes[node_id].角色.设值([角色位置 for 角色位置 in 角色位置表 if 角色位置 in range(0,len(角色表))])
 
     def __hash__(self):
         return int(self.uuid, 16)

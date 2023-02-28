@@ -743,7 +743,16 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     描述提取规则_模板=翻译("卡片模板","card template")
     描述提取规则_长度=翻译("字符长度","text length")
     不选等于全选 = 翻译("你没有选择任何一项, 程序默认你选择了全部项","You have not selected any item, the program defaults to your selection of all items")
+    不选角色等于不选 = 翻译("你没有选择任何一项, 程序默认你一项都不选","If you do not select any of them, the program defaults you to none of them")
     双击以选中项 = 翻译("双击以完成选中","double-click to select item")
+    说明_多选框的用法 = 翻译("""右侧列表显示你可选的项,左侧列表为你已经选好的项,双击右侧列表的项或者点击右侧列表下面的确认按钮,即可将选中的项添加到左侧.
+    在左侧列表中, 你选中一项或多项后, 点击左侧列表底下的删除按钮, 即可将选中的项从左侧窗口中移除. 当你点击关闭时自动会将所选的项保存下来.
+    ""","""
+    The right list shows the items you can choose, and the left list shows the items you have already chosen. 
+    Double-click an item in the right list or click the confirm button below the right list to add the selected item to the left. 
+    In the left list, after you select one or more items, click the delete button at the bottom of the left list to remove the selected items from the left window. 
+    When you click close button, it will automatically save your selected items.
+    """)
 
 if __name__ == "__main__":
     print(Translate.打开配置表)

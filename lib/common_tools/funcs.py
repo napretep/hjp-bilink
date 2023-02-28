@@ -127,6 +127,13 @@ class MenuMaker:
 class GviewOperation:
 
     @staticmethod
+    def 获取视图配置编号(data:"str|GViewData")->"str":
+        uuid = data if type(data)==str else data.uuid
+        DB = G.DB
+        DB.go(DB.table_Gview)
+        return DB.select(DB.EQ(uuid=uuid)).return_all().zip_up()[0]["config"]
+
+    @staticmethod
     def 设为默认视图(uuid):
         cfg = Config.get()
         cfg.set_default_view.value=uuid
@@ -703,7 +710,10 @@ class Utils(object):
     @staticmethod
     def 大文本提示框(文本,取消模态=False,尺寸=(600,400)):
         _ = 字典键名.砖
-
+        # 组合 = {_.框: QHBoxLayout(), _.子: [{_.件: QLabel()}]}
+        # 组合[_.子][0][_.件].setText(Utils.html默认格式(文本))
+        # 组合[_.子][0][_.件].setWordWrap(True)
+        # 组合[_.子][0][_.件].setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
         组合 = {_.框: QHBoxLayout(), _.子: [{_.件: QTextBrowser()}]}
         组合[_.子][0][_.件].setHtml(Utils.html默认格式(文本))
         对话框: QDialog = 组件定制.组件组合(组合, QDialog())
@@ -1185,19 +1195,11 @@ class GviewConfigOperation(BaseConfig):
             return []
 
     @staticmethod
-    def 获取结点角色名(视图数据: GViewData, 结点编号):
-        角色序号 = 视图数据.nodes[结点编号].角色.值
-        if 角色序号 < 0:
-            return ""
-        if not 视图数据.config:
-            return ""
-        else:
-            角色列表 = GviewConfigOperation.从数据库读(视图数据.config).data.node_role_list.value
-            if 角色序号 >= len(角色列表):
-                视图数据.nodes[结点编号].角色.设值(-1)
-                return ""
-            else:
-                return 角色列表[角色序号]
+    def 获取结点角色名(视图数据: GViewData, 结点编号,配置数据:"GviewConfig"=None):
+        角色选中序号表 = 视图数据.nodes[结点编号].角色.值
+        角色列表 = eval((GviewConfigOperation.从数据库读(视图数据.config)if not 配置数据 else 配置数据).data.node_role_list.value)
+        return [角色列表[角色序号] for 角色序号 in 角色选中序号表 if 角色序号 in range(0,len(角色列表))]
+
 
     @staticmethod
     def 漫游路径生成之深度优先遍历(视图数据: GViewData, 结点队列: "list[str]", 起点: "list[str]"):

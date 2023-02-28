@@ -26,9 +26,9 @@ from . import configsModel
 from .compatible_import import *
 from . import funcs, baseClass, hookers, funcs2
 
-布局=框 = 0
-组件=件 = 1
-子代=子 = 2
+布局 = 框 = 0
+组件 = 件 = 1
+子代 = 子 = 2
 占 = 占据 = 3
 # from ..bilink.dialogs.linkdata_grapher import Grapher
 
@@ -307,7 +307,6 @@ class SelectorProtoType(QDialog):
         V_layout.setStretch(0, 0)
         self.setLayout(V_layout)
 
-
     class Header(QWidget):
         as_tree, as_list = "as_tree", "as_list"
 
@@ -536,10 +535,13 @@ class universal_field_chooser(SelectorProtoType):
         pass
 
 
-class universal_tag_chooser(QDialog):
-    def __init__(self, preset: "iter[str]" = None):
+class multi_select_prototype(QDialog):
+    def __init__(self, preset: "iter[str]" = None, separater="::", dialog_title="", new_item="new_tag"):
         super().__init__()
-
+        self.分隔符 = separater
+        self.标题栏名字 = dialog_title
+        self.提供树结构 = True
+        self.新项目名字 = new_item
         self.view_left = self.View(self)
         self.view_right = self.View(self)
         self.view_left.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -547,8 +549,8 @@ class universal_tag_chooser(QDialog):
         self.model_right = QStandardItemModel(self)
         self.model_right_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
         self.model_left_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
-        self.tag_list = set() if not preset else set(preset)  # self.get_all_tags_from_pairli()
-        self.结果 = self.tag_list
+        self.item_list = set() if not preset else set(preset)  # 最终选择的item在这里保存
+        self.结果 = self.item_list
         self.left_button_group = self.button_group(self, 0, self.view_left, self.model_left)
         self.right_button_group = self.button_group(self, 1, self.view_right, self.model_right)
         self.init_UI()
@@ -560,38 +562,37 @@ class universal_tag_chooser(QDialog):
         ]).bind()
 
     def on_view_right_doubleClicked_handle(self, index):
-        self.right_button_group.on_collection_tag_add_handle()
+        self.right_button_group.on_item_add_handle()
 
     def on_model_left_datachanged_handle(self, index):
         """左边的数据改变了, 就要保存一次"""
-        item: "tag_chooser_for_cards.Item" = self.model_left.itemFromIndex(index)
-        stack: "list[tag_chooser_for_cards.Item]" = [item]
+        item: "multi_select_prototype.Item" = self.model_left.itemFromIndex(index)
+        stack: "list[multi_select_prototype.Item]" = [item]
         while stack:
             it = stack.pop()
-            if it.tag_name is not None:
-                old = it.tag_name
-                new = self.get_full_tag_name(it)
-                self.tag_list.remove(old)
-                self.tag_list.add(new)
-                it.set_tag_name(new)
+            if it.item_name is not None:
+                old = it.item_name
+                new = self.get_full_item_name(it)
+                self.item_list.remove(old)
+                self.item_list.add(new)
+                it.set_item_name(new)
             for i in range(it.rowCount()):
                 stack.append(it.child(i, 0))
         self.init_data_left()
 
     def init_UI(self):
         self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
-        self.setWindowTitle("tag chooser")
+        self.setWindowTitle("item chooser")
         self.setWindowIcon(QIcon(G.src.ImgDir.tag))
-        h_box = QHBoxLayout(self)
-        v1 = QVBoxLayout()
-        v2 = QVBoxLayout()
-        v1.addWidget(self.view_left)
-        v1.addWidget(self.left_button_group)
-        v2.addWidget(self.view_right)
-        v2.addWidget(self.right_button_group)
-        h_box.addLayout(v1)
-        h_box.addLayout(v2)
-        self.setLayout(h_box)
+        组件布局 = {框: QHBoxLayout(),
+                子:  [{框: QVBoxLayout(),
+                          子: [{件: self.view_left}, {件: self.left_button_group}]}
+                             ,
+                         {框: QVBoxLayout(),
+                          子: [{件: self.view_right}, {件: self.right_button_group}]},],
+                    }
+
+        funcs.组件定制.组件组合(组件布局, self)
         pass
 
     def init_model(self):
@@ -605,74 +606,74 @@ class universal_tag_chooser(QDialog):
         pass
 
     def closeEvent(self, QCloseEvent):
-        self.tag_list = self.save()
-        self.结果 = list(self.tag_list)
+        self.item_list = self.save()
+        self.结果 = list(self.item_list)
 
     def save(self):
-        stack: "list[universal_tag_chooser.Item]" = [self.model_left.item(i, 0) for i in range(self.model_left.rowCount())]
+        stack: "list[multi_select_prototype.Item]" = [self.model_left.item(i, 0) for i in range(self.model_left.rowCount())]
         s = set()
         while stack:
             item = stack.pop()
-            if item.tag_name:
-                s.add(self.get_full_tag_name(item))
+            if item.item_name:
+                s.add(self.get_full_item_name(item))
             for i in range(item.rowCount()):
                 stack.append(item.child(i, 0))
         return s
 
-    def get_full_tag_name(self, item: "universal_tag_chooser.Item"):
+    def get_full_item_name(self, item: "multi_select_prototype.Item"):
         text_li = []
         parent = item
         while parent:
             if parent.text() != "":
                 text_li.append(parent.text())
             parent = parent.parent()
-        text = "::".join(reversed(text_li))
+        text = self.分隔符.join(reversed(text_li))
         return text
 
-    def get_all_tags_from_collection(self) -> 'list[str]':
-        return mw.col.tags.all()
+    def get_all_items(self) -> 'set[str]':
+        raise NotImplementedError()
 
-    def build_tag_tree(self, tag_set: "set[str]", model: "QStandardItemModel", view: "tag_chooser_for_cards.View",
-                       button_group: "tag_chooser_for_cards.button_group"):
-        tag_list = sorted(list(tag_set))
-        tag_dict = G.objs.Struct.TreeNode(model.invisibleRootItem(), {})
-        total_tag = button_group.L_or_R == button_group.R
-        for i in tag_list:
-            tagname_li = i.split("::")
-            parent = tag_dict
-            while tagname_li:
-                tagname = tagname_li.pop(0)
-                if tagname not in parent.children:
-                    item = self.Item(tagname, total_tag=total_tag)
+    def build_as_tree(self, item_set: "set[str]", model: "QStandardItemModel", view: "multi_select_prototype.View",
+                      button_group: "multi_select_prototype.button_group"):
+        item_list = sorted(list(item_set))
+        item_dict = G.objs.Struct.TreeNode(model.invisibleRootItem(), {})
+        total_item = button_group.L_or_R == button_group.R
+        for i in item_list:
+            item_name_li = i.split(self.分隔符)
+            parent = item_dict
+            while item_name_li:
+                item_name = item_name_li.pop(0)
+                if item_name not in parent.children:
+                    item = self.Item(item_name, total_item=total_item)
                     parent.item.appendRow([item])
-                    parent.children[tagname] = G.objs.Struct.TreeNode(item, {})
-                    if not tagname_li:
-                        item.set_tag_name(i)
-                parent = parent.children[tagname]
+                    parent.children[item_name] = G.objs.Struct.TreeNode(item, {})
+                    if not item_name_li:
+                        item.set_item_name(i)
+                parent = parent.children[item_name]
         view.setDragDropMode(DragDropMode.NoDragDrop)
         view.setAcceptDrops(True)
         pass
 
-    def build_tag_list(self, tag_set: "set[str]", model: "QStandardItemModel", view: "tag_chooser_for_cards.View",
-                       button_group: "tag_chooser_for_cards.button_group"):
-        tag_list = sorted(list(tag_set))
-        total_tag = button_group.L_or_R == button_group.R
-        for i in tag_list:
-            item = self.Item(i, total_tag=total_tag)
-            item.set_tag_name(i)
+    def build_as_list(self, item_set: "set[str]", model: "QStandardItemModel", view: "multi_select_prototype.View",
+                      button_group: "multi_select_prototype.button_group"):
+        item_list = sorted(list(item_set))
+        total_item = button_group.L_or_R == button_group.R
+        for i in item_list:
+            item = self.Item(i, total_item=total_item)
+            item.set_item_name(i)
             model.appendRow([item])
         view.setDragDropMode(DragDropMode.NoDragDrop)
         pass
 
-    def init_data_left(self, init=False):
+    def init_data_left(self ,init=True):
         model, button_group, view = self.model_left, self.left_button_group, self.view_left
         model.clear()
         self.model_right_rootNode = model.invisibleRootItem()
-        model.setHorizontalHeaderLabels(["selected tag"])
-        if button_group.arrange_button.text() == button_group.tag_tree:
-            self.build_tag_tree(self.tag_list, model, view, button_group)
+        model.setHorizontalHeaderLabels(["selected item"])
+        if button_group.arrange_button.text() == button_group.as_tree:
+            self.build_as_tree(self.item_list, model, view, button_group)
         else:
-            self.build_tag_list(self.tag_list, model, view, button_group)
+            self.build_as_list(self.item_list, model, view, button_group)
         self.view_left.expandAll()
         pass
 
@@ -680,46 +681,43 @@ class universal_tag_chooser(QDialog):
         model, button_group, view = self.model_right, self.right_button_group, self.view_right
         model.clear()
         self.model_left_rootNode = model.invisibleRootItem()
-        model.setHorizontalHeaderLabels(["all tags"])
-        tag_list = self.get_all_tags_from_collection()
-        if button_group.arrange_button.text() == button_group.tag_tree:
-            self.build_tag_tree(tag_list, model, view, button_group)
+        model.setHorizontalHeaderLabels(["all items"])
+        item_list = self.get_all_items()
+        if button_group.arrange_button.text() == button_group.as_tree:
+            self.build_as_tree(item_list, model, view, button_group)
         else:
-            self.build_tag_list(tag_list, model, view, button_group)
+            self.build_as_list(item_list, model, view, button_group)
         self.view_right.expandAll()
         pass
 
     class button_group(QWidget):
         L, R = 0, 1
-        tag_tree, tag_list = "tag_tree", "tag_list"
+        as_tree, as_list = "as_tree", "as_list"
 
-        def __init__(self, superior: "tag_chooser_for_cards", L_or_R=0, fromView: "QTreeView" = None,
+        def __init__(self, superior: "multi_select_prototype", L_or_R=0, fromView: "QTreeView" = None,
                      fromModel: "QStandardItemModel" = None):
             super().__init__()
             self.superior = superior
             self.fromView = fromView
             self.fromModel = fromModel
             self.L_or_R = L_or_R
-            self.func_button = QToolButton(self)  # 左边是del, 右边是 add
-            self.func2_button = QToolButton(self)  # 左边是new, 右边要hide
-            self.func2_button.hide()
-            self.arrange_button = QToolButton(self)  # 大家都有一个排版系统
-            H_layout = QHBoxLayout(self)
-            H_layout.addWidget(self.func2_button)
-            H_layout.addWidget(self.func_button)
-            H_layout.addWidget(self.arrange_button)
-
-            self.setLayout(H_layout)
-            self.arrange_button.setText(self.tag_tree)
+            if self.L_or_R == self.R:
+                self.left_button = funcs.组件定制.按钮_提示(触发函数=lambda:funcs.Utils.大文本提示框(译.说明_多选框的用法))
+                self.middle_button= QPushButton(QIcon(G.src.ImgDir.correct), "")
+            else:
+                self.left_button= QPushButton(QIcon(G.src.ImgDir.item_plus), "")
+                self.middle_button = QPushButton(QIcon(G.src.ImgDir.cancel), "")
+            self.arrange_button = QPushButton(self)  # 大家都有一个排版系统
+            self.arrange_button.setText(self.as_tree)
             self.button_Icon_switch()
             self.init_UI()
             self.init_event()
 
         def button_text_switch(self):
-            if self.arrange_button.text() == self.tag_tree:
-                self.arrange_button.setText(self.tag_list)
+            if self.arrange_button.text() == self.as_tree:
+                self.arrange_button.setText(self.as_list)
             else:
-                self.arrange_button.setText(self.tag_tree)
+                self.arrange_button.setText(self.as_tree)
             self.button_Icon_switch()
             if self.L_or_R == self.L:
                 self.superior.init_data_left()
@@ -727,77 +725,72 @@ class universal_tag_chooser(QDialog):
                 self.superior.init_data_right()
 
         def button_Icon_switch(self):
-            if self.arrange_button.text() == self.tag_tree:
+            if self.arrange_button.text() == self.as_tree:
                 self.arrange_button.setIcon(QIcon(G.src.ImgDir.tree))
             else:
                 self.arrange_button.setIcon(QIcon(G.src.ImgDir.list))
 
         def init_UI(self):
-            if self.L_or_R == self.L:
-                self.func_button.setIcon(QIcon(G.src.ImgDir.cancel))
-                self.func2_button.setIcon(QIcon(G.src.ImgDir.item_plus))
-                self.func2_button.show()
-            elif self.L_or_R == self.R:
-                self.func_button.setIcon(QIcon(G.src.ImgDir.correct))
+            funcs.组件定制.组件组合({框:QHBoxLayout(), 子:[{件:self.left_button}, {件:self.middle_button}, {件:self.arrange_button}]}, self)
+
 
         def init_event(self):
             if self.L_or_R == self.L:
-                self.func_button.clicked.connect(self.on_card_tag_del_handle)
-                self.func2_button.clicked.connect(self.on_card_tag_new_handle)
+                self.middle_button.clicked.connect(self.on_item_del_handle)
+                self.left_button.clicked.connect(self.on_item_new_handle)
             elif self.L_or_R == self.R:
-                self.func_button.clicked.connect(self.on_collection_tag_add_handle)
+                self.middle_button.clicked.connect(self.on_item_add_handle)
             self.arrange_button.clicked.connect(self.button_text_switch)
 
-        def on_card_tag_new_handle(self, tag_name=None, from_posi=None):
-            if tag_name:
-                new_tag = tag_name
+        def on_item_new_handle(self, item_name=None, from_posi=None):
+            if item_name:
+                new_item = item_name
             else:
-                new_tag = f"""new_tag_{datetime.now().strftime("%Y%m%d%H%M%S")}"""
+                new_item = f"""{self.superior.新项目名字}_{datetime.now().strftime("%Y%m%d%H%M%S")}"""
             if from_posi:
                 item_parent = from_posi
-                new_full_tag = new_tag
+                new_full_item = new_item
             else:
                 if self.fromView.selectedIndexes():
                     item = self.fromModel.itemFromIndex(self.fromView.selectedIndexes()[0])
                     item_parent = item.parent()
-                    new_full_tag = self.superior.get_full_tag_name(item) + "::" + new_tag
+                    new_full_item = self.superior.get_full_item_name(item) + self.superior.分隔符 + new_item
                 else:
                     item_parent = self.fromModel.invisibleRootItem()
-                    new_full_tag = new_tag
-            new_item = self.superior.Item(new_tag)
-            new_item.set_tag_name(new_full_tag)
+                    new_full_item = new_item
+            new_item = self.superior.Item(new_item)
+            new_item.set_item_name(new_full_item)
             item_parent.appendRow([new_item])
-            self.superior.tag_list = self.superior.save()
+            self.superior.item_list = self.superior.save()
             self.fromView.edit(new_item.index())
             pass
 
-        def on_card_tag_del_handle(self):
+        def on_item_del_handle(self):
             if self.fromView.selectedIndexes():
                 item_li = [self.fromModel.itemFromIndex(index) for index in self.fromView.selectedIndexes()]
 
                 stack = item_li
                 while stack:
-                    stack_item: "tag_chooser_for_cards.Item" = stack.pop()
-                    if stack_item.tag_name:
-                        # to_be_deleted.append(stack_item.tag_name)
-                        self.superior.tag_list.remove(stack_item.tag_name)
-                        stack_item.set_tag_name(None)
+                    stack_item: "multi_select_prototype.Item" = stack.pop()
+                    if stack_item.item_name:
+                        self.superior.item_list.remove(stack_item.item_name)
+                        stack_item.set_item_name(None)
                     for i in range(stack_item.rowCount()):
                         stack.append(stack_item.child(i, 0))
                 self.superior.init_data_left()
 
-        def on_collection_tag_add_handle(self):
+        def on_item_add_handle(self):
             if self.fromView.selectedIndexes():
                 item_li = [self.fromModel.itemFromIndex(index) for index in self.fromView.selectedIndexes()]
                 for item in item_li:
                     # item:"tag_chooser.Item" = self.fromModel.itemFromIndex(self.fromView.selectedIndexes()[0])
-                    tag_name = self.superior.get_full_tag_name(item)
-                    if tag_name not in self.superior.tag_list:
-                        self.superior.tag_list.add(tag_name)
+                    item_name = self.superior.get_full_item_name(item)
+                    if item_name not in self.superior.item_list:
+                        self.superior.item_list.add(item_name)
                 self.superior.init_data_left()
 
     class View(QTreeView):
-        tag_list, tag_tree = 0, 1
+        item_list, item_tree = 0, 1
         on_did_drop = pyqtSignal(object)
 
         @dataclass
@@ -806,20 +799,20 @@ class universal_tag_chooser(QDialog):
             old: "str"
             new: "str"
 
-        def __init__(self, parent: "tag_chooser_for_cards"):
+        def __init__(self, parent: "multi_select_prototype"):
             super().__init__(parent)
-            self.superior: "tag_chooser_for_cards" = parent
+            self.superior: "multi_select_prototype" = parent
             self.viewmode: "Optional[int]" = None
             self.setDragDropOverwriteMode(False)
             self.setSelectionMode(QAbstractItemViewSelectMode.ExtendedSelection)
             # self.on_did_drop.connect(self.change_base_tag_after_dropEvent)
 
         def dropEvent(self, event: QtGui.QDropEvent) -> None:
-            item_from: "list[tag_chooser_for_cards.Item]" = [self.model().itemFromIndex(index) for index in
+            item_from: "list[multi_select_prototype.Item]" = [self.model().itemFromIndex(index) for index in
                                                              self.selectedIndexes()]
-            item_to: "tag_chooser_for_cards.Item" = self.model().itemFromIndex(self.indexAt(event.pos()))
-            parent_from: "list[tag_chooser_for_cards.Item]" = [item.parent() for item in item_from]
-            parent_to: "tag_chooser_for_cards.Item" = item_to.parent() if item_to is not None else self.model().invisibleRootItem()
+            item_to: "multi_select_prototype.Item" = self.model().itemFromIndex(self.indexAt(event.pos()))
+            parent_from: "list[multi_select_prototype.Item]" = [item.parent() for item in item_from]
+            parent_to: "multi_select_prototype.Item" = item_to.parent() if item_to is not None else self.model().invisibleRootItem()
             for i in range(len(parent_from)):
                 item = parent_from[i].takeRow(item_from[i].row())
                 if self.dropIndicatorPosition() == dropIndicatorPosition.OnItem:
@@ -830,42 +823,53 @@ class universal_tag_chooser(QDialog):
                     parent_to.insertRow(item_to.row() + 1, item)
                 elif self.dropIndicatorPosition() == dropIndicatorPosition.AboveItem:
                     parent_to.insertRow(item_to.row(), item)
-            self.superior.tag_list = self.superior.save()
+            self.superior.item_list = self.superior.save()
             self.superior.init_data_left()
 
     class Item(QStandardItem):
-        def __init__(self, tag_name, total_tag=False):
-            super().__init__(tag_name)
-            self.tag_id: "Optional[int]" = None
+        def __init__(self, item_name, total_item=False):
+            super().__init__(item_name)
+            self.item_id: "Optional[int]" = None
             self.level: "Optional[int]" = None
-            if total_tag:
+            if total_item:
                 self.setFlags(self.flags() & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsEditable)
-            self.last: "Optional[str]" = tag_name
-            self._tag_name: "Optional[str]" = None
+            self.last: "Optional[str]" = item_name
+            self._item_name: "Optional[str]" = None
 
         @property
-        def tag_name(self):
-            return self._tag_name
+        def item_name(self):
+            return self._item_name
 
-        def set_tag_name(self, name):
-            self._tag_name = name
+        def set_item_name(self, name):
+            self._item_name = name
 
-        def parent(self) -> "tag_chooser_for_cards.Item":
+        def parent(self) -> "multi_select_prototype.Item":
             if super().parent() is None:
                 return self.model().invisibleRootItem()
             else:
                 return super().parent()
 
     @dataclass
-    class Id_tag:
-        tag: "str"
+    class Id_name:
+        name: "str"
         ID: "int"
+
+
+class universal_tag_chooser(multi_select_prototype):
+    def get_all_items(self) -> 'set[str]':
+        return set(mw.col.tags.all())
+
+    def __init__(self, preset: "iter[str]" = None):
+        super().__init__(preset)
+
 
 
 class tag_chooser_for_cards(universal_tag_chooser):
     def __init__(self, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
         super().__init__()
         self.pair_li = pair_li
+        self.item_list = self.get_all_tags_from_pairli()
+        self.init_data_left()
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         s = self.save()
@@ -878,16 +882,7 @@ class tag_chooser_for_cards(universal_tag_chooser):
         from . import funcs
         funcs.LinkPoolOperation.both_refresh()
 
-    def save(self):
-        stack: "list[tag_chooser_for_cards.Item]" = [self.model_left.item(i, 0) for i in range(self.model_left.rowCount())]
-        s = set()
-        while stack:
-            item = stack.pop()
-            if item.tag_name:
-                s.add(self.get_full_tag_name(item))
-            for i in range(item.rowCount()):
-                stack.append(item.child(i, 0))
-        return s
+
 
     def add_tag(self, tag_name: str):
         from . import funcs
@@ -911,6 +906,24 @@ class tag_chooser_for_cards(universal_tag_chooser):
         return tags
         pass
 
+
+class role_chooser_for_node(multi_select_prototype):
+
+    def closeEvent(self, QCloseEvent):
+        左侧表的字符串 = self.save()
+        self.结果 = [self.角色表.index(角色名) for 角色名 in 左侧表的字符串 if 角色名 in self.角色表]
+
+    def get_all_items(self) -> 'set[str]':
+        return set(self.角色表)
+
+    def __init__(self,preset,角色表:"list[str]"):
+        self.角色表 = 角色表
+        super().__init__([角色表[pos] for pos in preset if pos in range(len(角色表))],)
+        self.left_button_group.left_button.hide()
+        self.left_button_group.arrange_button.hide()
+        self.right_button_group.arrange_button.hide()
+        self.init_data_right()
+        self.init_data_left()
 
 class Dialog_PDFUrlTool(QDialog):
 
@@ -1077,7 +1090,7 @@ class ConfigWidget:
                                    QTextEdit(),
                                    QRadioButton()]
                 self.colItems = colItems
-                super().__init__(superior, colItems,self.colWidgets)
+                super().__init__(superior, colItems, self.colWidgets)
                 # funcs.Map.do(range(3), lambda idx: self.colWidgets[idx].textChanged.connect(lambda: self.colItems[idx].setText(self.__dict__[idx""].toPlainText())))
                 # self.colWidgets[3].clicked.connect(lambda: self.colItems[3].setText(str(self.colWidgets[3].isChecked())))
 
@@ -1103,7 +1116,7 @@ class ConfigWidget:
 
         def __init__(self, *args, **kwargs):
             from . import models
-            self.默认属性字典:list[models.类型_属性项_描述提取规则] = []
+            self.默认属性字典: list[models.类型_属性项_描述提取规则] = []
             super().__init__(*args, **kwargs)
             self.初始化默认行()
             self.table_model.setHorizontalHeaderLabels(self.colnames)
@@ -1122,8 +1135,6 @@ class ConfigWidget:
             from . import models
             有序属性字典 = models.类型_模型_描述提取规则(数据源=raw_data).获取属性项有序列表_属性字典()
             return [self.TableItem(self, 属性.组件显示值, 属性) for 属性 in 有序属性字典]
-
-
 
         def NewRow(self):
             w = self.NewRowFormWidget(self)
@@ -1144,7 +1155,7 @@ class ConfigWidget:
 
             data = []
             for row in range(self.table_model.rowCount()):
-                item:ConfigWidget.DescExtractPresetTable.TableItem = self.table_model.item(row, 0)
+                item: ConfigWidget.DescExtractPresetTable.TableItem = self.table_model.item(row, 0)
                 data.append(item.GetData().上级.数据源)
             self.ConfigModelItem.setValue(data, 需要设值回到组件=False)
             #     rowdata = []
@@ -1155,14 +1166,16 @@ class ConfigWidget:
             #     data.append(rowdata)
             # self.ConfigModelItem.setValue(data, 需要设值回到组件=False)
             pass
+
         #
         class TableItem(baseClass.ConfigTableView.TableItem):
 
             def GetData(self):
                 from . import models
-                data:models.类型_属性项_描述提取规则 = self.data()
+                data: models.类型_属性项_描述提取规则 = self.data()
                 return data
                 pass
+
             pass
 
         class NewRowFormWidget(baseClass.ConfigTableNewRowFormView):
@@ -1174,28 +1187,28 @@ class ConfigWidget:
 
             def setValueToTableRowFromForm(self):
                 if self.isNew:
-                    self.模型.数据源={}
-                    [self.模型.数据源.__setitem__(字段名,属性.值) for 字段名,属性 in self.模型.属性字典.items()]
+                    self.模型.数据源 = {}
+                    [self.模型.数据源.__setitem__(字段名, 属性.值) for 字段名, 属性 in self.模型.属性字典.items()]
                 for 列 in self.colItems:
-                    属性项:safe.models.类型_属性项_描述提取规则 = 列.GetData()
+                    属性项: safe.models.类型_属性项_描述提取规则 = 列.GetData()
                     列.setText(属性项.组件显示值)
                 pass
 
-            def __init__(self, 上级:"ConfigWidget.DescExtractPresetTable",
-                         colItems:"ConfigWidget.DescExtractPresetTable.TableItem"=None):
-                self.isNew=False
-                self.superior:ConfigWidget.DescExtractPresetTable = 上级
+            def __init__(self, 上级: "ConfigWidget.DescExtractPresetTable",
+                         colItems: "ConfigWidget.DescExtractPresetTable.TableItem" = None):
+                self.isNew = False
+                self.superior: ConfigWidget.DescExtractPresetTable = 上级
                 if not colItems:
-                    self.isNew=True
+                    self.isNew = True
                     self.模型 = 上级.初始化默认行()
-                    colItems = [上级.TableItem(上级,属性.组件显示值,属性) for 属性 in 上级.默认属性字典]
+                    colItems = [上级.TableItem(上级, 属性.组件显示值, 属性) for 属性 in 上级.默认属性字典]
                 self.模型 = colItems[0].GetData().上级
                 self.UI字典 = self.模型.创建UI字典()
                 colWidget = [self.UI字典[属性[1].字段名] for 属性 in 上级.defaultRowData]
-                super().__init__(上级,colItems,colWidget)
-                模板选择组件:"自定义组件.视图结点属性.模板选择" = self.UI字典[self.模型.模板.字段名].核心组件
-                字段选择组件:"自定义组件.视图结点属性.字段选择" = self.UI字典[self.模型.字段.字段名].核心组件
-                模板选择组件.当完成选择.append(lambda 自己,值:字段选择组件.检查模板编号合法性(值))
+                super().__init__(上级, colItems, colWidget)
+                模板选择组件: "自定义组件.视图结点属性.模板选择" = self.UI字典[self.模型.模板.字段名].核心组件
+                字段选择组件: "自定义组件.视图结点属性.字段选择" = self.UI字典[self.模型.字段.字段名].核心组件
+                模板选择组件.当完成选择.append(lambda 自己, 值: 字段选择组件.检查模板编号合法性(值))
 
     class GviewConfigApplyTable(baseClass.ConfigTableView):
         """
@@ -1365,7 +1378,7 @@ class ConfigWidget:
                 self.containerWidget = QWidget()
                 self.containerWidget.setLayout(self.layoutTree)
                 self.colWidgets = [self.containerWidget]
-                super().__init__(superior, colItems,self.colWidgets)
+                super().__init__(superior, colItems, self.colWidgets)
 
                 self.SetupWidget()
                 self.SetupEvent()
@@ -1712,6 +1725,8 @@ class ConfigWidget:
                     elif [i for i in literal if type(i) != str]:
                         self.设置说明栏("type error:every element of the list must be string")
                         return False
+                    elif len(literal)!= len(set(literal)):
+                        self.设置说明栏("value error:every element must be unique")
                     else:
                         self.设置说明栏("ok")
                         return True
@@ -1912,50 +1927,6 @@ class 自定义组件:
             @abc.abstractmethod
             def setValue(self, value):
                 raise NotImplementedError()
-
-        class 角色多选(基类_项组件基础):
-            """卡片角色多选"""
-            def setValue(self, value):
-                self.ui组件.setCurrentIndex(value)
-                pass
-
-            def __init__(self, 上级):
-                super().__init__(上级)
-                """根据配置中的安排加载对应的多选框"""
-                self.ui组件 = QComboBox()
-                self.待选角色表 = []
-                self.布局 = QHBoxLayout()
-                self.初始化UI()
-                self.UI赋值()
-                self.初始化事件()
-
-                pass
-
-            def 初始化UI(self):
-                self.布局.addWidget(self.ui组件)
-                self.setLayout(self.布局)
-                self.ui组件.setContentsMargins(0, 0, 0, 0)
-                self.布局.setContentsMargins(0, 0, 0, 0)
-                self.setContentsMargins(0, 0, 0, 0)
-                pass
-
-            def UI赋值(self):
-                from . import funcs, models
-                视图配置id = self.上级.数据源.上级.数据源.模型.上级.config
-                if 视图配置id:
-                    字面量 = funcs.GviewConfigOperation.从数据库读(视图配置id).data.node_role_list.value
-                    self.待选角色表 = literal_eval(字面量)
-                self.ui组件.clear()
-                [self.ui组件.addItem(self.待选角色表[i], i) for i in range(len(self.待选角色表))]
-                self.ui组件.addItem(QIcon(funcs.G.src.ImgDir.close), 译.无角色, -1)
-                self.ui组件.setCurrentIndex(self.ui组件.findData(self.上级.数据源.值, role=Qt.UserRole))
-                pass
-
-            def 初始化事件(self):
-                item_set_value = lambda value: self.上级.数据源.设值(value)
-                self.ui组件.currentIndexChanged.connect(lambda x: item_set_value(self.ui组件.currentData()))
-                pass
-
         class 基本选择类(基类_项组件基础):
             def __init__(self, 上级):
                 super().__init__(上级)
@@ -1964,17 +1935,18 @@ class 自定义组件:
                 self.修改按钮 = funcs.组件定制.按钮_修改()
                 self.修改按钮.clicked.connect(self.on_edit_button_clicked)
                 self.当完成选择 = hookers.当全局配置_描述提取规则_模板选择器完成选择()
-                funcs.组件定制.组件组合({框:QHBoxLayout(),子:[
-                        {件:self.ui组件,占:1},{件:self.修改按钮,占:0}]},
+                funcs.组件定制.组件组合({框: QHBoxLayout(), 子: [
+                        {件: self.ui组件, 占: 1}, {件: self.修改按钮, 占: 0}]},
                                 self)
                 self.ui组件.setText(self.get_name(self.上级.数据源.值))
+                self.不选信息 = 译.不选等于全选
 
             def on_edit_button_clicked(self):
                 w = self.chooser()
                 w.exec()
                 if (type(w.结果) in [int, float] and w.结果 < 0) or \
                         (type(w.结果) == list and len(w.结果) == 0):
-                    showInfo(译.不选等于全选)
+                    showInfo(self.不选信息)
 
                 self.setValue(w.结果)
 
@@ -1987,6 +1959,32 @@ class 自定义组件:
             def chooser(self): raise NotImplementedError()  # """打开某一种选择器"""
 
             def get_name(self, value): raise NotImplementedError()
+
+        class 角色多选(基本选择类):
+            """卡片角色多选"""
+            def __init__(self,上级):
+                super().__init__(上级)
+                self.属性项: "safe.models.类型_视图结点属性项" = self.上级.数据源
+                self.配置模型 = self.属性项.上级.数据源.模型.上级.config_model
+                self.角色表 = eval(self.配置模型.data.node_role_list.value)
+                self.值修正()
+                self.不选信息 = 译.不选角色等于不选
+
+            def 值修正(self):
+                角色选中表:'list[str]' = self.属性项.值
+                新表 = [角色 for 角色 in 角色选中表 if 角色 not in range(len(self.角色表))]
+                self.属性项.设值(新表)
+
+            def chooser(self):
+                """需要获取到config,所以需要获取到view uuid"""
+                return role_chooser_for_node(self.属性项.值,self.角色表)
+                pass
+
+            def get_name(self, value):
+                return funcs2.逻辑.缺省值(value, lambda x: [self.角色表[idx] for idx in x if idx in range(len(self.角色表))],
+                                     f"<img src='{funcs.G.src.ImgDir.cancel}' width=10 height=10> no role").__str__()
+
+
 
         class 牌组选择(基本选择类):
 
@@ -2014,8 +2012,8 @@ class 自定义组件:
                 super().__init__(上级)
                 self.检查模板编号合法性(模板编号)
 
-            def 检查模板编号合法性(self,value):
-                self.模板编号=value
+            def 检查模板编号合法性(self, value):
+                self.模板编号 = value
                 if self.模板编号 < 0:
                     self.修改按钮.setEnabled(False)
                 else:
@@ -2039,6 +2037,7 @@ class 自定义组件:
                 #     return "ALL TAGS"
                 # return value.__str__()
                 # pass
+
 
 
 if __name__ == "__main__":

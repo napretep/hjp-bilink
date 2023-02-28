@@ -1248,8 +1248,8 @@ class Record(QObject):
             应用该配置的视图表:"list[str]" = self.data.appliedGview.value
             新值 = 应用该配置的视图表.copy()
             for 视图标识 in 应用该配置的视图表:
-                视图模型 = funcs.GviewOperation.load(视图标识)
-                if 视图模型.config!=self.uuid:
+                视图配置编号 = funcs.GviewOperation.获取视图配置编号(视图标识)
+                if 视图配置编号!=self.uuid:
                     新值.remove(视图标识)
             self.data.appliedGview.setValue(新值)
 
