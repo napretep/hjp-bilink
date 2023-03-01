@@ -753,6 +753,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     In the left list, after you select one or more items, click the delete button at the bottom of the left list to remove the selected items from the left window. 
     When you click close button, it will automatically save your selected items.
     """)
-
+    已修改 = 翻译("已修改","edited")
+    结点批量编辑 = 翻译("结点批量编辑","nodes batch editing")
 if __name__ == "__main__":
     print(Translate.打开配置表)

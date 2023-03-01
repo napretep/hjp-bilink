@@ -585,12 +585,12 @@ class multi_select_prototype(QDialog):
         self.setWindowTitle("item chooser")
         self.setWindowIcon(QIcon(G.src.ImgDir.tag))
         组件布局 = {框: QHBoxLayout(),
-                子:  [{框: QVBoxLayout(),
-                          子: [{件: self.view_left}, {件: self.left_button_group}]}
-                             ,
-                         {框: QVBoxLayout(),
-                          子: [{件: self.view_right}, {件: self.right_button_group}]},],
-                    }
+                子: [{框: QVBoxLayout(),
+                     子: [{件: self.view_left}, {件: self.left_button_group}]}
+                        ,
+                    {框: QVBoxLayout(),
+                     子: [{件: self.view_right}, {件: self.right_button_group}]}, ],
+                }
 
         funcs.组件定制.组件组合(组件布局, self)
         pass
@@ -665,7 +665,7 @@ class multi_select_prototype(QDialog):
         view.setDragDropMode(DragDropMode.NoDragDrop)
         pass
 
-    def init_data_left(self ,init=True):
+    def init_data_left(self, init=True):
         model, button_group, view = self.model_left, self.left_button_group, self.view_left
         model.clear()
         self.model_right_rootNode = model.invisibleRootItem()
@@ -702,10 +702,10 @@ class multi_select_prototype(QDialog):
             self.fromModel = fromModel
             self.L_or_R = L_or_R
             if self.L_or_R == self.R:
-                self.left_button = funcs.组件定制.按钮_提示(触发函数=lambda:funcs.Utils.大文本提示框(译.说明_多选框的用法))
-                self.middle_button= QPushButton(QIcon(G.src.ImgDir.correct), "")
+                self.left_button = funcs.组件定制.按钮_提示(触发函数=lambda: funcs.Utils.大文本提示框(译.说明_多选框的用法))
+                self.middle_button = QPushButton(QIcon(G.src.ImgDir.correct), "")
             else:
-                self.left_button= QPushButton(QIcon(G.src.ImgDir.item_plus), "")
+                self.left_button = QPushButton(QIcon(G.src.ImgDir.item_plus), "")
                 self.middle_button = QPushButton(QIcon(G.src.ImgDir.cancel), "")
             self.arrange_button = QPushButton(self)  # 大家都有一个排版系统
             self.arrange_button.setText(self.as_tree)
@@ -731,8 +731,7 @@ class multi_select_prototype(QDialog):
                 self.arrange_button.setIcon(QIcon(G.src.ImgDir.list))
 
         def init_UI(self):
-            funcs.组件定制.组件组合({框:QHBoxLayout(), 子:[{件:self.left_button}, {件:self.middle_button}, {件:self.arrange_button}]}, self)
-
+            funcs.组件定制.组件组合({框: QHBoxLayout(), 子: [{件: self.left_button}, {件: self.middle_button}, {件: self.arrange_button}]}, self)
 
         def init_event(self):
             if self.L_or_R == self.L:
@@ -809,7 +808,7 @@ class multi_select_prototype(QDialog):
 
         def dropEvent(self, event: QtGui.QDropEvent) -> None:
             item_from: "list[multi_select_prototype.Item]" = [self.model().itemFromIndex(index) for index in
-                                                             self.selectedIndexes()]
+                                                              self.selectedIndexes()]
             item_to: "multi_select_prototype.Item" = self.model().itemFromIndex(self.indexAt(event.pos()))
             parent_from: "list[multi_select_prototype.Item]" = [item.parent() for item in item_from]
             parent_to: "multi_select_prototype.Item" = item_to.parent() if item_to is not None else self.model().invisibleRootItem()
@@ -863,7 +862,6 @@ class universal_tag_chooser(multi_select_prototype):
         super().__init__(preset)
 
 
-
 class tag_chooser_for_cards(universal_tag_chooser):
     def __init__(self, pair_li: "Optional[list[G.objs.LinkDataPair]]" = None):
         super().__init__()
@@ -881,8 +879,6 @@ class tag_chooser_for_cards(universal_tag_chooser):
             note.flush()
         from . import funcs
         funcs.LinkPoolOperation.both_refresh()
-
-
 
     def add_tag(self, tag_name: str):
         from . import funcs
@@ -916,14 +912,15 @@ class role_chooser_for_node(multi_select_prototype):
     def get_all_items(self) -> 'set[str]':
         return set(self.角色表)
 
-    def __init__(self,preset,角色表:"list[str]"):
+    def __init__(self, preset, 角色表: "list[str]"):
         self.角色表 = 角色表
-        super().__init__([角色表[pos] for pos in preset if pos in range(len(角色表))],)
+        super().__init__([角色表[pos] for pos in preset if pos in range(len(角色表))], )
         self.left_button_group.left_button.hide()
         self.left_button_group.arrange_button.hide()
         self.right_button_group.arrange_button.hide()
         self.init_data_right()
         self.init_data_left()
+
 
 class Dialog_PDFUrlTool(QDialog):
 
@@ -1725,7 +1722,7 @@ class ConfigWidget:
                     elif [i for i in literal if type(i) != str]:
                         self.设置说明栏("type error:every element of the list must be string")
                         return False
-                    elif len(literal)!= len(set(literal)):
+                    elif len(literal) != len(set(literal)):
                         self.设置说明栏("value error:every element must be unique")
                     else:
                         self.设置说明栏("ok")
@@ -1917,127 +1914,129 @@ class ReviewButtonForCardPreviewer:
 
 
 class 自定义组件:
-    class 视图结点属性:
-        class 基类_项组件基础(QWidget):
-            def __init__(self, 上级):
-                super().__init__()
-                from . import models
-                self.上级: models.函数库_UI生成.组件 = 上级
+    class 基类_项组件基础(QWidget):
+        def __init__(self, 上级):
+            super().__init__()
+            from . import models
+            self.上级: models.函数库_UI生成.组件 = 上级
+            self.当完成赋值 = hookers.当模型的属性项组件_完成赋值()
 
-            @abc.abstractmethod
-            def setValue(self, value):
-                raise NotImplementedError()
-        class 基本选择类(基类_项组件基础):
-            def __init__(self, 上级):
-                super().__init__(上级)
+        @abc.abstractmethod
+        def setValue(self, value):
+            raise NotImplementedError()
 
-                self.ui组件 = funcs.组件定制.文本框(开启自动换行=True)
-                self.修改按钮 = funcs.组件定制.按钮_修改()
-                self.修改按钮.clicked.connect(self.on_edit_button_clicked)
-                self.当完成选择 = hookers.当全局配置_描述提取规则_模板选择器完成选择()
-                funcs.组件定制.组件组合({框: QHBoxLayout(), 子: [
-                        {件: self.ui组件, 占: 1}, {件: self.修改按钮, 占: 0}]},
-                                self)
-                self.ui组件.setText(self.get_name(self.上级.数据源.值))
-                self.不选信息 = 译.不选等于全选
+    class 基本选择类(基类_项组件基础):
+        def __init__(self, 上级):
+            super().__init__(上级)
 
-            def on_edit_button_clicked(self):
-                w = self.chooser()
-                w.exec()
-                if (type(w.结果) in [int, float] and w.结果 < 0) or \
-                        (type(w.结果) == list and len(w.结果) == 0):
-                    showInfo(self.不选信息)
+            self.ui组件 = funcs.组件定制.文本框(开启自动换行=True)
+            self.修改按钮 = funcs.组件定制.按钮_修改()
+            self.修改按钮.clicked.connect(self.on_edit_button_clicked)
 
-                self.setValue(w.结果)
+            funcs.组件定制.组件组合({框: QHBoxLayout(), 子: [
+                    {件: self.ui组件, 占: 1}, {件: self.修改按钮, 占: 0}]},
+                            self)
+            self.ui组件.setText(self.get_name(self.上级.数据源.值))
+            self.不选信息 = 译.不选等于全选
 
-            def setValue(self, value):
-                self.ui组件.setText(self.get_name(value))
-                self.上级.数据源.设值(value)
-                self.当完成选择(self, value)
-                pass
+        def on_edit_button_clicked(self):
+            w = self.chooser()
+            w.exec()
+            if (type(w.结果) in [int, float] and w.结果 < 0) or \
+                    (type(w.结果) == list and len(w.结果) == 0):
+                showInfo(self.不选信息)
 
-            def chooser(self): raise NotImplementedError()  # """打开某一种选择器"""
+            self.setValue(w.结果)
 
-            def get_name(self, value): raise NotImplementedError()
+        def setValue(self, value):
+            self.ui组件.setText(self.get_name(value))
+            self.上级.数据源.设值(value.copy())
+            self.当完成赋值(self, value.copy())
+            funcs.Utils.print(self,value)
+            pass
 
-        class 角色多选(基本选择类):
-            """卡片角色多选"""
-            def __init__(self,上级):
-                super().__init__(上级)
-                self.属性项: "safe.models.类型_视图结点属性项" = self.上级.数据源
-                self.配置模型 = self.属性项.上级.数据源.模型.上级.config_model
-                self.角色表 = eval(self.配置模型.data.node_role_list.value)
-                self.值修正()
-                self.不选信息 = 译.不选角色等于不选
+        def chooser(self): raise NotImplementedError()  # """打开某一种选择器"""
 
-            def 值修正(self):
-                角色选中表:'list[str]' = self.属性项.值
-                新表 = [角色 for 角色 in 角色选中表 if 角色 not in range(len(self.角色表))]
-                self.属性项.设值(新表)
+        def get_name(self, value): raise NotImplementedError()
 
-            def chooser(self):
-                """需要获取到config,所以需要获取到view uuid"""
-                return role_chooser_for_node(self.属性项.值,self.角色表)
-                pass
+    class 角色多选(基本选择类):
+        """卡片角色多选"""
 
-            def get_name(self, value):
-                return funcs2.逻辑.缺省值(value, lambda x: [self.角色表[idx] for idx in x if idx in range(len(self.角色表))],
-                                     f"<img src='{funcs.G.src.ImgDir.cancel}' width=10 height=10> no role").__str__()
+        def __init__(self, 上级):
+            super().__init__(上级)
+            self.属性项: "safe.models.类型_视图结点属性项" = self.上级.数据源
+            self.配置模型 = self.属性项.上级.数据源.模型.上级.config_model
+            self.角色表 = eval(self.配置模型.data.node_role_list.value)
+            self.值修正()
+            self.不选信息 = 译.不选角色等于不选
+            self.ui组件.setText(self.get_name(self.上级.数据源.值))
 
 
+        def 值修正(self):
+            角色选中表: 'list[str]' = self.属性项.值
+            新表 = [角色 for 角色 in 角色选中表 if 角色 in range(len(self.角色表))]
+            self.属性项.设值(新表)
 
-        class 牌组选择(基本选择类):
+        def chooser(self):
+            """需要获取到config,所以需要获取到view uuid"""
+            return role_chooser_for_node(self.属性项.值, self.角色表)
+            pass
 
-            def chooser(self): return universal_deck_chooser()
+        def get_name(self, value):
+            return funcs2.逻辑.缺省值(value, lambda x: [self.角色表[idx] for idx in x if idx in range(len(self.角色表))],
+                                 f"<img src='{funcs.G.src.ImgDir.cancel}' width=10 height=10> no role").__str__()
 
-            def get_name(self, value): return mw.col.decks.name_if_exists(value) if value > 0 else "ALL DECKS"
+    class 牌组选择(基本选择类):
 
-            # def __init__(self, 上级):
-            #     super().__init__(上级)
-            #     self.ui组件.setText(self.get_name(self.上级.数据源.值))
+        def chooser(self): return universal_deck_chooser()
 
-        class 模板选择(基本选择类):
+        def get_name(self, value): return mw.col.decks.name_if_exists(value) if value > 0 else "ALL DECKS"
 
-            def get_name(self, value): return mw.col.models.get(value)["name"] if value > 0 else "ALL TEMPLATES"
+        # def __init__(self, 上级):
+        #     super().__init__(上级)
+        #     self.ui组件.setText(self.get_name(self.上级.数据源.值))
 
-            def chooser(self): return universal_template_chooser()
+    class 模板选择(基本选择类):
 
-            # def __init__(self, 上级):
-            #     super().__init__(上级)
-            #     self.ui组件.setText(self.get_name(self.上级.数据源.值))
+        def get_name(self, value): return mw.col.models.get(value)["name"] if value > 0 else "ALL TEMPLATES"
 
-        class 字段选择(基本选择类):
-            def __init__(self, 上级, 模板编号):
-                self.模板编号 = -1
-                super().__init__(上级)
-                self.检查模板编号合法性(模板编号)
+        def chooser(self): return universal_template_chooser()
 
-            def 检查模板编号合法性(self, value):
-                self.模板编号 = value
-                if self.模板编号 < 0:
-                    self.修改按钮.setEnabled(False)
-                else:
-                    self.修改按钮.setEnabled(True)
-                self.ui组件.setText(self.get_name(self.上级.数据源.值))
+        # def __init__(self, 上级):
+        #     super().__init__(上级)
+        #     self.ui组件.setText(self.get_name(self.上级.数据源.值))
 
-            def chooser(self):
-                return universal_field_chooser(self.模板编号)
+    class 字段选择(基本选择类):
+        def __init__(self, 上级, 模板编号):
+            self.模板编号 = -1
+            super().__init__(上级)
+            self.检查模板编号合法性(模板编号)
 
-            def get_name(self, value):
-                return funcs.卡片字段操作.获取字段名(self.模板编号, value, "ALL FIELDS")
+        def 检查模板编号合法性(self, value):
+            self.模板编号 = value
+            if self.模板编号 < 0:
+                self.修改按钮.setEnabled(False)
+            else:
+                self.修改按钮.setEnabled(True)
+            self.ui组件.setText(self.get_name(self.上级.数据源.值))
 
-        class 标签选择(基本选择类):
-            def chooser(self):
-                return universal_tag_chooser(self.上级.数据源.值)
-                pass
+        def chooser(self):
+            return universal_field_chooser(self.模板编号)
 
-            def get_name(self, value):
-                return funcs2.逻辑.缺省值(value, lambda x: x, "ALL TAGS").__str__()
-                # if len(value)==0:
-                #     return "ALL TAGS"
-                # return value.__str__()
-                # pass
+        def get_name(self, value):
+            return funcs.卡片字段操作.获取字段名(self.模板编号, value, "ALL FIELDS")
 
+    class 标签选择(基本选择类):
+        def chooser(self):
+            return universal_tag_chooser(self.上级.数据源.值)
+            pass
+
+        def get_name(self, value):
+            return funcs2.逻辑.缺省值(value, lambda x: x, "ALL TAGS").__str__()
+            # if len(value)==0:
+            #     return "ALL TAGS"
+            # return value.__str__()
+            # pass
 
 
 if __name__ == "__main__":

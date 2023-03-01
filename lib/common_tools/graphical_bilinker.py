@@ -94,8 +94,8 @@ class VisualBilinker(QMainWindow):
         if not submitted:
             return
         nodes, edges = self.data.node_edge_packup()
-        uuid = funcs.GviewOperation.create(nodes, edges, name)
-        funcs.Dialogs.open_view(gviewdata=funcs.GviewOperation.load(uuid))
+        funcs.GviewOperation.create(nodes, edges, name)
+        # funcs.Dialogs.open_view(gviewdata=funcs.GviewOperation.load(uuid))
 
     # node
     def create_node(self, pair: "LinkDataPair|str"):
@@ -1001,7 +1001,7 @@ class VisualBilinker(QMainWindow):
             pass
 
         def create_view(self):
-            视图索引 = funcs.GviewOperation.create()
+            funcs.GviewOperation.create()
             # self.superior.load_node([视图索引], 参数_视图结点类型=枚举_视图结点类型.视图)
             pass
 

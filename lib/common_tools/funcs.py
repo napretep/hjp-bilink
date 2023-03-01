@@ -497,7 +497,7 @@ class GviewOperation:
         return (viewName, submitted)
 
     @staticmethod
-    def create(nodes=None, edges=None, name=""):
+    def create(nodes=None, edges=None, name="",need_save=True,need_open=True):
         if name == "":
             name, submitted = GviewOperation.get_correct_view_name_input()
         else:
@@ -507,13 +507,15 @@ class GviewOperation:
         uuid = UUID.by_random()
         data = GViewData(uuid=uuid, name=name, nodes=nodes if nodes else {}, edges=edges if edges else {})
         # 去检查一下scene变大时,item的scene坐标是否会改变
-        GviewOperation.save(data)
-        Dialogs.open_view(gviewdata=data)
+        if need_save:
+            GviewOperation.save(data)
+        if need_open:
+            Dialogs.open_view(gviewdata=data)
         if G.GViewAdmin_window:
             from ..bilink.dialogs.linkdata_grapher import GViewAdmin
             win: GViewAdmin = G.GViewAdmin_window
             win.init_data()
-        return uuid
+        return data
 
     @staticmethod
     def create_from_pair(cid_li: 'list[str|LinkDataPair]', name=""):
@@ -881,7 +883,7 @@ class 组件定制:
         return 组件
 
     @staticmethod
-    def 对话窗口(标题=None, 图标=None, 最大宽度=None, closeEvent=None):
+    def 对话窗口(标题=None, 图标=None, 最大宽度=None, closeEvent=None,尺寸=None,宽度=None):
         组件 = QDialog()
         if 标题:
             组件.setWindowTitle(标题)
@@ -891,10 +893,14 @@ class 组件定制:
             组件.setMaximumWidth(最大宽度)
         if closeEvent:
             组件.closeEvent = closeEvent
+        if 尺寸:
+            组件.resize(*尺寸)
+        # 组件.adjustSize()
+
         return 组件
 
     @staticmethod
-    def 文本框(文本="", 开启自动换行=None):
+    def 文本框(文本="", 开启自动换行=True):
         组件 = QLabel(文本)
         组件.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
         if 开启自动换行:

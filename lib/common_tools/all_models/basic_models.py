@@ -39,8 +39,8 @@ class 函数库_UI生成:
             self.提示按钮 = 函数库_UI生成.提示按钮(项.说明)
             self.数据源: "基类_属性项" = 项
             self.核心组件:"Optional[QWidget]"=None
+            self.当完成赋值 = hookers.当模型的属性项组件_完成赋值()
             self.setLayout(函数库_UI生成.做成行(*self.组件生成()))
-            # self.当UI到属性项完成赋值 = hookers.当模型的属性项组件_完成赋值()
 
         def 组件生成(self):
             左,右 = QWidget(),self.提示按钮
@@ -56,20 +56,21 @@ class 函数库_UI生成:
                 def item_set_value(value):
                     self.数据源.设值(value)
                     数值显示.setText(self.数据源.组件显示值)
-
+                    self.当完成赋值(组件,value)
                 拖动条.valueChanged.connect(item_set_value)
                 self.给UI赋值 = lambda value: 拖动条.setValue(value)
             elif self.数据源.组件类型 == 枚举.组件类型.label:
-                组件 = QLabel(self.数据源.组件显示值)
+                组件 = funcs.组件定制.文本框(self.数据源.组件显示值,True)
                 self.核心组件=组件
-                组件.setWordWrap(True)
                 self.给UI赋值 = lambda value: 组件.setText(value.__str__())
                 pass
             elif self.数据源.组件类型 == 枚举.组件类型.checkbox:
                 组件 = QCheckBox()
                 self.核心组件 = 组件
                 组件.setChecked(self.数据源.值)
-                item_set_value = lambda value: self.数据源.设值(value)
+                def item_set_value(value):
+                    self.数据源.设值(value)
+                    self.当完成赋值(组件,value)
                 组件.clicked.connect(lambda: item_set_value(组件.isChecked()))
                 self.给UI赋值 = lambda value: 组件.setChecked(value)
                 pass
@@ -86,14 +87,18 @@ class 函数库_UI生成:
                         return QTimer.singleShot(100, when_need_update)
                     else:
                         self.数据源.设值(组件.toPlainText())
+                        self.当完成赋值(组件,组件.toPlainText())
 
                 组件.textChanged.connect(when_need_update)
                 self.给UI赋值 = lambda value: 组件.setText(value)
                 pass
             elif self.数据源.组件类型 == 枚举.组件类型.customize:
                 组件 = self.数据源.自定义组件(self)
+                # 组件.当完成赋值+=self.当完成赋值
+                组件.当完成赋值.append(lambda x,y:self.当完成赋值(x,y))
                 self.核心组件 = 组件
                 self.给UI赋值 = lambda value: 组件.setValue(value)
+
                 pass
             elif self.数据源.组件类型 == 枚举.组件类型.time:
                 if isinstance(self.数据源.值, datetime.datetime):
@@ -106,6 +111,7 @@ class 函数库_UI生成:
                 def setValue(value):
                     self.数据源.设值(value)
                     组件.setText(funcs.Utils.时间戳转日期(value).__str__())
+                    self.当完成赋值(组件,value)
 
                 self.给UI赋值 = lambda value: setValue(value)
                 self.核心组件 = 组件
@@ -130,6 +136,7 @@ class 函数库_UI生成:
                 def setValue(value):
                     组件.setText(value)
                     self.数据源.设值(value)
+                    self.当完成赋值(组件,value)
 
                 self.核心组件 = 组件
                 按钮2.clicked.connect(on_edit)
@@ -138,8 +145,11 @@ class 函数库_UI生成:
                 组件 = QSpinBox()
                 self.核心组件 = 组件
                 组件.setValue(self.数据源.值)
-                组件.valueChanged.connect(lambda x:self.数据源.设值(int(组件.value())))
-                self.给UI赋值 = lambda value: 组件.setValue(value)
+                def setValue(value):
+                    self.数据源.设值(value)
+                    self.当完成赋值(组件,value)
+                组件.valueChanged.connect(lambda x:setValue(int(组件.value())))
+                self.给UI赋值 = lambda value: setValue(value)
             else:
                 raise NotImplementedError()
             左 = 组件
@@ -296,17 +306,19 @@ class 基类_模型:
                 项.上级 = self
 
     def __str__(self):
-        return self.属性字典.__str__()
+        字典 = {}
+        [字典.__setitem__(属性名,属性.值) for 属性名,属性 in self.属性字典.items()]
+
+        return 字典.__str__()
 
     def __repr__(self):
-        return self.属性字典.__str__()
+        return self.__str__()
 
 
 @dataclass
 class 基类_属性项:
     """
     """
-
     字段名: "str"
     展示名: "str"
     从上级读数据: "int"
@@ -324,12 +336,13 @@ class 基类_属性项:
     _保存值的函数: "Optional[Callable[[基类_属性项, Any], None]]" = None
     _保存后执行: "Optional[Callable[[基类_属性项],Any]]" = None
     校验函数: "Optional[Callable[[基类_属性项,Any],bool]]" = None
-    自定义组件: "Optional[Callable[[函数库_UI生成.组件],QWidget]]" = None
+    自定义组件: "Optional[Callable[[函数库_UI生成.组件],safe.widgets.自定义组件.基类_项组件基础]]" = None
     上级:"Optional[基类_模型]" = None
     默认值: "Any|list|str|int|float" = None
     值类型: "str" = None
     值解释: "str" = None
     属性项排序位置:"int" = 0 #用于对属性项顺序有要求的环境.
+    可批量编辑:"int" = 0
 
     @property
     def 值(self):

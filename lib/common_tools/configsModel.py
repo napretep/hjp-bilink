@@ -201,7 +201,7 @@ class GViewData:
         if self.config:
             return eval(self.config_model.data.node_role_list.value)
         else:
-            return  []
+            return []
 
     def 更新结点角色位置表(self,node_id):
         结点属性 = baseClass.枚举命名.结点

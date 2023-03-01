@@ -49,7 +49,8 @@ class 类型_视图结点属性项(基类_属性项):
                 模型.上级.数据更新.结点编辑发生(编号)
             if self._保存后执行:
                 self.保存后执行(self)
-            funcs.GviewOperation.save(模型.上级)
+            if 模型.上级:
+                funcs.GviewOperation.save(模型.上级)
 
     def __eq__(self, other):
         return self.值 == other
@@ -64,9 +65,6 @@ class 类型_视图结点模型(基类_模型):
         将可展示与可展示中编辑项以UI形式呈现 -> 创建结点信息UI()
         将用户可访的变量提供给对应的接口. -> 可访变量, 可访字面量
     """
-
-    def 初始化(self, *args):
-        pass
 
     # def __init__(self,视图数据:"funcs.GViewData",视图结点编号:"str"):
     #     self.数据源 = self.数据源类(视图数据,视图结点编号)
@@ -290,8 +288,9 @@ class 类型_视图结点模型(基类_模型):
             限制=[-100, 100],
             默认值=0,
             值类型=枚举.值类型.数值,
-            值解释="-100 or 100"
-            # 自定义组件=lambda 项:widgets.自定义组件.视图结点属性.优先级(项),
+            值解释="-100 or 100",
+            # 自定义组件=lambda 项:widgets.自定义组件.优先级(项),
+            可批量编辑=1
     ))
 
     描述: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
@@ -329,10 +328,11 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.customize,  # 展示用的组件
-            自定义组件=lambda 组件生成器: widgets.自定义组件.视图结点属性.角色多选(组件生成器),
+            自定义组件=lambda 组件生成器: widgets.自定义组件.角色多选(组件生成器),
             默认值=[],
             值类型=枚举.值类型.列表,
-            值解释=" 0 or 5 if no role then -1 "
+            值解释=" 0 or 5 if no role then -1 ",
+            可批量编辑=1,
     ))
 
     角色名: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
@@ -367,6 +367,7 @@ class 类型_视图结点模型(基类_模型):
             组件类型=枚举.组件类型.checkbox,  # 展示用的组件
             值类型=枚举.值类型.布尔,
             值解释="True or False",
+            可批量编辑=1,
             # 组件传值方式=None,
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
@@ -383,6 +384,7 @@ class 类型_视图结点模型(基类_模型):
             可展示=1,  # 需要对应的展示组件, 这里的展示是指展示在卡片详情中
             可展示中编辑=1,  # 需要对应的可展示中编辑组件, 与可展示联合判断
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
+            可批量编辑=1,
             # 读取函数=None,
             组件类型=枚举.组件类型.checkbox,  # 展示用的组件
             # 组件传值方式=None,
@@ -414,6 +416,7 @@ class 类型_视图结点模型(基类_模型):
             默认值=False,
             值类型=枚举.值类型.布尔,
             值解释="True or False",
+            可批量编辑=1,
     ))
 
     漫游起点: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
@@ -435,6 +438,7 @@ class 类型_视图结点模型(基类_模型):
             默认值=False,
             值类型=枚举.值类型.布尔,
             值解释="True or False",
+            可批量编辑=1,
     ))
 
     # 样板:类型_视图结点属性项 = field(default_factory=lambda :类型_视图结点属性项(
@@ -462,9 +466,9 @@ class 类型_视图结点集模型(基类_集模型):
 
     """
 
-    def __init__(self, 上级: "类型_视图数据", data: "dict"):
-        self.data: "dict" = data
-        self.上级: 类型_视图数据 = 上级
+    def __init__(self, 上级: "Optional[类型_视图数据]", data: "dict"):
+        self.上级: Optional[类型_视图数据] = 上级
+        self.data: "dict" = data # nodes字典
 
     def __getitem__(self, node_id):
         return 类型_视图结点模型(数据源=类型_视图结点数据源(self, node_id))

@@ -98,12 +98,17 @@ class Grapher(QMainWindow):
     def 自身属性查看器(self):
         self.data.gviewdata.meta_helper.创建UI(funcs.组件定制.对话窗口(标题="info of view",最大宽度=600)).exec()
 
+    def 批量结点属性编辑器(self,结点列表:"list[str]"):
+        models.类型_集模型_批量视图结点(结点列表,self.data.gviewdata,self.data.gviewdata.nodes.data).创建UI().exec()
 
-    def 结点属性查看器(self, item: "Grapher.ItemRect|Grapher.ItemEdge"):
-        if isinstance(item, Grapher.ItemRect):
-            self.data.gviewdata.nodes[item.索引].创建UI(funcs.组件定制.对话窗口(标题="info of node")).exec()
-        if isinstance(item, Grapher.ItemEdge):
-            self.边属性查看器(item)
+    def 结点属性查看器(self,node_items:"list[Grapher.ItemRect]", edge_items: "list[Grapher.ItemEdge]"):
+        if node_items:
+            if len(node_items)==1:
+                self.data.gviewdata.nodes[node_items[0].索引].创建UI(funcs.组件定制.对话窗口(标题="info of node")).exec()
+            else:
+                self.批量结点属性编辑器([item.索引 for item in node_items])
+        elif edge_items:
+            self.边属性查看器(edge_items[0])
         self.data.node_edge_packup()
         pass
 
@@ -296,6 +301,11 @@ class Grapher(QMainWindow):
 
     def selected_nodes(self):
         item_li: "list[Grapher.ItemRect]" = [item for item in self.scene.selectedItems() if isinstance(item, Grapher.ItemRect)]
+
+        return item_li
+
+    def selected_edges(self):
+        item_li: "list[Grapher.ItemEdge]" = [item for item in self.scene.selectedItems() if isinstance(item, Grapher.ItemEdge)]
 
         return item_li
 
@@ -1198,7 +1208,7 @@ class Grapher(QMainWindow):
             pass
 
         def create_view(self):
-            视图索引 = common_tools.funcs.GviewOperation.create()
+            视图索引 = common_tools.funcs.GviewOperation.create().uuid
             if 视图索引:
                 self.superior.load_node([视图索引], 参数_视图结点类型=枚举_视图结点类型.视图)
             pass
@@ -1240,8 +1250,9 @@ class Grapher(QMainWindow):
 
         def node_property_editor(self):
             if len(self.superior.scene.selectedItems()) > 0:
-                item: "Grapher.ItemRect|Grapher.ItemEdge" = self.superior.scene.selectedItems()[0]
-                self.superior.结点属性查看器(item)
+                node_items = self.superior.selected_nodes()
+                edge_items = self.superior.selected_edges()
+                self.superior.结点属性查看器(node_items,edge_items)
             else:
                 self.superior.自身属性查看器()
             # def 结点编辑组件():
@@ -1485,7 +1496,7 @@ class GViewAdmin(QDialog):
         pass
 
     def 当_创建视图并插入(self, 待插视图数据表: "list[GViewData]"):
-        视图编号 = funcs.GviewOperation.create()
+        视图编号 = funcs.GviewOperation.create().uuid
         视图对象: Grapher = funcs.G.mw_gview[视图编号]
         视图对象.load_node(待插视图数据表, 参数_视图结点类型=枚举_视图结点类型.视图)
         pass
