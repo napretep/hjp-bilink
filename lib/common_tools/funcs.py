@@ -103,8 +103,6 @@ class Filter:
         return list(filter(func, li))
 
 
-
-
 class MenuMaker:
 
     @staticmethod
@@ -127,8 +125,8 @@ class MenuMaker:
 class GviewOperation:
 
     @staticmethod
-    def 获取视图配置编号(data:"str|GViewData")->"str":
-        uuid = data if type(data)==str else data.uuid
+    def 获取视图配置编号(data: "str|GViewData") -> "str":
+        uuid = data if type(data) == str else data.uuid
         DB = G.DB
         DB.go(DB.table_Gview)
         return DB.select(DB.EQ(uuid=uuid)).return_all().zip_up()[0]["config"]
@@ -136,9 +134,8 @@ class GviewOperation:
     @staticmethod
     def 设为默认视图(uuid):
         cfg = Config.get()
-        cfg.set_default_view.value=uuid
+        cfg.set_default_view.value = uuid
         cfg.save_to_file(G.src.path.userconfig)
-
 
     @staticmethod
     def 打开默认视图():
@@ -196,10 +193,10 @@ class GviewOperation:
         类型 = 视图数据.nodes[结点编号].数据类型.值
 
         if 类型 == 枚举_视图结点类型.卡片:
-            _,nextRev = CardOperation.getLastNextRev(结点编号)
+            _, nextRev = CardOperation.getLastNextRev(结点编号)
             # Utils.print("card_id=",结点编号,"nextRev=",nextRev,)
             # Utils.print(nextRev.timetuple())
-            return int(time.mktime(nextRev.timetuple()))<=现在
+            return int(time.mktime(nextRev.timetuple())) <= 现在
         elif 类型 == 枚举_视图结点类型.视图:
             return True
         else:
@@ -409,7 +406,7 @@ class GviewOperation:
         return records
 
     @staticmethod
-    def load_all_as_dict()->"dict[str,GViewData]":
+    def load_all_as_dict() -> "dict[str,GViewData]":
         DB = G.DB
         DB.go(DB.table_Gview)
         DB.excute_queue.append(DB.sqlstr_RECORD_SELECT_ALL.format(tablename=DB.tab_name))
@@ -497,7 +494,7 @@ class GviewOperation:
         return (viewName, submitted)
 
     @staticmethod
-    def create(nodes=None, edges=None, name="",need_save=True,need_open=True):
+    def create(nodes=None, edges=None, name="", need_save=True, need_open=True):
         if name == "":
             name, submitted = GviewOperation.get_correct_view_name_input()
         else:
@@ -519,12 +516,12 @@ class GviewOperation:
 
     @staticmethod
     def create_from_pair(cid_li: 'list[str|LinkDataPair]', name=""):
-        nodes={}
+        nodes = {}
         for cid in cid_li:
-            if isinstance(cid,LinkDataPair):
-                cid=cid.card_id
-            nodes[cid]=GviewOperation.依参数确定视图结点数据类型模板(编号=cid)
-        GviewOperation.create(nodes=nodes,edges={}, name=name)
+            if isinstance(cid, LinkDataPair):
+                cid = cid.card_id
+            nodes[cid] = GviewOperation.依参数确定视图结点数据类型模板(编号=cid)
+        GviewOperation.create(nodes=nodes, edges={}, name=name)
 
     @staticmethod
     def choose_insert(pairs_li: 'list[G.objs.LinkDataPair]' = None):
@@ -574,14 +571,14 @@ class GviewOperation:
         _ = 字典键名
         模型 = models.类型_视图结点模型()
         默认值模板 = {}
-        类型对照={}
+        类型对照 = {}
         for 名字 in 模型.__dict__:
             if isinstance(模型.__dict__[名字], models.类型_视图结点属性项):
                 属性: models.类型_视图结点属性项 = 模型.__dict__[名字]
                 if 属性.从上级读数据:
                     默认值模板[属性.字段名] = 属性.默认值
                     类型对照[属性.字段名] = 属性.值类型
-        新值 = Utils.字典缺省值填充器(默认值模板, 数据,类型对照)
+        新值 = Utils.字典缺省值填充器(默认值模板, 数据, 类型对照)
         if 编号:
             新值[_.结点.描述] = CardOperation.desc_extract(编号) if 结点类型 == 枚举_视图结点类型.卡片 else GviewOperation.获取视图名字(编号)
         新值[_.结点.数据类型] = 结点类型
@@ -618,6 +615,7 @@ class Utils(object):
             return True
         except:
             return False
+
     @staticmethod
     def make_backup_file_name(filename, path=""):
         file = "backup_" + datetime.now().strftime("%Y%m%d%H%M%S") + "_" + os.path.split(filename)[-1]
@@ -670,8 +668,7 @@ class Utils(object):
                 print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs)
 
     @staticmethod
-    def 字典默认键值对(默认值, 键名, 对应值字典, 类型对照: "dict"=None):
-
+    def 字典默认键值对(默认值, 键名, 对应值字典, 类型对照: "dict" = None):
 
         if not 对应值字典 or not 键名 in 对应值字典:
             return 默认值
@@ -692,10 +689,10 @@ class Utils(object):
         # return 默认值 if not 对应值 or 键名 not in 对应值 else 对应值[键名]
 
     @staticmethod
-    def 字典缺省值填充器(默认值字典: dict, 对应值字典: "Optional[dict]" = None,类型对照=None):
+    def 字典缺省值填充器(默认值字典: dict, 对应值字典: "Optional[dict]" = None, 类型对照=None):
         新值 = {}
         for 键, 值 in 默认值字典.items():
-            新值[键] = Utils.字典默认键值对(值, 键, 对应值字典,类型对照)
+            新值[键] = Utils.字典默认键值对(值, 键, 对应值字典, 类型对照)
         return 新值
 
     @staticmethod
@@ -710,7 +707,7 @@ class Utils(object):
         return int(time.mktime(time.strptime(日期, "%Y-%m-%d")))
 
     @staticmethod
-    def 大文本提示框(文本,取消模态=False,尺寸=(600,400)):
+    def 大文本提示框(文本, 取消模态=False, 尺寸=(600, 400)):
         _ = 字典键名.砖
         # 组合 = {_.框: QHBoxLayout(), _.子: [{_.件: QLabel()}]}
         # 组合[_.子][0][_.件].setText(Utils.html默认格式(文本))
@@ -832,9 +829,36 @@ class Utils(object):
 
         @dataclasses.dataclass
         class 模型:
-            version:"str"
-            installed_at:"int"=int(time.time())
+            version: "str"
+            installed_at: "int" = int(time.time())
 
+        @staticmethod
+        def 版本冲突():
+            本地版地址 = G.src.path.local_version
+            网络版地址 = G.src.path.web_version
+            当前插件地址 = G.src.path.root
+            if Utils.版本.本地版被启用() and Utils.版本.网络版被启用() and 当前插件地址 == 本地版地址:
+                showInfo(译.检测到同时启用了本地版与网络版插件)
+                return True
+            return False
+        @staticmethod
+        def 网络版被启用():
+            网络版地址 = G.src.path.web_version
+            if not os.path.exists(网络版地址):
+                return False
+            else:
+                return json.load(open(os.path.join(网络版地址, "meta.json")))["disabled"] == False
+            pass
+
+        @staticmethod
+        def 本地版被启用():
+            本地版地址 = G.src.path.web_version
+            if not os.path.exists(本地版地址):
+                return False
+            else:
+                return json.load(open(os.path.join(本地版地址, "meta.json")))["disabled"] == False
+            pass
+            pass
 
         @staticmethod
         def 检查():
@@ -844,9 +868,11 @@ class Utils(object):
                 Utils.版本.发出提醒()
                 Utils.版本.创建版本文件()
             else:
-                版本数据 =Utils.版本.模型(**(sorted(json.load(open(版本路径,"r",encoding="utf-8")),key=lambda x:x["installed_at"])[-1]))
-                if 版本数据.version != 当前版本:
+                版本数据 = Utils.版本.读取版本文件()[-1]
+                if 版本数据["version"] != 当前版本:
                     Utils.版本.发出提醒()
+                    Utils.版本.添加版本()
+
         @staticmethod
         def 发出提醒():
             code = QMessageBox.information(None, 译.新版本介绍, 译.是否查看更新日志, QMessageBox.Yes | QMessageBox.No)
@@ -862,29 +888,51 @@ class Utils(object):
         def 创建版本文件():
             版本路径 = G.src.path.current_version
             当前版本 = G.src.ADDON_VERSION
-            json.dump([Utils.版本.模型(当前版本).__dict__],open(版本路径,"w",encoding="utf-8"))
+            Utils.版本.保存版本文件([Utils.版本.模型(当前版本).__dict__])
+
+        @staticmethod
+        def 添加版本():
+            版本路径 = G.src.path.current_version
+            当前版本 = G.src.ADDON_VERSION
+            if not os.path.exists(版本路径):
+                Utils.版本.创建版本文件()
+            else:
+                版本表 = Utils.版本.读取版本文件()
+                版本表.append(Utils.版本.模型(当前版本).__dict__)
+                Utils.版本.保存版本文件(版本表)
+
+        @staticmethod
+        def 保存版本文件(对象):
+            版本路径 = G.src.path.current_version
+            json.dump(对象, open(版本路径, "w", encoding="utf-8"))
+
+        @staticmethod
+        def 读取版本文件():
+            版本路径 = G.src.path.current_version
+            return sorted(json.load(open(版本路径, "r", encoding="utf-8")), key=lambda x: x["installed_at"])
+
 
 class 组件定制:
 
     @staticmethod
-    def 组件组合(组件树数据: "dict", 容器: "QWidget" = None)->"QWidget|QDialog":
+    def 组件组合(组件树数据: "dict", 容器: "QWidget" = None) -> "QWidget|QDialog":
         if not 容器: 容器 = QWidget()
         基 = G.objs.Bricks
-        布局,组件,子代,占据= 基.四元组
+        布局, 组件, 子代, 占据 = 基.四元组
 
         def 子组合(组件树: "dict"):
             if 布局 in 组件树:
                 the_layout: "QHBoxLayout|QVBoxLayout|QGridLayout" = 组件树[布局]
-                the_layout.setContentsMargins(0,0,0,0)
+                the_layout.setContentsMargins(0, 0, 0, 0)
                 for 孩子 in 组件树[子代]:
                     子组件 = 子组合(孩子)
                     if 布局 in 子组件:
                         the_layout.addLayout(子组件[布局])
                     else:
-                        if isinstance(子组件[组件],QWidget):
-                            the_layout.addWidget(子组件[组件],stretch=子组件[占据] if 占据 in 子组件 else 0 )
+                        if isinstance(子组件[组件], QWidget):
+                            the_layout.addWidget(子组件[组件], stretch=子组件[占据] if 占据 in 子组件 else 0)
                         else:
-                            the_layout.addLayout(子组件[组件],stretch=子组件[占据] if 占据 in 子组件 else 0)
+                            the_layout.addLayout(子组件[组件], stretch=子组件[占据] if 占据 in 子组件 else 0)
 
             return 组件树
 
@@ -918,7 +966,7 @@ class 组件定制:
         return 组件
 
     @staticmethod
-    def 对话窗口(标题=None, 图标=None, 最大宽度=None, closeEvent=None,尺寸=None,宽度=None):
+    def 对话窗口(标题=None, 图标=None, 最大宽度=None, closeEvent=None, 尺寸=None, 宽度=None):
         组件 = QDialog()
         if 标题:
             组件.setWindowTitle(标题)
@@ -973,14 +1021,17 @@ class 组件定制:
     def 按钮_修改(文字="", 图标地址=G.src.ImgDir.rename):
         # 组件 = QPushButton(QIcon(图标地址),文字)
 
-        return 组件定制.按钮(图标地址,文字)
+        return 组件定制.按钮(图标地址, 文字)
 
     @staticmethod
-    def 按钮_提示(文字="", 图标地址=G.src.ImgDir.info,触发函数=None):
+    def 按钮_提示(文字="", 图标地址=G.src.ImgDir.info, 触发函数=None):
         return 组件定制.按钮(图标地址, 文字, 触发函数)
+
     @staticmethod
-    def 按钮_确认(文字="", 图标地址=G.src.ImgDir.correct,触发函数=None):
+    def 按钮_确认(文字="", 图标地址=G.src.ImgDir.correct, 触发函数=None):
         return 组件定制.按钮(图标地址, 文字, 触发函数)
+
+
 #
 # # 2023年2月15日23:42:11 砍掉 group_review功能, 全部相关代码被注释掉.
 # # class GroupReview(object):
@@ -1200,7 +1251,7 @@ class BaseConfig(metaclass=abc.ABCMeta):
         滚动组件.setMinimumHeight(500)
         滚动组件.setWidgetResizable(True)
         滚动组件.setAlignment(Qt.AlignCenter)
-        总布局.addWidget(滚动组件,stretch=1)
+        总布局.addWidget(滚动组件, stretch=1)
         容器.setLayout(总布局)
         # 容器.resize(int(分栏.width() * 1.1), 500)
         容器.setContentsMargins(0, 0, 0, 0)
@@ -1216,10 +1267,7 @@ class IntroductionOperation:
     pass
 
 
-
 class GviewConfigOperation(BaseConfig):
-
-
 
     @staticmethod
     def 获取结点角色数据源(gview_uuid=None, gview_data: "GViewData" = None) -> "list[str]":
@@ -1236,11 +1284,10 @@ class GviewConfigOperation(BaseConfig):
             return []
 
     @staticmethod
-    def 获取结点角色名(视图数据: GViewData, 结点编号,配置数据:"GviewConfig"=None):
+    def 获取结点角色名(视图数据: GViewData, 结点编号, 配置数据: "GviewConfig" = None):
         角色选中序号表 = 视图数据.nodes[结点编号].角色.值
-        角色列表 = eval((GviewConfigOperation.从数据库读(视图数据.config)if not 配置数据 else 配置数据).data.node_role_list.value)
-        return [角色列表[角色序号] for 角色序号 in 角色选中序号表 if 角色序号 in range(0,len(角色列表))]
-
+        角色列表 = eval((GviewConfigOperation.从数据库读(视图数据.config) if not 配置数据 else 配置数据).data.node_role_list.value)
+        return [角色列表[角色序号] for 角色序号 in 角色选中序号表 if 角色序号 in range(0, len(角色列表))]
 
     @staticmethod
     def 漫游路径生成之深度优先遍历(视图数据: GViewData, 结点队列: "list[str]", 起点: "list[str]"):
@@ -1315,20 +1362,20 @@ class GviewConfigOperation(BaseConfig):
             return 队列
         elif 生成模式 == _.多级排序:
             待选表, 选中序号 = 配置数据.data.cascading_sort.value
-            if 选中序号>=len(待选表):
-                选中序号=-1
-                配置数据.data.cascading_sort.value[1]=-1
+            if 选中序号 >= len(待选表):
+                选中序号 = -1
+                配置数据.data.cascading_sort.value[1] = -1
 
-            排序表: "List[Iterable[str,str]]" = eval(待选表[选中序号]) if  len(待选表)> 选中序号 >=0 else baseClass.漫游预设.默认多级排序规则
+            排序表: "List[Iterable[str,str]]" = eval(待选表[选中序号]) if len(待选表) > 选中序号 >= 0 else baseClass.漫游预设.默认多级排序规则
             队列.sort(key=cmp_to_key(lambda x, y: GviewConfigOperation.漫游路径生成之多级排序(x, y, 视图数据, 排序表)))
             return 队列
         elif 生成模式 == _.加权排序:
             待选表, 选中序号 = 配置数据.data.weighted_sort.value
-            if 选中序号>=len(待选表):
-                选中序号=-1
-                配置数据.data.weighted_sort.value[1]=-1
+            if 选中序号 >= len(待选表):
+                选中序号 = -1
+                配置数据.data.weighted_sort.value[1] = -1
 
-            公式 = 待选表[选中序号] if len(待选表)> 选中序号 >=0  else baseClass.漫游预设.默认加权排序规则
+            公式 = 待选表[选中序号] if len(待选表) > 选中序号 >= 0 else baseClass.漫游预设.默认加权排序规则
             队列.sort(key=cmp_to_key(lambda x, y: GviewConfigOperation.漫游路径生成之加权排序(x, y, 视图数据, 公式)), reverse=True)
             return 队列
         else:
@@ -1351,8 +1398,8 @@ class GviewConfigOperation(BaseConfig):
             raise ValueError('config is None')
         列表, 选项 = 配置数据.data.roaming_node_filter.value
 
-        if 选项 >= len(列表) :
-            配置数据.data.roaming_node_filter.value[1]=选项=-1
+        if 选项 >= len(列表):
+            配置数据.data.roaming_node_filter.value[1] = 选项 = -1
 
         结点数据 = 视图数据.nodes[结点编号]
         if 结点数据.必须复习.值:
@@ -2072,7 +2119,7 @@ class CardOperation:
        """
         cfg = Config.get()
         from . import models
-        def get_desc_from_field(ins:"models.类型_模型_描述提取规则", note) -> str:
+        def get_desc_from_field(ins: "models.类型_模型_描述提取规则", note) -> str:
             if ins.字段.值 == -1:
                 StrReadyToExtract = "".join(note.fields)
             else:
@@ -2115,7 +2162,7 @@ class CardOperation:
 
     @staticmethod
     def InstructionOfExtractDesc(card_id):
-        from . import  models
+        from . import models
         cfg = Config.get()
         空规则 = models.类型_模型_描述提取规则()
         全部描述提取规则 = [models.类型_模型_描述提取规则(规则) for 规则 in cfg.descExtractTable.value]
@@ -2127,9 +2174,9 @@ class CardOperation:
         for 规则 in 全部描述提取规则:
             规则的标签集 = set(规则.标签.值)
             # 三个东西全部满足, 说明这条规则对上了, 就可以用,
-            if (牌组编号 == 规则.牌组.值 or 规则.牌组.值==-1) and\
-                (模板编号 == 规则.模板.值 or 规则.模板.值==-1) and \
-                (标签集&规则的标签集!=set() or len(规则.标签.值)==0):
+            if (牌组编号 == 规则.牌组.值 or 规则.牌组.值 == -1) and \
+                    (模板编号 == 规则.模板.值 or 规则.模板.值 == -1) and \
+                    (标签集 & 规则的标签集 != set() or len(规则.标签.值) == 0):
                 # 牌组相同或不限, 模板相同或不限, 标签集含有或不限
                 选中规则 = 规则
                 break
@@ -2270,10 +2317,10 @@ class CardOperation:
             if ivl >= 0:  # ivl 正表示天为单位,负表示秒为单位
                 next_date = datetime.fromtimestamp(last / 1000 + ivl * 86400)  # (Y,M,D,H,M,S,MS)
             else:
-                next_date = datetime.fromtimestamp(last / 1000 - ivl) # 此时的 ivl保存为负值,因此要减去
+                next_date = datetime.fromtimestamp(last / 1000 - ivl)  # 此时的 ivl保存为负值,因此要减去
         else:
             # 没有记录表示新卡片, 直接给他设个1970年就完事
-            next_date = datetime.fromtimestamp(0) # (Y,M,D,H,M,S,MS)
+            next_date = datetime.fromtimestamp(0)  # (Y,M,D,H,M,S,MS)
             last_date = datetime.fromtimestamp(0)  # (Y,M,D,H,M,S,MS)
         # today = datetime.today()  # (Y,M,D,H,M,S,MS)
         Utils.print(last_date, next_date)
@@ -2523,13 +2570,15 @@ class LinkPoolOperation:
                 self.count += 1
                 return groupB
 
+
 class 卡片模板操作:
     @staticmethod
-    def 获取模板名(模板编号,缺省值:"str"=None):
-        if 模板编号>0:
+    def 获取模板名(模板编号, 缺省值: "str" = None):
+        if 模板编号 > 0:
             return mw.col.models.get(模板编号)["name"]
         else:
             return 缺省值
+
 
 class 牌组操作:
     @staticmethod
@@ -2539,14 +2588,15 @@ class 牌组操作:
         else:
             return 缺省值
 
+
 class 卡片字段操作:
     @staticmethod
-    def 获取字段名(模板编号,字段编号,缺省值:"str"=None):
+    def 获取字段名(模板编号, 字段编号, 缺省值: "str" = None):
         字段名列表 = []
-        if 模板编号>0:
+        if 模板编号 > 0:
             模板 = mw.col.models.get(模板编号)
             字段名列表 = mw.col.models.field_names(模板)
-            if len(字段名列表)>字段编号>=0:
+            if len(字段名列表) > 字段编号 >= 0:
                 return 字段名列表[字段编号]
             else:
                 return 缺省值
@@ -2941,8 +2991,8 @@ class Dialogs:
         pass
 
     @staticmethod
-    def open_view(gviewdata: "GViewData" = None,need_activate=True):
-        Dialogs.open_grapher(gviewdata=gviewdata,mode=GraphMode.view_mode)
+    def open_view(gviewdata: "GViewData" = None, need_activate=True):
+        Dialogs.open_grapher(gviewdata=gviewdata, mode=GraphMode.view_mode)
 
     @staticmethod
     def open_grapher(pair_li: "list[G.objs.LinkDataPair|str]" = None, need_activate=True, gviewdata: "GViewData" = None,
