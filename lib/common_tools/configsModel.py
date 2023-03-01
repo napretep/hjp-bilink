@@ -477,7 +477,7 @@ class ConfigModel(BaseConfigModel):
 
     TODO:
         翻译instruction
-        修改描述提取函数,  增加指定牌组和指定标签的功能
+
     """
 
     @staticmethod

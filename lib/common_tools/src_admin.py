@@ -51,6 +51,8 @@ class SrcAdmin:
         common_tools: "str" = os.path.abspath(os.path.dirname(__file__))
         lib: "str" = os.path.split(common_tools)[0]
         root: "str" = os.path.split(lib)[0]
+        addons21:"str" = os.path.split(root)[0]
+        web_version: "str" = os.path.join(addons21, "1420819673")
         user: "str" = os.path.join(root, "user_files")
         resource: "str" = os.path.join(lib, "resource")
         resource_data: "str" = os.path.join(resource, "data")
@@ -71,6 +73,8 @@ class SrcAdmin:
         anchor_CSS_accordion_file: "str" = os.path.join(resource_data, "anchor_CSS_accordion.css")
         anchor_CSS_straight_file:"str" = os.path.join(resource_data, "anchor_CSS_straight.css")
         anchor_CSS_file:"list"=dataclasses.field(default_factory=list)
+        current_version:"str" = os.path.join(user,"current_version.json")
+
 
     class _ImgDir:
         def __init__(self, superior: "SrcAdmin", root: "SrcAdmin"):

@@ -648,7 +648,7 @@ class VisualBilinker(QMainWindow):
             self.setPen(self.normal_pen)
             self.setFlag(QGraphicsLineItem.GraphicsItemFlag.ItemIsSelectable, True)
 
-            # * Done:2022年12月27日00:13:23 设计边名的显示
+
 
         def update_line(self):
             p1 = self.itemStart.mapToScene(self.itemStart.boundingRect().center())

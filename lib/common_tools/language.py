@@ -755,5 +755,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     """)
     已修改 = 翻译("已修改","edited")
     结点批量编辑 = 翻译("结点批量编辑","nodes batch editing")
+    新版本介绍 = 翻译("hjp-linkmaster新版本介绍","Introduction of the new version of hjp-linkmaster")
+    是否查看更新日志 = 翻译("是否查看更新日志? 你也可以稍后自己查看", "hjp-linkmaster has been updated, do you want to check the changelog? You can also check it yourself later")
 if __name__ == "__main__":
     print(Translate.打开配置表)

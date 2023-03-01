@@ -828,6 +828,41 @@ class Utils(object):
             # 现在 = time.localtime()
             # time.mktime((现在.tm_year,现在.tm_mon,现在.tm_mday-现在.tm_wday,0,0,0,0,0,0))
 
+    class 版本:
+
+        @dataclasses.dataclass
+        class 模型:
+            version:"str"
+            installed_at:"int"=int(time.time())
+
+
+        @staticmethod
+        def 检查():
+            版本路径 = G.src.path.current_version
+            当前版本 = G.src.ADDON_VERSION
+            if not os.path.exists(版本路径):
+                Utils.版本.发出提醒()
+                Utils.版本.创建版本文件()
+            else:
+                版本数据 =Utils.版本.模型(**(sorted(json.load(open(版本路径,"r",encoding="utf-8")),key=lambda x:x["installed_at"])[-1]))
+                if 版本数据.version != 当前版本:
+                    Utils.版本.发出提醒()
+        @staticmethod
+        def 发出提醒():
+            code = QMessageBox.information(None, 译.新版本介绍, 译.是否查看更新日志, QMessageBox.Yes | QMessageBox.No)
+            if code == QMessageBox.Yes:
+                Utils.版本.打开网址()
+
+        @staticmethod
+        def 打开网址():
+            QDesktopServices.openUrl(QUrl("https://vu2emlw0ia.feishu.cn/docx/GCl6djBtiouRumxbbB4cbfnHn4c"))
+            pass
+
+        @staticmethod
+        def 创建版本文件():
+            版本路径 = G.src.path.current_version
+            当前版本 = G.src.ADDON_VERSION
+            json.dump([Utils.版本.模型(当前版本).__dict__],open(版本路径,"w",encoding="utf-8"))
 
 class 组件定制:
 
