@@ -670,16 +670,7 @@ class ConfigModel(BaseConfigModel):
 
     descExtractTable: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["在本项设置中,你可以指定提取卡片描述的方式, 比如指定什么模板,提取哪个字段,长度多少,还可以写正则表达式, 双击单元格修改,加号按钮增加规则,减号去掉选中规则"],
-            value=[{
-                    本.全局配置.描述提取规则.标签:[],
-                    本.全局配置.描述提取规则.牌组:-1,  # 表全部牌组
-                    本.全局配置.描述提取规则.同步:True,
-                    本.全局配置.描述提取规则.模板:-1,  # 表全部模板
-                    本.全局配置.描述提取规则.字段:-1,  # -1 表全部字段,-2表正面,-3表背面
-                    本.全局配置.描述提取规则.正则:"",
-                    本.全局配置.描述提取规则.长度:0,
-
-            }],  # 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
+            value=[baseClass.枚举命名.全局配置.描述提取规则.默认规则()],  # 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
             component=ConfigModel.Widget.customize,
             tab_at=Translate.链接相关,
             customizeComponent=lambda: widgets.ConfigWidget.DescExtractPresetTable

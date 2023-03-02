@@ -2127,6 +2127,7 @@ class CardOperation:
             else:
                 StrReadyToExtract = note.fields[ins.字段.值]
             step1_desc = HTML.TextContentRead(StrReadyToExtract)
+            Utils.print(step1_desc)
             step2_desc = step1_desc if ins.长度.值 == 0 else step1_desc[0:int(ins.长度.值)]
             if ins.正则 != "":
                 search = re.search(ins.正则, step2_desc)
@@ -2171,15 +2172,15 @@ class CardOperation:
         卡片信息 = mw.col.get_card(int(card_id))
         牌组编号 = 卡片信息.did
         模板编号 = 卡片信息.note().mid
-        标签集 = set(卡片信息.note().tags)
+        标签集:"set[str]" = set(卡片信息.note().tags)
         选中规则 = 空规则
         for 规则 in 全部描述提取规则:
-            规则的标签集 = set(规则.标签.值)
+            规则的标签集:"set[str]" = set(规则.标签.值)
             # 三个东西全部满足, 说明这条规则对上了, 就可以用,
-            if (牌组编号 == 规则.牌组.值 or 规则.牌组.值 == -1) and \
-                    (模板编号 == 规则.模板.值 or 规则.模板.值 == -1) and \
-                    (标签集 & 规则的标签集 != set() or len(规则.标签.值) == 0):
-                # 牌组相同或不限, 模板相同或不限, 标签集含有或不限
+            满足牌组 = 规则.牌组.值 == -1 or 牌组编号 == 规则.牌组.值 or 牌组编号 in [子[1] for 子 in mw.col.decks.children(规则.牌组.值)]
+            满足模板 = (规则.模板.值 == -1 or 模板编号 == 规则.模板.值 )
+            满足标签 = (len(规则.标签.值)==0 or 标签集 & 规则的标签集 != set() or len([规则标签 for 规则标签 in 规则的标签集 if len([标签 for 标签 in 标签集 if 标签.startswith(规则标签)])>0 ])>0 )
+            if 满足牌组 and 满足模板 and 满足标签:
                 选中规则 = 规则
                 break
         return 选中规则

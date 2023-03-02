@@ -33,7 +33,7 @@ class 类型_属性项_描述提取规则(基类_属性项):
 
 @dataclass
 class 类型_模型_描述提取规则(基类_模型):
-    数据源: "类型_数据源_提取规则" = None
+    数据源: "类型_数据源_提取规则" = field(default_factory=lambda:baseClass.枚举命名.全局配置.描述提取规则.默认规则())
 
     牌组: 类型_属性项_描述提取规则 = field(default_factory=lambda: 类型_属性项_描述提取规则(
             字段名=枚举.全局配置.描述提取规则.牌组,

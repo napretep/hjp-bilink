@@ -759,5 +759,6 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     是否查看更新日志 = 翻译("是否查看更新日志? 你也可以稍后自己查看", "hjp-linkmaster has been updated, do you want to check the changelog? You can also check it yourself later")
     检测到同时启用了本地版与网络版插件 = 翻译("hjp_linkmaster:检测到同时启用了本地版与网络版插件,现在将取消启动本地版插件,如果你想启动本地版插件,请先禁用或卸载网络版插件","hjp_linkmaster:It is detected that both local and network versions of the addon are enabled, now the local version of the addon will be de-activated.If you want to start the local version of the plugin, please disable or uninstall the network version first ")
     你想打开链接吗 = 翻译("你输入的不是pdf文件,你想直接用默认程序打开文件吗?","What you type is not a pdf file, you want to open the file directly with the default program?")
+    说明_描述提取规则=翻译("在本项设置中,你可以指定提取卡片描述的方式, 比如指定什么模板,提取哪个字段,长度多少,还可以写正则表达式, 双击单元格修改,加号按钮增加规则,减号去掉选中规则, ","")
 if __name__ == "__main__":
     print(Translate.打开配置表)

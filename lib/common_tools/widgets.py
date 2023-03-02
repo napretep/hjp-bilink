@@ -1144,6 +1144,7 @@ class ConfigWidget:
             w = self.NewRowFormWidget(self, colItems=row)
             w.widget.exec()
             if w.ok:
+
                 # w.setValueToTableRowFromForm()  # 从新建表单设置回到表格 这一步是不需要的, 在onokclicked上已经完成了
                 self.SaveDataToConfigModel()  # 从表格回到配置项
 
@@ -1154,7 +1155,7 @@ class ConfigWidget:
             for row in range(self.table_model.rowCount()):
                 item: ConfigWidget.DescExtractPresetTable.TableItem = self.table_model.item(row, 0)
                 data.append(item.GetData().上级.数据源)
-            self.ConfigModelItem.setValue(data, 需要设值回到组件=False)
+            self.ConfigModelItem.setValue(data)
             #     rowdata = []
             #     for col in range(len(self.colnames)):
             #         item: "ConfigWidget.DescExtractPresetTable.TableItem" = self.table_model.item(row, col)
@@ -1183,9 +1184,9 @@ class ConfigWidget:
                 pass
 
             def setValueToTableRowFromForm(self):
-                if self.isNew:
-                    self.模型.数据源 = {}
-                    [self.模型.数据源.__setitem__(字段名, 属性.值) for 字段名, 属性 in self.模型.属性字典.items()]
+                # if self.isNew:
+                #     self.模型.数据源 = {}
+                #     [self.模型.数据源.__setitem__(字段名, 属性.值) for 字段名, 属性 in self.模型.属性字典.items()]
                 for 列 in self.colItems:
                     属性项: safe.models.类型_属性项_描述提取规则 = 列.GetData()
                     列.setText(属性项.组件显示值)
@@ -1199,13 +1200,18 @@ class ConfigWidget:
                     self.isNew = True
                     self.模型 = 上级.初始化默认行()
                     colItems = [上级.TableItem(上级, 属性.组件显示值, 属性) for 属性 in 上级.默认属性字典]
-                self.模型 = colItems[0].GetData().上级
-                self.UI字典 = self.模型.创建UI字典()
-                colWidget = [self.UI字典[属性[1].字段名] for 属性 in 上级.defaultRowData]
+                    self.UI字典 = self.模型.创建UI字典()
+                    colWidget = [self.UI字典[属性[1].字段名] for 属性 in 上级.defaultRowData]
+                else:
+                    self.模型 = colItems[0].GetData().上级
+                    self.UI字典 = self.模型.创建UI字典()
+                    colWidget = [self.UI字典[属性[1].字段名] for 属性 in 上级.defaultRowData]
                 super().__init__(上级, colItems, colWidget)
                 模板选择组件: "自定义组件.模板选择" = self.UI字典[self.模型.模板.字段名].核心组件
                 字段选择组件: "自定义组件.字段选择" = self.UI字典[self.模型.字段.字段名].核心组件
                 模板选择组件.当完成赋值.append(lambda 自己, 值: 字段选择组件.检查模板编号合法性(值))
+
+
 
     class GviewConfigApplyTable(baseClass.ConfigTableView):
         """
