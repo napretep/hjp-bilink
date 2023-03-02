@@ -315,7 +315,7 @@ class GviewOperation:
         from ..bilink.dialogs.linkdata_grapher import Grapher
         for 视图编号, 视图窗口 in G.mw_gview.items():
             if isinstance(视图窗口, Grapher):
-                视图窗口.data.gview_config = GviewConfigOperation.从数据库读(视图窗口.data.gviewdata.config)
+                视图窗口.data.gviewdata.config_model = GviewConfigOperation.从数据库读(视图窗口.data.gviewdata.config)
 
     @staticmethod
     def fuzzy_search(search_string: str):
@@ -1351,7 +1351,7 @@ class GviewConfigOperation(BaseConfig):
         return eval(排序公式, *GviewConfigOperation.获取eval可用变量与函数(视图数据, 前一项)) - eval(排序公式, *GviewConfigOperation.获取eval可用变量与函数(视图数据, 后一项))
 
     @staticmethod
-    def 漫游路径生成(视图数据: GViewData, 配置数据: objs.Record.GviewConfig, 队列: "list[str]"):
+    def 漫游路径生成(视图数据: GViewData, 配置数据: objs.Record.GviewConfig, 队列: "list[str]",选中队列=None):
         _ = 字典键名.路径生成模式
 
         if not 视图数据.config:
@@ -1379,13 +1379,15 @@ class GviewConfigOperation(BaseConfig):
             队列.sort(key=cmp_to_key(lambda x, y: GviewConfigOperation.漫游路径生成之加权排序(x, y, 视图数据, 公式)), reverse=True)
             return 队列
         else:
-            Utils.print("图排序开始")
             图排序模式 = 配置数据.data.graph_sort.value
-            开始结点 = [random.choice(队列)]
+            入度零结点 = [结点编号 for 结点编号 in 队列 if 视图数据.nodes[结点编号].入度.值==0]
+            开始结点 = 入度零结点 if 入度零结点 else [random.choice(队列)]
             if 配置数据.data.roamingStart.value == 字典键名.视图配置.roamingStart.手动选择卡片开始:
                 可能的开始结点 = [结点编号 for 结点编号 in 队列 if 视图数据.nodes[结点编号].漫游起点.值]
                 if len(可能的开始结点) > 0:
-                    开始结点 = 可能的开始结点
+                    开始结点 = 可能的开始结点+开始结点
+                if 选中队列:
+                    开始结点 = 选中队列+开始结点
             if 图排序模式 == 字典键名.视图配置.图排序模式.广度优先遍历:
                 return GviewConfigOperation.漫游路径生成之广度优先遍历(视图数据, 队列, 开始结点)
             else:
@@ -1498,7 +1500,7 @@ class GviewConfigOperation(BaseConfig):
         return DB.go(DB.table_GviewConfig).exists(DB.EQ(uuid=标识))
 
     @staticmethod
-    def 指定视图配置(视图记录: "GViewData|str", 新配置记录: "objs.Record.GviewConfig|str|None" = None):
+    def 指定视图配置(视图记录: "GViewData|str", 新配置记录: "objs.Record.GviewConfig|str|None" = None, need_save=True):
 
         def 删除前配置中的当前视图():
             前配置记录 = GviewConfigOperation.从数据库读(视图记录.config)
@@ -1522,7 +1524,7 @@ class GviewConfigOperation(BaseConfig):
                 应用配置视图表.append(视图记录.uuid)
                 新配置记录.data.appliedGview.setValue(应用配置视图表)
             视图记录.config = 新配置记录.uuid
-            GviewOperation.save(视图记录)
+            # GviewOperation.save(视图记录)
             新配置记录.data.元信息.确定保存到数据库 = True
             新配置记录.saveModelToDB()
             # Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview after append =  {应用配置视图表}, gview.config = {视图记录.config}", need_logFile=True)
@@ -1539,8 +1541,8 @@ class GviewConfigOperation(BaseConfig):
             删除前配置中的当前视图()
 
         将当前视图添加到现配置的支配表中()
-
-        GviewOperation.save(视图记录)
+        if need_save:
+            GviewOperation.save(视图记录)
         Utils.print("assign view over ", need_logFile=True)
 
     @staticmethod
@@ -2969,9 +2971,10 @@ class Dialogs:
 
     @staticmethod
     def open_inrtoDoc():
-        from ..bilink import dialogs
-        p = dialogs.version.VersionDialog()
-        p.show()
+        Utils.版本.打开网址()
+        # from ..bilink import dialogs
+        # p = dialogs.version.VersionDialog()
+        # p.show()
 
     @staticmethod
     def open_tag_chooser(pair_li: "list[G.objs.LinkDataPair]"):

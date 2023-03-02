@@ -82,7 +82,7 @@ class Grapher(QMainWindow):
         self.data.gviewdata = gviewdata
         if not funcs.GviewConfigOperation.存在(gviewdata.config):
             funcs.GviewConfigOperation.指定视图配置(gviewdata)
-        self.data.gview_config = funcs.GviewConfigOperation.从数据库读(gviewdata.config)
+        # self.data.gview_config = funcs.GviewConfigOperation.从数据库读(gviewdata.config)
         self.data.graph_mode = mode
         self.view = self.View(self)
         self.scene = self.Scene(self)
@@ -238,7 +238,6 @@ class Grapher(QMainWindow):
         """A->B, 反过来不成立
         add_bilink 用来判断是否要修改全局链接.
         """
-
         nodeA = self.data.node_dict[card_idA]
         nodeB = self.data.node_dict[card_idB]
         edgeItem = self.ItemEdge(self, nodeA.item, nodeB.item)
@@ -246,7 +245,6 @@ class Grapher(QMainWindow):
         self.data.add_to_edge_data(edgeItem, fromGviewData)
 
         return edgeItem
-
         pass
 
     def remove_edge(self, card_idA=None, card_idB=None):
@@ -328,34 +326,16 @@ class Grapher(QMainWindow):
                     updated.add(f"{card_idA},{card_idB}")
 
     def update_edge_highlight(self):
-        # noinspection PyTypeChecker
-        # item_li: "list[Grapher.ItemRect]" = self.selected_nodes()  # item for item in self.scene.selectedItems() if isinstance(item,Grapher.ItemRect)]
-        # funcs.Utils.print(self.data.gviewdata.edges.__str__())
-        # funcs.Utils.print(self.data.edge_dict.__str__())
         for a_b in self.data.gviewdata.edges:
             a, b = a_b.split(",")
             # funcs.Utils.print(a,b)
-            self.data.edge_dict[a][b].item.unhighlight()
+            if a in self.data.edge_dict and b in self.data.edge_dict[a]:
+                self.data.edge_dict[a][b].item.unhighlight()
         node_id_li: "list[str]" = [item.索引 for item in self.selected_nodes()]
         for node_id in node_id_li:
             edges = self.data.node_dict[node_id].edges
             for edge in edges:
                 edge.item.highlight()
-        # card_li: "list[str]" = [item.索引 for item in self.selected_nodes()]
-        # edges = self.data.edge_dict
-        # modified = set()
-        # for nodeA in edges.keys():
-        #     for nodeB in edges[nodeA].keys():
-        #         edge = edges[nodeA][nodeB]
-        #         if edge is None:
-        #             continue
-        #         边结点 = ",".join(edge.item.获取关联的结点())
-        #         if 边结点 not in modified:
-        #             if nodeA in card_li:
-        #                 edge.item.highlight()
-        #             else:
-        #                 edge.item.unhighlight()
-        #         modified.add(边结点)
 
     # init
 
@@ -424,7 +404,7 @@ class Grapher(QMainWindow):
             self.root = superior
             self.graph_mode = GraphMode.view_mode
             self.gviewdata: Optional[GViewData] = None
-            self.gview_config: "Optional[GviewConfig]" = None
+            # self.gview_config: "Optional[GviewConfig]" = None
             self._node_dict: "Optional[dict[str,Optional[Grapher.Entity.Node]]]" = {}
             self._edge_dict: "Optional[dict[str,dict[str,Optional[Grapher.Entity.Edge]]]]" = {}
             self.currentSelectedEdge: "list[Grapher.ItemEdge]" = []
@@ -771,9 +751,11 @@ class Grapher(QMainWindow):
         def makeLine(self):
             self.superior.scene.removeItem(self.Auxiliary_line)
             end_item, begin_item = self.draw_line_end_item, self.draw_line_start_item
+
             if isinstance(end_item, Grapher.ItemRect) and begin_item != end_item:
-                add_bilink = self.superior.data.graph_mode == GraphMode.normal
-                self.superior.add_edge(begin_item.索引, end_item.索引)
+                begin_id, end_id = begin_item.索引, end_item.索引
+                if f"{begin_id},{end_id}" not in self.superior.data.gviewdata.edges:
+                    self.superior.add_edge(begin_item.索引, end_item.索引)
             self.superior.data.state.mouseIsMoving = False
             self.Auxiliary_line.hide()
 
@@ -914,7 +896,7 @@ class Grapher(QMainWindow):
 
         def 绘制边名(self, painter):
             paint_center = (self.triangle[1] + self.triangle[2]) / 2
-            总是显示 = self.superior.data.gview_config.data.edge_name_always_show.value
+            总是显示 = self.superior.data.gviewdata.config_model.data.edge_name_always_show.value
 
             文本 = self.获取边名() if self.获取边名() \
                 else "debug hello world world hello" \
@@ -1198,7 +1180,7 @@ class Grapher(QMainWindow):
             common_tools.G.常量_当前等待新增卡片的视图索引 = self.superior.data.gviewdata.uuid
             mw.onAddCard()
             addcard: aqt.addcards.AddCards = aqt.DialogManager._dialogs["AddCards"][1]
-            did = self.superior.data.gview_config.data.default_deck_for_add_card.value
+            did = self.superior.data.gviewdata.config_model.data.default_deck_for_add_card.value
             if did != -1:
                 addcard.deck_chooser.selected_deck_id = did
 
@@ -1305,14 +1287,15 @@ class Grapher(QMainWindow):
             布局, 组件, 子代 = funcs.G.objs.Bricks.三元组
             视图记录 = self.superior.data.gviewdata
             配置类 = common_tools.objs.Record.GviewConfig
-            if 视图记录.config != "" and 配置类.静态_存在于数据库中(视图记录.config) and 配置类.静态_含有某视图(视图记录.uuid, 视图记录.config):
-                配置记录 = 配置类.readModelFromDB(视图记录.config)
-            else:
-                tooltip(f"创建新配置")
-                配置记录 = 配置类()
-                funcs.GviewConfigOperation.指定视图配置(视图记录, 配置记录)
-                视图记录.config = 配置记录.uuid
-                配置记录 = 配置类.readModelFromDB(配置记录.uuid)
+            # if 视图记录.config != "" and 配置类.静态_存在于数据库中(视图记录.config) and 配置类.静态_含有某视图(视图记录.uuid, 视图记录.config):
+            #     配置记录 = 配置类.readModelFromDB(视图记录.config)
+            # else:
+            #     tooltip(f"创建新配置")
+            #     配置记录 = 配置类()
+            #     funcs.GviewConfigOperation.指定视图配置(视图记录, 配置记录)
+            #     视图记录.config = 配置记录.uuid
+            #     配置记录 = 配置类.readModelFromDB(配置记录.uuid)
+            配置记录 = 视图记录.config_model
             配置组件 = common_tools.funcs.GviewConfigOperation.makeConfigDialog(调用者=self, 数据=配置记录.data, 关闭时回调=lambda 闲置参数: 配置记录.saveModelToDB())
             配置组件布局: "QVBoxLayout" = 配置组件.layout()
 
@@ -1373,7 +1356,7 @@ class Grapher(QMainWindow):
             code = QMessageBox.information(self, 译.你将重置本视图的配置, 译.你将重置本视图的配置, QMessageBox.Yes | QMessageBox.No)
             if code == QMessageBox.Yes:
                 funcs.GviewConfigOperation.指定视图配置(self.superior.data.gviewdata)
-                self.superior.data.gview_config = funcs.GviewConfigOperation.从数据库读(self.superior.data.gviewdata.config)
+                self.superior.data.gviewdata.config_model = funcs.GviewConfigOperation.从数据库读(self.superior.data.gviewdata.config)
                 tooltip("reset configuration ok")
             pass
 
@@ -1818,14 +1801,14 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.圆满完成()
         else:
             self.listView.selectRow(0)
-        if self.superior.data.gview_config.data.roaming_sidebar_hide.value:
+        if self.superior.data.gviewdata.config_model.data.roaming_sidebar_hide.value:
             self.switch_sidebar_show_hide()
         self.初始化快捷键()
 
     def 初始化快捷键(self):
 
-        QShortcut(Qt.Key.Key_Up, self).activated.connect(self.last_item)
-        QShortcut(Qt.Key.Key_Down, self).activated.connect(self.next_item)
+        QShortcut(Qt.Key.Key_Up, self).activated.connect(self.导航按钮组.按钮_上一个.click)
+        QShortcut(Qt.Key.Key_Down, self).activated.connect(self.导航按钮组.按钮_下一个.click)
         QShortcut(Qt.Key.Key_Left, self).activated.connect(self.frontSideOfCard)
         QShortcut(Qt.Key.Key_Right, self).activated.connect(self.backSideOfCard)
 
@@ -1856,9 +1839,9 @@ class GrapherRoamingPreviewer(QMainWindow):
             return list(视图数据.nodes.keys())
         else:
 
-            配置数据 = self.superior.data.gview_config
+            配置数据 = self.superior.data.gviewdata.config_model
             队列 = [编号 for 编号 in 视图数据.nodes.keys() if funcs.GviewConfigOperation.满足过滤条件(视图数据, 编号, 配置数据)]
-            队列2 = funcs.GviewConfigOperation.漫游路径生成(视图数据, 配置数据, 队列)
+            队列2 = funcs.GviewConfigOperation.漫游路径生成(视图数据, 配置数据, 队列, [node.索引 for node in self.superior.selected_nodes() if node.索引 in 队列])
             # funcs.Utils.print(list(视图数据.nodes.keys()),队列, 队列2,配置数据.__str__())
             return 队列2
 

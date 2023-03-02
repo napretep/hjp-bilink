@@ -30,6 +30,10 @@ class SafeImport:
     def funcs(self):
         from . import funcs
         return funcs
+    @property
+    def objs(self):
+        from. import objs
+        return objs
 safe = SafeImport()
 # class CustomConfigItemView(metaclass=abc.ABCMeta):
 #
@@ -110,8 +114,12 @@ class GViewData:
         self.config:str = config
         self.meta=funcs.GviewOperation.默认元信息模板(kwargs["meta"] if "meta" in kwargs else None)
         if not self.config:
-            safe.funcs.GviewConfigOperation.指定视图配置(self)
-        self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
+            #safe.funcs.GviewConfigOperation.指定视图配置(self,need_save=False) # 此时还在创建中, 不需要保存
+            self.config_model = safe.objs.Record.GviewConfig()
+            self.config = self.config_model.uuid
+        else:
+            self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
+
         结点数据集字典 = {}
         结点数据模板 = funcs.GviewOperation.依参数确定视图结点数据类型模板()
         边数据集字典 = {}

@@ -1203,9 +1203,9 @@ class ConfigWidget:
                 self.UI字典 = self.模型.创建UI字典()
                 colWidget = [self.UI字典[属性[1].字段名] for 属性 in 上级.defaultRowData]
                 super().__init__(上级, colItems, colWidget)
-                模板选择组件: "自定义组件.视图结点属性.模板选择" = self.UI字典[self.模型.模板.字段名].核心组件
-                字段选择组件: "自定义组件.视图结点属性.字段选择" = self.UI字典[self.模型.字段.字段名].核心组件
-                模板选择组件.当完成选择.append(lambda 自己, 值: 字段选择组件.检查模板编号合法性(值))
+                模板选择组件: "自定义组件.模板选择" = self.UI字典[self.模型.模板.字段名].核心组件
+                字段选择组件: "自定义组件.字段选择" = self.UI字典[self.模型.字段.字段名].核心组件
+                模板选择组件.当完成赋值.append(lambda 自己, 值: 字段选择组件.检查模板编号合法性(值))
 
     class GviewConfigApplyTable(baseClass.ConfigTableView):
         """
@@ -1950,9 +1950,10 @@ class 自定义组件:
 
         def setValue(self, value):
             self.ui组件.setText(self.get_name(value))
-            self.上级.数据源.设值(value.copy())
-            self.当完成赋值(self, value.copy())
-            funcs.Utils.print(self,value)
+            new_value = value if type(value) in [int,float,bool,str,complex] else value.copy()
+            self.上级.数据源.设值(new_value)
+            self.当完成赋值(self, new_value)
+            # funcs.Utils.print(self,new_value)
             pass
 
         def chooser(self): raise NotImplementedError()  # """打开某一种选择器"""

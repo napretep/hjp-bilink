@@ -757,7 +757,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     结点批量编辑 = 翻译("结点批量编辑","nodes batch editing")
     新版本介绍 = 翻译("hjp-linkmaster新版本介绍","Introduction of the new version of hjp-linkmaster")
     是否查看更新日志 = 翻译("是否查看更新日志? 你也可以稍后自己查看", "hjp-linkmaster has been updated, do you want to check the changelog? You can also check it yourself later")
-    检测到同时启用了本地版与网络版插件 = 翻译("检测到同时启用了本地版与网络版插件,现在将取消启动本地版插件,如果你想启动本地版插件,请先禁用或卸载网络版插件","It is detected that both local and network versions of the addon are enabled, now the local version of the addon will be de-activated.If you want to start the local version of the plugin, please disable or uninstall the network version first ")
+    检测到同时启用了本地版与网络版插件 = 翻译("hjp_linkmaster:检测到同时启用了本地版与网络版插件,现在将取消启动本地版插件,如果你想启动本地版插件,请先禁用或卸载网络版插件","hjp_linkmaster:It is detected that both local and network versions of the addon are enabled, now the local version of the addon will be de-activated.If you want to start the local version of the plugin, please disable or uninstall the network version first ")
 
 if __name__ == "__main__":
     print(Translate.打开配置表)
