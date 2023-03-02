@@ -14,20 +14,21 @@ from aqt.utils import showInfo, tooltip
 from . import funcs, terms
 
 CardId = funcs.Compatible.CardId()
-
+from .compatible_import import *
+译 = funcs.译
 # print, _ = clipper_imports.funcs.logger(__name__)
 ankilink = funcs.G.src.ankilink
 
-
-def find_card_from_context(context):
-    from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
-    if isinstance(context, Editor):
-        return context.card.id
-    if isinstance(context, SingleCardPreviewerMod):
-        return context.card().id
-    if isinstance(context, BrowserPreviewer):
-        return context.card().id
-    return None
+#
+# def find_card_from_context(context):
+#     from ..bilink.dialogs.custom_cardwindow import SingleCardPreviewerMod
+#     if isinstance(context, Editor):
+#         return context.card.id
+#     if isinstance(context, SingleCardPreviewerMod):
+#         return context.card().id
+#     if isinstance(context, BrowserPreviewer):
+#         return context.card().id
+#     return None
 
 
 def on_js_message(handled, url: str, context):
@@ -81,17 +82,25 @@ def on_js_message(handled, url: str, context):
         else:
             showInfo("未知指令/unknown command:<br>" + url)
     elif url.startswith("file:/"):
-        matches = re.search("file:/{2,3}(?P<pdfpath>.*)#page=(?P<page>\d+)$", url)
-        pdfpath = matches.group("pdfpath")
-        pdfurl = quote(pdfpath)
-        pagenum = matches.group("page")
-        cmd: "str" = funcs.G.CONFIG.PDFLink_cmd.value
-        if cmd.__contains__(terms.PDFLink.url):
-            cmd = re.sub(f"{{{terms.PDFLink.url}}}", pdfurl, cmd)
+        matches = re.search(r"file:/{2,3}(?P<pdfpath>.*)#page=(?P<page>\d+)$", url)
+        if matches:
+            pdfpath = matches.group("pdfpath")
+            pdfurl = quote(pdfpath)
+            pagenum = matches.group("page")
+            cmd: "str" = funcs.G.CONFIG.PDFLink_cmd.value
+            if cmd.__contains__(terms.PDFLink.url):
+                cmd = re.sub(f"{{{terms.PDFLink.url}}}", pdfurl, cmd)
+            else:
+                cmd = re.sub(f"{{{terms.PDFLink.path}}}", pdfpath, cmd)
+            cmd = re.sub(f"{{{terms.PDFLink.page}}}", pagenum, cmd)
+            # print(cmd)
+            # tooltip(cmd)
+            os.system(cmd)
         else:
-            cmd = re.sub(f"{{{terms.PDFLink.path}}}", pdfpath, cmd)
-        cmd = re.sub(f"{{{terms.PDFLink.page}}}", pagenum, cmd)
-        # print(cmd)
-        # tooltip(cmd)
-        os.system(cmd)
+            matches = re.search("file:/{2,3}(?P<path>.*)$", url).group("path")
+
+            result = QMessageBox.information(None,译.你想打开链接吗, matches,QMessageBox.Yes | QMessageBox.No)
+            if result == QMessageBox.Yes:
+                os.system(matches)
+
     return handled

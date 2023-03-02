@@ -105,6 +105,7 @@ class Grapher(QMainWindow):
         self.init_graph_item()
         self.data.gviewdata.数据更新.视图访问发生()
         QShortcut(Qt.Key.Key_Delete, self).activated.connect(self.toolbar.deleteItem)
+        QShortcut(Qt.Key.Key_F2,self).activated.connect(self.toolbar.node_property_editor)
 
     def 自身属性查看器(self):
         self.data.gviewdata.meta_helper.创建UI(funcs.组件定制.对话窗口(标题="info of view", 最大宽度=600)).exec()

@@ -331,7 +331,7 @@ class 类型_视图结点模型(基类_模型):
             自定义组件=lambda 组件生成器: widgets.自定义组件.角色多选(组件生成器),
             默认值=[],
             值类型=枚举.值类型.列表,
-            值解释=" 0 or 5 if no role then -1 ",
+            值解释="[1,3,4] or [3,4,5] , if no role then []",
             可批量编辑=1,
     ))
 
@@ -348,9 +348,9 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             _读取函数=lambda 项: funcs.GviewConfigOperation.获取结点角色名(项.上级.数据源.模型.上级, 项.上级.数据源.结点编号),
             组件类型=枚举.组件类型.label,  # 展示用的组件
-            值解释="'apple' or 'banana' if no role then '' ",
+            值解释="['apple','banana'] or ['banana'] if no role then [] ",
             默认值="",
-            值类型=枚举.值类型.文本
+            值类型=枚举.值类型.列表
     ))
 
     主要结点: 类型_视图结点属性项 = field(default_factory=lambda: 类型_视图结点属性项(
