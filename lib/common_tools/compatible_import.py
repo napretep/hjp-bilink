@@ -362,6 +362,11 @@ class QItemSelectionModel_SelectionFlag:
 class QStyle_StateFlag:
     State_Selected = QStyle.StateFlag.State_Selected if Utils.isQt6() else QStyle.State_Selected
 
+class QMessageBox_StandardButton:
+    Yes = QMessageBox.StandardButton.Yes if Utils.isQt6() else QMessageBox.Yes
+    No = QMessageBox.StandardButton.No if Utils.isQt6() else QMessageBox.No
+
+
 def qconnect(
     signal: Union[Callable, pyqtSignal, pyqtBoundSignal], func: Callable
 ) -> None:

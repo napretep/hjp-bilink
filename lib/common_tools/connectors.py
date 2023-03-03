@@ -14,7 +14,8 @@ else:
 from anki import hooks
 from aqt import browser
 from anki.notes import Note
-from anki.utils import isWin
+from anki.utils import is_win as isWin
+is_win = isWin
 from aqt import gui_hooks, progress, mw, webview, reviewer,addcards
 from aqt.browser.previewer import MultiCardPreviewer, BrowserPreviewer
 from aqt.editor import Editor

@@ -875,8 +875,8 @@ class Utils(object):
 
         @staticmethod
         def 发出提醒():
-            code = QMessageBox.information(None, 译.新版本介绍, 译.是否查看更新日志, QMessageBox.Yes | QMessageBox.No)
-            if code == QMessageBox.Yes:
+            code = QMessageBox.information(None, 译.新版本介绍, 译.是否查看更新日志, QMessageBox_StandardButton.Yes | QMessageBox_StandardButton.No)
+            if code == QMessageBox_StandardButton.Yes:
                 Utils.版本.打开网址()
 
         @staticmethod
