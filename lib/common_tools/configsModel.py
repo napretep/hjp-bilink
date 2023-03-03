@@ -997,6 +997,14 @@ class GviewConfigModel(BaseConfigModel):
 
     ))
 
+    split_screen_for_roaming:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_漫游复习时分屏],
+            tab_at="main",
+            value=True,
+            component=ConfigModel.Widget.radio,
+
+    ))
+
     default_deck_for_add_card:ConfigModelItem = field(default_factory=lambda:ConfigModelItem(
             instruction=[译.说明_新增卡片指定存放牌组],
             tab_at = "main",

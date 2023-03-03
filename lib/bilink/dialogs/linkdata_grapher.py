@@ -46,6 +46,7 @@ GviewConfig = common_tools.objs.Record.GviewConfig
 译 = Translate = common_tools.language.Translate
 Struct = common_tools.objs.Struct
 funcs = common_tools.funcs
+funcs2 = common_tools.funcs2
 src = common_tools.G.src
 models = common_tools.models
 本 = common_tools.baseClass.枚举命名
@@ -1189,9 +1190,9 @@ class Grapher(QMainWindow):
             pass
 
         def create_view(self):
-            视图索引 = common_tools.funcs.GviewOperation.create().uuid
-            if 视图索引:
-                self.superior.load_node([视图索引], 参数_视图结点类型=枚举_视图结点类型.视图)
+            视图 = common_tools.funcs.GviewOperation.create()
+            if 视图:
+                self.superior.load_node([视图.uuid], 参数_视图结点类型=枚举_视图结点类型.视图)
             pass
 
         def initEvent(self):
@@ -1805,6 +1806,9 @@ class GrapherRoamingPreviewer(QMainWindow):
         if self.superior.data.gviewdata.config_model.data.roaming_sidebar_hide.value:
             self.switch_sidebar_show_hide()
         self.初始化快捷键()
+        if self.superior.data.gviewdata.config_model.data.split_screen_for_roaming.value:
+            funcs2.通用.窗口.半开(self.superior,"右")
+            funcs2.通用.窗口.半开(self)
 
     def 初始化快捷键(self):
 

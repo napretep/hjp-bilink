@@ -24,4 +24,5 @@ from . import (objs,
                 baseClass,
                 graphical_bilinker,
 models,
+funcs2,
                )
