@@ -259,7 +259,8 @@ class GviewOperation:
     @staticmethod
     def 列出已打开的视图():
         from ..bilink.dialogs.linkdata_grapher import Grapher
-        return [键 for 键 in G.mw_gview.keys() if isinstance(G.mw_gview[键], Grapher)]
+        结果:List[str] = [键 for 键 in G.mw_gview.keys() if isinstance(G.mw_gview[键], Grapher)]
+        return 结果
 
     @staticmethod
     def 更新缓存(视图: "str|GViewData" = None):
@@ -457,9 +458,10 @@ class GviewOperation:
             if 视图标识 in G.mw_gview and isinstance(G.mw_gview[视图标识], Grapher):
                 视图窗口: Grapher = G.mw_gview[视图标识]
                 视图窗口.close()
-            config = GviewOperation.load(视图标识).config
-            if config:
-                GviewConfigOperation.从数据库删除(config)
+            [G.mw_gview[gid].remove_node(视图标识) for  gid in  GviewOperation.列出已打开的视图() if 视图标识 in G.mw_gview[gid].data.gviewdata.nodes]
+            视图数据 = GviewOperation.load(视图标识)
+            if len(视图数据.config_model.data.appliedGview.value)==1:
+                GviewConfigOperation.从数据库删除(视图数据.config)
             DB.go(DB.table_Gview)
             DB.delete(where=DB.LET(uuid=视图标识)).commit()
 

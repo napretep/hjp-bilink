@@ -948,7 +948,7 @@ class GviewConfigModel(BaseConfigModel):
     ))
     name: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["本项设定次此视图配置的名字"],
-            value="new gview config",
+            value="gview config "+safe.funcs.Utils.时间戳转日期(int(time.time())).strftime("%Y%m%d%H%M%S"),
             component=ConfigModel.Widget.line,
             tab_at="main",
             validate=lambda value, item: re.search(r"\S", value)

@@ -1809,7 +1809,7 @@ class GrapherRoamingPreviewer(QMainWindow):
         if self.superior.data.gviewdata.config_model.data.roaming_sidebar_hide.value:
             self.switch_sidebar_show_hide()
         self.初始化快捷键()
-        if self.superior.data.gviewdata.config_model.data.split_screen_for_roaming.value:
+        if self.superior.data.gviewdata.config_model.data.split_screen_when_roaming.value:
             funcs2.通用.窗口.半开(self.superior,"右")
             funcs2.通用.窗口.半开(self)
 
