@@ -995,7 +995,7 @@ class Grapher(QMainWindow):
             menu = QMenu()
             menu.addAction(Translate.删除结点).triggered.connect(lambda: self.superior.remove_many_nodes(self.superior.selected_nodes()))
             # noinspection PyUnresolvedReferences
-            menu.addAction(Translate.修改描述).triggered.connect(lambda: self.superior.结点属性查看器(self))
+            menu.addAction(Translate.修改描述).triggered.connect(lambda: self.superior.结点属性查看器([self],[]))
 
             if self.superior.data.gviewdata.nodes[self.索引].数据类型.值 == common_tools.baseClass.视图结点类型.卡片:
                 pair_li: "list[LinkDataPair]" = [LinkDataPair(item.索引, funcs.CardOperation.desc_extract(item.索引)) for item in self.superior.selected_nodes() if funcs.CardOperation.exists(item.索引)]
@@ -1846,7 +1846,7 @@ class GrapherRoamingPreviewer(QMainWindow):
 
             配置数据 = self.superior.data.gviewdata.config_model
             队列 = [编号 for 编号 in 视图数据.nodes.keys() if funcs.GviewConfigOperation.满足过滤条件(视图数据, 编号, 配置数据)]
-            队列2 = funcs.GviewConfigOperation.漫游路径生成(视图数据, 配置数据, 队列, [node.索引 for node in self.superior.selected_nodes() if node.索引 in 队列])
+            队列2 = funcs.GviewConfigOperation.漫游路径生成(视图数据, 配置数据, 队列, [node.索引 for node in self.superior.selected_nodes() if node.isSelected() and node.索引 in 队列])
             # funcs.Utils.print(list(视图数据.nodes.keys()),队列, 队列2,配置数据.__str__())
             return 队列2
 
@@ -2040,7 +2040,7 @@ class GrapherRoamingPreviewer(QMainWindow):
         def 视图信息组件初始化(self):
             for 名, 值 in self.视图信息组件字典.items():
                 self.视图信息表单布局.addRow(值.数据源.展示名, 值)
-            funcs.Utils.print(self.视图信息组件字典.__str__())
+            # funcs.Utils.print(self.视图信息组件字典.__str__())
             self.视图信息组合组件.setLayout(self.视图信息表单布局)
             pass
 

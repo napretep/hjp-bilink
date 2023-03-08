@@ -1298,7 +1298,7 @@ class GviewConfigOperation(BaseConfig):
         边集 = 视图数据.edges.keys()
         while 结点集:
             if not 栈:
-                栈.append(结点集.pop() if not 起点 else 起点.pop())
+                栈.append(结点集.pop() if not 起点 else 起点.pop(0))
             while 栈:
                 结点 = 栈.pop()
                 已访问.append(结点)
@@ -1319,7 +1319,7 @@ class GviewConfigOperation(BaseConfig):
         边集 = 视图数据.edges.keys()
         while 结点集:
             if not 队:
-                队.insert(0, 结点集.pop() if not 起点 else 起点.pop())
+                队.insert(0, 结点集.pop() if not 起点 else 起点.pop(0))
             while 队:
                 结点 = 队.pop()
                 已访问.append(结点)
@@ -1388,6 +1388,7 @@ class GviewConfigOperation(BaseConfig):
                     开始结点 = 可能的开始结点+开始结点
                 if 选中队列:
                     开始结点 = 选中队列+开始结点
+                Utils.print("开始结点={开始结点}".format(开始结点=开始结点))
             if 图排序模式 == 字典键名.视图配置.图排序模式.广度优先遍历:
                 return GviewConfigOperation.漫游路径生成之广度优先遍历(视图数据, 队列, 开始结点)
             else:
@@ -2326,7 +2327,7 @@ class CardOperation:
             next_date = datetime.fromtimestamp(0)  # (Y,M,D,H,M,S,MS)
             last_date = datetime.fromtimestamp(0)  # (Y,M,D,H,M,S,MS)
         # today = datetime.today()  # (Y,M,D,H,M,S,MS)
-        Utils.print(last_date, next_date)
+        # Utils.print(last_date, next_date)
         return last_date, next_date
 
 
