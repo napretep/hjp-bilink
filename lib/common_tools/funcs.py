@@ -471,7 +471,8 @@ class GviewOperation:
         return
 
     @staticmethod
-    def get_correct_view_name_input(placeholder=""):
+    def get_correct_view_name_input(placeholder="",need_config=False,config=None):
+
         def view_name_check(name: str, placeholder="") -> bool:
             if name == "" or re.search(r"\s", name) or re.search("::::", name) \
                     or re.search("\s", "".join(name.split("::"))) or "".join(name.split("::")) == "":
@@ -494,9 +495,12 @@ class GviewOperation:
         return (viewName, submitted)
 
     @staticmethod
-    def create(nodes=None, edges=None, name="", need_save=True, need_open=True):
+    def create(nodes=None, edges=None, name="", need_save=True, need_open=True, config=None):
+        """需要进行一个兼容处理, 既要满足过去的使用方式, 又要拓展到未来.
+        2023年3月9日02:43:30 新版处理对象: 视图名, 是否使用已有配置
+        """
         if name == "":
-            name, submitted = GviewOperation.get_correct_view_name_input()
+            name, submitted = GviewOperation.get_correct_view_name_input(config=config)
         else:
             submitted = True
         if not submitted:

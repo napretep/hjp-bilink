@@ -8,7 +8,7 @@ __time__ = '2021/7/30 9:09'
 """
 import abc
 import collections
-import json
+import json,time
 import re,sys
 import sqlite3
 from datetime import datetime
@@ -1233,7 +1233,7 @@ class Record(QObject):
             if uuid is not None and data is None:
                 raise ValueError("有 uuid 但没有 data , 你是不是想读取Config? 读取请用 readModelFromDB")
             self.uuid = uuid if uuid else funcs.UUID.by_random()
-            self.name = name if name else "graph config"
+            self.name = name if name else "graph config"+ funcs.Utils.时间戳转日期(int(time.time())).strftime("%Y%m%d%H%M%S")
             self.data = self.initData(json.loads(data)) if data else self.initData({}) # 这个是模型
             # self.信号 =
             self.一致性检查()
@@ -1259,7 +1259,11 @@ class Record(QObject):
             from .configsModel import GviewConfigModel
             template = GviewConfigModel()
             for k,v in _data.items():
-                template[k]=v
+                try:
+                    template[k]=v
+                except:
+                    tooltip("config error, override")
+                    continue
             return template
 
         def getDict(self):

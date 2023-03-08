@@ -113,13 +113,15 @@ class GViewData:
         self.name:str = name
         self.config:str = config
         self.meta=funcs.GviewOperation.默认元信息模板(kwargs["meta"] if "meta" in kwargs else None)
-        if not self.config:
-            #safe.funcs.GviewConfigOperation.指定视图配置(self,need_save=False) # 此时还在创建中, 不需要保存
+
+        if safe.funcs.GviewConfigOperation.存在(self.config):
+            self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
+        else:
+            # if not self.config:
+                # safe.funcs.GviewConfigOperation.指定视图配置(self,need_save=False) # 此时还在创建中, 不需要保存
             self.config_model = safe.objs.Record.GviewConfig()
             self.config = self.config_model.uuid
-        else:
-            self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
-
+            self.config_model.saveModelToDB()
         结点数据集字典 = {}
         结点数据模板 = funcs.GviewOperation.依参数确定视图结点数据类型模板()
         边数据集字典 = {}
@@ -996,8 +998,14 @@ class GviewConfigModel(BaseConfigModel):
             component=ConfigModel.Widget.radio,
 
     ))
+    view_node_inherit_config:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+            instruction=[译.说明_视图结点创建默认配置],
+            tab_at="main",
+            value=True,# deck_id
+            component=ConfigModel.Widget.radio,
 
-    split_screen_for_roaming:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    ))
+    split_screen_when_roaming:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_漫游复习时分屏],
             tab_at="main",
             value=True,

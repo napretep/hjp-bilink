@@ -185,6 +185,7 @@ class Grapher(QMainWindow):
         self.update_edge_highlight()
 
     def create_view(self):
+        """根据当前视图的情况,创建一个新的视图"""
         name, submitted = funcs.GviewOperation.get_correct_view_name_input()
         if not submitted: return
         self.data.node_edge_packup()
@@ -1192,6 +1193,8 @@ class Grapher(QMainWindow):
         def create_view(self):
             视图 = common_tools.funcs.GviewOperation.create()
             if 视图:
+                视图.config=self.superior.data.gviewdata.config
+                视图.保存()
                 self.superior.load_node([视图.uuid], 参数_视图结点类型=枚举_视图结点类型.视图)
             pass
 
