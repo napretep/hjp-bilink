@@ -15,7 +15,7 @@ import sys, platform, subprocess
 import tempfile
 import urllib.parse
 from urllib.parse import quote
-
+import traceback
 import uuid
 from collections import Sequence
 from datetime import datetime, timedelta
@@ -129,6 +129,7 @@ class GviewOperation:
         uuid = data if type(data) == str else data.uuid
         DB = G.DB
         DB.go(DB.table_Gview)
+
         return DB.select(DB.EQ(uuid=uuid)).return_all().zip_up()[0]["config"]
 
     @staticmethod
@@ -314,9 +315,10 @@ class GviewOperation:
     @staticmethod
     def 刷新所有已打开视图的配置():
         from ..bilink.dialogs.linkdata_grapher import Grapher
-        for 视图编号, 视图窗口 in G.mw_gview.items():
-            if isinstance(视图窗口, Grapher):
-                视图窗口.data.gviewdata.config_model = GviewConfigOperation.从数据库读(视图窗口.data.gviewdata.config)
+        for 视图编号 in GviewOperation.列出已打开的视图():
+            视图窗口:Grapher = G.mw_gview[视图编号]
+            视图窗口.data.gviewdata.数据更新.刷新配置模型()
+            # 视图窗口.data.gviewdata.config_model = GviewConfigOperation.从数据库读(视图窗口.data.gviewdata.config)
 
     @staticmethod
     def fuzzy_search(search_string: str):
@@ -340,9 +342,9 @@ class GviewOperation:
         """"""
         Logic = objs.Logic
         if data:
-            # Utils.print(data,need_logFile=True)
+            Utils.print("保存前的数据",data)
             prepare_data = data.to_DB_format()
-            # Utils.print(prepare_data,need_logFile=True)
+            Utils.print("写入数据库的数据",prepare_data)
             if exclude is not None:
                 [prepare_data.pop(item) for item in exclude]
             DB = G.DB.go(G.DB.table_Gview)
@@ -661,17 +663,25 @@ class Utils(object):
     def print(*args, need_timestamp=True, need_logFile=True, **kwargs):
 
         if G.ISDEBUG:
-            caller = sys._getframe(1).f_code.co_name
+
+            caller1 = sys._getframe(1).f_code.co_name
+            caller1_filename:"str" = sys._getframe(1).f_code.co_filename
+            caller1_lineNo = sys._getframe(1).f_lineno
             caller2 = sys._getframe(2).f_code.co_name
+            caller2_filename:"str" = sys._getframe(2).f_code.co_filename
+            caller2_lineNo = sys._getframe(2).f_lineno
             if need_timestamp:
                 ts = (datetime.now().strftime("%Y%m%d%H%M%S"))
             else:
                 ts = ""
+            head = f"{ts}|{caller2_filename.replace(G.src.path.addons21,'')}:{caller2_lineNo}:{caller2}\n>>{caller1_filename.replace(G.src.path.addons21,'')}:{caller1_lineNo}:{caller1}:\n"
+            head2 = "hjp-linkmaster-log:"
             if need_logFile:
                 f = open(G.src.path.logtext, "a", encoding="utf-8")
-                print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs, file=f)
+                traceback.print_stack(file=f)
+                print(head2,*args, **kwargs, file=f)
             else:
-                print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs)
+                print(head2, *args, **kwargs)
 
     @staticmethod
     def 字典默认键值对(默认值, 键名, 对应值字典, 类型对照: "dict" = None):
@@ -1507,7 +1517,7 @@ class GviewConfigOperation(BaseConfig):
         return DB.go(DB.table_GviewConfig).exists(DB.EQ(uuid=标识))
 
     @staticmethod
-    def 指定视图配置(视图记录: "GViewData|str", 新配置记录: "objs.Record.GviewConfig|str|None" = None, need_save=True):
+    def 指定视图配置(视图记录: "GViewData|str", 新配置记录: "objs.Record.GviewConfig|str|None" = None, need_save=True,视图初始化中=False):
 
         def 删除前配置中的当前视图():
             前配置记录 = GviewConfigOperation.从数据库读(视图记录.config)
@@ -1536,21 +1546,32 @@ class GviewConfigOperation(BaseConfig):
             新配置记录.saveModelToDB()
             # Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview after append =  {应用配置视图表}, gview.config = {视图记录.config}", need_logFile=True)
 
-        if type(视图记录) == str:
-            视图记录 = GviewOperation.load(视图记录)
+
 
         if 新配置记录 is None:
             新配置记录 = objs.Record.GviewConfig()
         elif type(新配置记录) == str:
             新配置记录 = objs.Record.GviewConfig.readModelFromDB(新配置记录)
 
-        if 视图记录.config and objs.Record.GviewConfig.静态_存在于数据库中(视图记录.config):
-            删除前配置中的当前视图()
+        if not 视图初始化中:
+            if type(视图记录) == str:
+                视图记录 = GviewOperation.load(视图记录)
+            if 视图记录.config and objs.Record.GviewConfig.静态_存在于数据库中(视图记录.config):
+                删除前配置中的当前视图()
 
-        将当前视图添加到现配置的支配表中()
+            将当前视图添加到现配置的支配表中()
+        else:
+            应用配置视图表: "list[str]" = 新配置记录.data.appliedGview.value
+            应用配置视图表.append(视图记录)
+            新配置记录.data.appliedGview.setValue(应用配置视图表)
+            新配置记录.data.元信息.确定保存到数据库 = True
+            新配置记录.saveModelToDB()
+
         if need_save:
             GviewOperation.save(视图记录)
         Utils.print("assign view over ", need_logFile=True)
+
+        return 新配置记录
 
     @staticmethod
     def 移除视图配置(视图标识: "str", 配置标识: "str"):
@@ -1572,7 +1593,7 @@ class GviewConfigOperation(BaseConfig):
         result = G.DB.commit()
         return list(result)
 
-    pass
+
 
 
 class Config(BaseConfig):
@@ -2134,7 +2155,7 @@ class CardOperation:
             else:
                 StrReadyToExtract = note.fields[ins.字段.值]
             step1_desc = HTML.TextContentRead(StrReadyToExtract)
-            Utils.print(step1_desc)
+            # Utils.print(step1_desc)
             step2_desc = step1_desc if ins.长度.值 == 0 else step1_desc[0:int(ins.长度.值)]
             if ins.正则 != "":
                 search = re.search(ins.正则, step2_desc)

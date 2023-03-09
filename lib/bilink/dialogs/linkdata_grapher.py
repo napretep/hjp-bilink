@@ -162,15 +162,15 @@ class Grapher(QMainWindow):
         pass
 
     def closeEvent(self, a0: QtGui.QCloseEvent) -> None:
-        mode = self.data.graph_mode
-        if mode == GraphMode.view_mode:
-            self.data.node_edge_packup()
 
-            if self.roaming:
-                self.roaming.close()
+        self.data.node_edge_packup()
 
-            common_tools.funcs.GviewOperation.更新缓存(视图=self.data.gviewdata.uuid)
-            common_tools.G.mw_gview[self.data.gviewdata.uuid] = None
+        if self.roaming:
+            self.roaming.close()
+
+        # common_tools.funcs.GviewOperation.更新缓存(视图=self.data.gviewdata.uuid)
+        # common_tools.funcs.Utils.print("当前关闭时的视图对象",self.data.gviewdata)
+        common_tools.G.mw_gview[self.data.gviewdata.uuid] = None
             # common_tools.G.GViewAdmin_window
 
     def close(self):
@@ -1193,7 +1193,9 @@ class Grapher(QMainWindow):
         def create_view(self):
             视图 = common_tools.funcs.GviewOperation.create()
             if 视图:
-                视图.config=self.superior.data.gviewdata.config
+                if self.superior.data.gviewdata.config_model.data.view_node_inherit_config.value:
+                    funcs.GviewConfigOperation.指定视图配置(视图,self.superior.data.gviewdata.config)
+                    视图.数据更新.刷新配置模型()
                 视图.保存()
                 self.superior.load_node([视图.uuid], 参数_视图结点类型=枚举_视图结点类型.视图)
             pass
@@ -1300,7 +1302,10 @@ class Grapher(QMainWindow):
             #     funcs.GviewConfigOperation.指定视图配置(视图记录, 配置记录)
             #     视图记录.config = 配置记录.uuid
             #     配置记录 = 配置类.readModelFromDB(配置记录.uuid)
+            # 视图记录.config_model  = funcs.GviewConfigOperation.从数据库读(视图记录.config)
             配置记录 = 视图记录.config_model
+            funcs.Utils.print("打开的记录是",配置记录)
+            # 配置记录.saveModelToDB()
             配置组件 = common_tools.funcs.GviewConfigOperation.makeConfigDialog(调用者=self, 数据=配置记录.data, 关闭时回调=lambda 闲置参数: 配置记录.saveModelToDB())
             配置组件布局: "QVBoxLayout" = 配置组件.layout()
 
@@ -1354,7 +1359,9 @@ class Grapher(QMainWindow):
             配置组件布局.addWidget(配置组件的底部组件)
             配置组件.setLayout(配置组件布局)
             配置组件.exec()
+            funcs.Utils.print("关闭后的记录是", 配置记录)
             funcs.GviewOperation.刷新所有已打开视图的配置()
+
             pass
 
         def resetConfig(self):

@@ -19,6 +19,21 @@ from typing import Any, Union
 from urllib.parse import unquote
 from .compatible_import import *
 logtext = r"C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\log.txt"
+
+
+class SAFE:
+    @property
+    def funcs(self):
+        from . import funcs
+        return funcs
+
+    @property
+    def linkdata_grapher(self):
+        from ..bilink.dialogs import linkdata_grapher
+        return linkdata_grapher
+
+safe = SAFE()
+
 class Utils(object):
     @staticmethod
     def print(*args, need_timestamp=True, need_logFile=True, **kwargs):
@@ -1229,14 +1244,19 @@ class Record(QObject):
         def __init__(self,uuid=None, name=None, data=None):
             """这里的读取就是dict"""
             super().__init__()
+            新视图=False
             from . import  funcs,configsModel
             if uuid is not None and data is None:
                 raise ValueError("有 uuid 但没有 data , 你是不是想读取Config? 读取请用 readModelFromDB")
+            if uuid is None and data is None:
+                新视图=True
             self.uuid = uuid if uuid else funcs.UUID.by_random()
-            self.name = name if name else "graph config"+ funcs.Utils.时间戳转日期(int(time.time())).strftime("%Y%m%d%H%M%S")
-            self.data = self.initData(json.loads(data)) if data else self.initData({}) # 这个是模型
+            self.name = name if name else "graph config "+ funcs.Utils.时间戳转日期(int(time.time())).strftime("%Y%m%d%H%M%S")
+            self.data = self.initData(json.loads(data)) if data else self.initData(
+                    {"uuid":self.uuid,"name":self.name}) # 这个是模型
             # self.信号 =
-            self.一致性检查()
+            if not 新视图:
+                self.一致性检查()
             # print(f"initilizing gview config={self} ")
             if self.静态_存在于数据库中(self.uuid):
                 self.saveModelToDB()
@@ -1248,8 +1268,11 @@ class Record(QObject):
             应用该配置的视图表:"list[str]" = self.data.appliedGview.value
             新值 = 应用该配置的视图表.copy()
             for 视图标识 in 应用该配置的视图表:
-                视图配置编号 = funcs.GviewOperation.获取视图配置编号(视图标识)
-                if 视图配置编号!=self.uuid:
+                if funcs.GviewOperation.exists(uuid=视图标识):
+                    视图配置编号 = funcs.GviewOperation.获取视图配置编号(视图标识)
+                    if 视图配置编号!=self.uuid:
+                        新值.remove(视图标识)
+                else:
                     新值.remove(视图标识)
             self.data.appliedGview.setValue(新值)
 
@@ -1272,16 +1295,29 @@ class Record(QObject):
             return d
 
         def saveModelToDB(self):
+
             if self.data.元信息.确定保存到数据库:
                 # self.一致性检查()
                 from . import G,funcs
                 # funcs.Utils.print(self.data.get_dict())
                 G.DB.go(G.DB.table_GviewConfig)
                 self.name = self.data.name.value
+                funcs.Utils.print("保存的记录是",self)
                 if G.DB.exists(Logic.EQ(uuid=self.uuid)):
                     G.DB.update(values=Logic.LET(**self.getDict()),where=Logic.EQ(uuid=self.uuid)).commit()
                 else:
                     G.DB.insert(**self.getDict()).commit()
+
+        def 指定视图配置(self,视图编号):
+            if type(视图编号)==str:
+                if 视图编号 not in self.data.appliedGview.value:
+                    self.data.appliedGview.value.append(视图编号)
+            elif isinstance(视图编号,safe.funcs.GViewData):
+                视图编号.config = self.uuid
+                视图编号.config_model = self
+                if 视图编号.uuid not in self.data.appliedGview.value:
+                    self.data.appliedGview.value.append(视图编号.uuid)
+            # self.data.appliedGview.setValue(视图编号)
 
         def 从数据库中删除(self):
             from . import G

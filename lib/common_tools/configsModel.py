@@ -114,14 +114,23 @@ class GViewData:
         self.config:str = config
         self.meta=funcs.GviewOperation.默认元信息模板(kwargs["meta"] if "meta" in kwargs else None)
 
-        if safe.funcs.GviewConfigOperation.存在(self.config):
-            self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
-        else:
-            # if not self.config:
-                # safe.funcs.GviewConfigOperation.指定视图配置(self,need_save=False) # 此时还在创建中, 不需要保存
+        if not safe.funcs.GviewConfigOperation.存在(self.config):
+            # safe.funcs.GviewConfigOperation.指定视图配置(self,need_save=False)
             self.config_model = safe.objs.Record.GviewConfig()
-            self.config = self.config_model.uuid
+            self.config_model.指定视图配置(self)
             self.config_model.saveModelToDB()
+        else:
+            self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
+        # if safe.funcs.GviewConfigOperation.存在(self.config):
+        #     self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
+        # else:
+        #         # safe.funcs.GviewConfigOperation.指定视图配置(self,need_save=False) # 此时还在创建中, 不需要保存
+        #     config_id = safe.funcs.GviewConfigOperation.指定视图配置(self)
+        #     # self.config_model = safe.objs.Record.GviewConfig()
+        #     # self.config = self.config_model.uuid
+        #     # self.config_model.saveModelToDB()
+        #     tooltip(f"create new config:{self.config_model.name}")
+
         结点数据集字典 = {}
         结点数据模板 = funcs.GviewOperation.依参数确定视图结点数据类型模板()
         边数据集字典 = {}
@@ -206,6 +215,9 @@ class GViewData:
     def 获取结点描述(self,编号,全部内容=False):
         from . import funcs
         return funcs.GviewOperation.获取视图结点描述(self,编号,全部内容)
+
+    # def 更新配置(self):
+
 
     def 获取结点角色表(self):
         if self.config:
@@ -304,6 +316,9 @@ class GViewData:
         def 结点复习发生(self,结点编号):
             self.上级.nodes[结点编号][本.结点.上次复习]=(int(time.time()))
             self.保存视图数据()
+
+        def 刷新配置模型(self):
+            self.上级.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.上级.config)
 
 @dataclass
 class GraphMode:
@@ -948,7 +963,7 @@ class GviewConfigModel(BaseConfigModel):
     ))
     name: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=["本项设定次此视图配置的名字"],
-            value="gview config "+safe.funcs.Utils.时间戳转日期(int(time.time())).strftime("%Y%m%d%H%M%S"),
+            value="",
             component=ConfigModel.Widget.line,
             tab_at="main",
             validate=lambda value, item: re.search(r"\S", value)
@@ -1001,7 +1016,7 @@ class GviewConfigModel(BaseConfigModel):
     view_node_inherit_config:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_视图结点创建默认配置],
             tab_at="main",
-            value=True,# deck_id
+            value=False,
             component=ConfigModel.Widget.radio,
 
     ))
