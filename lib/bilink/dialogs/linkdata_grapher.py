@@ -1504,11 +1504,12 @@ class GViewAdmin(QDialog):
         item: "GViewAdmin.Item" = self.model.itemFromIndex(index)
         if item.column() != 0:
             item = self.model.item(item.row(), 0)
-        data = item.data(Qt.UserRole)
-        if data is None:
-            funcs.Utils.tooltip(Translate.不存在)
-            return
-        funcs.Dialogs.open_grapher(gviewdata=funcs.GviewOperation.load(gviewdata=item.data(Qt.UserRole)), mode=GraphMode.view_mode)
+        if item:
+            data = item.data(Qt.UserRole)
+            if data is None:
+                funcs.Utils.tooltip(Translate.不存在)
+                return
+            funcs.Dialogs.open_grapher(gviewdata=funcs.GviewOperation.load(gviewdata=item.data(Qt.UserRole)), mode=GraphMode.view_mode)
 
     def on_horizontal_header_clicked_handle(self):
         print("horizontalHeader clicked")

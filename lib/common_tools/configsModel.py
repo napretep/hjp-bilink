@@ -367,7 +367,7 @@ class AnswerInfoInterface:
 
 @dataclass
 class ConfigModelItem:
-
+    """TODO 将本模型和新模型相融合"""
     instruction: "List[str]"
     value: "Any"
     component: "int"

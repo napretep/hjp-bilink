@@ -9,8 +9,6 @@ G.py 就是GLOBAL.py, 存放一些持续不变的常量
 """
 from typing import Optional
 
-
-
 from . import signals, src_admin, objs, widgets, language
 # from .src_admin import SrcAdmin
 # from .signals import CustomSignals
@@ -20,9 +18,11 @@ from typing import TYPE_CHECKING
 from .compatible_import import *
 import os
 
+
 class installAs:
-    local=0
-    ankiweb=1
+    local = 0
+    ankiweb = 1
+
 
 if TYPE_CHECKING:
     from .configsModel import GroupReviewDictInterface, ConfigModel
@@ -37,11 +37,28 @@ if mw is None:
     mw = MW()
 
 
+class SAFE:
+    @property
+    def funcs(self):
+        from . import funcs
+        return funcs
+
+    @property
+    def linkdata_grapher(self):
+        from ..bilink.dialogs import linkdata_grapher
+        return linkdata_grapher
+
+    @property
+    def objs(self):
+        from .import objs
+        return objs
+
+safe = SAFE()
 
 QTMAXINT = 2147483647
 QTMININT = -2147483647
 
-addonId= 1420819673
+addonId = 1420819673
 say = language.rosetta
 ISDEBUG = ISDEBUG
 
@@ -69,8 +86,8 @@ mw_linkpool_window = mw_addonName["input_window"]  # input窗口
 mw_VersionDialog = mw_addonName["VersionDialog"]
 mw_progresser = mw.__dict__[addonName]["progresser"]
 mw_universal_worker = None
-mw_grapher = mw.__dict__[addonName]["grapher"] # grapher是临时视图, 也叫链接池视图
-mw_gview = {} # 当前运行的视图存放所在地
+mw_grapher = mw.__dict__[addonName]["grapher"]  # grapher是临时视图, 也叫链接池视图
+mw_gview = {}  # 当前运行的视图存放所在地
 GViewAdmin_window = None
 GViewAutoShow_window = None
 mw_addcard_to_grapher_on = False
@@ -81,5 +98,5 @@ browser_addon_menu = None
 # GroupReview_version: "float" = 0
 nextCard_interval: "list[int]" = []  # 用来记录连续过快复习
 cardChangedTime = -1
-customPreviewerBothSide=False
+customPreviewerBothSide = False
 常量_当前等待新增卡片的视图索引: "None|str" = None

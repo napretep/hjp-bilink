@@ -1286,6 +1286,13 @@ class IntroductionOperation:
 class GviewConfigOperation(BaseConfig):
 
     @staticmethod
+    def 获取全部配置表字典():
+        DB = G.DB
+        DB.go(DB.table_GviewConfig)
+        result:"list[dict]" = [row for row in DB.selectAll(DB.table_GviewConfig).return_all().zip_up()]
+        return result
+
+    @staticmethod
     def 获取结点角色数据源(gview_uuid=None, gview_data: "GViewData" = None) -> "list[str]":
 
         if gview_uuid:
