@@ -10,7 +10,7 @@ from .lib.common_tools import compatible_import
 #
 
 
-connectors.funcs.G.src.ADDON_VERSION="2.5.11.2.l"
+connectors.funcs.G.src.ADDON_VERSION="linux.test.w"
 
 connectors.funcs.Utils.版本.检查()
 

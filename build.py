@@ -57,7 +57,8 @@ def pycache_check():
 
 
 def status_check():
-    check_is_debug()
+    if is_win:
+        check_is_debug()
     # pycache_check()
 
 
@@ -128,6 +129,8 @@ def ankiaddon_make(version):
 
 if __name__ == "__main__":
     version = input("请输入版本号\n")
+    if not version and not is_win:
+        version="linux.test"
     # if sys.platform.startswith("win32"):
     for webOrLocal in ["w", "l"]:
         with open("./__init__.py", "r", encoding="utf-8") as f:
