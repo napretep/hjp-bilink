@@ -24,7 +24,8 @@ from .language import Translate, rosetta
 from . import configsModel
 from .compatible_import import *
 from . import funcs, baseClass, hookers, funcs2
-from .all_widgets import basic_widgets
+from .all_widgets.basic_widgets import *
+from .all_widgets.tiny_widgets import *
 
 布局 = 框 = 0
 组件 = 件 = 1
@@ -184,7 +185,7 @@ class SupportDialog(QDialog):
         self.show()
 
 
-class DeckSelectorProtoType(basic_widgets.SelectorProtoType):
+class DeckSelectorProtoType(SelectorProtoType):
     def __init__(self, title_name="", separator="::", header_name=""):
         super().__init__(title_name, separator, header_name)
 
@@ -211,7 +212,7 @@ class DeckSelectorProtoType(basic_widgets.SelectorProtoType):
         from . import funcs
         DeckId = funcs.Compatible.DeckId()
         new_deck_name = self.get_full_item_name(item)
-        mw.col.decks.rename(DeckId(item.deck_id), new_deck_name)
+        mw.col.decks.rename(DeckId(item.data_id), new_deck_name)
         # print(item.deck_name)
 
     def on_view_clicked_handle(self, index):
@@ -280,7 +281,7 @@ class universal_deck_chooser(DeckSelectorProtoType):
         self.结果 = -1
 
 
-class universal_template_chooser(basic_widgets.SelectorProtoType):
+class universal_template_chooser(SelectorProtoType):
     def __init__(self, ):
         super().__init__(title_name="template chooser", header_name="template name")
         self.结果 = -1
@@ -308,7 +309,7 @@ class universal_template_chooser(basic_widgets.SelectorProtoType):
         self.close()
 
 
-class view_chooser(basic_widgets.SelectorProtoType):
+class view_chooser(SelectorProtoType):
     def on_view_doubleclicked_handle(self, index):
         item: "DeckSelectorProtoType.Item" = self.model.itemFromIndex(index)
         self.编号 = item.data_id
@@ -334,10 +335,10 @@ class view_chooser(basic_widgets.SelectorProtoType):
         self.header.new_item_button.hide()
         self.编号 = -1
 
-class view_config_chooser(basic_widgets.SimpleSelectorProtoType):
+class view_config_chooser(SimpleSelectorProtoType):
 
-    def get_all_data_items(self) -> "list[basic_widgets.SelectorProtoType.Id_name]":
-        [self.Id_name(name=config["name"],ID=config["uuid"]) for config in  funcs.GviewConfigOperation.获取全部配置表编号()]
+    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
+        return [self.Id_name(name=config["name"],ID=config["uuid"]) for config in  funcs.GviewConfigOperation.获取全部配置表编号()]
 
     def on_view_doubleclicked_handle(self, index):
         item: "DeckSelectorProtoType.Item" = self.model.itemFromIndex(index)
@@ -351,7 +352,7 @@ class view_config_chooser(basic_widgets.SimpleSelectorProtoType):
         self.结果 = None
 
 
-class universal_field_chooser(basic_widgets.SelectorProtoType):
+class universal_field_chooser(SelectorProtoType):
     def __init__(self, 模板编号, title_name="", separator="::", header_name=""):
         self.模板编号: "int" = 模板编号
         self.tree_structure = False
@@ -382,11 +383,11 @@ class universal_field_chooser(basic_widgets.SelectorProtoType):
 
 
 
-class universal_tag_chooser(basic_widgets.multi_select_prototype):
+class universal_tag_chooser(multi_select_prototype):
     def get_all_items(self) -> 'set[str]':
         return set(mw.col.tags.all())
 
-    def __init__(self, preset: "iter[str]" = None):
+    def __init__(self, preset: "Iterable[str]" = None):
         super().__init__(preset)
 
 
@@ -431,7 +432,7 @@ class tag_chooser_for_cards(universal_tag_chooser):
         pass
 
 
-class role_chooser_for_node(basic_widgets.multi_select_prototype):
+class role_chooser_for_node(multi_select_prototype):
 
     def closeEvent(self, QCloseEvent):
         左侧表的字符串 = self.save()

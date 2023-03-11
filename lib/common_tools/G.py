@@ -52,6 +52,23 @@ class SAFE:
     def objs(self):
         from .import objs
         return objs
+    @property
+    def models(self):
+        from . import models
+        return models
+
+    @property
+    def hookers(self):
+        from .import hookers
+        return hookers
+    @property
+    def widgets(self):
+        from .import widgets
+        return widgets
+    @property
+    def funcs2(self):
+        from . import funcs2
+        return funcs2
 
 safe = SAFE()
 

@@ -529,6 +529,6 @@ class multi_select_prototype(QDialog):
     @dataclass
     class Id_name:
         name: "str"
-        ID: "int"
+        ID: "int|str"
 
 

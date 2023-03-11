@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Any, NewType
 
 from ..compatible_import import *
-from .. import language, baseClass, funcs, funcs2,configsModel,widgets,hookers
+from .. import language, baseClass, funcs, funcs2,configsModel,widgets,hookers,G
 
 
 class 安全导入:

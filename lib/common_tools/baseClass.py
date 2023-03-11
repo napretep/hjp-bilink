@@ -58,6 +58,7 @@ class 枚举命名:
         # 保存得
         编号 = "view_id"
         名称 = "view_name"
+        配置 = "view_config"
         创建时间 = "view_created_time"
         上次访问 = "view_last_visit"
         上次编辑 = "view_last_edit"

@@ -123,13 +123,16 @@ def ankiaddon_make(version):
         os.startfile(repository)
     else:
         print(filename)
-        os.system(f"anki {filename}")
+        programname="anki"
+        os.system(f"{programname} {filename}")
     pass
 
 
 if __name__ == "__main__":
-    version = input("请输入版本号\n")
-    if not version and not is_win:
+
+    if is_win:
+        version = input("请输入版本号\n")
+    else:
         version="linux.test"
     # if sys.platform.startswith("win32"):
     for webOrLocal in ["w", "l"]:

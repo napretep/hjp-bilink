@@ -56,6 +56,7 @@ class 类型_视图结点属性项(基类_属性项):
         return self.值 == other
 
 
+# noinspection PyArgumentList
 @dataclass
 class 类型_视图结点模型(基类_模型):
     """
@@ -328,7 +329,7 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.customize,  # 展示用的组件
-            自定义组件=lambda 组件生成器: widgets.自定义组件.角色多选(组件生成器),
+            自定义组件=lambda 组件生成器:函数库_UI生成.自定义().属性项组件.角色多选(组件生成器),
             默认值=[],
             值类型=枚举.值类型.列表,
             值解释="[1,3,4] or [3,4,5] , if no role then []",

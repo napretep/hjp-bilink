@@ -762,5 +762,8 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     说明_描述提取规则=翻译("在本项设置中,你可以指定提取卡片描述的方式, 比如指定什么模板,提取哪个字段,长度多少,还可以写正则表达式, 双击单元格修改,加号按钮增加规则,减号去掉选中规则, ","")
     说明_漫游复习时分屏=翻译("漫游复习时,将屏幕分成两块","When roaming review, divide the screen into two pieces")
     说明_视图结点创建默认配置= 翻译("创建新的视图结点时,默认使用本配置作为新视图的配置","When creating a new view node, this configuration is used as the configuration of the new view by default")
+    视图配置 = 翻译("视图配置","view config")
+    视图配置选择 = 翻译("视图配置选择","select view config")
+    说明_新建视图_配置选择 = 翻译("请选择一个存在的视图配置,若不选则默认新建一个配置.","Please select an existing view configuration. If not selected, a new configuration will be created by default")
 if __name__ == "__main__":
     print(Translate.打开配置表)
