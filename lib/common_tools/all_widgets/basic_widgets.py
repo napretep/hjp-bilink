@@ -27,7 +27,7 @@ class  安全导入:
     def selector_widgets(self):
         from . import selector_widgets
         return selector_widgets
-导入 = 安全导入()
+imports = 导入 = 安全导入()
 class SelectorProtoType(QDialog):
     """大部分待选表的一个原型"""
 

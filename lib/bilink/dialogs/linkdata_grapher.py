@@ -1186,7 +1186,9 @@ class Grapher(QMainWindow):
             did = self.superior.data.gviewdata.config_model.data.default_deck_for_add_card.value
             if did != -1:
                 addcard.deck_chooser.selected_deck_id = did
-
+            mid = self.superior.data.gviewdata.config_model.data.default_template_for_add_card.value
+            if mid != -1:
+                addcard.notetype_chooser.selected_notetype_id = mid
             # addcard.deck_chooser.selected_deck_id
             pass
 

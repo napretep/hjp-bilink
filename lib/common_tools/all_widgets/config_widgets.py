@@ -1201,6 +1201,23 @@ class GviewConfigDeckChooser(ConfigItemLabelView):
         pass
 
 
+class GviewConfigTemplateChooser(ConfigItemLabelView):
+
+    def on_edit_btn_clicked(self):
+        w = imports.selector_widgets.universal_template_chooser()
+        w.exec()
+        self.ConfigModelItem.setValue(w.结果)
+        pass
+    def SetupData(self, raw_data):
+        if raw_data != -1:
+            self.label.setText(mw.col.models.get(raw_data)["name"])
+        else:
+            self.label.setText("no default template")
+        pass
+
+
+
+
 class GlobalConfigDefaultViewChooser(ConfigItemLabelView):
     """默认视图用的他"""
 

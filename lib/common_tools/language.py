@@ -768,5 +768,6 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     视图配置选择 = 翻译("视图配置选择","select view config")
     说明_新建视图_配置选择 = 翻译("请选择一个存在的视图配置,若不选则默认新建一个配置.","Please select an existing view configuration. If not selected, a new configuration will be created by default")
     不选等于新建 = 翻译("你没有选择任何视图配置,因此将会新建配置","You have not selected any view configuration, so a new configuration will be created")
+    说明_视图添加卡片_默认模板 = 翻译("本项设定当添加卡片类型的结点时，默认要选择的模板","This item sets the template to be selected by default when adding card type nodes")
 if __name__ == "__main__":
     print(Translate.打开配置表)

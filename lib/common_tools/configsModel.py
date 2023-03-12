@@ -20,20 +20,24 @@ from typing import *
 # from .baseClass import CustomConfigItemView
 from .language import Translate
 from .src_admin import MAXINT, MININT, src
-from . import widgets, terms, baseClass,G
+from . import widgets, terms, baseClass, G
 from .compatible_import import *
 from .compatible_import import tooltip, isMac, isWin
 from typing import TYPE_CHECKING
+
 
 class SafeImport:
     @property
     def funcs(self):
         from . import funcs
         return funcs
+
     @property
     def objs(self):
-        from. import objs
+        from . import objs
         return objs
+
+
 safe = SafeImport()
 # class CustomConfigItemView(metaclass=abc.ABCMeta):
 #
@@ -71,8 +75,6 @@ safe = SafeImport()
 译 = Translate
 
 
-
-
 @dataclass
 class GViewData:
     """视图数据类
@@ -83,6 +85,7 @@ class GViewData:
         nodes:{card_id:[posX,posY]}
         edges:[[card_from,card_to]]
     """
+
     # uuid: str
     # name: str
     # # {"card_Id":{"pos":[posx,posy],"priority":int,"accesstimes":int,"dataType":"card/view"}}
@@ -92,27 +95,27 @@ class GViewData:
     # edges: 'models.类型_视图边集模型'  # 在取出时就应该保证边的唯一性,而且主要用来存json字符串,所以不用set
     # meta: "Optional[dict[str,int|None|str]]"=None
     # config: 'str' = ""
-    def __init__(self,**kwargs):
-        from . import funcs,models
+    def __init__(self, **kwargs):
+        from . import funcs, models
         uuid, name, 结点集数据源, 边集数据源 = kwargs["uuid"], kwargs["name"], kwargs["nodes"], kwargs["edges"]
         if "config" in kwargs:
             config = kwargs["config"]
         else:
             config = ""
         版本20221226 = False
-        卡片标识=""
-        边标识=""
+        卡片标识 = ""
+        边标识 = ""
         for 标识 in 结点集数据源.keys():
-            卡片标识=标识
+            卡片标识 = 标识
             break
 
-        if 卡片标识 !="" and type(结点集数据源[卡片标识])==list and type(边集数据源)==list:
+        if 卡片标识 != "" and type(结点集数据源[卡片标识]) == list and type(边集数据源) == list:
             版本20221226 = True
 
-        self.uuid:str = uuid
-        self.name:str = name
-        self.config:str = config
-        self.meta=funcs.GviewOperation.默认元信息模板(kwargs["meta"] if "meta" in kwargs else None)
+        self.uuid: str = uuid
+        self.name: str = name
+        self.config: str = config
+        self.meta = funcs.GviewOperation.默认元信息模板(kwargs["meta"] if "meta" in kwargs else None)
 
         if not safe.funcs.GviewConfigOperation.存在(self.config):
             # safe.funcs.GviewConfigOperation.指定视图配置(self,need_save=False)
@@ -122,7 +125,6 @@ class GViewData:
         else:
             self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
             self.config_model.指定视图配置(self)
-
 
         # if safe.funcs.GviewConfigOperation.存在(self.config):
         #     self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
@@ -143,41 +145,45 @@ class GViewData:
         类型 = baseClass.枚举命名.结点.数据类型
         类型值 = baseClass.视图结点类型
         if 版本20221226:
-            for 标识,位置 in 结点集数据源.items():
-                结点数据集字典[标识]= funcs.GviewOperation.依参数确定视图结点数据类型模板(编号=标识)
+            for 标识, 位置 in 结点集数据源.items():
+                结点数据集字典[标识] = funcs.GviewOperation.依参数确定视图结点数据类型模板(编号=标识)
             for 对儿 in 边集数据源:
-                边数据集字典[f"{对儿[0]},{对儿[1]}"]=funcs.GviewOperation.默认视图边数据模板()
+                边数据集字典[f"{对儿[0]},{对儿[1]}"] = funcs.GviewOperation.默认视图边数据模板()
         else:
 
-            for 标识,值 in 结点集数据源.items():
+            for 标识, 值 in 结点集数据源.items():
                 if 类型 not in 值:
                     if "data_type" in 值:
-                        值[类型]=值["data_type"] # 2023.2.25版本兼容
+                        值[类型] = 值["data_type"]  # 2023.2.25版本兼容
                     else:
                         raise ValueError(f"{值}的{类型}无法确定")
-                if 结点属性.角色 in 值 and type(值[结点属性.角色])==int: # 2023.2.28版本兼容
-                    值[结点属性.角色]=[值[结点属性.角色]]
+                if 结点属性.角色 in 值 and type(值[结点属性.角色]) == int:  # 2023.2.28版本兼容
+                    值[结点属性.角色] = [值[结点属性.角色]]
 
-                值[结点属性.角色] = [角色位置 for 角色位置 in 值[结点属性.角色] if 角色位置 in range(len(self.获取结点角色表()))]
-                if (值[类型] == 类型值.卡片 and not funcs.CardOperation.exists(标识)) or (值[类型] == 类型值.视图 and not funcs.GviewOperation.exists(uuid=标识)) :
+                值[结点属性.角色] = [角色位置 for 角色位置 in 值[结点属性.角色] if
+                                     角色位置 in range(len(self.获取结点角色表()))]
+                if (值[类型] == 类型值.卡片 and not funcs.CardOperation.exists(标识)) or (
+                        值[类型] == 类型值.视图 and not funcs.GviewOperation.exists(uuid=标识)):
                     不存在的结点集.append(标识)
                     continue
                 else:
-                    结点数据集字典[标识] = funcs.GviewOperation.依参数确定视图结点数据类型模板(结点类型=值[类型],编号=标识,数据=值)
-            for 标识,值 in 边集数据源.items():
-                a,b = 标识.split(",")
+                    结点数据集字典[标识] = funcs.GviewOperation.依参数确定视图结点数据类型模板(结点类型=值[类型],
+                                                                                               编号=标识, 数据=值)
+            for 标识, 值 in 边集数据源.items():
+                a, b = 标识.split(",")
                 if a in 不存在的结点集 or b in 不存在的结点集:
                     continue
                 else:
-                    边数据集字典[标识]= funcs.GviewOperation.默认视图边数据模板(值)
+                    边数据集字典[标识] = funcs.GviewOperation.默认视图边数据模板(值)
 
-        self.nodes:"models.类型_视图结点集模型" = models.类型_视图结点集模型(self,结点数据集字典)
-        self.edges:"models.类型_视图结点集模型" = models.类型_视图边集模型(self,边数据集字典)
-        self.meta_helper:"models.类型_视图本身模型" = models.类型_视图本身模型(数据源=self)
+        self.nodes: "models.类型_视图结点集模型" = models.类型_视图结点集模型(self, 结点数据集字典)
+        self.edges: "models.类型_视图结点集模型" = models.类型_视图边集模型(self, 边数据集字典)
+        self.meta_helper: "models.类型_视图本身模型" = models.类型_视图本身模型(数据源=self)
         self.数据更新 = self.类_函数库_数据更新(self)
 
     def __str__(self):
         return self.__dict__.__str__()
+
     def __repr__(self):
         return self.__str__()
 
@@ -185,45 +191,46 @@ class GViewData:
         from . import funcs, baseClass
         类型 = baseClass.枚举命名.结点.数据类型
         类型值 = baseClass.视图结点类型
-        新数据=self.nodes.copy()
-        for 标识,值 in self.nodes.items():
-            if (值[类型] == 类型值.卡片 and not funcs.CardOperation.exists(标识) ) or (值[类型] == 类型值.视图 and not funcs.GviewOperation.exists(uuid=标识)):
+        新数据 = self.nodes.copy()
+        for 标识, 值 in self.nodes.items():
+            if (值[类型] == 类型值.卡片 and not funcs.CardOperation.exists(标识)) or (
+                    值[类型] == 类型值.视图 and not funcs.GviewOperation.exists(uuid=标识)):
                 del 新数据[标识]
                 self.删除边(标识)
-        self.nodes.data=新数据
+        self.nodes.data = 新数据
 
-    def copy(self,new_name=None):
+    def copy(self, new_name=None):
         from . import funcs
         # uuid = funcs.UUID.by_random()
-        return GViewData(uuid=funcs.UUID.by_random(),name=self.name if new_name is None else new_name
-                         ,config=self.config,edges=self.edges.copy(),nodes=self.nodes.copy(),meta=self.meta.copy() if self.meta else None)
+        return GViewData(uuid=funcs.UUID.by_random(), name=self.name if new_name is None else new_name
+                         , config=self.config, edges=self.edges.copy(), nodes=self.nodes.copy(),
+                         meta=self.meta.copy() if self.meta else None)
 
     def to_html_repr(self):
         return f"uuid={self.uuid}<br>" \
                f"name={self.name}<br>" \
-               f"node_list={json.dumps(self.nodes.data,ensure_ascii=False)}<br>" \
-               f"edge_list={json.dumps(self.edges.data,ensure_ascii=False)}"
+               f"node_list={json.dumps(self.nodes.data, ensure_ascii=False)}<br>" \
+               f"edge_list={json.dumps(self.edges.data, ensure_ascii=False)}"
 
     def to_DB_format(self):
         return {
-                "uuid"  : self.uuid,
-                "name"  : self.name,
-                "nodes" : f"{json.dumps(self.nodes.data,ensure_ascii=False)}",
-                "edges" : f"{json.dumps(self.edges.data,ensure_ascii=False)}",
-                "config": self.config,
-                **self.meta #保存时将每个字段都提出来
+            "uuid": self.uuid,
+            "name": self.name,
+            "nodes": f"{json.dumps(self.nodes.data, ensure_ascii=False)}",
+            "edges": f"{json.dumps(self.edges.data, ensure_ascii=False)}",
+            "config": self.config,
+            **self.meta  # 保存时将每个字段都提出来
         }
 
-    def 设置结点属性(self,结点编号:str,属性名:str,值):
-        assert type(结点编号)==str and type(属性名)==str
+    def 设置结点属性(self, 结点编号: str, 属性名: str, 值):
+        assert type(结点编号) == str and type(属性名) == str
         self.nodes.data[结点编号][属性名] = 值
 
-    def 获取结点描述(self,编号,全部内容=False):
+    def 获取结点描述(self, 编号, 全部内容=False):
         from . import funcs
-        return funcs.GviewOperation.获取视图结点描述(self,编号,全部内容)
+        return funcs.GviewOperation.获取视图结点描述(self, 编号, 全部内容)
 
     # def 更新配置(self):
-
 
     def 获取结点角色表(self):
         if self.config:
@@ -231,33 +238,32 @@ class GViewData:
         else:
             return []
 
-    def 更新结点角色位置表(self,node_id):
+    def 更新结点角色位置表(self, node_id):
         结点属性 = baseClass.枚举命名.结点
         角色表 = self.获取结点角色表()
         角色位置表 = self.nodes[node_id].角色.值
-        self.nodes[node_id].角色.设值([角色位置 for 角色位置 in 角色位置表 if 角色位置 in range(0,len(角色表))])
+        self.nodes[node_id].角色.设值([角色位置 for 角色位置 in 角色位置表 if 角色位置 in range(0, len(角色表))])
 
     def __hash__(self):
         return int(self.uuid, 16)
 
     def __eq__(self, other):
-        if isinstance(other,GViewData):
-            return other.uuid==self.uuid
+        if isinstance(other, GViewData):
+            return other.uuid == self.uuid
         elif type(other) == str:
             return other == self.uuid
         else:
             raise ValueError("未知的比较对象")
 
-
-    def 新增边(self,a,b,文字=""):
+    def 新增边(self, a, b, 文字=""):
         from . import funcs, models
         a_b = f"{a},{b}"
-        self.edges[a_b]=funcs.GviewOperation.默认视图边数据模板({本.边.名称:文字})
+        self.edges[a_b] = funcs.GviewOperation.默认视图边数据模板({本.边.名称: 文字})
         # self.node_helper[a_b] = models.类型_视图边模型().初始化(self, a_b)
 
-    def 删除边(self,a=None,b=None):
-        if a and b :
-            a_b=f"{a},{b}"
+    def 删除边(self, a=None, b=None):
+        if a and b:
+            a_b = f"{a},{b}"
             if a_b in self.edges:
                 del self.edges[a_b]
             # if a_b in self.node_helper:
@@ -270,12 +276,12 @@ class GViewData:
                     # if a_b in self.node_helper:
                     #     del self.node_helper[a_b]
 
-    def 新增结点(self,编号,类型):
+    def 新增结点(self, 编号, 类型):
         from . import funcs
-        self.nodes[编号]=funcs.GviewOperation.依参数确定视图结点数据类型模板(结点类型=类型,编号=编号)
+        self.nodes[编号] = funcs.GviewOperation.依参数确定视图结点数据类型模板(结点类型=类型, 编号=编号)
         # self.node_helper[编号]=models.类型_视图结点模型().初始化(self,编号)
 
-    def 删除结点(self,编号):
+    def 删除结点(self, 编号):
         if 编号 in self.nodes:
             del self.nodes[编号]
         edge_list = list(self.edges.keys())
@@ -288,17 +294,18 @@ class GViewData:
         funcs.GviewOperation.save(self)
 
     class 类_函数库_数据更新:
-        def __init__(self,上级:"GViewData"):
-            self.上级:"GViewData"= 上级
+        def __init__(self, 上级: "GViewData"):
+            self.上级: "GViewData" = 上级
 
-        def 保存配置数据(self,*args):
+        def 保存配置数据(self, *args):
             self.上级.config_model.saveModelToDB()
+
         def 保存视图数据(self):
             from . import funcs
             funcs.GviewOperation.save(self.上级)
 
         def 视图编辑发生(self):
-            self.上级.meta[本.视图.上次编辑]=(int(time.time()))
+            self.上级.meta[本.视图.上次编辑] = (int(time.time()))
             self.保存视图数据()
             pass
 
@@ -312,22 +319,23 @@ class GViewData:
             self.上级.meta[本.视图.上次复习] = (int(time.time()))
             self.保存视图数据()
 
-        def 结点编辑发生(self,结点编号):
-            self.上级.nodes[结点编号][本.结点.上次编辑]=(int(time.time()))
+        def 结点编辑发生(self, 结点编号):
+            self.上级.nodes[结点编号][本.结点.上次编辑] = (int(time.time()))
             self.保存视图数据()
 
-        def 结点访问发生(self,结点编号):
-            self.上级.nodes[结点编号][本.结点.上次访问]=(int(time.time()))
-            self.上级.nodes[结点编号][本.结点.访问次数].设值(1+self.上级.nodes[结点编号][本.结点.访问次数].值)
+        def 结点访问发生(self, 结点编号):
+            self.上级.nodes[结点编号][本.结点.上次访问] = (int(time.time()))
+            self.上级.nodes[结点编号][本.结点.访问次数].设值(1 + self.上级.nodes[结点编号][本.结点.访问次数].值)
             self.保存视图数据()
 
-        def 结点复习发生(self,结点编号):
-            self.上级.nodes[结点编号][本.结点.上次复习]=(int(time.time()))
+        def 结点复习发生(self, 结点编号):
+            self.上级.nodes[结点编号][本.结点.上次复习] = (int(time.time()))
             self.保存视图数据()
 
         def 刷新配置模型(self):
             self.上级.config = safe.funcs.GviewOperation.load(self.上级.uuid).config
             self.上级.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.上级.config)
+
 
 @dataclass
 class GraphMode:
@@ -387,22 +395,20 @@ class ConfigModelItem:
     limit: "list" = field(default_factory=lambda: [0, MAXINT])
     customizeComponent: "Callable[[],widgets.CustomConfigItemView.__class__]" = lambda: widgets.CustomConfigItemView  # 这个组件的第一个参数必须接受
     _id: "int" = 0  # 0表示无特殊信息
-    widget:"QWidget" = None
-    设值到组件: "Callable[[Any],Any]"=None  # 将配置表项的值设到组件上, BaseConfig.makeConfigRow中用到, 不同的组件设置方式不同,需要在那边自定义
+    widget: "QWidget" = None
+    设值到组件: "Callable[[Any],Any]" = None  # 将配置表项的值设到组件上, BaseConfig.makeConfigRow中用到, 不同的组件设置方式不同,需要在那边自定义
+
     def setValue(self, 值, 需要设值回到组件=True):
         """设值到配置表项"""
         self.value = 值
         if self.设值到组件 and 需要设值回到组件:
             self.设值到组件(值)
 
-
     def to_dict(self):
         return {"value": self.value}
 
     def __eq__(self, other):
         return self.value == other
-
-
 
     # def 组件类型与组件值修改函数映射(self):
     #     w= BaseConfigModel.Widget
@@ -429,8 +435,10 @@ class BaseConfigModel:
     """
     为了防止以后看不懂, 说明一下用法, 这个类是定制模板, 先实例化之后再修改模板的默认值.
     """
+
     class 元信息:
         确定保存到数据库 = True
+
     @dataclass
     class Widget:
         spin = 0
@@ -444,7 +452,6 @@ class BaseConfigModel:
         label = 8
         text = 9
         customize = 10
-
 
     def save_to_file(self, path):
         json.dump(self.get_dict(), open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=4)
@@ -496,9 +503,9 @@ class BaseConfigModel:
 
     def __repr__(self):
         d = {}
-        for k,v in self.__dict__.items():
-            if isinstance(v,ConfigModelItem):
-                d[k]=v.value
+        for k, v in self.__dict__.items():
+            if isinstance(v, ConfigModelItem):
+                d[k] = v.value
         return d.__str__()
 
     def __str__(self):
@@ -531,12 +538,12 @@ class ConfigModel(BaseConfigModel):
         return ""
 
     gview_admin_default_display: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["默认的视图管理器展示视图的方式", "The default way the Gview manager presents the Gview"],
-            value=0,
-            component=ConfigModel.Widget.none,
-            validate=lambda x, item: x in item.limit,
-            limit=[ComboItem("tree", 0), ComboItem("list", 1)],
-            tab_at=Translate.视图
+        instruction=["默认的视图管理器展示视图的方式", "The default way the Gview manager presents the Gview"],
+        value=0,
+        component=ConfigModel.Widget.none,
+        validate=lambda x, item: x in item.limit,
+        limit=[ComboItem("tree", 0), ComboItem("list", 1)],
+        tab_at=Translate.视图
     ))
     # gview_popup_when_review:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
     #     instruction=["复习时,相关视图自动弹出,相关视图有多种时,只会弹出一种"],
@@ -676,192 +683,193 @@ class ConfigModel(BaseConfigModel):
     #         tab_at=Translate.复习相关
     # ))
     length_of_desc: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "length_of_desc项控制从卡片正文提取多少字符作为链接的标题,该项仅支持非负数字,0表示不限制",
-                    "English Instruction Maybe later"
-            ],
-            value=0,
-            component=ConfigModel.Widget.spin,
-            tab_at=Translate.链接相关
+        instruction=[
+            "length_of_desc项控制从卡片正文提取多少字符作为链接的标题,该项仅支持非负数字,0表示不限制",
+            "English Instruction Maybe later"
+        ],
+        value=0,
+        component=ConfigModel.Widget.spin,
+        tab_at=Translate.链接相关
     ))
     desc_sync: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "开启后,所有的链接内容,都会从卡片内容同步提取,关闭,则可打开卡片的anchor,手动设定链接的内容,或者指定卡片自动同步",
-                    "English Instruction Maybe later"
-            ],
-            value=False,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.链接相关
+        instruction=[
+            "开启后,所有的链接内容,都会从卡片内容同步提取,关闭,则可打开卡片的anchor,手动设定链接的内容,或者指定卡片自动同步",
+            "English Instruction Maybe later"
+        ],
+        value=False,
+        component=ConfigModel.Widget.radio,
+        tab_at=Translate.链接相关
     ))
 
     descExtractTable: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["在本项设置中,你可以指定提取卡片描述的方式, 比如指定什么模板,提取哪个字段,长度多少,还可以写正则表达式, 双击单元格修改,加号按钮增加规则,减号去掉选中规则"],
-            value=[baseClass.枚举命名.全局配置.描述提取规则.默认规则()],  # 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
-            component=ConfigModel.Widget.customize,
-            tab_at=Translate.链接相关,
-            customizeComponent=lambda: widgets.DescExtractPresetTable
+        instruction=[
+            "在本项设置中,你可以指定提取卡片描述的方式, 比如指定什么模板,提取哪个字段,长度多少,还可以写正则表达式, 双击单元格修改,加号按钮增加规则,减号去掉选中规则"],
+        value=[baseClass.枚举命名.全局配置.描述提取规则.默认规则()],  # 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
+        component=ConfigModel.Widget.customize,
+        tab_at=Translate.链接相关,
+        customizeComponent=lambda: widgets.DescExtractPresetTable
     ))
     delete_intext_link_when_extract_desc: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "本项用来控制当执行卡片内容提取时,是否将文内链接也识别为卡片内容一并提取",
-                    "若开启,此时提取卡片内容之前,会删掉文内链接的信息再提取,若关闭,则会直接提取",
-                    "English Instruction Maybe later"
-            ],
-            value=True,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.链接相关
+        instruction=[
+            "本项用来控制当执行卡片内容提取时,是否将文内链接也识别为卡片内容一并提取",
+            "若开启,此时提取卡片内容之前,会删掉文内链接的信息再提取,若关闭,则会直接提取",
+            "English Instruction Maybe later"
+        ],
+        value=True,
+        component=ConfigModel.Widget.radio,
+        tab_at=Translate.链接相关
     ))
 
     new_card_default_desc_sync: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "开启后,链接默认被设定为与卡片内容保持同步,关闭后,则链接默认不同步",
-                    "English Instruction Maybe later"
-            ],
-            value=True,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.链接相关
+        instruction=[
+            "开启后,链接默认被设定为与卡片内容保持同步,关闭后,则链接默认不同步",
+            "English Instruction Maybe later"
+        ],
+        value=True,
+        component=ConfigModel.Widget.radio,
+        tab_at=Translate.链接相关
     ))
     add_link_tag: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "开启时,链接操作结束后,会给这组参与链接的卡片添加一个时间戳tag",
-                    "这个功能适合作为链接操作的历史记录使用",
-                    "English Instruction Maybe later"
-            ],
-            value=True,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.链接相关
+        instruction=[
+            "开启时,链接操作结束后,会给这组参与链接的卡片添加一个时间戳tag",
+            "这个功能适合作为链接操作的历史记录使用",
+            "English Instruction Maybe later"
+        ],
+        value=True,
+        component=ConfigModel.Widget.radio,
+        tab_at=Translate.链接相关
     ))
     open_browser_after_link: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "开启时,链接操作结束后,会打开浏览窗口,展示链接的项",
-                    "English Instruction Maybe later"
-            ],
-            value=True,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.链接相关
+        instruction=[
+            "开启时,链接操作结束后,会打开浏览窗口,展示链接的项",
+            "English Instruction Maybe later"
+        ],
+        value=True,
+        component=ConfigModel.Widget.radio,
+        tab_at=Translate.链接相关
     ))
 
     # ------------------ 下面的统一为快捷键设置
     default_link_mode: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "使用快捷键时,默认执行的链接操作,可填3,4两个数字值,3表示完全链接,4表示组到组连接,默认一张卡为一组",
-                    "English Instruction Maybe later"
-            ],
-            value=3,
-            component=ConfigModel.Widget.combo,
-            tab_at=Translate.快捷键,
-            limit=[ComboItem(Translate.完全图绑定, 3), ComboItem(Translate.组到组绑定, 4)],
+        instruction=[
+            "使用快捷键时,默认执行的链接操作,可填3,4两个数字值,3表示完全链接,4表示组到组连接,默认一张卡为一组",
+            "English Instruction Maybe later"
+        ],
+        value=3,
+        component=ConfigModel.Widget.combo,
+        tab_at=Translate.快捷键,
+        limit=[ComboItem(Translate.完全图绑定, 3), ComboItem(Translate.组到组绑定, 4)],
     ))
     default_unlink_mode: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "使用快捷键时,默认执行的取消链接操作,可填5,6两个数字值,6表示按结点取消链接,5表示按路径取消链接",
-                    "English Instruction Maybe later"
-            ],
-            value=6,
-            component=ConfigModel.Widget.combo,
-            tab_at=Translate.快捷键,
-            limit=[ComboItem(Translate.按路径解绑, 5), ComboItem(Translate.按结点解绑, 6)],
+        instruction=[
+            "使用快捷键时,默认执行的取消链接操作,可填5,6两个数字值,6表示按结点取消链接,5表示按路径取消链接",
+            "English Instruction Maybe later"
+        ],
+        value=6,
+        component=ConfigModel.Widget.combo,
+        tab_at=Translate.快捷键,
+        limit=[ComboItem(Translate.按路径解绑, 5), ComboItem(Translate.按结点解绑, 6)],
     ))
     default_insert_mode: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "使用快捷键时,默认执行的插入连接池的操作,可填0,1,2三个数字值,0表示清空后插入,1表示追加插入,2表示编组插入",
-                    "English Instruction Maybe later"
-            ],
-            value=0,
-            component=ConfigModel.Widget.combo,
-            tab_at=Translate.快捷键,
-            limit=[ComboItem(Translate.清空后插入, 0), ComboItem(Translate.直接插入, 1), ComboItem(Translate.编组插入, 2)],
+        instruction=[
+            "使用快捷键时,默认执行的插入连接池的操作,可填0,1,2三个数字值,0表示清空后插入,1表示追加插入,2表示编组插入",
+            "English Instruction Maybe later"
+        ],
+        value=0,
+        component=ConfigModel.Widget.combo,
+        tab_at=Translate.快捷键,
+        limit=[ComboItem(Translate.清空后插入, 0), ComboItem(Translate.直接插入, 1), ComboItem(Translate.编组插入, 2)],
     ))
     default_copylink_mode: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "使用快捷键时,默认执行的链接复制操作,可填0,1,2,3,0表示复制为文内链接,1表示复制为html链接",
-                    "2表示复制为markdown链接,3表示复制为orgmode链接",
-                    "English Instruction Maybe later"
-            ],
-            value=0,
-            component=ConfigModel.Widget.combo,
-            tab_at=Translate.快捷键,
-            limit=[ComboItem(Translate.文内链接, 0), ComboItem(Translate.文内链接 + "(new)", 1),
-                   ComboItem(Translate.html链接, 2), ComboItem(Translate.markdown链接, 3),
-                   ComboItem(Translate.orgmode链接, 4)],
+        instruction=[
+            "使用快捷键时,默认执行的链接复制操作,可填0,1,2,3,0表示复制为文内链接,1表示复制为html链接",
+            "2表示复制为markdown链接,3表示复制为orgmode链接",
+            "English Instruction Maybe later"
+        ],
+        value=0,
+        component=ConfigModel.Widget.combo,
+        tab_at=Translate.快捷键,
+        limit=[ComboItem(Translate.文内链接, 0), ComboItem(Translate.文内链接 + "(new)", 1),
+               ComboItem(Translate.html链接, 2), ComboItem(Translate.markdown链接, 3),
+               ComboItem(Translate.orgmode链接, 4)],
     ))
     shortcut_for_link: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "本项用来控制链接操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定 ",
-                    "English Instruction Maybe later"
-            ],
-            value="alt+ctrl+1",
-            component=ConfigModel.Widget.line,
-            tab_at=Translate.快捷键
+        instruction=[
+            "本项用来控制链接操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定 ",
+            "English Instruction Maybe later"
+        ],
+        value="alt+ctrl+1",
+        component=ConfigModel.Widget.line,
+        tab_at=Translate.快捷键
     ))
     shortcut_for_unlink: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "本项用来控制取消链接操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
-                    "English Instruction Maybe later"
-            ],
-            value="alt+ctrl+2",
-            component=ConfigModel.Widget.line,
-            tab_at=Translate.快捷键
+        instruction=[
+            "本项用来控制取消链接操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
+            "English Instruction Maybe later"
+        ],
+        value="alt+ctrl+2",
+        component=ConfigModel.Widget.line,
+        tab_at=Translate.快捷键
     ))
     shortcut_for_insert: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "本项用来控制卡片插入链接池操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
-                    "English Instruction Maybe later"
-            ],
-            value="alt+ctrl+3",
-            component=ConfigModel.Widget.line,
-            tab_at=Translate.快捷键
+        instruction=[
+            "本项用来控制卡片插入链接池操作的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
+            "English Instruction Maybe later"
+        ],
+        value="alt+ctrl+3",
+        component=ConfigModel.Widget.line,
+        tab_at=Translate.快捷键
     ))
     shortcut_for_copylink: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "本项用来控制复制卡片链接的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
-                    "English Instruction Maybe later"
-            ],
-            value="alt+ctrl+4",
-            component=ConfigModel.Widget.line,
-            tab_at=Translate.快捷键
+        instruction=[
+            "本项用来控制复制卡片链接的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定  ",
+            "English Instruction Maybe later"
+        ],
+        value="alt+ctrl+4",
+        component=ConfigModel.Widget.line,
+        tab_at=Translate.快捷键
     ))
     shortcut_for_openlinkpool: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[
-                    "本项用来控制打开链接池的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定 ",
-                    "English Instruction Maybe later"
-            ],
-            value="alt+ctrl+`",
-            component=ConfigModel.Widget.line,
-            tab_at=Translate.快捷键
+        instruction=[
+            "本项用来控制打开链接池的快捷键,格式为'ctrl+A'的形式,修改后需要重开anki实现快捷键绑定 ",
+            "English Instruction Maybe later"
+        ],
+        value="alt+ctrl+`",
+        component=ConfigModel.Widget.line,
+        tab_at=Translate.快捷键
     ))
     anchor_style_text: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["在这里写入anchor的样式,读取的先后顺序为 text,file,preset",
-                         "如果你想自己修改anchor样式,可以参考文件:",
-                         f"{os.path.join(src.path.resource_data, 'anchor_example.html')}"],
-            value="",
-            component=ConfigModel.Widget.text,
-            tab_at="anchor"
+        instruction=["在这里写入anchor的样式,读取的先后顺序为 text,file,preset",
+                     "如果你想自己修改anchor样式,可以参考文件:",
+                     f"{os.path.join(src.path.resource_data, 'anchor_example.html')}"],
+        value="",
+        component=ConfigModel.Widget.text,
+        tab_at="anchor"
     ))
     anchor_style_file: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["在这里写入anchor的样式,读取的先后顺序为 text,file,preset",
-                         "如果你想自己修改anchor样式,可以参考文件:",
-                         f"{os.path.join(src.path.resource_data, 'anchor_example.html')}"],
-            value="",
-            component=ConfigModel.Widget.line,
-            validate=lambda x, item: type(x) == str and (os.path.isfile(x) or x == "" or not re.search(r"\S", x)),
-            tab_at="anchor"
+        instruction=["在这里写入anchor的样式,读取的先后顺序为 text,file,preset",
+                     "如果你想自己修改anchor样式,可以参考文件:",
+                     f"{os.path.join(src.path.resource_data, 'anchor_example.html')}"],
+        value="",
+        component=ConfigModel.Widget.line,
+        validate=lambda x, item: type(x) == str and (os.path.isfile(x) or x == "" or not re.search(r"\S", x)),
+        tab_at="anchor"
     ))
     anchor_style_preset: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["在这里写入anchor的样式,读取的先后顺序为 text,file,preset",
-                         "如果你想自己修改anchor样式,可以参考文件:",
-                         f"{os.path.join(src.path.resource_data, 'anchor_example.html')}"],
-            value=0,
-            component=ConfigModel.Widget.combo,
-            tab_at="anchor",
-            limit=[ComboItem(Translate.手风琴式, 0), ComboItem(Translate.直铺式, 1)]
+        instruction=["在这里写入anchor的样式,读取的先后顺序为 text,file,preset",
+                     "如果你想自己修改anchor样式,可以参考文件:",
+                     f"{os.path.join(src.path.resource_data, 'anchor_example.html')}"],
+        value=0,
+        component=ConfigModel.Widget.combo,
+        tab_at="anchor",
+        limit=[ComboItem(Translate.手风琴式, 0), ComboItem(Translate.直铺式, 1)]
     ))
 
     auto_backup: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["开启链接数据自动备份,每当关闭anki时,会检查是否满足备份条件", "English Instruction Maybe later"],
-            value=True,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.同步与备份
+        instruction=["开启链接数据自动备份,每当关闭anki时,会检查是否满足备份条件", "English Instruction Maybe later"],
+        value=True,
+        component=ConfigModel.Widget.radio,
+        tab_at=Translate.同步与备份
     ))
     # distChoice: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
     #         instruction=["当你同时装了anki网络版与本地版的hjp-bilink, 你选择启动哪一个版本?默认选择本地版"],
@@ -871,70 +879,71 @@ class ConfigModel(BaseConfigModel):
     #
     # ))
     auto_backup_interval: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["自动备份链接数据的间隔,单位是小时", "English Instruction Maybe later"],
-            value=24,
-            component=ConfigModel.Widget.spin,
-            tab_at=Translate.同步与备份
+        instruction=["自动备份链接数据的间隔,单位是小时", "English Instruction Maybe later"],
+        value=24,
+        component=ConfigModel.Widget.spin,
+        tab_at=Translate.同步与备份
     ))
     auto_backup_path: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["链接数据自动备份的地址,默认为空则地址为数据库所在文件夹"],
-            value="",
-            validate=lambda x, item: type(x) == str and (os.path.isdir(x) or x == "" or not re.search(r"\S", x)),
-            component=ConfigModel.Widget.line,
-            tab_at=Translate.同步与备份
+        instruction=["链接数据自动备份的地址,默认为空则地址为数据库所在文件夹"],
+        value="",
+        validate=lambda x, item: type(x) == str and (os.path.isdir(x) or x == "" or not re.search(r"\S", x)),
+        component=ConfigModel.Widget.line,
+        tab_at=Translate.同步与备份
     ))
     last_backup_time: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["不必解释"],
-            value=0,
-            validate=lambda x, item: type(x) in {float, int},
-            component=ConfigModel.Widget.label,
-            tab_at=Translate.同步与备份,
-            display=lambda x: time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(x))
+        instruction=["不必解释"],
+        value=0,
+        validate=lambda x, item: type(x) in {float, int},
+        component=ConfigModel.Widget.label,
+        tab_at=Translate.同步与备份,
+        display=lambda x: time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(x))
     ))
     PDFLink_style: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["PDF链接的通用css样式"],
-            value="""
+        instruction=["PDF链接的通用css样式"],
+        value="""
 background-color:green;
 color:white;
 text-decoration:none;""",
-            tab_at=Translate.pdf链接,
-            component=ConfigModel.Widget.text
+        tab_at=Translate.pdf链接,
+        component=ConfigModel.Widget.text
 
     ))
     PDFLink_cmd: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["当你点击pdf链接时,会根据如下命令执行指定的程序",
-                         f"其中{terms.PDFLink.url}表示文件路径会被自动转写成file协议的url编码, {terms.PDFLink.page}代表pdf的页码",
-                         f"你可以用{terms.PDFLink.path}代替{terms.PDFLink.url},{terms.PDFLink.path}表示文件路径本身,不转写成url编码格式"],
-            component=ConfigModel.Widget.line,
-            value=ConfigModel.pdfurl_default_system_cmd(),
-            tab_at=Translate.pdf链接,
+        instruction=["当你点击pdf链接时,会根据如下命令执行指定的程序",
+                     f"其中{terms.PDFLink.url}表示文件路径会被自动转写成file协议的url编码, {terms.PDFLink.page}代表pdf的页码",
+                     f"你可以用{terms.PDFLink.path}代替{terms.PDFLink.url},{terms.PDFLink.path}表示文件路径本身,不转写成url编码格式"],
+        component=ConfigModel.Widget.line,
+        value=ConfigModel.pdfurl_default_system_cmd(),
+        tab_at=Translate.pdf链接,
     ))
     PDFLink_pagenum_str: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[f"{terms.PDFLink.page}该占位符将会被替换成对应的页码"],
-            value=f"|page={{{terms.PDFLink.page}}}",
-            component=ConfigModel.Widget.line,
-            tab_at=Translate.pdf链接,
+        instruction=[f"{terms.PDFLink.page}该占位符将会被替换成对应的页码"],
+        value=f"|page={{{terms.PDFLink.page}}}",
+        component=ConfigModel.Widget.line,
+        tab_at=Translate.pdf链接,
     ))
     PDFLink_show_pagenum: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["选中表示开启,例子: 当pdf链接显示名字为 ABC.pdf,页码显示为|page=10,则在最终插入时, 名字会变成 ABC.pdf|page=10"],
-            value=True,
-            component=ConfigModel.Widget.radio,
-            tab_at=Translate.pdf链接,
+        instruction=[
+            "选中表示开启,例子: 当pdf链接显示名字为 ABC.pdf,页码显示为|page=10,则在最终插入时, 名字会变成 ABC.pdf|page=10"],
+        value=True,
+        component=ConfigModel.Widget.radio,
+        tab_at=Translate.pdf链接,
     ))
 
     PDFLink_presets: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["遇到指定路径的pdf,提供预先设置好的显示名称,样式, 是否显示页码,双击左侧表格单元修改对应行内容"],
-            value=[],
-            component=ConfigModel.Widget.customize,
-            customizeComponent=lambda: widgets.PDFUrlLinkBooklist,
-            tab_at=Translate.pdf链接,
+        instruction=["遇到指定路径的pdf,提供预先设置好的显示名称,样式, 是否显示页码,双击左侧表格单元修改对应行内容"],
+        value=[],
+        component=ConfigModel.Widget.customize,
+        customizeComponent=lambda: widgets.PDFUrlLinkBooklist,
+        tab_at=Translate.pdf链接,
     ))
     set_default_view: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_设定默认视图],
-            value=-1,
-            component=ConfigModel.Widget.customize,
-            customizeComponent=lambda: widgets.GlobalConfigDefaultViewChooser,
-            tab_at="view"
+        instruction=[译.说明_设定默认视图],
+        value=-1,
+        component=ConfigModel.Widget.customize,
+        customizeComponent=lambda: widgets.GlobalConfigDefaultViewChooser,
+        tab_at="view"
     ))
 
     # PDFUrlLink_path_arg:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
@@ -959,37 +968,38 @@ class GviewConfigModel(BaseConfigModel):
         for k, v in source.items():
             template[k].value = v
         return template
+
     @staticmethod
     def ViewExist(uuid):
         from . import funcs
         return funcs.GviewOperation.exists(uuid=uuid)
 
-    uuid: ConfigModelItem = field(default_factory=lambda:ConfigModelItem(
-            instruction=["只读"],
-            value="",
-            component=ConfigModel.Widget.none,
-            tab_at="main",
+    uuid: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=["只读"],
+        value="",
+        component=ConfigModel.Widget.none,
+        tab_at="main",
     ))
     name: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["本项设定次此视图配置的名字"],
-            value="",
-            component=ConfigModel.Widget.line,
-            tab_at="main",
-            validate=lambda value, item: re.search(r"\S", value)
+        instruction=["本项设定次此视图配置的名字"],
+        value="",
+        component=ConfigModel.Widget.line,
+        tab_at="main",
+        validate=lambda value, item: re.search(r"\S", value)
     ))
-    roaming_sidebar_hide:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_漫游复习侧边栏收起],
-            value=True,
-            component=ConfigModel.Widget.radio,
-            tab_at="main"
+    roaming_sidebar_hide: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_漫游复习侧边栏收起],
+        value=True,
+        component=ConfigModel.Widget.radio,
+        tab_at="main"
     ))
 
     roamingStart: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["本项设定漫游的起点"],
-            value=1,
-            component=ConfigModel.Widget.combo,
-            tab_at="roaming",
-            limit=[ComboItem(Translate.随机选择卡片开始, 0), ComboItem(Translate.手动选择卡片开始, 1), ]
+        instruction=["本项设定漫游的起点"],
+        value=1,
+        component=ConfigModel.Widget.combo,
+        tab_at="roaming",
+        limit=[ComboItem(Translate.随机选择卡片开始, 0), ComboItem(Translate.手动选择卡片开始, 1), ]
     ))
     # groupReview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
     #         instruction=["本项设定是否对使用本配置的视图开启群组复习,提示:开启群组复习后,最好就别再使用漫游复习,因为会一下子复习掉所有卡片,毫无漫游的意义"],
@@ -1000,85 +1010,93 @@ class GviewConfigModel(BaseConfigModel):
     # ))
 
     appliedGview: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=["本项设定本配置表所应用的视图们, 如果你删掉了表中的全部视图, 那么会导致该配置被删除, 并且为当前的视图立即新建一个配置"],
-            value=[],
-            tab_at="main",
-            component=ConfigModel.Widget.customize,
-            customizeComponent=lambda: widgets.GviewConfigApplyTable,
-            validate=lambda value, item: sum([0 if GviewConfigModel.ViewExist(uuid) else 1 for uuid in value]) == 0
+        instruction=[
+            "本项设定本配置表所应用的视图们, 如果你删掉了表中的全部视图, 那么会导致该配置被删除, 并且为当前的视图立即新建一个配置"],
+        value=[],
+        tab_at="main",
+        component=ConfigModel.Widget.customize,
+        customizeComponent=lambda: widgets.GviewConfigApplyTable,
+        validate=lambda value, item: sum([0 if GviewConfigModel.ViewExist(uuid) else 1 for uuid in value]) == 0
     ))
-    node_role_list: ConfigModelItem  = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_结点角色枚举],
-            tab_at="main",
-            value="[]", # "list[str]"
-            validate = lambda  value, item: Validation.node_tag_enum_validate(value, item),
-            component=ConfigModel.Widget.customize,
-            customizeComponent=lambda: widgets.GviewConfigNodeRoleEnumEditor,
+    node_role_list: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_结点角色枚举],
+        tab_at="main",
+        value="[]",  # "list[str]"
+        validate=lambda value, item: Validation.node_tag_enum_validate(value, item),
+        component=ConfigModel.Widget.customize,
+        customizeComponent=lambda: widgets.GviewConfigNodeRoleEnumEditor,
     ))
-    edge_name_always_show:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_总是显示边名],
-            tab_at="main",
-            value=False,# deck_id
-            component=ConfigModel.Widget.radio,
-
+    edge_name_always_show: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_总是显示边名],
+        tab_at="main",
+        value=False,  # deck_id
+        component=ConfigModel.Widget.radio,
     ))
-    view_node_inherit_config:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_视图结点创建默认配置],
-            tab_at="main",
-            value=False,
-            component=ConfigModel.Widget.radio,
-
-    ))
-    split_screen_when_roaming:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_漫游复习时分屏],
-            tab_at="main",
-            value=True,
-            component=ConfigModel.Widget.radio,
+    view_node_inherit_config: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_视图结点创建默认配置],
+        tab_at="main",
+        value=False,
+        component=ConfigModel.Widget.radio,
 
     ))
 
-    default_deck_for_add_card:ConfigModelItem = field(default_factory=lambda:ConfigModelItem(
-            instruction=[译.说明_新增卡片指定存放牌组],
-            tab_at = "main",
-            value=-1,
-            component=ConfigModel.Widget.customize,
-            customizeComponent=lambda:widgets.GviewConfigDeckChooser,
+    split_screen_when_roaming: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_漫游复习时分屏],
+        tab_at="main",
+        value=True,
+        component=ConfigModel.Widget.radio,
+
     ))
 
-    roaming_path_mode:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_漫游路径算法选择],
-            tab_at="roaming",
-            value=0,
-            component=ConfigModel.Widget.combo,
-            limit=[ComboItem("random_sort",0),ComboItem("cascading_sort",1),ComboItem("weighted_sort",2),ComboItem("graph_sort",3)]
+    default_deck_for_add_card: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_新增卡片指定存放牌组],
+        tab_at="main",
+        value=-1,
+        component=ConfigModel.Widget.customize,
+        customizeComponent=lambda: widgets.GviewConfigDeckChooser,
     ))
-    roaming_node_filter:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_漫游路径过滤],
-            tab_at="roaming",
-            value=[[],-1],  # excutable string list
-            component=ConfigModel.Widget.customize,
-            customizeComponent=lambda:widgets.GviewConfigNodeFilter
+    default_template_for_add_card: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_视图添加卡片_默认模板],
+        tab_at="main",
+        value=-1,  # 本项要么None要么数字
+        component=ConfigModel.Widget.customize,
+        customizeComponent=lambda: widgets.GviewConfigTemplateChooser,
     ))
-    cascading_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_多级排序],
-            tab_at="roaming",
-            value=[[],-1],  # excutable string list
-            component=ConfigModel.Widget.customize,
-            customizeComponent=lambda:widgets.GviewConfigCascadingSorter
+    roaming_path_mode: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_漫游路径算法选择],
+        tab_at="roaming",
+        value=0,
+        component=ConfigModel.Widget.combo,
+        limit=[ComboItem("random_sort", 0), ComboItem("cascading_sort", 1), ComboItem("weighted_sort", 2),
+               ComboItem("graph_sort", 3)]
     ))
-    weighted_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_加权排序],
-            tab_at="roaming",
-            value=[[],-1],  # excutable string list
-            component=ConfigModel.Widget.customize,
-            customizeComponent=lambda:widgets.GviewConfigWeightedSorter
+    roaming_node_filter: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_漫游路径过滤],
+        tab_at="roaming",
+        value=[[], -1],  # excutable string list
+        component=ConfigModel.Widget.customize,
+        customizeComponent=lambda: widgets.GviewConfigNodeFilter
     ))
-    graph_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-            instruction=[译.说明_图排序],
-            tab_at="roaming",
-            value=0,  # excutable string list
-            component=ConfigModel.Widget.combo ,
-            limit=[ComboItem(译.深度优先遍历,0),ComboItem(译.广度优先遍历,1)]
+    cascading_sort: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_多级排序],
+        tab_at="roaming",
+        value=[[], -1],  # excutable string list
+        component=ConfigModel.Widget.customize,
+        customizeComponent=lambda: widgets.GviewConfigCascadingSorter
+    ))
+    weighted_sort: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_加权排序],
+        tab_at="roaming",
+        value=[[], -1],  # excutable string list
+        component=ConfigModel.Widget.customize,
+        customizeComponent=lambda: widgets.GviewConfigWeightedSorter
+    ))
+    graph_sort: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_图排序],
+        tab_at="roaming",
+        value=0,  # excutable string list
+        component=ConfigModel.Widget.combo,
+        limit=[ComboItem(译.深度优先遍历, 0), ComboItem(译.广度优先遍历, 1)]
     ))
 
     def __repr__(self):
@@ -1090,8 +1108,6 @@ class GviewConfigModel(BaseConfigModel):
 
     def __str__(self):
         return self.__repr__()
-
-
 
         pass
 
