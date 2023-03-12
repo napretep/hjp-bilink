@@ -8,7 +8,6 @@ __time__ = '2021/7/30 9:15'
 """
 import shutil
 import time
-from datetime import datetime
 from .compatible_import import *
 from anki.cards import Card
 from anki.notes import Note
@@ -37,7 +36,7 @@ def on_profile_will_close_handle():
         funcs.LinkPoolOperation.clear()
     if funcs.Utils.LOG.exists():
         funcs.Utils.LOG.file_clear()
-    cfg, now = funcs.Config.get(), datetime.now().timestamp()
+    cfg, now = funcs.Config.get(), datetime.datetime.now().timestamp()
     if funcs.GlobalLinkDataOperation.need_backup(cfg, now):
         funcs.GlobalLinkDataOperation.backup(cfg, now)
     funcs.Config.save(funcs.G.CONFIG)

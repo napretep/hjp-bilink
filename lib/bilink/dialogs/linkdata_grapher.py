@@ -1818,8 +1818,8 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.switch_sidebar_show_hide()
         self.初始化快捷键()
         if self.superior.data.gviewdata.config_model.data.split_screen_when_roaming.value:
-            funcs2.通用.窗口.半开(self.superior,"右")
-            funcs2.通用.窗口.半开(self)
+            funcs.通用.窗口.半开(self.superior,"右")
+            funcs.通用.窗口.半开(self)
 
     def 初始化快捷键(self):
 

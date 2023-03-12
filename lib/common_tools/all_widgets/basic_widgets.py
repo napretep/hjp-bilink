@@ -5,15 +5,15 @@ __file_name__ = 'basic_widgets.py'
 __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2023/2/27 20:43'
-"""
-from datetime import datetime
 
-"""
 注意: basic中尽量不直接引用其他包, 要用safe的方法
 """
+import abc
+from datetime import datetime
+import re
 from abc import abstractmethod
 from dataclasses import dataclass
-
+from typing import *
 from ..compatible_import import *
 from ..language import Translate
 from .. import G
@@ -22,7 +22,12 @@ from .. import G
 子代 = 子 = 2
 占 = 占据 = 3
 译 = Translate
-
+class  安全导入:
+    @property
+    def selector_widgets(self):
+        from . import selector_widgets
+        return selector_widgets
+导入 = 安全导入()
 class SelectorProtoType(QDialog):
     """大部分待选表的一个原型"""
 
@@ -75,7 +80,7 @@ class SelectorProtoType(QDialog):
         s = ""
         parent = item
         while parent != self.model.invisibleRootItem():
-            s = self.separator + parent.deck_name + s
+            s = self.separator + parent.item_name + s
             parent = parent.parent()
         s = s[2:]
         return s
@@ -135,6 +140,8 @@ class SelectorProtoType(QDialog):
                 parent = parent.children[deckname]
 
     def init_UI(self):
+        self.setWindowFlags(Qt.WindowType.Dialog)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
         self.setWindowTitle(self.window_title_name)
         self.setWindowIcon(QIcon(G.src.ImgDir.box))
         self.view.setIndentation(8)
@@ -175,9 +182,11 @@ class SelectorProtoType(QDialog):
             self.data_id: "Optional[int]" = None
             self.level: "Optional[int]" = None
             self.setFlags(self.flags() & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsDropEnabled)
-
         @property
-        def deck_name(self):
+        def Id_name(self):
+            return SelectorProtoType.Id_name(self.item_name,self.data_id)
+        @property
+        def item_name(self):
             return self.text()
 
         def parent(self) -> "SelectorProtoType.Item":
@@ -193,23 +202,6 @@ class SelectorProtoType(QDialog):
         ID: "int|str"
 
 
-
-class SimpleSelectorProtoType(SelectorProtoType):
-
-    def on_header_new_item_button_clicked_handle(self):
-        pass
-
-    def on_model_data_changed_handle(self, topLeft, bottomRight, roles):
-        pass
-
-    def on_view_clicked_handle(self, index):
-        pass
-
-    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
-        raise NotImplementedError()
-
-    def on_view_doubleclicked_handle(self, index):
-        raise NotImplementedError()
 
 
 class multi_select_prototype(QDialog):
@@ -259,7 +251,8 @@ class multi_select_prototype(QDialog):
         self.init_data_left()
 
     def init_UI(self):
-        self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        self.setWindowFlags(Qt.WindowType.Dialog|Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
         self.setWindowTitle("item chooser")
         self.setWindowIcon(QIcon(G.src.ImgDir.tag))
         组件布局 = {框: QHBoxLayout(),
@@ -530,5 +523,97 @@ class multi_select_prototype(QDialog):
     class Id_name:
         name: "str"
         ID: "int|str"
+
+
+
+class 可执行字符串编辑组件(QDialog):
+    def __init__(self, 预设文本=""):
+        super().__init__()
+        funcs = G.safe.funcs
+        布局, 组件, 子代 = G.objs.Bricks.三元组
+        self.布局 = {
+                布局: QVBoxLayout(),
+                子代: [
+                        {组件: QTextEdit()},
+                        {布局: QHBoxLayout(),
+                         子代:
+                             [{组件: QPushButton("help")},
+                              {组件: QPushButton("test")},
+                              {组件: QPushButton("ok")},
+                              ]
+                         },
+                        {组件: QTextBrowser()}  # 用于展示信息
+                ]
+        }
+        self.html_文本 = lambda 内容: """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title></title>
+<style>
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+body {
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+font-size: 14px;
+line-height: 1.6;
+}
+</style>
+<style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+</head>
+<body class="vscode-body vscode-light">
+""" + 内容 + """
+</body>
+</html>
+        """
+        self.help_doc: "None|QMainWindow" = None
+        self.合法字符串 = ""  # 可用可不用
+        self.ok = False  # 可用可不用
+        self.说明 = ""  # 可用可不用
+        f = [self.on_help, self.on_test, self.on_ok]
+        funcs.组件定制.组件组合(self.布局, self)
+        [self.布局[子代][1][子代][i][组件].clicked.connect(f[i]) for i in range(3)]
+        self.布局[子代][0][组件].setText(预设文本)
+        self.设置说明栏("")
+        self.布局[子代][2][组件].show()
+        self.setWindowTitle("excutable string validation")
+        self.resize(600,500)
+
+    def 设置说明栏(self, 内容):
+        funcs = G.safe.funcs
+        self.布局[子代][2][组件].setHtml(funcs.Utils.html默认格式(内容))
+
+    def on_help(self):
+        """弹出提示"""
+        funcs = G.safe.funcs
+        self.设置说明栏(self.说明)
+
+    def on_ok(self):
+        if self.on_test():
+            self.设置当前配置项对应展示组件的值()
+            self.ok = True
+            self.close()
+
+    @abc.abstractmethod
+    def on_test(self):
+        """进行语法检测"""
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def 设置当前配置项对应展示组件的值(self, value=None):
+        raise NotImplementedError()
+
+    # def closeEvent(self, QCloseEvent):
+    # if self.help_doc:
+    #     self.help_doc.close()
+    # super().closeEvent()
+    # def init_UI(self):
+
+    pass
 
 

@@ -592,8 +592,10 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     文外链接操作:str=rosetta("文外链接操作")
     打开链接池:str=翻译("打开双链分组器","open bilink grouper")
     清空链接池:str=翻译("清空双链分组器","clear bilink grouper")
-    完全图绑定:str=rosetta("完全图绑定")
-    组到组绑定:str=rosetta("组到组绑定")
+
+    完全图绑定:str=翻译("完全图绑定","complete graph binding")
+
+    组到组绑定:str=翻译("完全多部图绑定","complete n-partite graph binding")
     按结点解绑:str=rosetta("按结点解绑")
     按路径解绑:str=rosetta("按路径解绑")
     选中直接操作:str=rosetta("选中直接操作")
@@ -720,7 +722,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     搜索并选择配置:str = rosetta("搜索并选择配置")
     说明_同时搜索配置与视图的配置:str = rosetta("你输入的关键词会同时匹配视图名与配置名, 若你选择的是配置则直接加载这个配置, 若你选择的是视图则会加载这个视图对应的配置. 若你没有做出选择, 点击确认不会有反应")
     插件数据主动备份 =翻译("插件数据主动备份","addon data backup")
-    新建配置:str = rosetta("新建配置")
+    新建配置:str = 翻译("新建配置","create new config")
     配置:str = rosetta("配置")
     添加卡片:str = rosetta("添加卡片")
     添加视图:str = rosetta("添加视图")
@@ -765,5 +767,6 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     视图配置 = 翻译("视图配置","view config")
     视图配置选择 = 翻译("视图配置选择","select view config")
     说明_新建视图_配置选择 = 翻译("请选择一个存在的视图配置,若不选则默认新建一个配置.","Please select an existing view configuration. If not selected, a new configuration will be created by default")
+    不选等于新建 = 翻译("你没有选择任何视图配置,因此将会新建配置","You have not selected any view configuration, so a new configuration will be created")
 if __name__ == "__main__":
     print(Translate.打开配置表)

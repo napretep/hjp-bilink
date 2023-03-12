@@ -10,6 +10,7 @@ __time__ = '2023/2/27 5:10'
 2 属性项
 3 模型
 """
+import re
 # from .basic_import import *
 from typing import *
 
@@ -20,7 +21,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Any, NewType
 
 from ..compatible_import import *
-from .. import language, baseClass, funcs, funcs2,configsModel,widgets,hookers,G
+from .. import language, baseClass, funcs, funcs2, configsModel, widgets, hookers, G
 
 
 class 安全导入:
@@ -34,14 +35,15 @@ class 安全导入:
         from .. import funcs
         return funcs
 
+
 safe = 安全导入()
 
 译 = language.Translate
 枚举 = baseClass.枚举命名
 砖 = 枚举.砖
 类型_结点编号 = 类型_属性名 = str
-类型_视图数据=configsModel.GViewData
-类型_数据源_提取规则 = NewType("类型_数据源_提取规则",dict)
+类型_视图数据 = configsModel.GViewData
+类型_数据源_提取规则 = NewType("类型_数据源_提取规则", dict)
 
 
 class 函数库_UI生成:
@@ -74,7 +76,7 @@ class 函数库_UI生成:
     class 组件(QWidget):
         def __init__(self, 项: "基类_属性项"):
             super().__init__()
-            self.给UI赋值:"None|Callable[[Any],None]" =None
+            self.给UI赋值: "None|Callable[[Any],None]" = None
             self.提示按钮 = 函数库_UI生成.提示按钮(项.说明)
             self.数据源: "基类_属性项" = 项
             self.核心组件: "Optional[QWidget]" = None
@@ -204,8 +206,6 @@ class 函数库_UI生成:
         # def 给UI赋值(self,value,赋值函数):
         #     赋值函数(value)
         #     self.当完成赋值(self,value)
-
-
 
     pass
 
@@ -389,9 +389,10 @@ class 基类_属性项:
     属性项排序位置: "int" = 0  # 用于对属性项顺序有要求的环境.
     可批量编辑: "int" = 0
     在视图中显示: "int" = 1
-    版本:int = 1
+    版本: int = 1
+
     @property
-    def 值(self):
+    def 值(self) -> Any:
         raise NotImplementedError()
 
     def 设值(self, value):
@@ -428,3 +429,9 @@ class 基类_属性项:
     # def __iadd__(self, other):
     #     self.设值(self.值+other)
     #     return self
+
+
+@dataclass
+class Id_name:
+    name: "str"
+    ID: "int|str|None"

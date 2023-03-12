@@ -42,9 +42,9 @@ def on_js_message(handled, url: str, context):
         else:
             showInfo(f"""卡片不存在,id={str(cid)}""")
         return True, None
-    elif url.startswith("hjp-bilink-clipuuid:"):
-        pdfuuid, pagenum = url.split(":")[-1].split("_")
-        funcs.Dialogs.open_PDFprev(pdfuuid, pagenum, context)
+    # elif url.startswith("hjp-bilink-clipuuid:"):
+    #     pdfuuid, pagenum = url.split(":")[-1].split("_")
+    #     funcs.Dialogs.open_PDFprev(pdfuuid, pagenum, context)
     elif url.startswith(f"{ankilink.protocol}://"):
         if url.startswith(f"{ankilink.protocol}://{ankilink.cmd.opengview}="):
             mode = funcs.GraphMode

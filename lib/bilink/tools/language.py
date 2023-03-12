@@ -1,9 +1,10 @@
+import anki.lang
 from anki.lang import *
 
 
 def rosetta(text: str = ""):
     """# return text"""
-    lang = currentLang
+    lang = anki.lang.current_lang
 
     surrport = ["zh-CN", "zh_TW", "en", "en-GB"]
 

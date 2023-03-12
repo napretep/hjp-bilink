@@ -89,7 +89,7 @@ class 类型_模型_描述提取规则(基类_模型):
             组件类型=枚举.组件类型.customize,
             自定义组件=lambda 组件生成器:函数库_UI生成.自定义().属性项组件.标签选择(组件生成器),
             # 自定义组件=widgets.自定义组件.标签选择,
-            组件传值方式=lambda 项: funcs2.逻辑.缺省值(项.值, lambda x: x.__str__() if len(x)>0 else None, "ALL TAGS"),
+            组件传值方式=lambda 项: funcs.逻辑.缺省值(项.值, lambda x: x.__str__() if len(x)>0 else None, "ALL TAGS"),
             属性项排序位置=3,
     ))
     正则: 类型_属性项_描述提取规则 = field(default_factory=lambda: 类型_属性项_描述提取规则(

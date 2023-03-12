@@ -16,7 +16,7 @@ from . import funcs, baseClass, language
 
 本 = baseClass.枚举命名
 译 = language.Translate
-LinkDataPair = funcs.objs.LinkDataPair
+LinkDataPair = funcs.G.objs.LinkDataPair
 
 
 class VisualBilinker(QMainWindow):
@@ -38,7 +38,7 @@ class VisualBilinker(QMainWindow):
         self.scene.setSceneRect(-float(r.width() / 2), -float(r.height() / 2), float(r.width() * 4),
                                 float(r.height() * 4))
         self.init_UI()
-        self.all_event = funcs.objs.AllEventAdmin([
+        self.all_event = funcs.G.objs.AllEventAdmin([
                 [self.scene.selectionChanged, self.on_scene_selectionChanged_handle],
                 [self.view.verticalScrollBar().valueChanged, self.on_view_verticalScrollBar_valueChanged_handle],
                 [self.view.horizontalScrollBar().valueChanged, self.on_view_horizontalScrollBar_valueChanged_handle],
@@ -90,11 +90,11 @@ class VisualBilinker(QMainWindow):
 
 
     def create_view(self):
-        name, submitted = funcs.GviewOperation.get_correct_view_name_input()
-        if not submitted:
-            return
+        # name, submitted = funcs.GviewOperation.get_correct_view_name_input()
+        # if not submitted:
+        #     return
         nodes, edges = self.data.node_edge_packup()
-        funcs.GviewOperation.create(nodes, edges, name)
+        funcs.GviewOperation.create(nodes, edges, name="")
         # funcs.Dialogs.open_view(gviewdata=funcs.GviewOperation.load(uuid))
 
     # node

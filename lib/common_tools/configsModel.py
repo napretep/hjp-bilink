@@ -16,11 +16,11 @@ import time
 from dataclasses import dataclass, field
 from enum import unique, Enum
 from functools import reduce
-from typing import List, Any, Union, Callable, Optional
-from .baseClass import CustomConfigItemView
+from typing import *
+# from .baseClass import CustomConfigItemView
 from .language import Translate
 from .src_admin import MAXINT, MININT, src
-from . import widgets, terms, baseClass
+from . import widgets, terms, baseClass,G
 from .compatible_import import *
 from .compatible_import import tooltip, isMac, isWin
 from typing import TYPE_CHECKING
@@ -121,6 +121,9 @@ class GViewData:
             self.config_model.saveModelToDB()
         else:
             self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
+            self.config_model.指定视图配置(self)
+
+
         # if safe.funcs.GviewConfigOperation.存在(self.config):
         #     self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
         # else:
@@ -208,7 +211,6 @@ class GViewData:
         }
 
     def 设置结点属性(self,结点编号:str,属性名:str,值):
-        from . import funcs
         assert type(结点编号)==str and type(属性名)==str
         self.nodes.data[结点编号][属性名] = 值
 
@@ -265,7 +267,7 @@ class GViewData:
                     #     del self.node_helper[a_b]
 
     def 新增结点(self,编号,类型):
-        from . import funcs,models
+        from . import funcs
         self.nodes[编号]=funcs.GviewOperation.依参数确定视图结点数据类型模板(结点类型=类型,编号=编号)
         # self.node_helper[编号]=models.类型_视图结点模型().初始化(self,编号)
 
@@ -376,7 +378,7 @@ class ConfigModelItem:
     display: 'Callable[[Any],Any]' = lambda x: x
     validate: 'Callable[[Any,Any],Any]' = lambda value, item: None
     limit: "list" = field(default_factory=lambda: [0, MAXINT])
-    customizeComponent: "Callable[[],CustomConfigItemView.__class__]" = lambda: CustomConfigItemView  # 这个组件的第一个参数必须接受
+    customizeComponent: "Callable[[],widgets.CustomConfigItemView.__class__]" = lambda: widgets.CustomConfigItemView  # 这个组件的第一个参数必须接受
     _id: "int" = 0  # 0表示无特殊信息
     widget:"QWidget" = None
     设值到组件: "Callable[[Any],Any]"=None  # 将配置表项的值设到组件上, BaseConfig.makeConfigRow中用到, 不同的组件设置方式不同,需要在那边自定义
@@ -663,7 +665,7 @@ class ConfigModel(BaseConfigModel):
     #         else reduce(lambda x, y: x and y, map(lambda x: re.search(r"\S", x), text), True) if type(text) == list
     #         else False,
     #         component=ConfigModel.Widget.customize,
-    #         customizeComponent=lambda: widgets.ConfigWidget.GroupReviewConditionList,
+    #         customizeComponent=lambda: widgets.GroupReviewConditionList,
     #         tab_at=Translate.复习相关
     # ))
     length_of_desc: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
@@ -690,7 +692,7 @@ class ConfigModel(BaseConfigModel):
             value=[baseClass.枚举命名.全局配置.描述提取规则.默认规则()],  # 模板ID,字段ID,长度限制,正则表达式,是否自动更新描述
             component=ConfigModel.Widget.customize,
             tab_at=Translate.链接相关,
-            customizeComponent=lambda: widgets.ConfigWidget.DescExtractPresetTable
+            customizeComponent=lambda: widgets.DescExtractPresetTable
     ))
     delete_intext_link_when_extract_desc: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[
@@ -917,14 +919,14 @@ text-decoration:none;""",
             instruction=["遇到指定路径的pdf,提供预先设置好的显示名称,样式, 是否显示页码,双击左侧表格单元修改对应行内容"],
             value=[],
             component=ConfigModel.Widget.customize,
-            customizeComponent=lambda: widgets.ConfigWidget.PDFUrlLinkBooklist,
+            customizeComponent=lambda: widgets.PDFUrlLinkBooklist,
             tab_at=Translate.pdf链接,
     ))
     set_default_view: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_设定默认视图],
             value=-1,
             component=ConfigModel.Widget.customize,
-            customizeComponent=lambda: widgets.ConfigWidget.GlobalConfigDefaultViewChooser,
+            customizeComponent=lambda: widgets.GlobalConfigDefaultViewChooser,
             tab_at="view"
     ))
 
@@ -950,8 +952,8 @@ class GviewConfigModel(BaseConfigModel):
         for k, v in source.items():
             template[k].value = v
         return template
-
-    def ViewExist(self, uuid):
+    @staticmethod
+    def ViewExist(uuid):
         from . import funcs
         return funcs.GviewOperation.exists(uuid=uuid)
 
@@ -995,16 +997,16 @@ class GviewConfigModel(BaseConfigModel):
             value=[],
             tab_at="main",
             component=ConfigModel.Widget.customize,
-            customizeComponent=lambda: widgets.ConfigWidget.GviewConfigApplyTable,
+            customizeComponent=lambda: widgets.GviewConfigApplyTable,
             validate=lambda value, item: sum([0 if GviewConfigModel.ViewExist(uuid) else 1 for uuid in value]) == 0
     ))
     node_role_list: ConfigModelItem  = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_结点角色枚举],
             tab_at="main",
             value="[]", # "list[str]"
-            validate = lambda  value, item: Validation.node_tag_enum_validate(value),
+            validate = lambda  value, item: Validation.node_tag_enum_validate(value, item),
             component=ConfigModel.Widget.customize,
-            customizeComponent=lambda: widgets.ConfigWidget.GviewConfigNodeRoleEnumEditor,
+            customizeComponent=lambda: widgets.GviewConfigNodeRoleEnumEditor,
     ))
     edge_name_always_show:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_总是显示边名],
@@ -1033,7 +1035,7 @@ class GviewConfigModel(BaseConfigModel):
             tab_at = "main",
             value=-1,
             component=ConfigModel.Widget.customize,
-            customizeComponent=lambda:widgets.ConfigWidget.GviewConfigDeckChooser,
+            customizeComponent=lambda:widgets.GviewConfigDeckChooser,
     ))
 
     roaming_path_mode:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
@@ -1048,21 +1050,21 @@ class GviewConfigModel(BaseConfigModel):
             tab_at="roaming",
             value=[[],-1],  # excutable string list
             component=ConfigModel.Widget.customize,
-            customizeComponent=lambda:widgets.ConfigWidget.GviewConfigNodeFilter
+            customizeComponent=lambda:widgets.GviewConfigNodeFilter
     ))
     cascading_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_多级排序],
             tab_at="roaming",
             value=[[],-1],  # excutable string list
             component=ConfigModel.Widget.customize,
-            customizeComponent=lambda:widgets.ConfigWidget.GviewConfigCascadingSorter
+            customizeComponent=lambda:widgets.GviewConfigCascadingSorter
     ))
     weighted_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_加权排序],
             tab_at="roaming",
             value=[[],-1],  # excutable string list
             component=ConfigModel.Widget.customize,
-            customizeComponent=lambda:widgets.ConfigWidget.GviewConfigWeightedSorter
+            customizeComponent=lambda:widgets.GviewConfigWeightedSorter
     ))
     graph_sort:ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
             instruction=[译.说明_图排序],

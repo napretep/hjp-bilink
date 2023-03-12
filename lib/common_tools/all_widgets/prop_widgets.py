@@ -1,5 +1,3 @@
-from ..compatible_import import *
-from .. import G
 from .basic_widgets import *
 
 
@@ -38,9 +36,8 @@ class 属性项组件:
 
         def on_edit_button_clicked(self):
             w = self.chooser()
-            w.show()
             w.exec()
-            if (type(w.结果) in [int, float] and w.结果 < 0) or \
+            if w.结果 is None or (type(w.结果) in [int, float] and w.结果 < 0) or \
                     (type(w.结果) == list and len(w.结果) == 0):
                 showInfo(self.不选信息)
 
@@ -48,7 +45,7 @@ class 属性项组件:
 
         def setValue(self, value):
             self.ui组件.setText(self.get_name(value))
-            new_value = value if type(value) in [int, float, bool, str, complex] else value.copy()
+            new_value = value if type(value) in [int, float, bool, str, complex] else value.copy() if "copy" in value.__dir__() else value
             self.上级.数据源.设值(new_value)
             self.当完成赋值(self, new_value)
             # funcs.Utils.print(self,new_value)
@@ -78,17 +75,17 @@ class 属性项组件:
 
         def chooser(self):
             """需要获取到config,所以需要获取到view uuid"""
-            return G.safe.widgets.role_chooser_for_node(self.属性项.值, self.角色表)
+            return 导入.selector_widgets.role_chooser_for_node(self.属性项.值, self.角色表)
             pass
 
         def get_name(self, value):
-            return G.safe.funcs2.逻辑.缺省值(value, lambda x: [self.角色表[idx] for idx in x if
+            return G.safe.funcs.逻辑.缺省值(value, lambda x: [self.角色表[idx] for idx in x if
                                                                idx in range(len(self.角色表))],
                                              f"<img src='{G.src.ImgDir.cancel}' width=10 height=10> no role").__str__()
 
     class 牌组选择(基本选择类):
 
-        def chooser(self): return G.safe.widgets.universal_deck_chooser()
+        def chooser(self): return 导入.selector_widgets.universal_deck_chooser()
 
         def get_name(self, value): return mw.col.decks.name_if_exists(value) if value > 0 else "ALL DECKS"
 
@@ -100,7 +97,7 @@ class 属性项组件:
 
         def get_name(self, value): return mw.col.models.get(value)["name"] if value > 0 else "ALL TEMPLATES"
 
-        def chooser(self): return G.safe.widgets.universal_template_chooser()
+        def chooser(self): return 导入.selector_widgets.universal_template_chooser()
 
         # def __init__(self, 上级):
         #     super().__init__(上级)
@@ -121,19 +118,32 @@ class 属性项组件:
             self.ui组件.setText(self.get_name(self.上级.数据源.值))
 
         def chooser(self):
-            return G.safe.widgets.universal_field_chooser(self.模板编号)
+            return 导入.selector_widgets.universal_field_chooser(self.模板编号)
 
         def get_name(self, value):
             return G.safe.funcs.卡片字段操作.获取字段名(self.模板编号, value, "ALL FIELDS")
 
     class 标签选择(基本选择类):
         def chooser(self):
-            return G.safe.widgets.universal_tag_chooser(self.上级.数据源.值)
+            return 导入.selector_widgets.universal_tag_chooser(self.上级.数据源.值)
             pass
 
         def get_name(self, value):
-            return G.safe.funcs2.逻辑.缺省值(value, lambda x: x, "ALL TAGS").__str__()
+            return G.safe.funcs.逻辑.缺省值(value, lambda x: x, "ALL TAGS").__str__()
             # if len(value)==0:
             #     return "ALL TAGS"
             # return value.__str__()
             # pass
+
+    class 视图配置选择(基本选择类):
+        def chooser(self) -> "QDialog":
+            return 导入.selector_widgets.view_config_chooser()
+
+        def get_name(self, value):
+            value:G.safe.models.Id_name = value
+            return G.safe.funcs.逻辑.缺省值(value, lambda x:x.name if x else None,
+                                             f"<img src='{G.src.ImgDir.config}' width=16 height=16> new config").__str__()
+
+        def __init__(self, 上级):
+            super().__init__(上级)
+            self.不选信息 = 译.不选等于新建

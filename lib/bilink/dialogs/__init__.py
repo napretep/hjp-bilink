@@ -6,4 +6,4 @@ __author__ = '十五'
 __email__ = '564298339@qq.com'
 __time__ = '2021/8/1 15:33'
 """
-from . import anchor, linkpool, version
+from . import anchor, linkpool, version, custom_cardwindow

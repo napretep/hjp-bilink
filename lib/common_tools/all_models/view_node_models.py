@@ -472,5 +472,5 @@ class 类型_视图结点集模型(基类_集模型):
         self.data: "dict" = data # nodes字典
 
     def __getitem__(self, node_id):
-        return 类型_视图结点模型(数据源=类型_视图结点数据源(self, node_id))
+        return 类型_视图结点模型(数据源=类型_视图结点数据源(模型=self, 结点编号=node_id))
 

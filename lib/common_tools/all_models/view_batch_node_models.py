@@ -32,7 +32,7 @@ class 类型_集模型_批量视图结点(类型_视图结点集模型):
         #     return
         组件名修改 = lambda 属性,组件名:lambda x, y: 组件名.setText(属性.展示名 + f"({译.已修改})")
         批量结点赋值 = lambda 属性,组件名:lambda x, y:[self[结点编号][属性.字段名].设值(y) for 结点编号 in self.批量结点]
-        打印观察 = lambda 属性,组件名:lambda x, y:funcs.Utils.print([self[结点编号] for 结点编号 in self.批量结点])
+        # 打印观察 = lambda 属性,组件名:lambda x, y:funcs.Utils.print([self[结点编号] for 结点编号 in self.批量结点])
         for 属性名,属性 in 伪数据["test_node"].属性字典.items():
             if 属性.可批量编辑:
                 组件名 = funcs.组件定制.文本框(属性.展示名,True)

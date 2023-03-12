@@ -42,12 +42,28 @@ class SAFE:
     def funcs(self):
         from . import funcs
         return funcs
-
+    @property
+    def graphical_bilinker(self):
+        from . import graphical_bilinker
+        return graphical_bilinker
     @property
     def linkdata_grapher(self):
         from ..bilink.dialogs import linkdata_grapher
         return linkdata_grapher
+    @property
+    def bilinkDialogs(self):
+        from ..bilink import dialogs
+        return dialogs
 
+    @property
+    def linkdata_admin(self):
+        from ..bilink import linkdata_admin
+        return linkdata_admin
+
+    @property
+    def in_text_admin(self):
+        from ..bilink import in_text_admin
+        return in_text_admin
     @property
     def objs(self):
         from .import objs
@@ -69,6 +85,17 @@ class SAFE:
     def funcs2(self):
         from . import funcs2
         return funcs2
+    @property
+    def configsModel(self):
+        from . import configsModel
+        return configsModel
+
+    @property
+    def baseClass(self):
+        from . import baseClass
+        return baseClass
+
+
 
 safe = SAFE()
 
@@ -83,7 +110,7 @@ DB = objs.DB_admin()  # 这个是通用DB,如果要用linkdata请用linkdata_adm
 signals = signals.CustomSignals.start()
 src = src_admin.src
 addonName = src.dialog_name
-CONFIG: "ConfigModel" = None
+CONFIG: "Optional[ConfigModel]" = None
 mw.__dict__[addonName] = {}
 mw.__dict__[addonName]["progresser"] = None
 mw.__dict__[addonName]["card_window"] = {}

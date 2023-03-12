@@ -15,7 +15,7 @@ from datetime import datetime
 from abc import ABC
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Union
+from typing import *
 from urllib.parse import unquote
 from .compatible_import import *
 logtext = r"C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\log.txt"
@@ -41,7 +41,7 @@ class Utils(object):
             caller = sys._getframe(1).f_code.co_name
             caller2 = sys._getframe(2).f_code.co_name
             if need_timestamp:
-                ts = (datetime.now().strftime("%Y%m%d%H%M%S"))
+                ts = (datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
             else:
                 ts = ""
             if need_logFile:
@@ -365,7 +365,7 @@ class LinkDataJSONInfo:
         d = {}
         d["backlink"] = self.backlink
         d["version"] = self.version
-        d["link_list"]: "list[dict[str,Any]]" = []
+        d["link_list"]: "list[Dict[str,Any]]" = []
         for pair in self.link_list:
             d["link_list"].append(pair.todict())
         d["self_data"] = self.self_data.to_self_dict()
@@ -871,8 +871,10 @@ class DB_admin(object):
             raise ValueError("values is empty!")
         return DB_admin.BOX(string, val)
 
-    def selectAll(self,tablename:"str"):
-        self.excute_queue.append(self.sqlstr_RECORD_SELECT_ALL.format(tablename=tablename))
+    def selectAll(self,tab_id=None):
+        # tablename = self
+        table_name = Table.switch[tab_id].tablename if tab_id else self.tab_name
+        self.excute_queue.append(self.sqlstr_RECORD_SELECT_ALL.format(tablename=table_name))
         return self
 
     def select(self, box: "DB_admin.BOX" = None, **kwargs):

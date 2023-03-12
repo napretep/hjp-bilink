@@ -11,8 +11,18 @@ __time__ = '2021/8/9 11:46'
 """
 import sys
 from ..debugState import *
-from typing import Union, Callable
+from typing import *
+import os,re,math,traceback,json,shutil,random
+import platform
+import subprocess
+import time,datetime,uuid,collections
+from functools import cmp_to_key,reduce
+from bs4 import BeautifulSoup,element
+from dataclasses import dataclass,field,fields
+from ast import literal_eval
+from abc import ABC, abstractmethod
 # from . import G
+import anki
 
 try:
     from aqt import profiler
@@ -366,6 +376,8 @@ class QMessageBox_StandardButton:
     Yes = QMessageBox.StandardButton.Yes if Utils.isQt6() else QMessageBox.Yes
     No = QMessageBox.StandardButton.No if Utils.isQt6() else QMessageBox.No
 
+
+# from anki import *
 
 def qconnect(
     signal: Union[Callable, pyqtSignal, pyqtBoundSignal], func: Callable
