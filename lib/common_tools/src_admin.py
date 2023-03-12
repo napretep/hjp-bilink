@@ -140,6 +140,7 @@ class SrcAdmin:
             self.preview_open = os.path.join(self.root.path.resource_icon,"icon_preview_open.png")
             self.edit = os.path.join(self.root.path.resource_icon,"icon_edit.png")
             self.save = os.path.join(self.root.path.resource_icon, "icon_save.png")
+            self.save_as =  os.path.join(self.root.path.resource_icon, "icon_save_as_new.png")
             self.box2 = os.path.join(self.root.path.resource_icon, "icon_box2.png")
             self.as_group = os.path.join(self.root.path.resource_icon, "icon_as_group.png")
 

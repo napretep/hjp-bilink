@@ -423,11 +423,10 @@ class GviewOperation:
 
 
     @staticmethod
-    def create(nodes=None, edges=None, name="", need_save=True, need_open=True, config:"str"=None):
+    def create(nodes=None, edges=None,meta=None, name="", need_save=True, need_open=True, config:"str"=None):
         """需要进行一个兼容处理, 既要满足过去的使用方式, 又要拓展到未来.
         2023年3月9日02:43:30 新版处理对象: 视图名, 是否使用已有配置
         """
-        models = G.safe.models
         if not name:
             结果 = GviewOperation.get_correct_view_name_input(config=config)
             if not 结果.完成选择:
@@ -436,7 +435,7 @@ class GviewOperation:
                 name = 结果.视图名.值
                 config = 结果.数据源.配置.ID
         uuid = UUID.by_random()
-        data = G.safe.configsModel.GViewData(uuid=uuid, name=name, nodes=nodes if nodes else {}, edges=edges if edges else {}, config=config)
+        data = G.safe.configsModel.GViewData(uuid=uuid, name=name, nodes=nodes if nodes else {}, edges=edges if edges else {}, config=config,meta=meta)
         # 去检查一下scene变大时,item的scene坐标是否会改变
         if need_save:
             GviewOperation.save(data)

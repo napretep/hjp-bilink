@@ -1032,13 +1032,13 @@ class GviewConfigModel(BaseConfigModel):
         value=False,  # deck_id
         component=ConfigModel.Widget.radio,
     ))
-    view_node_inherit_config: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
-        instruction=[译.说明_视图结点创建默认配置],
-        tab_at="main",
-        value=False,
-        component=ConfigModel.Widget.radio,
-
-    ))
+    # view_node_inherit_config: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+    #     instruction=[译.说明_视图结点创建默认配置],
+    #     tab_at="main",
+    #     value=False,
+    #     component=ConfigModel.Widget.radio,
+    #
+    # ))
 
     split_screen_when_roaming: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
         instruction=[译.说明_漫游复习时分屏],
@@ -1061,6 +1061,13 @@ class GviewConfigModel(BaseConfigModel):
         value=-1,  # 本项要么None要么数字
         component=ConfigModel.Widget.customize,
         customizeComponent=lambda: widgets.GviewConfigTemplateChooser,
+    ))
+    default_config_for_add_view: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
+        instruction=[译.说明_视图添加视图_默认配置],
+        tab_at="main",
+        value="",  # 本项要么None要么数字
+        component=ConfigModel.Widget.customize,
+        customizeComponent=lambda: widgets.GviewConfigViewConfigChooser,
     ))
     roaming_path_mode: ConfigModelItem = field(default_factory=lambda: ConfigModelItem(
         instruction=[译.说明_漫游路径算法选择],

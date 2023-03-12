@@ -186,11 +186,23 @@ class Grapher(QMainWindow):
 
     def create_view(self):
         """根据当前视图的情况,创建一个新的视图"""
-        name, submitted = funcs.GviewOperation.get_correct_view_name_input()
-        if not submitted: return
+        # name, submitted = funcs.GviewOperation.get_correct_view_name_input()
+        # if not submitted: return
+        # self.data.node_edge_packup()
+        # common_tools.funcs.Dialogs.open_grapher(gviewdata=self.data.gviewdata.copy(new_name=name), mode=funcs.GraphMode.view_mode)
         self.data.node_edge_packup()
-        common_tools.funcs.Dialogs.open_grapher(gviewdata=self.data.gviewdata.copy(new_name=name), mode=funcs.GraphMode.view_mode)
-
+        config = None
+        config_id = self.data.gviewdata.config_model.data.default_config_for_add_view.value
+        if funcs.GviewConfigOperation.存在(config_id):
+            config = config_id
+        自身数据 = self.data.gviewdata
+        视图 = common_tools.funcs.GviewOperation.create(
+            nodes=自身数据.nodes.data.copy(),
+            edges=自身数据.edges.data.copy(),
+            meta =自身数据.meta.copy(),
+            config=config)
+        if 视图:
+            视图.保存()
     # node
     def create_node(self, pair: "LinkDataPair|str", 参数_视图结点类型=枚举_视图结点类型.卡片, fromGviewData=False):
         """
@@ -1108,7 +1120,7 @@ class Grapher(QMainWindow):
             def __init__(self, parent: "Grapher.ToolBar"):
                 self.superior = parent
                 imgDir = common_tools.G.src.ImgDir
-                self.save = QAction(QIcon(imgDir.save), "", parent)
+                self.save = QAction(QIcon(imgDir.save_as), "", parent)
                 self.roaming = QAction(QIcon(imgDir.box2), "", parent)
                 self.config = QAction(QIcon(imgDir.config), "", parent)
                 self.reConfig_Btn = QAction(QIcon(imgDir.config_reset), "", parent)
@@ -1194,8 +1206,9 @@ class Grapher(QMainWindow):
 
         def create_view(self):
             config = None
-            if self.superior.data.gviewdata.config_model.data.view_node_inherit_config.value:
-                config = self.superior.data.gviewdata.config
+            config_id = self.superior.data.gviewdata.config_model.data.default_config_for_add_view.value
+            if funcs.GviewConfigOperation.存在(config_id):
+                config = config_id
             视图 = common_tools.funcs.GviewOperation.create(config=config)
             if 视图:
                 视图.保存()

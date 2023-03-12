@@ -923,7 +923,7 @@ class VisualBilinker(QMainWindow):
             def __init__(self, parent: "VisualBilinker.ToolBar"):
                 self.superior = parent
                 imgDir = funcs.G.src.ImgDir
-                self.save = QAction(QIcon(imgDir.save), "", parent)
+                self.save = QAction(QIcon(imgDir.save_as), "", parent)
                 self.dueQueue = QAction(QIcon(imgDir.box2), "", parent)
                 self.config = QAction(QIcon(imgDir.config), "", parent)
                 self.reConfig_Btn = QAction(QIcon(imgDir.config_reset), "", parent)

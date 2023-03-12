@@ -185,7 +185,7 @@ class view_config_chooser(SimpleSelectorProtoType):
     def __init__(self, title_name="", separator="::", header_name=""):
         super().__init__(title_name, separator, header_name)
         self.header.new_item_button.hide()
-        self.结果: Union[DeckSelectorProtoType.Item, None] = None
+        self.结果: Union[DeckSelectorProtoType.Id_name, None] = None
 
 
 class universal_field_chooser(SelectorProtoType):

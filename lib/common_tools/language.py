@@ -697,7 +697,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     下次到期:str=rosetta("下次到期")
     提前复习:str=rosetta("提前复习")
     开始复习:str=rosetta("开始复习")
-    另存视图:str=rosetta("另存视图")
+    另存视图:str=翻译("复制视图","copy view")
     描述已修改但是___ :str=rosetta("描述已修改,但是你不会看到修改结果,因为这张卡保持着描述与字段同步")
     打开复习队列:str = rosetta("打开复习队列")
     双面展示:str=rosetta("双面展示")
@@ -769,5 +769,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     说明_新建视图_配置选择 = 翻译("请选择一个存在的视图配置,若不选则默认新建一个配置.","Please select an existing view configuration. If not selected, a new configuration will be created by default")
     不选等于新建 = 翻译("你没有选择任何视图配置,因此将会新建配置","You have not selected any view configuration, so a new configuration will be created")
     说明_视图添加卡片_默认模板 = 翻译("本项设定当添加卡片类型的结点时，默认要选择的模板","This item sets the template to be selected by default when adding card type nodes")
+    说明_视图添加视图_默认配置 = 翻译("本项设定当添加视图类型的结点时，默认要选择的配置",
+                                      "This item sets the configuration to be selected by default when adding nodes of view type")
 if __name__ == "__main__":
     print(Translate.打开配置表)
