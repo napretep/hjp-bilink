@@ -248,9 +248,9 @@ class GviewOperation:
         """"""
         Logic = G.objs.Logic
         if data:
-            Utils.print("保存前的数据", data)
+            # Utils.print("保存前的数据", data)
             prepare_data = data.to_DB_format()
-            Utils.print("写入数据库的数据", prepare_data)
+            # Utils.print("写入数据库的数据", prepare_data)
             if exclude is not None:
                 [prepare_data.pop(item) for item in exclude]
             DB = G.DB.go(G.DB.table_Gview)

@@ -8,8 +8,8 @@ __time__ = '2021/7/30 9:09'
 """
 import abc
 import collections
-import json,time
-import re,sys
+import json, time
+import re, sys
 import sqlite3
 from datetime import datetime
 from abc import ABC
@@ -18,6 +18,7 @@ from enum import Enum
 from typing import *
 from urllib.parse import unquote
 from .compatible_import import *
+
 logtext = r"C:\Users\Administrator\AppData\Roaming\Anki2\addons21\hjp-bilink\log.txt"
 
 
@@ -32,88 +33,94 @@ class SAFE:
         from ..bilink.dialogs import linkdata_grapher
         return linkdata_grapher
 
+
 safe = SAFE()
+
 
 class Utils(object):
     @staticmethod
     def print(*args, need_timestamp=True, need_logFile=True, **kwargs):
 
-            caller = sys._getframe(1).f_code.co_name
-            caller2 = sys._getframe(2).f_code.co_name
-            if need_timestamp:
-                ts = (datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
-            else:
-                ts = ""
-            if need_logFile:
-                f = open(logtext, "a", encoding="utf-8")
-                print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs, file=f)
-            else:
-                print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs)
+        caller = sys._getframe(1).f_code.co_name
+        caller2 = sys._getframe(2).f_code.co_name
+        if need_timestamp:
+            ts = (datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
+        else:
+            ts = ""
+        if need_logFile:
+            f = open(logtext, "a", encoding="utf-8")
+            print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs, file=f)
+        else:
+            print(f"{ts}|{caller2}>>{caller}:\n", *args, **kwargs)
 
 
 @dataclass
 class descExtractTable:
-    templateId:"int"
-    fieldId:"int"
-    length:"int"
-    regex:"str"
-    sync:"bool"
+    templateId: "int"
+    fieldId: "int"
+    length: "int"
+    regex: "str"
+    sync: "bool"
+
 
 class NONE:
     @staticmethod
-    def activateWindow()->False:
+    def activateWindow() -> False:
         return False
+
 
 @dataclass
 class CmdArgs:
-    type:"str"
-    args:"str"
-    def __init__(self,cmdargsli:"list[str,str]"):
+    type: "str"
+    args: "str"
+
+    def __init__(self, cmdargsli: "list[str,str]"):
         """需要在这里分辨不同版本的参数
         0版:command=args
         1版:command?key=args
         """
-        self.args=unquote(cmdargsli[1])
-        self.type=cmdargsli[0].lower()
+        self.args = unquote(cmdargsli[1])
+        self.type = cmdargsli[0].lower()
 
 
 @dataclass
 class Date:
-    year:"int"
-    month:"int"
-    day:"int"
-    hour:"int"
-    minute:"int"
-    second:"int"
-    millisecond:"int"
+    year: "int"
+    month: "int"
+    day: "int"
+    hour: "int"
+    minute: "int"
+    second: "int"
+    millisecond: "int"
 
-    def __eq__(self, other:"Date"):
-        return other.year==self.year and other.month==self.month and other.day==self.day\
+    def __eq__(self, other: "Date"):
+        return other.year == self.year and other.month == self.month and other.day == self.day \
             and other.hour == self.hour and other.minute == self.minute and other.second == self.second \
             and other.millisecond == self.millisecond
 
-    def __le__(self, other:"Date"):
-        if other.year>self.year:
+    def __le__(self, other: "Date"):
+        if other.year > self.year:
             return True
-        elif other.year==self.year and other.month>self.month:
+        elif other.year == self.year and other.month > self.month:
             return True
-        elif other.year==self.year and other.month==self.month and other.day>self.day:
+        elif other.year == self.year and other.month == self.month and other.day > self.day:
             return True
-        elif other.year==self.year and other.month==self.month and other.day==self.day \
-            and other.hour>self.hour :
+        elif other.year == self.year and other.month == self.month and other.day == self.day \
+                and other.hour > self.hour:
             return True
-        elif other.year==self.year and other.month==self.month and other.day==self.day \
-            and other.hour==self.hour and other.minute>self.minute :
+        elif other.year == self.year and other.month == self.month and other.day == self.day \
+                and other.hour == self.hour and other.minute > self.minute:
             return True
-        elif other.year==self.year and other.month==self.month and other.day==self.day \
-            and other.hour==self.hour and other.minute==self.minute and other.second>self.second :
+        elif other.year == self.year and other.month == self.month and other.day == self.day \
+                and other.hour == self.hour and other.minute == self.minute and other.second > self.second:
             return True
-        elif other.year==self.year and other.month==self.month and other.day==self.day \
-            and other.hour==self.hour and other.minute==self.minute and other.second==self.second\
-            and other.millisecond>self.millisecond:
+        elif other.year == self.year and other.month == self.month and other.day == self.day \
+                and other.hour == self.hour and other.minute == self.minute and other.second == self.second \
+                and other.millisecond > self.millisecond:
             return True
         else:
             return False
+
 
 class Struct:
     @dataclass
@@ -159,7 +166,7 @@ class LinkPoolModel:
 
     def tolinkdata(self):
         from ..bilink import linkdata_admin
-        return [ [ linkdata_admin.read_card_link_info(pair.card_id) for pair in group]for group in self.IdDescPairs]
+        return [[linkdata_admin.read_card_link_info(pair.card_id) for pair in group] for group in self.IdDescPairs]
 
     def flatten(self):
         """降维, 把group去掉, 通常用于complete_map的需要"""
@@ -169,10 +176,12 @@ class LinkPoolModel:
                 d.append(pair)
         return d
 
+
 @dataclass
 class LinkDescFrom:
-    DB:int=0
-    Field:int=1
+    DB: int = 0
+    Field: int = 1
+
 
 @dataclass
 class LinkDataPair:
@@ -181,16 +190,16 @@ class LinkDataPair:
     _desc保存着来自DB的数据内容, 但需要复杂的规则,来确定是否读取DB的内容
     """
     card_id: "str"
-    _desc: "str" = "" #由于引入了新的设定, desc的获取不一定是来自数据库,而是实时与卡片内容保持一致, 所以需要一个中间层来处理问题.
+    _desc: "str" = ""  # 由于引入了新的设定, desc的获取不一定是来自数据库,而是实时与卡片内容保持一致, 所以需要一个中间层来处理问题.
 
     dir: "str" = "→"
-    get_desc_from:int=LinkDescFrom.DB
+    get_desc_from: int = LinkDescFrom.DB
 
-    def __init__(self,card_id="",desc="",dir="→",get_desc_from=LinkDescFrom.DB):
-        self.card_id=card_id
-        self._desc=desc
-        self.dir=dir
-        self.get_desc_from=get_desc_from
+    def __init__(self, card_id="", desc="", dir="→", get_desc_from=LinkDescFrom.DB):
+        self.card_id = card_id
+        self._desc = desc
+        self.dir = dir
+        self.get_desc_from = get_desc_from
 
     @property
     def desc(self):
@@ -199,13 +208,12 @@ class LinkDataPair:
         # if  sys._getframe(1).f_code.co_name != "desc_extract":
         #     raise PermissionError("只能通过CardOperation.desc_extract访问本属性")
 
-        return  funcs.CardOperation.desc_extract(self.card_id)
+        return funcs.CardOperation.desc_extract(self.card_id)
         # return funcs.CardOperation.desc_extract(self.card_id)
 
-
     @desc.setter
-    def desc(self,value):
-        self._desc=value
+    def desc(self, value):
+        self._desc = value
         # self.get_desc_from=LinkDescFrom.DB
 
     @property
@@ -213,10 +221,10 @@ class LinkDataPair:
         return int(self.card_id)
 
     def to_self_dict(self):
-        return {"card_id":self.card_id, "desc":self._desc,"dir":self.dir,"get_desc_from":self.get_desc_from}
+        return {"card_id": self.card_id, "desc": self._desc, "dir": self.dir, "get_desc_from": self.get_desc_from}
 
-    def todict(self)->'dict[str,str]':
-        return {"card_id":self.card_id, "desc":self._desc,"dir":self.dir}
+    def todict(self) -> 'dict[str,str]':
+        return {"card_id": self.card_id, "desc": self._desc, "dir": self.dir}
 
     # def update_desc(self):
     #     """是从卡片中更新描述"""
@@ -305,14 +313,14 @@ class LinkDataJSONInfo:
     self_data: "LinkDataPair"
     root: "list[LinkDataNode]"
     node: "dict[str,LinkDataGroup]"
-    non_root_card:"list[LinkDataNode]"
+    non_root_card: "list[LinkDataNode]"
     link_dict: "dict[str,LinkDataPair]" = None
 
     def __init__(self, record: "dict"):
         """一般只用在DB中读取, DB读取先经过zip_up得到字典,字典的第一个键是card_id,第二个键是data"""
         from . import funcs
         self._src_data = record
-        self.non_root_card=[]
+        self.non_root_card = []
         if not isinstance(record["data"], dict):
             try:
                 d = json.loads(record["data"])
@@ -343,12 +351,13 @@ class LinkDataJSONInfo:
                                       , nodeuuid=nodename_nodeuuid_map[link["nodename"]] if "nodename" in link else ""
                                       ) for link in d["root"]]
         else:
-            for groupuuid, groupinfo in d["node"].items(): #把group结点拿出来赋值
+            for groupuuid, groupinfo in d["node"].items():  # 把group结点拿出来赋值
                 self.node[groupuuid] = LinkDataGroup(name=groupinfo["name"],
                                                      children=[LinkDataNode(**node) for node in groupinfo["children"]])
-                self.non_root_card+=list(filter(lambda x:x.card_id!="",self.node[groupuuid].children))
+                self.non_root_card += list(filter(lambda x: x.card_id != "", self.node[groupuuid].children))
             self.root = [LinkDataNode(**link) for link in d["root"]]
-        self.link_list = [LinkDataPair(**link) for link in d["link_list"] if funcs.CardOperation.exists(link["card_id"])]
+        self.link_list = [LinkDataPair(**link) for link in d["link_list"] if
+                          funcs.CardOperation.exists(link["card_id"])]
         self.self_data = LinkDataPair(**d["self_data"])
         self.link_dict = {}
         for pair in self.link_list:
@@ -356,7 +365,7 @@ class LinkDataJSONInfo:
             if pair not in self.non_root_card and pair not in self.root:
                 self.root.append(LinkDataNode(card_id=pair.card_id))
         for pair in self.root:
-            if pair.card_id!="" and pair.card_id not in self.link_dict:
+            if pair.card_id != "" and pair.card_id not in self.link_dict:
                 self.root.remove(pair)
         self.version = 2
 
@@ -383,7 +392,7 @@ class LinkDataJSONInfo:
 
     @property
     def to_DB_record(self):
-        s = json.dumps(self.todict()["data"],ensure_ascii=False)
+        s = json.dumps(self.todict()["data"], ensure_ascii=False)
         d = {"card_id": self.self_data.card_id, "data": s}
         return d
 
@@ -400,7 +409,7 @@ class LinkDataJSONInfo:
         d = [pair.card_id for pair in self.link_list]
         return item in d
 
-    def append_link(self, pair:LinkDataPair):
+    def append_link(self, pair: LinkDataPair):
         self.link_list.append(pair)
         self.root.append(LinkDataNode(card_id=pair.card_id))
 
@@ -425,8 +434,6 @@ class LinkDataJSONInfo:
         self.add_tag(f"""hjp-bilink::timestamp::{timestamp}""")
 
 
-
-
 # class NoRepeatShortcut(QShortcut):
 #     def __init__(self, *args, **kwargs):
 #         super().__init__(*args, **kwargs)
@@ -437,7 +444,7 @@ class AllEventAdmin(object):
     # from . import funcs
 
     def __init__(self, event_list):
-        self.event_dict:"list" = event_list
+        self.event_dict: "list" = event_list
 
     def bind(self):
         from . import funcs
@@ -496,10 +503,10 @@ class Logic:
     def LIKE(colname, value):
         """需要自己加%进行模糊匹配"""
         value = re.sub(r"\s", "%", value)
-        return Logic.BOX(colname + " LIKE (?) ", ["%"+value+"%"]) # 不要加冒号
+        return Logic.BOX(colname + " LIKE (?) ", ["%" + value + "%"])  # 不要加冒号
 
     @staticmethod
-    def REGEX(colname,value):
+    def REGEX(colname, value):
         return Logic.BOX(colname + " REGEXP (?) ", ["'" + value + "'"])
 
     @staticmethod
@@ -550,10 +557,10 @@ class DB_admin(object):
     table_clipbox = 0
     table_pdfinfo = 1
     table_linkinfo = 2
-    table_Gview=3
-    table_GviewCard=4
-    table_GviewConfig=5
-    table_Gview_cache=6
+    table_Gview = 3
+    table_GviewCard = 4
+    table_GviewConfig = 5
+    table_Gview_cache = 6
 
     sqlstr_TABLE_CREATE = """create table if not exists {tablename} ({fields})"""
     sqlstr_TABLE_DROP = """DROP TABLE IF EXISTS {表名}"""
@@ -597,7 +604,7 @@ class DB_admin(object):
     #         values = self.values + other.values
     #         return DB_admin.BOX(string, values)
 
-    BOX=Logic.BOX
+    BOX = Logic.BOX
 
     @staticmethod
     def IN(colname, *value):
@@ -607,10 +614,10 @@ class DB_admin(object):
         return Logic.IN(colname, *value)
 
     @staticmethod
-    def LIKE(colname, value:"str"):
+    def LIKE(colname, value: "str"):
         """需要自己加%进行模糊匹配"""
 
-        return Logic.LIKE(colname , value)
+        return Logic.LIKE(colname, value)
         # return Logic.LIKE(colname + " LIKE (?) ", ["'%" + 新值 + "%'"])
 
     @staticmethod
@@ -623,7 +630,7 @@ class DB_admin(object):
 
     @staticmethod
     def LIMIT(count, offset=0):
-        return Logic.LIMIT(count,offset=offset)
+        return Logic.LIMIT(count, offset=offset)
 
     @staticmethod
     def LET(**kwargs):
@@ -677,8 +684,8 @@ class DB_admin(object):
             from .src_admin import SrcAdmin
         self.tab_name = None
         self.db_dir = SrcAdmin.start().path.DB_file
-        self.connection:"sqlite3.Connection" = None
-        self.cursor:"sqlite3.Cursor" = None
+        self.connection: "sqlite3.Connection" = None
+        self.cursor: "sqlite3.Cursor" = None
         self.sqlstr_isbussy = False
         self.excute_queue = []  # 队列结构
 
@@ -699,7 +706,6 @@ class DB_admin(object):
             for 字段 in 需要移除字段:
                 self.移除字段(字段).commit()
 
-
     def pragma(self):
         """返回字段结构"""
         s = self.sqlstr_TABLE_PRAGMA.format(tablename=self.tab_name)
@@ -713,11 +719,12 @@ class DB_admin(object):
         self.excute_queue.append(s)
         return self
 
-    def 移除字段(self,字段名):
+    def 移除字段(self, 字段名):
         s = self.SQL_移除表字段.format(表名=self.tab_name, 字段名=字段名)
         self.excute_queue.append(s)
         return self
         pass
+
     def go(self, curr_tabtype=None):
         """go是DB开始的入口,end是结束的标志,必须要调用end结束
         curr_tabtype:
@@ -732,7 +739,7 @@ class DB_admin(object):
         self.excute_queue = []
         self.result_queue = []
         self.connection = sqlite3.connect(self.db_dir)
-        self.connection.create_function("regexp",2,self._regexp)
+        self.connection.create_function("regexp", 2, self._regexp)
         self.cursor = self.connection.cursor()
         self.curr_tabtype = curr_tabtype
         # self.tab_name = Table.switch[curr_tabtype][0]
@@ -741,16 +748,16 @@ class DB_admin(object):
         self.table_fields_align()
         return self
 
-    def _regexp(self,expr,item):
+    def _regexp(self, expr, item):
         """本函数用于注册SQLlite需要的功能,不对外使用"""
         reg = re.compile(expr)
         return reg.search(item) is not None
 
-    def 表存在(self,表名索引):
+    def 表存在(self, 表名索引):
         表名 = Table.switch[表名索引].tablename
         self.go(表名索引)
         self.excute_queue.append(self.sqlstr_TABLE_EXIST.format(tablename=表名))
-        return len(self.return_all().results)>0
+        return len(self.return_all().results) > 0
 
         pass
 
@@ -761,8 +768,6 @@ class DB_admin(object):
         self.excute_queue.append(self.sqlstr_TABLE_DROP.format(表名=表名))
         self.commit()
         pass
-
-
 
     def end(self):
         from . import funcs
@@ -792,8 +797,8 @@ class DB_admin(object):
                 card_idlist.append(card_id)
             r.card_id = ",".join(card_idlist)
             self.update(where=self.EQ(uuid=r.uuid), values=self.LET(**r.to_dict())).commit(callback=callback)
-    ########################### use for clipbox ########################
 
+    ########################### use for clipbox ########################
 
     # 存在性检查,如果为空则创建
     def table_ifEmpty_create(self):
@@ -815,10 +820,10 @@ class DB_admin(object):
     def exists(self, box: "Logic.BOX"):
         """平时用这个比较好"""
         from . import funcs
-        s = self.sqlstr_RECORD_COUNT.format(tablename=self.tab_name,where=box.string)
+        s = self.sqlstr_RECORD_COUNT.format(tablename=self.tab_name, where=box.string)
         self.excute_queue.append([s, box.values])
         result = self.return_all()
-        return result[0][0] > 0 # 第一条记录的第一个字段
+        return result[0][0] > 0  # 第一条记录的第一个字段
 
     # 存在性检查
     # def exists_check(self, box: "Logic"):
@@ -871,7 +876,7 @@ class DB_admin(object):
             raise ValueError("values is empty!")
         return DB_admin.BOX(string, val)
 
-    def selectAll(self,tab_id=None):
+    def selectAll(self, tab_id=None):
         # tablename = self
         table_name = Table.switch[tab_id].tablename if tab_id else self.tab_name
         self.excute_queue.append(self.sqlstr_RECORD_SELECT_ALL.format(tablename=table_name))
@@ -886,7 +891,7 @@ class DB_admin(object):
 
         return self
 
-    def replace(self,**values):
+    def replace(self, **values):
         cols = ""
         vals = ""
         all_column_names = Table.switch[self.curr_tabtype].get_dict()
@@ -898,7 +903,6 @@ class DB_admin(object):
             vals += "?,"  # 最后一个逗号要去掉
             entity.append(v)
         s = self.sqlstr_RECORD_REPLACE.format(tablename=self.tab_name, cols=cols[0:-1], vals=vals[0:-1])
-
 
         self.excute_queue.append([s, entity])
         return self
@@ -930,12 +934,10 @@ class DB_admin(object):
         self.excute_queue.append([s, entity])
         return self
 
-
     def delete(self, where: "DB_admin.BOX"):
         s = self.sqlstr_RECORD_DELETE.format(tablename=self.tab_name, where=where.string)
         self.excute_queue.append([s, where.values])
         return self
-
 
     def return_all(self, callback=None):
         """select 用这个 """
@@ -950,13 +952,14 @@ class DB_admin(object):
                 result = self.cursor.execute(s).fetchall()
             all_column_names = Table.switch[self.curr_tabtype].get_dict().keys()
             return DBResults(result, all_column_names, self.curr_tabtype)
-    def 批量插入(self,值):
+
+    def 批量插入(self, 值):
         序列_表字段 = list(Table.switch[self.curr_tabtype].get_dict().keys())
         表名 = Table.switch[self.curr_tabtype].tablename
-        占位符 = ",".join("?"*len(序列_表字段))
+        占位符 = ",".join("?" * len(序列_表字段))
         SQL命令 = f"INSERT INTO {表名} VALUES({占位符});"
         游标 = self.connection.cursor()
-        游标.executemany(SQL命令,值)
+        游标.executemany(SQL命令, 值)
         self.connection.commit()
 
     def 批量执行(self, 参数_命令队列=None):
@@ -964,25 +967,25 @@ class DB_admin(object):
         SQL队列 = 参数_命令队列 if 参数_命令队列 else self.excute_queue
         while SQL队列:
             命令 = SQL队列.pop(0)
-            if type(命令)==list:
+            if type(命令) == list:
                 结果 = self.cursor.execute(命令[0], 命令[1])
             else:
                 结果 = self.cursor.execute(命令)
         self.connection.commit()
 
-    def commit(self, callback=None,need_commit=True):
+    def commit(self, callback=None, need_commit=True):
         s = self.excute_queue.pop(0)
 
         if s:
             if callback:
                 callback(s.__str__())
             if type(s) == list:
-                result = self.cursor.execute(s[0], s[1]) #注意update的时候,字符串对象需要多加一个""
+                result = self.cursor.execute(s[0], s[1])  # 注意update的时候,字符串对象需要多加一个""
             else:
-                if callback:callback("即将执行")
+                if callback: callback("即将执行")
                 result = self.cursor.execute(s)
             if need_commit:
-                if callback:callback("即将commit")
+                if callback: callback("即将commit")
                 self.connection.commit()
             return result
 
@@ -991,11 +994,10 @@ class DB_admin(object):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if len(self.excute_queue)>0:
+        if len(self.excute_queue) > 0:
             raise ValueError("你有未执行完的sql语句!")
         self.connection.commit()
         # self.end()
-
 
 
 class Table:
@@ -1015,45 +1017,46 @@ class Table:
             raise NotImplementedError("")
 
         @abc.abstractmethod
-        def ordered_fields(self)->"list[str]":
+        def ordered_fields(self) -> "list[str]":
             raise NotImplementedError("")
 
         pass
+
     @dataclass
     class CARD_LINK_INFO(BaseFields):
         card_id: "str" = "varchar primary key not null unique"
         data: "str" = "text not null"
+
         def constrain(self):
-            return  {
-        "string": ["data"],
-        "number": ["card_id"]
-    }
+            return {
+                "string": ["data"],
+                "number": ["card_id"]
+            }
 
         def ordered_fields(self):
-            return ["card_id","data"]
+            return ["card_id", "data"]
 
     @dataclass
     class PDF_INFO_TABLE(BaseFields):
         def ordered_fields(self) -> "list[str]":
-            return ["uuid","pdf_path","ratio","offset"]
+            return ["uuid", "pdf_path", "ratio", "offset"]
             pass
 
         uuid: "str" = "varchar primary key not null unique"
         pdf_path: "str" = "varchar not null"
         ratio: "float" = "float not null"
         offset: "int" = "integer not null"
+
         def constrain(self):
-            return  {
-        "string": ["uuid", "pdf_path"],
-        "number": ["ratio", "offset"]
-    }
-
-
+            return {
+                "string": ["uuid", "pdf_path"],
+                "number": ["ratio", "offset"]
+            }
 
     @dataclass
     class CLIPBOX_INFO_TABLE(BaseFields):
         def ordered_fields(self) -> "list[str]":
-            return ["uuid","x","y","w","h","QA","comment","commentQA","card_id","ratio","pagenum","pdfuuid"]
+            return ["uuid", "x", "y", "w", "h", "QA", "comment", "commentQA", "card_id", "ratio", "pagenum", "pdfuuid"]
             pass
 
         uuid: "str" = "varchar(8) primary key not null unique"
@@ -1068,76 +1071,86 @@ class Table:
         ratio: "str" = "float not null"
         pagenum: "str" = "integer not null"
         pdfuuid: "str" = "varchar not null"
+
         def constrain(self):
             return {
-                    "number": ["commentQA", "QA", "x", "y", "w", "h", "ratio", "pagenum"],
-                    "string": ["uuid", "card_id", "comment", "pdfuuid"]
+                "number": ["commentQA", "QA", "x", "y", "w", "h", "ratio", "pagenum"],
+                "string": ["uuid", "card_id", "comment", "pdfuuid"]
             }
+
     @dataclass
     class GRAPH_VIEW_TABLE(BaseFields):
         """grapher的固定视图,G代表graph, 目前想到的串有,uuid,name,member_info_json, 需要根据卡片id反查所属view时,查找"""
 
         def ordered_fields(self) -> "list[str]":
-            return ["uuid","name","nodes","edges","config", "view_created_time", "view_last_visit", "view_last_edit",  "view_last_review",
+            return ["uuid", "name", "nodes", "edges", "config", "view_created_time", "view_last_visit",
+                    "view_last_edit", "view_last_review",
                     "view_visit_count", "card_content_cache"]
             pass
 
         uuid: "str" = "varchar(8) primary key not null unique"
         name: "str" = "varchar not null"
-        nodes:"str" = "text"
-        edges:"str" = "text"
-        config:"str" = "varchar"
-        view_created_time:"str" = "integer"
-        view_last_visit:"str"="integer"
-        view_last_edit:"str" ="integer"
-        view_last_review:"str"="integer"
-        view_visit_count:"str"="integer"  # 浏览次数
-        card_content_cache:"str" = "text"  # 卡片内容缓存, 用来实现按照卡片内容搜索视图.
+        nodes: "str" = "text"
+        edges: "str" = "text"
+        config: "str" = "varchar"
+        view_created_time: "str" = "integer"
+        view_last_visit: "str" = "integer"
+        view_last_edit: "str" = "integer"
+        view_last_review: "str" = "integer"
+        view_visit_count: "str" = "integer"  # 浏览次数
+        card_content_cache: "str" = "text"  # 卡片内容缓存, 用来实现按照卡片内容搜索视图.
+
         def constrain(self):
             return {
-        "string":["uuid","name","nodes","edges","config","card_content_cache"],
-        "number":["view_created_time","view_last_edit","view_last_visit","view_visit_count","view_last_review"]
-    }
+                "string": ["uuid", "name", "nodes", "edges", "config", "card_content_cache"],
+                "number": ["view_created_time", "view_last_edit", "view_last_visit", "view_visit_count",
+                           "view_last_review"]
+            }
+
     @dataclass
     class GRAPH_VIEW_CARD_TABLE(BaseFields):  # 这个表没用
         def ordered_fields(self) -> "list[str]":
-            return ["card_id","views","default_views"]
+            return ["card_id", "views", "default_views"]
+
         card_id: "str" = "varchar primary key not null unique"
         views: "str" = "text"
         default_views: "str" = "text"
+
         def constrain(self):
             return {
-                "string": ["card_id", "views", "default_views",],
+                "string": ["card_id", "views", "default_views", ],
                 "number": []
             }
 
     @dataclass
     class GRAPH_VIEW_CONFIG(BaseFields):
         def ordered_fields(self) -> "list[str]":
-            return ["uuid","name","data"]
+            return ["uuid", "name", "data"]
             pass
 
         uuid: "str" = "varchar(8) primary key not null unique"
         name: "str" = "varchar not null"
-        data:"str" = "text"
+        data: "str" = "text"
+
         def constrain(self):
             return {
-                    "string": ["uuid", "name", "data", ],
-                    "number": []
+                "string": ["uuid", "name", "data", ],
+                "number": []
             }
 
     @dataclass
     class GRAPH_VIEW_CACHE(BaseFields):
         def ordered_fields(self) -> "list[str]":
-            return ["uuid","cache"]
+            return ["uuid", "cache"]
             pass
 
         uuid: "str" = "varchar(8) primary key not null unique"
-        cache:"str" = "text"
+        cache: "str" = "text"
+
         def constrain(self):
             return {
-                    "string": ["uuid", "cache" ],
-                    "number": []
+                "string": ["uuid", "cache"],
+                "number": []
             }
 
     class Const:
@@ -1150,15 +1163,14 @@ class Table:
         GviewCache = DB_admin.table_Gview_cache
 
     switch = {
-        Const.clipbox  : CLIPBOX_INFO_TABLE(),
-        Const.pdfinfo  : PDF_INFO_TABLE(),
-        Const.linkinfo  : CARD_LINK_INFO(),
-        Const.Gview  : GRAPH_VIEW_TABLE(),
-        Const.GviewCard  : GRAPH_VIEW_CARD_TABLE(),
-        Const.GviewConfig : GRAPH_VIEW_CONFIG(),
-        Const.GviewCache:GRAPH_VIEW_CACHE()
+        Const.clipbox: CLIPBOX_INFO_TABLE(),
+        Const.pdfinfo: PDF_INFO_TABLE(),
+        Const.linkinfo: CARD_LINK_INFO(),
+        Const.Gview: GRAPH_VIEW_TABLE(),
+        Const.GviewCard: GRAPH_VIEW_CARD_TABLE(),
+        Const.GviewConfig: GRAPH_VIEW_CONFIG(),
+        Const.GviewCache: GRAPH_VIEW_CACHE()
     }
-
 
 
 class DBResults(object):
@@ -1168,7 +1180,6 @@ class DBResults(object):
         self.results: "list" = results
         self.all_column_names = all_column_names
         self.curr_tabletype = curr_tabletype
-
 
     def zip_up(self, version=1):
         """zip只包装成字典, 如果要用dataclass ,请返回后自己包装"""
@@ -1225,7 +1236,7 @@ class DBResults(object):
 
             return [GviewRecord(**i) for i in self]
 
-        def to_givenformat_data(self, _format,multiArgs=False):
+        def to_givenformat_data(self, _format, multiArgs=False):
             """
             multiArgs 的意思是传入的是一个多个key的字典, 而传入的_format接受多个参数,为了key对应参数, 因此要解包
             也可以根据_format需要的参数格式来选择是否要multiArgs
@@ -1236,26 +1247,26 @@ class DBResults(object):
                 return [_format(i) for i in self]
 
 
-
 class Record(QObject):
     @dataclass
     class GviewConfig(QObject):
-        """要区分 GviewConfig和GviewConfigModel, 前者服务于数据库记录,可以叫做记录, 后者服务于UI模型,就叫模型"""
+        """要区分 GviewConfig和GviewConfigModel, 前者服务于数据库记录,可以叫做记录,
+        后者服务于UI模型,就叫模型, 后者在前者的data属性下使用"""
 
-
-        def __init__(self,uuid=None, name=None, data=None):
+        def __init__(self, uuid=None, name=None, data=None):
             """这里的读取就是dict"""
             super().__init__()
-            新视图=False
-            from . import  funcs,configsModel
+            新视图 = False
+            from . import funcs, configsModel
             if uuid is not None and data is None:
                 raise ValueError("有 uuid 但没有 data , 你是不是想读取Config? 读取请用 readModelFromDB")
             if uuid is None and data is None:
-                新视图=True
+                新视图 = True
             self.uuid = uuid if uuid else funcs.UUID.by_random()
-            self.name = name if name else "graph config "+ funcs.Utils.时间戳转日期(int(time.time())).strftime("%Y%m%d%H%M%S")
+            self.name = name if name else "graph config " + funcs.Utils.时间戳转日期(int(time.time())).strftime(
+                "%Y%m%d%H%M%S")
             self.data = self.initData(json.loads(data)) if data else self.initData(
-                    {"uuid":self.uuid,"name":self.name}) # 这个是模型
+                {"uuid": self.uuid, "name": self.name})  # 这个是模型
             # self.信号 =
             if not 新视图:
                 self.一致性检查()
@@ -1267,25 +1278,24 @@ class Record(QObject):
         def 一致性检查(self):
             """本配置应用表中的视图应与对应视图的配置一致"""
             from . import funcs
-            应用该配置的视图表:"list[str]" = self.data.appliedGview.value
+            应用该配置的视图表: "list[str]" = self.data.appliedGview.value
             新值 = 应用该配置的视图表.copy()
             for 视图标识 in 应用该配置的视图表:
                 if funcs.GviewOperation.exists(uuid=视图标识):
                     视图配置编号 = funcs.GviewOperation.获取视图配置编号(视图标识)
-                    if 视图配置编号!=self.uuid:
+                    if 视图配置编号 != self.uuid:
                         新值.remove(视图标识)
                 else:
                     新值.remove(视图标识)
             self.data.appliedGview.setValue(新值)
 
-
-        def initData(self,_data:"dict"):
+        def initData(self, _data: "dict"):
             _data["uuid"] = self.uuid
             from .configsModel import GviewConfigModel
             template = GviewConfigModel()
-            for k,v in _data.items():
+            for k, v in _data.items():
                 try:
-                    template[k]=v
+                    template[k] = v
                 except:
                     tooltip("config error, override")
                     continue
@@ -1293,33 +1303,37 @@ class Record(QObject):
 
         def getDict(self):
             d = self.__dict__.copy()
-            d["data"] = json.dumps(self.data.get_dict(),ensure_ascii=False)
+            d["data"] = json.dumps(self.data.get_dict(), ensure_ascii=False)
             return d
 
         def saveModelToDB(self):
 
             if self.data.元信息.确定保存到数据库:
                 # self.一致性检查()
-                from . import G,funcs
+                from . import G, funcs
                 # funcs.Utils.print(self.data.get_dict())
                 G.DB.go(G.DB.table_GviewConfig)
                 self.name = self.data.name.value
-                funcs.Utils.print("保存的记录是",self)
+                # funcs.Utils.print("保存的记录是",self)
                 if G.DB.exists(Logic.EQ(uuid=self.uuid)):
-                    G.DB.update(values=Logic.LET(**self.getDict()),where=Logic.EQ(uuid=self.uuid)).commit()
+                    G.DB.update(values=Logic.LET(**self.getDict()), where=Logic.EQ(uuid=self.uuid)).commit()
                 else:
                     G.DB.insert(**self.getDict()).commit()
 
-        def 指定视图配置(self,视图编号):
-            if type(视图编号)==str:
+        def 指定视图配置(self, 视图编号):
+            if type(视图编号) == str:
                 if 视图编号 not in self.data.appliedGview.value:
                     self.data.appliedGview.value.append(视图编号)
-            elif isinstance(视图编号,safe.funcs.GViewData):
+            elif isinstance(视图编号, safe.funcs.GViewData):
                 视图编号.config = self.uuid
                 视图编号.config_model = self
                 if 视图编号.uuid not in self.data.appliedGview.value:
                     self.data.appliedGview.value.append(视图编号.uuid)
             # self.data.appliedGview.setValue(视图编号)
+
+        def 删除一个支配视图(self, 编号):
+            if 编号 in self.data.appliedGview.value:
+                self.data.appliedGview.value.remove(编号)
 
         def 从数据库中删除(self):
             from . import G
@@ -1332,7 +1346,7 @@ class Record(QObject):
             return DB.exists(Logic.EQ(uuid=uuid))
 
         @staticmethod
-        def 静态_含有某视图(视图标识,配置标识):
+        def 静态_含有某视图(视图标识, 配置标识):
             配置模型 = Record.GviewConfig.readModelFromDB(配置标识)
             return 视图标识 in 配置模型.data.appliedGview.value
 
@@ -1343,7 +1357,9 @@ class Record(QObject):
 
             from . import G
             DB = G.DB.go(G.DB.table_GviewConfig)
-            result: "Record.GviewConfig" = DB.select(Logic.EQ(uuid=uuid)).return_all().zip_up().to_givenformat_data(Record.GviewConfig, multiArgs=True)[0]
+            result: "Record.GviewConfig" = \
+            DB.select(Logic.EQ(uuid=uuid)).return_all().zip_up().to_givenformat_data(Record.GviewConfig,
+                                                                                     multiArgs=True)[0]
 
             return result
 
@@ -1353,22 +1369,24 @@ class Record(QObject):
         def __str__(self):
             return self.data.__str__()
 
+
 @dataclass
 class Pair:
     card_id: "str" = None
     desc: "str" = None
 
+
 @dataclass
 class GviewRecord:
     """视图数据库记录类"""
-    uuid:str
-    name:str
-    nodes:str
-    edges:str
-    config:str = ""
-    meta:"Optional[dict]"=None
+    uuid: str
+    name: str
+    nodes: str
+    edges: str
+    config: str = ""
+    meta: "Optional[dict]" = None
 
-    def __init__(self,*args,**kwargs):
+    def __init__(self, *args, **kwargs):
         self.uuid = kwargs["uuid"]
         self.name = kwargs["name"]
         self.nodes = kwargs["nodes"]
@@ -1376,12 +1394,12 @@ class GviewRecord:
         self.config = kwargs["config"]
         self.meta = kwargs
 
-
     def to_GviewData(self):
         from .configsModel import GViewData
-        return GViewData(uuid=self.uuid,name=self.name,
-                         nodes=json.loads(self.nodes),edges=json.loads(self.edges),config=self.config,meta=self.meta
+        return GViewData(uuid=self.uuid, name=self.name,
+                         nodes=json.loads(self.nodes), edges=json.loads(self.edges), config=self.config, meta=self.meta
                          )
+
 
 @dataclass
 class PDFinfoRecord:
@@ -1410,20 +1428,19 @@ class ClipboxRecord:
         return self.__dict__.copy()
 
 
-
 @dataclass
 class Bricks:
-    布局=layout=0
-    组件=widget=1
-    子代=kids=2
+    布局 = layout = 0
+    组件 = widget = 1
+    子代 = kids = 2
 
     占 = 占据 = 3
-    triple = [layout,widget,kids]
-    三元组 = [布局,组件,子代]
-    四元组 = [布局,组件,子代,占据]
+    triple = [layout, widget, kids]
+    三元组 = [布局, 组件, 子代]
+    四元组 = [布局, 组件, 子代, 占据]
 
     @staticmethod
-    def build(b:"dict"):
+    def build(b: "dict"):
         """
         {
             layout:Vbox,
@@ -1443,24 +1460,23 @@ class Bricks:
         """
         layout, widget, kids = Bricks.triple
 
-        kidsStack:"list[dict]"=[b]
-
-
+        kidsStack: "list[dict]" = [b]
 
 
 @dataclass
 class WidgetsBrick:
-    def __init__(self,layout=None,widget=None,kids=None):
-        self.kids:"list[WidgetsBrick]" = kids if kids else []
-        self.layout:"QHBoxLayout|QVBoxLayout|QGridLayout"=layout
-        self.widget:"QWidget" = widget
-        print(self.kids,type(self.layout) if not self.layout else None,type(self.widget) if not self.widget else None)
+    def __init__(self, layout=None, widget=None, kids=None):
+        self.kids: "list[WidgetsBrick]" = kids if kids else []
+        self.layout: "QHBoxLayout|QVBoxLayout|QGridLayout" = layout
+        self.widget: "QWidget" = widget
+        print(self.kids, type(self.layout) if not self.layout else None, type(self.widget) if not self.widget else None)
         if layout:
             for w in self.kids:
                 if w.widget:
                     self.layout.addWidget(w.widget)
                 elif w.layout:
                     self.layout.addLayout(w.layout)
+
 
 if __name__ == "__main__":
     data = """

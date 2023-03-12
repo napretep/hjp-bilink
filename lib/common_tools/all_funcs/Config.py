@@ -440,32 +440,26 @@ class GviewConfigOperation(BaseConfig):
     def 指定视图配置(视图记录: "G.safe.configsModel.GViewData | str",
                      新配置记录: "G.objs.Record.GviewConfig|str|None" = None, need_save=True, 视图初始化中=False):
         """如果是从 grapher 中打开的，最好直接读取视图记录本身 而非编号"""
-        def 删除前配置中的当前视图():
-            前配置记录 = GviewConfigOperation.从数据库读(视图记录.config)
-            应用前配置的视图表: "list[str]" = 前配置记录.data.appliedGview.value
-            # Utils.print(f"former model applied config table, before append={应用前配置的视图表}", need_logFile=True)
-            if 视图记录.uuid in 应用前配置的视图表:
-                应用前配置的视图表.remove(视图记录.uuid)
-                if len(应用前配置的视图表) == 0:
-                    # Utils.print(f"应用前配置的视图表={应用前配置的视图表},下面要删除这个配置了", need_logFile=True)
-                    GviewConfigOperation.从数据库删除(前配置记录.uuid)
-                else:
-                    前配置记录.data.appliedGview.setValue(应用前配置的视图表)
-                    前配置记录.saveModelToDB()
-            # Utils.print(f"former model applied config table, after append={应用前配置的视图表}", need_logFile=True)
+        DB = G.DB
+        def 清空无效配置():
+            空集: List[G.objs.Record.GviewConfig] = DB.go(DB.table_GviewConfig).select(
+                DB.LIKE("data", '"appliedGview": [], "node_role_list"')) \
+                .return_all().zip_up().to_givenformat_data(G.objs.Record.GviewConfig, multiArgs=True)
+            # Utils.print(空集)
+            for 配置 in 空集:
+                配置.从数据库中删除()
+        def 清空视图之前对应的配置(视图数据:G.safe.configsModel.GViewData):
 
-        # def 将当前视图添加到现配置的支配表中():
-        #     应用配置视图表: "list[str]" = 新配置记录.data.appliedGview.value
-        #     # Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview before append =  {应用配置视图表}", need_logFile=True)
-        #     新配置记录.指定视图配置(视图记录)
-            # if 视图记录.uuid not in 应用配置视图表:
-            #     应用配置视图表.append(视图记录.uuid)
-            #     新配置记录.data.appliedGview.setValue(应用配置视图表)
-            # 视图记录.config = 新配置记录.uuid
-            # # GviewOperation.save(视图记录)
-            # 新配置记录.data.元信息.确定保存到数据库 = True
-            # 新配置记录.saveModelToDB()
-            # Utils.print(f"new model uuid={新配置记录.uuid}, appliedGview after append =  {应用配置视图表}, gview.config = {视图记录.config}", need_logFile=True)
+            配置集:List[G.objs.Record.GviewConfig] = DB.go(DB.table_GviewConfig).select(DB.LIKE("data",视图数据.uuid))\
+                .return_all().zip_up().to_givenformat_data(G.objs.Record.GviewConfig, multiArgs=True)
+            for 配置 in 配置集:
+                配置.删除一个支配视图(视图数据.uuid)
+                if 配置.data.appliedGview.value:
+                    配置.saveModelToDB()
+                else:
+                    配置.从数据库中删除()
+
+
 
         if 新配置记录 is None:
             新配置记录 = G.objs.Record.GviewConfig()
@@ -475,20 +469,12 @@ class GviewConfigOperation(BaseConfig):
 
         if type(视图记录) == str:
             视图记录 = 导入.Gview.Gview.load(视图记录)
-        if 视图记录.config and G.objs.Record.GviewConfig.静态_存在于数据库中(视图记录.config):
-            删除前配置中的当前视图()
 
+        清空无效配置()
+        清空视图之前对应的配置(视图记录)
         新配置记录.指定视图配置(视图记录)
-        # else:
-        #     应用配置视图表: "list[str]" = 新配置记录.data.appliedGview.value
-        #     应用配置视图表.append(视图记录)
-        #     新配置记录.data.appliedGview.setValue(应用配置视图表)
-        #     新配置记录.data.元信息.确定保存到数据库 = True
-        #     新配置记录.saveModelToDB()
-
         if need_save:
             导入.Gview.GviewOperation.save(视图记录)
-        Utils.print("assign view over ", need_logFile=True)
 
         return 新配置记录
 

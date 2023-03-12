@@ -154,7 +154,7 @@ class Utils(object):
 
     # noinspection PyUnresolvedReferences
     @staticmethod
-    def print(*args, need_timestamp=True, need_logFile=True, **kwargs):
+    def print(*args, need_timestamp=True, need_logFile=True,simple=True, **kwargs):
 
         if G.ISDEBUG:
 
@@ -169,10 +169,11 @@ class Utils(object):
             else:
                 ts = ""
             head = f"{ts}|{caller2_filename.replace(G.src.path.addons21,'')}:{caller2_lineNo}:{caller2}\n>>{caller1_filename.replace(G.src.path.addons21,'')}:{caller1_lineNo}:{caller1}:\n"
-            head2 = "hjp-linkmaster-log:"
+            head2 = "hjp-linkmaster-log:" if not simple else head
             if need_logFile:
                 f = open(G.src.path.logtext, "a", encoding="utf-8")
-                traceback.print_stack(file=f)
+                if not simple:
+                    traceback.print_stack(file=f)
                 print(head2,*args, **kwargs, file=f)
             else:
                 print(head2, *args, **kwargs)

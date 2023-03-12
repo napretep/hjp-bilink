@@ -622,7 +622,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     群组复习操作:str=rosetta("群组复习操作")
     重建群组复习数据库:str=rosetta("重建群组复习数据库")
     配置表操作:str=rosetta("配置表操作")
-    重置配置表:str=rosetta("重置配置表")
+    重置配置表:str=翻译("重置配置表","reset configuration")
     创建为视图:str=rosetta("创建为视图")
 
     视图命名规则:str=rosetta("视图名不能有空白字符,不能有连续4个':',即'::::'非法")

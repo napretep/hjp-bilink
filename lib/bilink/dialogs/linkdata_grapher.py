@@ -1294,19 +1294,11 @@ class Grapher(QMainWindow):
             布局, 组件, 子代 = funcs.G.objs.Bricks.三元组
             视图记录 = self.superior.data.gviewdata
             配置类 = common_tools.objs.Record.GviewConfig
-            # if 视图记录.config != "" and 配置类.静态_存在于数据库中(视图记录.config) and 配置类.静态_含有某视图(视图记录.uuid, 视图记录.config):
-            #     配置记录 = 配置类.readModelFromDB(视图记录.config)
-            # else:
-            #     tooltip(f"创建新配置")
-            #     配置记录 = 配置类()
-            #     funcs.GviewConfigOperation.指定视图配置(视图记录, 配置记录)
-            #     视图记录.config = 配置记录.uuid
-            #     配置记录 = 配置类.readModelFromDB(配置记录.uuid)
-            # 视图记录.config_model  = funcs.GviewConfigOperation.从数据库读(视图记录.config)
+
             配置记录 = 视图记录.config_model
-            funcs.Utils.print("打开的记录是",配置记录)
+            # funcs.Utils.print("打开的配置记录是",配置记录)
             # 配置记录.saveModelToDB()
-            配置组件 = common_tools.funcs.GviewConfigOperation.makeConfigDialog(调用者=self, 数据=配置记录.data, 关闭时回调=lambda 闲置参数: 配置记录.saveModelToDB())
+            配置组件 = common_tools.funcs.GviewConfigOperation.makeConfigDialog(调用者=self, 数据=配置记录.data, 关闭时回调=视图记录.数据更新.保存配置数据)
             配置组件布局: "QVBoxLayout" = 配置组件.layout()
 
             def 打开配置选取窗():
@@ -1344,11 +1336,12 @@ class Grapher(QMainWindow):
                 布局树 = {布局: QVBoxLayout(), 子代: [{布局: QHBoxLayout(), 子代: [{组件: 输入框}, {组件: 搜索按钮}]}, {组件: 结果表}, {组件: 确认按钮}, {组件: 说明}]}
                 总组件 = funcs.组件定制.组件组合(布局树, 容器=funcs.组件定制.对话窗口(标题=译.搜索并选择配置))
                 总组件.exec()
+
+
                 pass
 
             def 触发新建配置():
                 funcs.GviewConfigOperation.指定视图配置(视图记录, None)
-                配置记录.data.元信息.确定保存到数据库 = False
                 配置组件.close()
                 self.openConfig()
 
@@ -1359,7 +1352,6 @@ class Grapher(QMainWindow):
             配置组件布局.addWidget(配置组件的底部组件)
             配置组件.setLayout(配置组件布局)
             配置组件.exec()
-            funcs.Utils.print("关闭后的记录是", 配置记录)
             funcs.GviewOperation.刷新所有已打开视图的配置()
 
             pass

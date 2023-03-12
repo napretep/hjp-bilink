@@ -176,6 +176,10 @@ class GViewData:
         self.meta_helper:"models.类型_视图本身模型" = models.类型_视图本身模型(数据源=self)
         self.数据更新 = self.类_函数库_数据更新(self)
 
+    def __str__(self):
+        return self.__dict__.__str__()
+    def __repr__(self):
+        return self.__str__()
 
     def 清除无效结点(self):
         from . import funcs, baseClass
@@ -287,6 +291,8 @@ class GViewData:
         def __init__(self,上级:"GViewData"):
             self.上级:"GViewData"= 上级
 
+        def 保存配置数据(self,*args):
+            self.上级.config_model.saveModelToDB()
         def 保存视图数据(self):
             from . import funcs
             funcs.GviewOperation.save(self.上级)
@@ -320,6 +326,7 @@ class GViewData:
             self.保存视图数据()
 
         def 刷新配置模型(self):
+            self.上级.config = safe.funcs.GviewOperation.load(self.上级.uuid).config
             self.上级.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.上级.config)
 
 @dataclass
