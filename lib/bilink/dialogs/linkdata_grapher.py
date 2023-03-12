@@ -1191,11 +1191,11 @@ class Grapher(QMainWindow):
             pass
 
         def create_view(self):
-            视图 = common_tools.funcs.GviewOperation.create()
+            config = None
+            if self.superior.data.gviewdata.config_model.data.view_node_inherit_config.value:
+                config = self.superior.data.gviewdata.config
+            视图 = common_tools.funcs.GviewOperation.create(config=config)
             if 视图:
-                if self.superior.data.gviewdata.config_model.data.view_node_inherit_config.value:
-                    funcs.GviewConfigOperation.指定视图配置(视图,self.superior.data.gviewdata.config)
-                    视图.数据更新.刷新配置模型()
                 视图.保存()
                 self.superior.load_node([视图.uuid], 参数_视图结点类型=枚举_视图结点类型.视图)
             pass

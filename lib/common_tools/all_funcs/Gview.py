@@ -402,12 +402,13 @@ class GviewOperation:
                 return False
             return True
         models = G.safe.models
-        数据源 = models.类型_数据源_视图创建参数()
-        if config:
-            configmodel = imports.Configs.GviewConfigOperation.从数据库读(config)
-            数据源.配置 = models.Id_name(configmodel.name,configmodel.uuid)
+
         # Utils.print("数据源=",数据源)
         while True:
+            数据源 = models.类型_数据源_视图创建参数()
+            if config:
+                configmodel = imports.Configs.GviewConfigOperation.从数据库读(config)
+                数据源.配置 = models.Id_name(configmodel.name, configmodel.uuid)
             模型 = models.类型_模型_视图创建参数(数据源)
             模型.创建UI().exec()
             # viewName, submitted = QInputDialog.getText(None, "input", 译.视图名, QLineEdit.Normal, placeholder)
