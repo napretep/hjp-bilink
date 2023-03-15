@@ -284,6 +284,7 @@ class CardOperation:
         模板编号 = 卡片信息.note().mid
         标签集: "set[str]" = set(卡片信息.note().tags)
         选中规则 = 空规则
+
         for 规则 in 全部描述提取规则:
             规则的标签集: "set[str]" = set(规则.标签.值)
             # 三个东西全部满足, 说明这条规则对上了, 就可以用,
@@ -291,12 +292,14 @@ class CardOperation:
                                                                                       mw.col.decks.children(
                                                                                           规则.牌组.值)]
             满足模板 = (规则.模板.值 == -1 or 模板编号 == 规则.模板.值)
+
             满足标签 = (len(规则.标签.值) == 0 or 标签集 & 规则的标签集 != set() or len(
                 [规则标签 for 规则标签 in 规则的标签集 if
                  len([标签 for 标签 in 标签集 if 标签.startswith(规则标签)]) > 0]) > 0)
-            if 满足牌组 and 满足模板 and 满足标签:
+            Utils.print("card model id=", 模板编号, "rule model id=", 规则.模板.值)
+            if 满足牌组 and 满足模板 and 满足标签: # TODO add view check
                 选中规则 = 规则
-                break
+
         return 选中规则
         # from . import objs
         # cfg = Config.get()
