@@ -86,6 +86,9 @@ def on_js_message(handled, url: str, context):
         if matches:
             pdfpath = matches.group("pdfpath")
             pdfurl = quote(pdfpath)
+            pdfpath = unquote(pdfpath)
+            funcs.Utils.print("pdfurl=",pdfurl,"pdfpath=",pdfpath)
+
             pagenum = matches.group("page")
             cmd: "str" = funcs.G.CONFIG.PDFLink_cmd.value
             if cmd.__contains__(terms.PDFLink.url):
@@ -94,8 +97,9 @@ def on_js_message(handled, url: str, context):
                 cmd = re.sub(f"{{{terms.PDFLink.path}}}", pdfpath, cmd)
             cmd = re.sub(f"{{{terms.PDFLink.page}}}", pagenum, cmd)
             # print(cmd)
-            # tooltip(cmd)
+
             os.system(cmd)
+            # os.system(cmd)
         else:
             matches = re.search("file:/{2,3}(?P<path>.*)$", url).group("path")
             if is_win:

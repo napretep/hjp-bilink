@@ -530,7 +530,7 @@ class ConfigModel(BaseConfigModel):
     @staticmethod
     def pdfurl_default_system_cmd():
         """因为不同的系统需要的命令不同,所以要这个东西来确定"""
-        url = f"""   file:///{{{terms.PDFLink.url}}}#page={{{terms.PDFLink.page}}} """
+        url = f"""   file:///{{{terms.PDFLink.path}}}#page={{{terms.PDFLink.page}}} """
         if isMac:
             return f'''open -a Safari "{url}" '''
         if isWin:

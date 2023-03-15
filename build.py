@@ -132,27 +132,40 @@ if __name__ == "__main__":
 
     if is_win:
         version = input("请输入版本号\n")
-    else:
-        version="linux.test"
+        if version:
     # if sys.platform.startswith("win32"):
-    for webOrLocal in ["w", "l"]:
-        with open("./__init__.py", "r", encoding="utf-8") as f:
-            pyFile = f.read()
-            pyFile = re.sub("""(?<=connectors.funcs.G.src.ADDON_VERSION=").*?\"""",
-                            version + "." + webOrLocal + '"', pyFile)  # w表示ankiweb,l表示local
-            print(pyFile)
-        with open("./__init__.py", "w", encoding="utf-8") as f:
-            f.write(pyFile)
-        ankiaddon_make(version + "." + webOrLocal)
-        if not is_win: break
+            with open("./lib/debugState.py","r",encoding="utf-8") as f:
+                text = f.read()
+                text = re.sub(r"""(?<=ISDEBUG = )\w+""","False",text)
+            with open("./lib/debugState.py","w",encoding="utf-8") as f:
+                f.write(text)
 
-    with open("./__init__.py", "r", encoding="utf-8") as f:
-        pyFile = f.read()
-        pyFile = re.sub("""(?<=connectors.funcs.G.src.ADDON_VERSION=").*?\"""",
-                        'dev"', pyFile)  # w表示ankiweb,l表示local
-        print(pyFile)
-    with open("./__init__.py", "w", encoding="utf-8") as f:
-        f.write(pyFile)
+
+            for webOrLocal in ["w", "l"]:
+                with open("./__init__.py", "r", encoding="utf-8") as f:
+                    pyFile = f.read()
+                    pyFile = re.sub("""(?<=connectors.funcs.G.src.ADDON_VERSION=").*?\"""",
+                                    version + "." + webOrLocal + '"', pyFile)  # w表示ankiweb,l表示local
+                    print(pyFile)
+                with open("./__init__.py", "w", encoding="utf-8") as f:
+                    f.write(pyFile)
+                ankiaddon_make(version + "." + webOrLocal)
+                if not is_win: break
+
+            with open("./__init__.py", "r", encoding="utf-8") as f:
+                pyFile = f.read()
+                pyFile = re.sub("""(?<=connectors.funcs.G.src.ADDON_VERSION=").*?\"""",
+                                'dev"', pyFile)  # w表示ankiweb,l表示local
+                print(pyFile)
+            with open("./__init__.py", "w", encoding="utf-8") as f:
+                f.write(pyFile)
+
+
+            with open("./lib/debugState.py","r",encoding="utf-8") as f:
+                text = f.read()
+                text = re.sub(r"""(?<=ISDEBUG = )\w+""","True",text)
+            with open("./lib/debugState.py","w",encoding="utf-8") as f:
+                f.write(text)
     # else:
     #     print("linux 調試模式")
     #     version = input("请输入版本号\n")
