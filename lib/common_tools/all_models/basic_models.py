@@ -433,5 +433,5 @@ class 基类_属性项:
 
 @dataclass
 class Id_name:
-    name: "str"
-    ID: "int|str|None"
+    name: "str" = ""
+    ID: "int|str|None" = None

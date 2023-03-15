@@ -67,7 +67,7 @@ class SelectorProtoType(QDialog):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
+    def get_all_data_items(self) -> "list[G.safe.models.Id_name]":
         raise NotImplementedError()
 
     @abstractmethod
@@ -116,7 +116,7 @@ class SelectorProtoType(QDialog):
         self.view.expandAll()
 
     def build_as_list(self):
-        data_li: "list[SelectorProtoType.Id_name]" = self.get_all_data_items()
+        data_li: "list[G.safe.models.Id_name]" = self.get_all_data_items()
         for i in data_li:
             item = self.Item(i.name)
             item.data_id = i.ID
@@ -124,7 +124,7 @@ class SelectorProtoType(QDialog):
         pass
 
     def build_as_tree(self):
-        item_li: "list[SelectorProtoType.Id_name]" = self.get_all_data_items()
+        item_li: "list[G.safe.models.Id_name]" = self.get_all_data_items()
         data_dict = G.objs.Struct.TreeNode(self.model_rootNode, {})
         for i in item_li:
             data_name_li = i.name.split(self.separator)
@@ -177,14 +177,14 @@ class SelectorProtoType(QDialog):
             self.desc.setText("current item|" + data_name)
 
     class Item(QStandardItem):
-        def __init__(self, data_name):
+        def __init__(self, data_name,data_id=None):
             super().__init__(data_name)
-            self.data_id: "Optional[int]" = None
+            self.data_id: "Optional[int]" = data_id
             self.level: "Optional[int]" = None
             self.setFlags(self.flags() & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsDropEnabled)
         @property
         def Id_name(self):
-            return SelectorProtoType.Id_name(self.item_name,self.data_id)
+            return G.safe.models.Id_name(self.item_name,self.data_id)
         @property
         def item_name(self):
             return self.text()
@@ -196,17 +196,13 @@ class SelectorProtoType(QDialog):
             else:
                 return self.model().invisibleRootItem()
 
-    @dataclass
-    class Id_name:
-        name: "str"
-        ID: "int|str"
 
 
 
 
 class multi_select_prototype(QDialog):
     """TODO item要使用 id_name的格式"""
-    def __init__(self, preset: "iter[str]" = None, separater="::", dialog_title="", new_item="new_tag"):
+    def __init__(self, preset: "iter[str|G.safe.models.Id_name]" = None, separater="::", dialog_title="", new_item="new_tag"):
         super().__init__()
         self.分隔符 = separater
         self.标题栏名字 = dialog_title
@@ -497,9 +493,9 @@ class multi_select_prototype(QDialog):
             self.superior.init_data_left()
 
     class Item(QStandardItem):
-        def __init__(self, item_name, total_item=False):
+        def __init__(self, item_name, item_ID=None, total_item=False):
             super().__init__(item_name)
-            self.item_id: "Optional[int]" = None
+            self.item_id: "Optional[int]" = item_ID
             self.level: "Optional[int]" = None
             if total_item:
                 self.setFlags(self.flags() & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsEditable)
@@ -518,12 +514,6 @@ class multi_select_prototype(QDialog):
                 return self.model().invisibleRootItem()
             else:
                 return super().parent()
-
-    @dataclass
-    class Id_name:
-        name: "str"
-        ID: "int|str"
-
 
 
 class 可执行字符串编辑组件(QDialog):

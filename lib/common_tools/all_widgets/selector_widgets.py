@@ -38,7 +38,7 @@ class DeckSelectorProtoType(SelectorProtoType):
     def get_all_data_items(self):
 
         decks = mw.col.decks
-        return [self.Id_name(name=i.name, ID=i.id) for i in decks.all_names_and_ids() if
+        return [G.safe.models.Id_name(name=i.name, ID=i.id) for i in decks.all_names_and_ids() if
                 not decks.is_filtered(i.id)]
 
 
@@ -113,9 +113,9 @@ class universal_template_chooser(SelectorProtoType):
     def on_view_clicked_handle(self, index):
         pass
 
-    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
+    def get_all_data_items(self) -> "list[G.safe.models.Id_name]":
         all_models = mw.col.models.all_names_and_ids()
-        return [self.Id_name(name=i.name, ID=i.id) for i in all_models]
+        return [G.safe.models.Id_name(name=i.name, ID=i.id) for i in all_models]
         pass
 
     def on_view_doubleclicked_handle(self, index):
@@ -140,9 +140,9 @@ class view_chooser(SelectorProtoType):
     def on_view_clicked_handle(self, index):
         pass
 
-    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
+    def get_all_data_items(self) -> "list[G.safe.models.Id_name]":
         gview_dict = G.safe.funcs.GviewOperation.load_all_as_dict()
-        return [self.Id_name(name=data.name, ID=uuid) for uuid, data in gview_dict.items()]
+        return [G.safe.models.Id_name(name=data.name, ID=uuid) for uuid, data in gview_dict.items()]
         pass
 
     def __init__(self, title_name="", separator="::", header_name=""):
@@ -163,7 +163,7 @@ class SimpleSelectorProtoType(SelectorProtoType):
     def on_view_clicked_handle(self, index):
         pass
 
-    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
+    def get_all_data_items(self) -> "list[G.safe.models.Id_name]":
         raise NotImplementedError()
 
     def on_view_doubleclicked_handle(self, index):
@@ -172,8 +172,8 @@ class SimpleSelectorProtoType(SelectorProtoType):
 
 class view_config_chooser(SimpleSelectorProtoType):
 
-    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
-        return [self.Id_name(name=config["name"], ID=config["uuid"])
+    def get_all_data_items(self) -> "list[G.safe.models.Id_name]":
+        return [G.safe.models.Id_name(name=config["name"], ID=config["uuid"])
                 for config in G.safe.funcs.GviewConfigOperation.获取全部配置表字典()]
 
     def on_view_doubleclicked_handle(self, index):
@@ -185,7 +185,7 @@ class view_config_chooser(SimpleSelectorProtoType):
     def __init__(self, title_name="", separator="::", header_name=""):
         super().__init__(title_name, separator, header_name)
         self.header.new_item_button.hide()
-        self.结果: Union[DeckSelectorProtoType.Id_name, None] = None
+        self.结果: G.safe.models.Id_name = G.safe.models.Id_name()
 
 
 class universal_field_chooser(SelectorProtoType):
@@ -206,9 +206,9 @@ class universal_field_chooser(SelectorProtoType):
     def on_view_clicked_handle(self, index):
         pass
 
-    def get_all_data_items(self) -> "list[SelectorProtoType.Id_name]":
+    def get_all_data_items(self) -> "list[G.safe.models.Id_name]":
         字段名集 = mw.col.models.field_names(mw.col.models.get(self.模板编号))
-        return [self.Id_name(name=字段名集[i], ID=i) for i in range(len(字段名集))]
+        return [G.safe.models.Id_name(name=字段名集[i], ID=i) for i in range(len(字段名集))]
         pass
 
     def on_view_doubleclicked_handle(self, index):

@@ -27,7 +27,7 @@ class 类型_数据源_视图创建参数:
     视图名: str = ""
     上级: "G.safe.linkdata_grapher.Grapher|G.safe.linkdata_grapher.GViewAdmin" = None
     # 状态: "dict" = field(default_factory=lambda: {枚举.视图.名称: "", 枚举.视图.配置: None})
-    配置: Id_name = field(default_factory=lambda: Id_name("", None))
+    配置: Id_name = field(default_factory=lambda: Id_name())
 
     def 设置视图名(self, value):
         self.视图名 = value

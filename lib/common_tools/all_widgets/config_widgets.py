@@ -1216,6 +1216,7 @@ class GviewConfigTemplateChooser(ConfigItemLabelView):
         pass
 
 class GviewConfigViewConfigChooser(ConfigItemLabelView):
+    """指的是创建视图型结点时,默认选择的视图配置"""
     def on_edit_btn_clicked(self):
         w = imports.selector_widgets.view_config_chooser()
         w.exec()
