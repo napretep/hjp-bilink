@@ -347,10 +347,18 @@ class Utils(object):
         def 版本冲突():
             本地版地址 = G.src.path.local_version
             网络版地址 = G.src.path.web_version
+            开发版地址 = G.src.path.dev_version
             当前插件地址 = G.src.path.root
-            if Utils.版本.本地版被启用() and Utils.版本.网络版被启用() and 当前插件地址 == 本地版地址:
+            if 当前插件地址 == 开发版地址:
+                tooltip("dev mode")
+                return False
+            elif Utils.版本.开发版被启用():
+                tooltip("dev mode")
+                return True
+            elif Utils.版本.本地版被启用() and Utils.版本.网络版被启用() and 当前插件地址 == 本地版地址:
                 showInfo(译.检测到同时启用了本地版与网络版插件)
                 return True
+
             return False
         @staticmethod
         def 网络版被启用():
@@ -363,13 +371,25 @@ class Utils(object):
 
         @staticmethod
         def 本地版被启用():
-            本地版地址 = G.src.path.web_version
+            本地版地址 = G.src.path.local_version
             if not os.path.exists(本地版地址):
                 return False
             else:
                 return json.load(open(os.path.join(本地版地址, "meta.json")))["disabled"] == False
             pass
             pass
+
+        @staticmethod
+        def 开发版被启用():
+            开发版地址 = G.src.path.dev_version
+            if not os.path.exists(开发版地址):
+                return False
+            else:
+                data = json.load(open(os.path.join(开发版地址, "meta.json")))
+                # tooltip("disabled="+data["disabled"])
+                return not data["disabled"]
+            pass
+
 
         @staticmethod
         def 检查():
