@@ -190,7 +190,7 @@ class Dialog_PDFUrlTool(QDialog):
         self.class_name = G.src.pdfurl_class_name
         layout = QFormLayout(self)
         self.setWindowTitle("PDFUrlTool")
-        self.widgets = {
+        self.widgets:Dict[str,Union[QTextEdit,QSpinBox,QRadioButton,QToolButton]] = {
                 Translate.pdf路径    : QTextEdit(self),
                 Translate.pdf页码    : QSpinBox(self),
                 Translate.pdf名字    : QTextEdit(self),
@@ -202,9 +202,11 @@ class Dialog_PDFUrlTool(QDialog):
         list(map(lambda items: layout.addRow(items[0], items[1]), self.widgets.items()))
         self.needpaste = False
         self.widgets[Translate.pdf路径].textChanged.connect(lambda: self.on_pdfpath_changed(self.widgets[Translate.pdf路径].toPlainText()))
+
         self.widgets[Translate.确定].clicked.connect(lambda event: self.on_confirm_clicked())
         self.widgets[Translate.确定].setIcon(QIcon(G.src.ImgDir.correct))
         QShortcut(QKeySequence(Qt.Key_Enter), self).activated.connect(lambda: self.widgets[Translate.确定].click())
+        self.widgets[Translate.pdf路径].setAcceptRichText(False)
         # self.widgets[Translate.确定].clicked.connect()
 
     def on_pdfpath_changed(self, path):

@@ -5,6 +5,7 @@ import sys, os, json
 from shutil import copy2
 
 THIS_FOLDER = os.path.curdir
+metaJson = os.path.join(THIS_FOLDER,"meta.json")
 # baseconfig = json.load(open("baseInfo.json", "r", encoding="utf-8"))
 excludeFile = ["clipper2", "clipper3", "__pycache__"]
 linux_addon_path = "/home/napretep/.local/share/Anki2/addons21/"
@@ -119,12 +120,8 @@ def ankiaddon_make(version):
         os.remove(filename)
     os.rename(zip_name, filename)
     print(f"{version}构建完成!")
-    if is_win:
-        os.startfile(repository)
-    else:
-        print(filename)
-        programname="anki"
-        os.system(f"{programname} {filename}")
+
+    return filename
     pass
 
 
@@ -149,23 +146,32 @@ if __name__ == "__main__":
                     print(pyFile)
                 with open("./__init__.py", "w", encoding="utf-8") as f:
                     f.write(pyFile)
-                ankiaddon_make(version + "." + webOrLocal)
+                filename = ankiaddon_make(version + "." + webOrLocal)
                 if not is_win: break
 
             with open("./__init__.py", "r", encoding="utf-8") as f:
                 pyFile = f.read()
-                pyFile = re.sub("""(?<=connectors.funcs.G.src.ADDON_VERSION=").*?\"""",
-                                'dev"', pyFile)  # w表示ankiweb,l表示local
-                print(pyFile)
+                pyFile = re.sub("""(?<=connectors.funcs.G.src.ADDON_VERSION=").*?\"""",'dev"', pyFile)  # w表示ankiweb,l表示local
             with open("./__init__.py", "w", encoding="utf-8") as f:
                 f.write(pyFile)
-
-
             with open("./lib/debugState.py","r",encoding="utf-8") as f:
                 text = f.read()
                 text = re.sub(r"""(?<=ISDEBUG = )\w+""","True",text)
             with open("./lib/debugState.py","w",encoding="utf-8") as f:
                 f.write(text)
+            # if is_win:
+            #     os.startfile(repository)
+            # else:
+            #     # print(filename)
+            #     programname = "anki"
+            #     os.system(f"{programname} {filename}")
+            if input("是否立即打开?\n"):
+
+                data = json.load(open(metaJson,"r",encoding="utf-8"))
+                data["disabled"]=True
+                json.dump(data,open(metaJson,"w",encoding="utf-8"))
+                os.system(f'anki "{filename}" ')
+
     # else:
     #     print("linux 調試模式")
     #     version = input("请输入版本号\n")

@@ -426,6 +426,7 @@ class PDFUrlLinkBooklist(ConfigTableView):
     colnames = ["PDFpath", "name", "style", "showPage"]  # 就是表有几个列,分别叫什么
     defaultRowData = ["", "", "", False]
 
+    # TODO 无法在reviewer点击编辑时,提供右键弹出菜单入口
     def NewRow(self):  # 新增一行的函数
         w = self.NewRowFormWidget(self)
         w.widget.exec()
@@ -501,6 +502,9 @@ class PDFUrlLinkBooklist(ConfigTableView):
                                QTextEdit(),
                                QTextEdit(),
                                QRadioButton()]
+            # self.colWidgets[0].setAcceptRichText(False)
+
+
             self.colItems = colItems
             super().__init__(superior, colItems, self.colWidgets)
             # funcs.Map.do(range(3), lambda idx: self.colWidgets[idx].textChanged.connect(lambda: self.colItems[idx].setText(self.__dict__[idx""].toPlainText())))
