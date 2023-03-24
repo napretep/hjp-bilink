@@ -7,9 +7,10 @@ __email__ = '564298339@qq.com'
 __time__ = '2023/3/16 1:23'
 """
 
-import json , os
+import json , os, sys
 dev_metaJson = "./meta.json"
 local_metaJson = "../hjp_linkmaster/meta.json"
+is_win = sys.platform.startswith("win32")
 
 
 def modify_meta(path,disabled=False):
@@ -25,7 +26,8 @@ def start_local():
 
 
 if __name__ == "__main__":
-    # start_local()
-    start_dev()
-    os.system("anki")
+    if is_win:
+        start_local()
+        # start_dev()
+        os.system("anki")
     pass

@@ -214,7 +214,7 @@ class EditorOperation:
     def make_PDFlink(editor: "Editor"):
         """复制文件路径,或者file协议链接,或者打开对话框后再粘贴"""
         # TODO 无法在reviewer点击编辑时,提供右键弹出菜单入口
-        # TODO 当直接粘贴时会读取成MIME格式,也就是超链接显示
+        # TODO 同上,无法在新建卡片中显示
 
         clipboard = QApplication.clipboard()
         text = clipboard.text()

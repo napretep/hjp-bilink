@@ -1,7 +1,7 @@
 import os
-from . import compatible_import as compatible
-
-Anki = compatible.Anki
+# from . import compatible_import as compatible
+from .compatible_import import *
+# Anki = compatible.Anki
 aqt = Anki.aqt
 if Anki.isQt6:
     from PyQt6.QtCore import pyqtSignal
@@ -14,8 +14,8 @@ else:
 from anki import hooks
 from aqt import browser
 from anki.notes import Note
-from anki.utils import is_win as isWin
-is_win = isWin
+# from anki.utils import is_win as isWin
+# is_win = isWin
 from aqt import gui_hooks, progress, mw, webview, reviewer,addcards
 from aqt.browser.previewer import MultiCardPreviewer, BrowserPreviewer
 from aqt.editor import Editor

@@ -226,7 +226,7 @@ class Dialog_PDFUrlTool(QDialog):
         self.widgets[Translate.pdf路径].blockSignals(False)
         self.widgets[Translate.pdf名字].setText(pdffilename)
 
-    def get_url_name_num(self) -> tuple[str, str, str]:
+    def get_url_name_num(self) -> Tuple[str, str, str]:
         return self.widgets[Translate.pdf路径].toPlainText(), \
                self.widgets[Translate.pdf名字].toPlainText(), \
                self.widgets[Translate.pdf页码].value()
