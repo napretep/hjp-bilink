@@ -5,7 +5,11 @@ import sys, os, json
 from shutil import copy2
 
 THIS_FOLDER = os.path.curdir
+LOCAL_FOLDER = os.path.join("..","hjp_linkmaster")
+
 metaJson = os.path.join(THIS_FOLDER,"meta.json")
+
+localMetaJson = os.path.join(LOCAL_FOLDER,"meta.json")
 # baseconfig = json.load(open("baseInfo.json", "r", encoding="utf-8"))
 excludeFile = ["clipper2", "clipper3", "__pycache__"]
 linux_addon_path = "/home/napretep/.local/share/Anki2/addons21/"
@@ -25,6 +29,12 @@ class addon_version:
             return self.v[1] < other.v[1]
         else:
             return self.v[2] < other.v[2]
+
+
+def set_metaJson_disabled(json_path,bool_value):
+    data = json.load(open(json_path,"r",encoding="utf-8"))
+    data["disabled"]=bool_value
+    json.dump(data,open(json_path,"w",encoding="utf-8"))
 
 
 def cmpkey(path):
@@ -165,13 +175,15 @@ if __name__ == "__main__":
             #     # print(filename)
             #     programname = "anki"
             #     os.system(f"{programname} {filename}")
-            if input("是否立即打开?\n"):
+            if input("是否立即安装插件?输入任意字符表示打开,直接回车示不打开\n"):
 
-                data = json.load(open(metaJson,"r",encoding="utf-8"))
-                data["disabled"]=True
-                json.dump(data,open(metaJson,"w",encoding="utf-8"))
+                set_metaJson_disabled(metaJson,True)
+                set_metaJson_disabled(localMetaJson, False)
                 os.system(f'anki "{filename}" ')
-
+            elif input("是否立即打开插件目录?输入任意字符表示打开,直接回车示不打开\n"):
+                set_metaJson_disabled(metaJson,True)
+                set_metaJson_disabled(localMetaJson,False)
+                os.startfile(os.path.split(filename)[0])
     # else:
     #     print("linux 調試模式")
     #     version = input("请输入版本号\n")
