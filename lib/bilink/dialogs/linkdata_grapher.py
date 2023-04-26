@@ -808,9 +808,10 @@ class Grapher(QMainWindow):
         pass
 
     class ItemEdge(common_tools.baseClass.Geometry.ArrowLine):
+        edge_from_pen = QPen(QColor(255, 215, 0), 8.0, PenStyle.DashLine)
         highlight_pen = QPen(QColor(255, 215, 0), 8.0, PenStyle.DashLine)
         selected_pen = QPen(QColor(102, 255, 230), 8.0, PenStyle.DashLine)
-        normal_pen = QPen(QColor(127, 127, 127, 160), 8.0, PenStyle.DashLine)
+        normal_pen = QPen(QColor(170,170,170, 70), 6.0, PenStyle.DashLine)
         pdflink_pen = QPen(QColor(255, 255, 127), 6.0, PenStyle.DashLine)
         intextlink_pen = QPen(QColor(255, 255, 127), 6.0, PenStyle.DashLine)
         normal, pdflink, intextlink = 0, 1, 2
@@ -925,14 +926,6 @@ class Grapher(QMainWindow):
         pass
 
     class ItemRect(QGraphicsRectItem):
-        card_body_style = QColor(197, 224, 235)
-        card_title_style = QColor(114, 154, 189)
-        view_body_style = QColor(239, 220, 118)
-        view_title_style = QColor(95, 142, 172)
-        due_dot_style = QColor(255, 0, 0)
-
-        current_title_style = card_title_style
-        current_body_style = card_body_style
 
         class 所属类型:
             卡片 = 0
@@ -946,12 +939,25 @@ class Grapher(QMainWindow):
 
         def __init__(self, superior: "Grapher", 索引: "str|LinkDataPair", 类型=枚举_视图结点类型.卡片):
             super().__init__()
+            self.card_body_style = QColor(197, 224, 235) # card_type_node
+            self.card_title_style = QColor(114, 154, 189)
+            self.card_body_text_style = QColor(47,109,153)
+            self.view_body_style = QColor(239, 220, 118) # view_type_node
+            self.view_title_style = QColor(95, 142, 172)
+            self.view_body_text_style = QColor(47,109,153)
+            self.due_dot_style = QColor(255, 0, 0)
+
+            self.current_title_style = self.card_title_style
+            self.current_body_style = self.card_body_style
+            self.current_text_style = self.card_body_text_style
+
             self._类型 = 类型
             self.superior = superior
             self.索引: "str" = 索引 if type(索引) == str else 索引.card_id
             if self.结点类型 == 枚举_视图结点类型.视图:
                 self.current_title_style = self.view_title_style
                 self.current_body_style = self.view_body_style
+                self.current_text_style = self.view_body_text_style
             self.setPen(QPen(self.current_body_style))
             self.setBrush(QBrush(self.current_body_style))
             self.setRect(self.superior.data.default_rect)
@@ -1093,6 +1099,7 @@ class Grapher(QMainWindow):
 
             painter.setPen(QColor(255, 255, 255))
             painter.drawText(header_rect.adjusted(5, 5, -5, -5), Qt.TextFlag.TextWordWrap, str(self.索引))
+            painter.setPen(self.current_text_style)
             painter.drawText(body_rect.adjusted(5, 5, -5, -5), Qt.TextFlag.TextWordWrap, f"""{self.结点描述()}""")
 
             if self.isSelected():
@@ -1102,12 +1109,6 @@ class Grapher(QMainWindow):
                 self.setZValue(20)
             else:
                 self.setZValue(10)
-
-            # if self.node.due:
-            #     painter.setPen(self.due_dot_style)
-            #     painter.setBrush(QBrush(self.due_dot_style))
-            #     painter.drawEllipse(header_rect.right() - 5, 0, 5, 5)
-            # self.update_line()
 
         pass
 
