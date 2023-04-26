@@ -351,7 +351,9 @@ class Grapher(QMainWindow):
             edges = self.data.node_dict[node_id].edges
             for edge in edges:
                 edge.item.highlight()
-
+            inver_edges = self.data.node_dict[node_id].inver_edges
+            for inver_edge in inver_edges:
+                inver_edge.item.highlight(invert=True)
     # init
 
     def init_graph_item(self, need_centerOn=True):
@@ -808,7 +810,7 @@ class Grapher(QMainWindow):
         pass
 
     class ItemEdge(common_tools.baseClass.Geometry.ArrowLine):
-        edge_from_pen = QPen(QColor(255, 215, 0), 8.0, PenStyle.DashLine)
+        edge_from_pen = QPen(QColor(155, 232, 12), 8.0, PenStyle.DashLine)
         highlight_pen = QPen(QColor(255, 215, 0), 8.0, PenStyle.DashLine)
         selected_pen = QPen(QColor(102, 255, 230), 8.0, PenStyle.DashLine)
         normal_pen = QPen(QColor(170,170,170, 70), 6.0, PenStyle.DashLine)
@@ -844,8 +846,11 @@ class Grapher(QMainWindow):
             self.setVisible(True)
             # print(f"self visibility = {self}")
 
-        def highlight(self):
-            self.setPen(self.highlight_pen)
+        def highlight(self,invert=False):
+            if invert:
+                self.setPen(self.edge_from_pen)
+            else:
+                self.setPen(self.highlight_pen)
             self.setZValue(-1)
 
         def unhighlight(self):
