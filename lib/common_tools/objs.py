@@ -425,7 +425,7 @@ class LinkDataJSONInfo:
     def add_tag(self, tag):
         from . import funcs
         CardId = funcs.Compatible.CardId()
-        card = mw.col.getCard(CardId(int(self.self_data.card_id)))
+        card = mw.col.get_card(CardId(int(self.self_data.card_id)))
         note = card.note()
         note.add_tag(tag)
         note.flush()

@@ -930,7 +930,7 @@ def HTML_clipbox_PDF_info_dict_read(root):
     return PDF_info_dict
 
 
-def HTML_LeftTopContainer_detail_el_make(root: "BeautifulSoup", summaryname, attr: "dict" = None):
+def HTML_左上角容器_detail元素_制作(root: "BeautifulSoup", summaryname, attr: "dict" = None):
     """这是一个公共的步骤,设计一个details, root 传进来无所谓的, 不会基于他做操作,只是引用了他的基本功能
     details.hjp_bilink .details
         summary

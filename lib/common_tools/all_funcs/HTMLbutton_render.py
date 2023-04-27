@@ -60,7 +60,7 @@ class 全局双链按钮生成(FieldHTMLData):
 
     # 创建 anchor中的backlink专区
     def cascadeDIV_create(self):
-        details, div = G.safe.funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "backlink", attr={"open": "", "class": "backlink"})
+        details, div = G.safe.funcs.HTML_左上角容器_detail元素_制作(self.html_root, "card global backlink", attr={"open": "", "class": "backlink"})
         self.anchor_body_L1.append(details)
         for item in self.data.root:
             if item.card_id != "":
@@ -74,7 +74,7 @@ class 全局双链按钮生成(FieldHTMLData):
     # 每个按钮的细节设计
     def details_make(self, nodeuuid):
         node = self.data.node[nodeuuid]
-        details, div = G.safe.funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, node.name)
+        details, div = G.safe.funcs.HTML_左上角容器_detail元素_制作(self.html_root, node.name)
         li = node.children
         for item in li:
             if item.card_id != "":
@@ -93,8 +93,8 @@ class 全局双链按钮生成(FieldHTMLData):
         # funcs.Utils.print("make backlink", need_timestamp=True)
         if len(self.data.backlink) == 0:
             return None
-        details, div = G.safe.funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "referenced_in_text",
-                                                                  attr={"open": "", "class": "referenced_in_text"})
+        details, div = G.safe.funcs.HTML_左上角容器_detail元素_制作(self.html_root, "referenced_in_text",
+                                                           attr={"open": "", "class": "referenced_in_text"})
         for card_id in self.data.backlink:
             data: "G.objs.LinkDataJSONInfo" = linkdata_admin.read_card_link_info(card_id)
             L2 = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor button",
@@ -178,26 +178,25 @@ class 视图双链按钮生成(FieldHTMLData):
 
         cid=str(self.card_id)
         for 视图 in 视图集:
-            details, div = G.safe.funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "view:"+视图.name, attr={"open": "", "class": "gview"})
+            details, div = G.safe.funcs.HTML_左上角容器_detail元素_制作(self.html_root, "view:" + 视图.name, attr={"open": "", "class": "gview"})
             边集 = 视图.数据获取.获取对应边(cid)
 
             出边集 = [边.split(",")[1] for 边 in 边集 if 边.startswith(cid)]
             入边集 = [边.split(",")[0] for 边 in 边集 if 边.endswith(cid)]
             for 出边 in 出边集:
-                结点类型 = 视图.nodes[出边].数据类型.值
-                结点名称 = 视图.nodes[出边].描述.值
-                button = self.button_make(出边,结点名称)
-                div.append(button)
+                if 视图.nodes[出边].预览可见.值:
+                    结点类型 = 视图.nodes[出边].数据类型.值
+                    结点名称 = 视图.nodes[出边].描述.值
+                    button = self.button_make(出边,结点名称,数据类型=结点类型)
+                    div.append(button)
             for 入边 in 入边集:
-                结点类型 = 视图.nodes[入边].数据类型.值
-                结点名称= 视图.nodes[入边].描述.值
-                button = self.button_make(入边,结点名称,"←",结点类型)
-                div.append(button)
+                if 视图.nodes[入边].预览可见.值:
+                    结点类型 = 视图.nodes[入边].数据类型.值
+                    结点名称= 视图.nodes[入边].描述.值
+                    button = self.button_make(入边,结点名称,"←",结点类型)
+                    div.append(button)
             self.anchor_body_L1.append(details)
         pass
-
-def 视图反链生成():
-    pass
 
 
 
@@ -233,14 +232,14 @@ def HTMLbutton_make(htmltext, card:"Card"):
     if 有全局反链:
         # funcs.Utils.print(f"{card.id} hasbacklink")
         左上角下拉菜单 = 全局双链按钮生成(左上角下拉菜单, card_id=card.id).build()
-
+    print(左上角下拉菜单)
 
     view_li = G.safe.funcs.GviewOperation.find_by_card([G.objs.LinkDataPair(str(card.id))])
     有视图反链 = len(view_li) > 0
     if 有视图反链:
         # funcs.Utils.print(f"{card.id} len(view_li)>0:")
         左上角下拉菜单 = 视图双链按钮生成(左上角下拉菜单, card_id=card.id).build(view_li=view_li)
-
+    print(左上角下拉菜单)
     # 以下内容来替换文本, 替换文本是
     有文内链接 = len(backlink_reader.BackLinkReader(html_str=htmltext).backlink_get()) > 0
     if 有文内链接:
