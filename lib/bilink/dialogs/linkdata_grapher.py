@@ -217,16 +217,23 @@ class Grapher(QMainWindow):
         self.data.add_to_node_data(item, fromGviewData)
         return item
 
-    def load_node(self, pair_li: "list[LinkDataPair|str|GViewData|None]", begin_item=None, selected_as_center=True, 参数_视图结点类型=枚举_视图结点类型.卡片, from_outside=True):
-        """ """
+    def load_node(self, pair_li: "list[LinkDataPair|str|GViewData|None]", begin_item=None,
+                  selected_as_center=True, 参数_视图结点类型=枚举_视图结点类型.卡片, from_outside=True,positions=None):
+        """
+
+
+        """
+
         if pair_li is None:
             return
+
         item_li = []
         last_item = None
 
         if len(self.data.node_dict) > 0:
             last_item = self.data.node_dict[(list(self.data.node_dict.keys())[-1])].item
-        for pair in pair_li:
+        for 索引 in range(len(pair_li)):
+            pair = pair_li[索引]
             card_id: "str" = pair if type(pair) == str else pair.card_id if isinstance(pair, LinkDataPair) else pair.uuid
             if card_id in self.data.gviewdata.nodes:
                 continue
@@ -234,7 +241,15 @@ class Grapher(QMainWindow):
                 self.data.node_dict[card_id] = self.data.Node(card_id)
                 item = self.create_node(card_id, 参数_视图结点类型)  # 我就单纯读
                 item_li.append(card_id)
-                if begin_item:
+                if type(positions)==dict and card_id in positions:
+                    if type(positions[card_id]) in [QPointF,QPoint]:
+                        item.setPos(positions[card_id])
+                        print("成功插入到位置:",positions[card_id])
+                    elif type(positions[card_id])==list and len(positions)==2:
+                        item.setPos(*positions[card_id])
+                    else:
+                        raise ValueError(f"未知的positions[card_id]={positions}")
+                elif begin_item:
                     self.arrange_node(item, begin_item)
                 elif selected_as_center:
                     self.arrange_node(item)
@@ -779,6 +794,9 @@ class Grapher(QMainWindow):
         def make_context_menu(self, event: QtGui.QMouseEvent):
             pairli = funcs.AnkiLinks.get_card_from_clipboard()
             menu = QMenu()
+            新建 = menu.addMenu(译.在此新建结点)
+            新建.addAction(译.卡片).triggered.connect(lambda:self.superior.toolbar.create_card(pos=self.mapToScene(event.pos())))
+            新建.addAction(译.视图).triggered.connect(lambda:self.superior.toolbar.create_view(pos=self.mapToScene(event.pos())))
             menu.addAction(Translate.创建为视图).triggered.connect(lambda: self.superior.create_view())
             if len(pairli) > 0:
                 menu.addAction(Translate.粘贴卡片).triggered.connect(lambda: self.superior.load_node(pairli))
@@ -1194,31 +1212,42 @@ class Grapher(QMainWindow):
             self.addWidget(引入图标)
             pass
 
-        def create_card(self):
+        def create_card(self,pos=None):
             """
             调用原生的卡片创建窗口,并在完成后返回卡片id到当前视图id
             """
-            common_tools.G.常量_当前等待新增卡片的视图索引 = self.superior.data.gviewdata.uuid
+            # common_tools.G.常量_当前等待新增卡片的视图索引 = self.superior.data.gviewdata.uuid
             mw.onAddCard()
             addcard: aqt.addcards.AddCards = aqt.DialogManager._dialogs["AddCards"][1]
+            print("create card at pos=",pos)
+            def after_add_note(note: "Note"):
+                卡片索引 = note.card_ids()[0].__str__()
+                self.superior.load_node([卡片索引],positions={卡片索引:pos} if pos else None)
+                addcard.close()
+                gui_hooks.add_cards_did_add_note.remove(after_add_note)
+
+            gui_hooks.add_cards_did_add_note.append(after_add_note)
+
+
             did = self.superior.data.gviewdata.config_model.data.default_deck_for_add_card.value
             if did != -1:
                 addcard.deck_chooser.selected_deck_id = did
             mid = self.superior.data.gviewdata.config_model.data.default_template_for_add_card.value
             if mid != -1:
                 addcard.notetype_chooser.selected_notetype_id = mid
+
             # addcard.deck_chooser.selected_deck_id
             pass
 
-        def create_view(self):
+        def create_view(self,pos=None):
             config = None
             config_id = self.superior.data.gviewdata.config_model.data.default_config_for_add_view.value
             if funcs.GviewConfigOperation.存在(config_id):
                 config = config_id
-            视图 = common_tools.funcs.GviewOperation.create(config=config)
+            视图 = common_tools.funcs.GviewOperation.create(config=config,need_open=False)
             if 视图:
                 视图.保存()
-                self.superior.load_node([视图.uuid], 参数_视图结点类型=枚举_视图结点类型.视图)
+                self.superior.load_node([视图.uuid], 参数_视图结点类型=枚举_视图结点类型.视图,positions={视图.uuid:pos} if pos else None)
             pass
 
         def initEvent(self):

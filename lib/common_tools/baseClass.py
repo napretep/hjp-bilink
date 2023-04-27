@@ -51,6 +51,8 @@ class 枚举命名:
         需要复习 = "node_need_review"
         必须复习 = "node_must_review"
         漫游起点 = "node_roaming_start"
+        结构结点= "node_structural_node"
+        预览可见 = "node_visible_in_previewer"
 
         pass
 

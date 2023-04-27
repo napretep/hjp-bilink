@@ -3,6 +3,11 @@ import abc, dataclasses
 from .. import G, language
 from ..compatible_import import *
 
+
+
+
+
+
 译 = language.Translate
 class 逻辑:
     @staticmethod

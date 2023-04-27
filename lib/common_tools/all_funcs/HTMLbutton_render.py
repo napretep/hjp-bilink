@@ -1,19 +1,6 @@
 
 from .basic_funcs import *
 from anki.cards import CardId,Card
-# from aqt import mw
-# from aqt.utils import showInfo, tooltip
-
-# from .backlink_reader import BackLinkReader
-
-# from .linkData_reader import LinkDataReader
-# from lib.common_tools import funcs
-# from lib.common_tools import G
-
-
-# from . import clipper_imports
-
-# print, _ = clipper_imports.funcs.logger(__name__)
 
 
 class FieldHTMLData:
@@ -29,8 +16,8 @@ class FieldHTMLData:
         self.data: "G.objs.LinkDataJSONInfo" = None
 
 
-# anchor中的backlink maker
-class BacklinkButtonMaker(FieldHTMLData):
+# anchor中的全局backlink maker
+class 全局双链按钮生成(FieldHTMLData):
     """用来制作按钮
     div.container_L0
         div.header_L1
@@ -53,7 +40,8 @@ class BacklinkButtonMaker(FieldHTMLData):
         # data = LinkDataReader(self.card_id).read()
         linkdata_admin = G.safe.linkdata_admin
         # self.data = data
-        self.data = linkdata_admin.read_card_link_info(self.card_id)
+        self.data = imports.link.GlobalLinkDataOperation.read_from_db(self.card_id)
+        # self.data = linkdata_admin.read_card_link_info(self.card_id)
         if not self.data.root and not self.data.backlink:
             # funcs.Utils.print(f"self.data.root = {self.data.root.__str__()}", need_timestamp=True)
             return self.html_root.__str__()
@@ -119,6 +107,9 @@ class BacklinkButtonMaker(FieldHTMLData):
     pass
 
 
+
+# 文内链接的按钮设置
+
 def InTextButtonMakeProcess(html_string):
     # from ..bilink.in_text_admin.backlink_reader import BackLinkReader
     BackLinkReader = G.safe.in_text_admin.backlink_reader.BackLinkReader
@@ -160,111 +151,55 @@ class InTextButtonMaker(FieldHTMLData):
         return b.__str__()
 
 
-# class PDFPageButtonMaker(FieldHTMLData):
-#     def build(self):
-#         """
-#         需要在  CLIPBOX_INFO_TABLE 先搜索card_id,获得clipbox from DB,后 根据卡片里的 class.clipbox 获得clipbox from field
-#         作差, DB-Field>0, 删除多余的card_id
-#         作差, Field-DB>0, 将多出来的加card_id
-#         以上工作做完后, 开始插入链接,链接的href格式: hjp-bilink-clipid:clipboxUuid.
-#         js监听器获得clipboxUuid后再选出文件进行打开
-#         Returns:
-#
-#         """
-#         G.safe.funcs.HTML_clipbox_sync_check(self.card_id.__str__(), self.html_root)
-#         PDF_page_dict = G.safe.funcs.HTML_clipbox_PDF_info_dict_read(self.html_root)
-#         self.cascadeDIV_create(PDF_page_dict)
-#         return self.html_root
-#
-#     def button_make(self, uuid, pagenum, desc):
-#         """"""
-#         h = self.html_root
-#         b = h.new_tag("button", attrs={"card_id": "card_id", "class": "hjp-bilink anchor button",
-#                                        "onclick": f"""javascript:pycmd('hjp-bilink-clipuuid:{uuid}_{pagenum}');"""})
-#
-#         b.string = desc
-#         return b
-#
-#     def cascadeDIV_create(self, PDF_page_dict):
-#         """层级只有两层,PDF名字和页码,页码显示为PDFpage:,BookPage:
-#         PDF_page_dict={uuid:{pagenum:{},pdfname:{}}}
-#         """
-#         assert isinstance(PDF_page_dict, dict)
-#         # from .objs import PDFinfoRecord
-#         PDFinfoRecord = G.objs.PDFinfoRecord
-#         # PDF_baseinfo_dict = clipper_imports.objs.SrcAdmin.PDF_JSON.load().data
-#         details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "clipped_from_PDF", attr={"open" : "",
-#                                                                                                               "class": "PDFclipper"})
-#         for pdfuuid, page_pdf in PDF_page_dict.items():  # {uuid:{pagenum:{},pdfname:""}}
-#             pdfinfo: PDFinfoRecord = page_pdf["info"]
-#             pdfname = funcs.str_shorten(os.path.basename(pdfinfo.pdf_path))
-#             pagenumlist = list(page_pdf["pagenum"])
-#             details2, div2 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, pdfname, attr={"open": ""})
-#             div1.append(details2)
-#             for pagenum in pagenumlist:
-#                 uuid = pdfuuid
-#                 desc = f""" pdf_page_at: {pagenum}, book_page_at:{pagenum - pdfinfo.offset + 1} """
-#                 button = self.button_make(uuid, pagenum, desc)
-#                 div2.append(button)
-#         self.anchor_body_L1.append(details1)
-#
-#     pass
-
-
-# class GroupReviewButtonMaker(FieldHTMLData):
-#     """
-#     打开卡片后,首先判断配置开了没有,
-#     """
-#
-#     def build(self):
-#         if funcs.Config.get().group_review.value == True and int(self.card_id) in G.GroupReview_dict.card_group:
-#             self.cascadeDIV_create()
-#         return self.html_root
-#
-#     def button_make(self, card_id):
-#         h = self.html_root
-#         b = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor groupreview button",
-#                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
-#         b.string = "→" + funcs.CardOperation.desc_extract(card_id)
-#         return b
-#
-#     def cascadeDIV_create(self):
-#         details1, div1 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "group_review_list", attr={"open" : "",
-#                                                                                                                "class": "groupreview"})
-#         searchs = G.GroupReview_dict.card_group[int(self.card_id)]
-#         for search in searchs:
-#             details2, div2 = funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, search, attr={"open": ""})
-#             div1.append(details2)
-#             cids = G.GroupReview_dict.search_group[search]
-#             for cid in cids:
-#                 button = self.button_make(cid)
-#                 div2.append(button)
-#         self.anchor_body_L1.append(details1)
-#         pass
-
-
-class GViewButtonMaker(FieldHTMLData):
+# 创建视图的反向链接
+class 视图双链按钮生成(FieldHTMLData):
     def build(self, view_li: "set[G.safe.funcs.GViewData]" = None):
-        if not view_li: view_li = G.safe.funcs.GviewOperation.find_by_card([G.objs.LinkDataPair(self.card_id)])
+        # if not view_li: view_li = G.safe.funcs.GviewOperation.find_by_card([G.objs.LinkDataPair(self.card_id)])
         self.cascadeDIV_create(view_li)
         return self.html_root
 
-    def button_make(self, view: "G.safe.funcs.GViewData"):
+    def button_make(self, 结点编号,结点名称, 方向="→", 数据类型=None):
         ankilink = G.safe.funcs.G.src.ankilink
-        pycmd = f"""{ankilink.protocol}://{ankilink.cmd.opengview}={view.uuid}"""
+        if 数据类型 is None:
+            数据类型 = G.safe.baseClass.视图结点类型.卡片
+        if 数据类型 is None  or 数据类型 == G.safe.baseClass.视图结点类型.卡片:
+            pycmd = f"""{ankilink.protocol}://{ankilink.cmd.opencard}={结点编号}"""
+        elif 数据类型 == G.safe.baseClass.视图结点类型.视图:
+            pycmd = f"""{ankilink.protocol}://{ankilink.cmd.opengview}={结点编号}"""
+        else:
+            raise ValueError(f"未知的数据类型={数据类型}")
         h = self.html_root
-        b = h.new_tag("button", attrs={"view_id": view.uuid, "class": "hjp-bilink anchor view button",
+        b = h.new_tag("button", attrs={"card_id": 结点编号, "class": "hjp-bilink anchor view button",
                                        "onclick": f"""javascript:pycmd('{pycmd}');"""})
-        b.string = view.name
+        b.string = 方向+数据类型+":"+结点名称
         return b
 
-    def cascadeDIV_create(self, view_li: "set[G.safe.configsModel.GViewData]"):
-        details, div = G.safe.funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "related view", attr={"open": "", "class": "gview"})
-        for view in view_li:
-            button = self.button_make(view)
-            div.append(button)
-        self.anchor_body_L1.append(details)
+    def cascadeDIV_create(self, 视图集: "set[G.safe.configsModel.GViewData]"):
+
+        cid=str(self.card_id)
+        for 视图 in 视图集:
+            details, div = G.safe.funcs.HTML_LeftTopContainer_detail_el_make(self.html_root, "view:"+视图.name, attr={"open": "", "class": "gview"})
+            边集 = 视图.数据获取.获取对应边(cid)
+
+            出边集 = [边.split(",")[1] for 边 in 边集 if 边.startswith(cid)]
+            入边集 = [边.split(",")[0] for 边 in 边集 if 边.endswith(cid)]
+            for 出边 in 出边集:
+                结点类型 = 视图.nodes[出边].数据类型.值
+                结点名称 = 视图.nodes[出边].描述.值
+                button = self.button_make(出边,结点名称)
+                div.append(button)
+            for 入边 in 入边集:
+                结点类型 = 视图.nodes[入边].数据类型.值
+                结点名称= 视图.nodes[入边].描述.值
+                button = self.button_make(入边,结点名称,"←",结点类型)
+                div.append(button)
+            self.anchor_body_L1.append(details)
         pass
+
+def 视图反链生成():
+    pass
+
+
 
 
 def HTMLbutton_make(htmltext, card:"Card"):
@@ -284,34 +219,31 @@ def HTMLbutton_make(htmltext, card:"Card"):
     """
 
     html_string = htmltext
-    # from ..bilink import linkdata_admin
-    # from ..bilink.in_text_admin import backlink_reader
+
     linkdata_admin = G.safe.linkdata_admin
     backlink_reader = G.safe.in_text_admin.backlink_reader
-    data = linkdata_admin.read_card_link_info(str(card.id))
+    全局双链数据 = linkdata_admin.read_card_link_info(str(card.id))
     """
 
     """
-    anchor = BeautifulSoup("", "html.parser")
+    左上角下拉菜单 = BeautifulSoup("", "html.parser")
 
     # 以下ButtonMaker是用来生成左上角按钮的
-    if len(data.link_list) > 0 or len(data.backlink) > 0:
+    有全局反链 = len(全局双链数据.link_list) > 0 or len(全局双链数据.backlink) > 0
+    if 有全局反链:
         # funcs.Utils.print(f"{card.id} hasbacklink")
-        anchor = BacklinkButtonMaker(anchor, card_id=card.id).build()
-    # if funcs.HTML.clipbox_exists(html_string):
-    #     # funcs.Utils.print(f"{card.id} clipbox_exists")
-    #     anchor = PDFPageButtonMaker(anchor, card_id=card.id).build()
-    # if G.GroupReview_dict and card.id in G.GroupReview_dict.card_group:
-    #     # funcs.Utils.print(f"{card.id} GroupReview")
-    #     anchor = GroupReviewButtonMaker(anchor, card_id=card.id).build()
+        左上角下拉菜单 = 全局双链按钮生成(左上角下拉菜单, card_id=card.id).build()
+
+
     view_li = G.safe.funcs.GviewOperation.find_by_card([G.objs.LinkDataPair(str(card.id))])
-    if len(view_li) > 0:
+    有视图反链 = len(view_li) > 0
+    if 有视图反链:
         # funcs.Utils.print(f"{card.id} len(view_li)>0:")
-        anchor = GViewButtonMaker(anchor, card_id=card.id).build(view_li=view_li)
+        左上角下拉菜单 = 视图双链按钮生成(左上角下拉菜单, card_id=card.id).build(view_li=view_li)
 
     # 以下内容来替换文本, 替换文本是
-    hasInTextButton = len(backlink_reader.BackLinkReader(html_str=htmltext).backlink_get()) > 0
-    if hasInTextButton:
+    有文内链接 = len(backlink_reader.BackLinkReader(html_str=htmltext).backlink_get()) > 0
+    if 有文内链接:
         # funcs.Utils.print(f"{card.id} hasInTextButton")
         html_string = G.safe.funcs.HTML.InTextButtonDeal(html_string)
         # html_string = InTextButtonMaker(html_string).build()
@@ -320,11 +252,11 @@ def HTMLbutton_make(htmltext, card:"Card"):
 
     # 如果左上角确实有内容则将其插入htmltext
     # funcs.Utils.print(anchor)
-    container_body_L1_exists = anchor.find("div", attrs={"class": "container_body_L1"})
-    if container_body_L1_exists:
-        container_body_L1_children = [child for child in anchor.find("div", attrs={"class": "container_body_L1"}).children]
+    右上角下拉菜单需要显示 = 左上角下拉菜单.find("div", attrs={"class": "container_body_L1"})
+    if 右上角下拉菜单需要显示:
+        container_body_L1_children = [child for child in 左上角下拉菜单.find("div", attrs={"class": "container_body_L1"}).children]
         if len(container_body_L1_children) > 0:
-            script = G.safe.funcs.HTML.cardHTMLShadowDom(anchor.__str__())
+            script = G.safe.funcs.HTML.cardHTMLShadowDom(左上角下拉菜单.__str__())
             html_string = script.__str__() + html_string
 
     # funcs.Utils.print(html_string)

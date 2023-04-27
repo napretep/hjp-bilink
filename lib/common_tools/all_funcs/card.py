@@ -341,89 +341,6 @@ class CardOperation:
         else:
             return mw.col.getCard(card_id)
 
-    # @staticmethod
-    # def clipbox_insert_field(clipuuid, timestamp=None):
-    #     """用于插入clipbox到指定的卡片字段,如果这个字段存在这个clipbox则不做操作"""
-    #     if ISLOCALDEBUG:
-    #         return
-    #     if platform.system() in {"Darwin", "Linux"}:
-    #         tooltip("当前系统暂时不支持该功能\n current os not supports the feature")
-    #         return
-    #     else:
-    #         from ..clipper2.exports import fitz
-    #
-    #     def bookmark_to_tag(bookmark: "list[list[int,str,int]]"):
-    #         tag_dict = {}
-    #         if len(bookmark) == 0:
-    #             return tag_dict
-    #         level, content, pagenum = bookmark[0][0], bookmark[0][1], bookmark[0][2]
-    #         tag_dict[pagenum] = re.sub(r"\s|\r|\n", "-", content)
-    #         level_stack = []
-    #         level_stack.append([level, content, pagenum])
-    #         for item in bookmark[1:]:
-    #             level, content, pagenum = item[0], re.sub(r"\s|\r|\n", "-", item[1]), item[2]
-    #             if level == 1:
-    #                 tag_dict[pagenum] = content
-    #             else:
-    #                 while len(level_stack) != 0 and level_stack[-1][0] >= level:
-    #                     level_stack.pop()
-    #                 content = f"{level_stack[-1][1]}::{content}"
-    #                 tag_dict[pagenum] = content
-    #             level_stack.append([level, content, pagenum])
-    #         return tag_dict
-    #
-    #     DB = G.DB
-    #     DB.go(DB.table_clipbox)
-    #     clipbox_ = DB.select(uuid=clipuuid).return_all().zip_up()[0]
-    #     clipbox = G.objs.ClipboxRecord(**clipbox_)
-    #     DB.go(DB.table_pdfinfo)
-    #     if timestamp is None:
-    #         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    #     card_id_li = clipbox.card_id.split(",")
-    #     for card_id in card_id_li:
-    #         if not card_id.isdigit():
-    #             continue
-    #         pdfinfo_ = DB.select(uuid=clipbox.pdfuuid).return_all().zip_up()[0]
-    #         pdfinfo = G.objs.PDFinfoRecord(**pdfinfo_)
-    #         pdfname = os.path.basename(pdfinfo.pdf_path)
-    #         pdfname_in_tag = re.sub(r"\s|\r|\n", "-", pdfname[0:-4])
-    #         note = mw.col.getCard(CardId(int(card_id))).note()
-    #         html = reduce(lambda x, y: x + "\n" + y, note.fields)
-    #         if clipbox.uuid not in html:
-    #             note.fields[clipbox.QA] += \
-    #                 f"""<img class="hjp_clipper_clipbox" src="hjp_clipper_{clipbox.uuid}_.png"><br>\n"""
-    #         if clipbox.comment != "" and clipbox.uuid not in html:
-    #             note.fields[clipbox.commentQA] += \
-    #                 f"""<p class="hjp_clipper_clipbox text" id="{clipbox.uuid}">{clipbox.comment}</p>\n"""
-    #
-    #         note.addTag(f"""hjp-bilink::timestamp::{timestamp}""")
-    #         # print(f"in the loop, timestamp={timestamp}")
-    #         note.addTag(f"""hjp-bilink::books::{pdfname_in_tag}::page::{clipbox.pagenum}""")
-    #         doc: "fitz.Document" = fitz.open(pdfinfo.pdf_path)
-    #         toc = doc.get_toc()
-    #         if len(toc) > 0:
-    #             # 读取缓存的书签
-    #             jsonfilename = os.path.join(tempfile.gettempdir(),
-    #                                         UUID.by_hash(pdfinfo.pdf_path) + ".json")
-    #             if os.path.exists(jsonfilename):  # 存在直接读
-    #                 bookdict = json.loads(open(jsonfilename, "r", encoding="utf-8").read())
-    #             else:  # 不存在则新建
-    #                 bookdict = bookmark_to_tag(toc)
-    #                 json.dump(bookdict, open(jsonfilename, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
-    #             pagelist = sorted(list(bookdict.keys()), key=lambda x: int(x))  # 根据bookdict的键名(页码)进行排序
-    #
-    #             atbookmark = -1
-    #             for idx in range(len(pagelist)):
-    #                 # 这里是在选择card所在的页码插入到合适的标签之间的位置,比如标签A在36页,标签B在38页, card指向37页,那么保存在标签A中.
-    #                 #
-    #                 if int(pagelist[idx]) > clipbox.pagenum:
-    #                     if idx > 0:
-    #                         atbookmark = pagelist[idx - 1]
-    #                     break
-    #             if atbookmark != -1:
-    #                 note.addTag(f"""hjp-bilink::books::{pdfname_in_tag}::bookmark::{bookdict[atbookmark]}""")
-    #         note.flush()
-    #     DB.end()
 
     @staticmethod
     def getLastNextRev(card_id):
@@ -447,3 +364,5 @@ class CardOperation:
         # today = datetime.today()  # (Y,M,D,H,M,S,MS)
         # Utils.print(last_date, next_date)
         return last_date, next_date
+
+

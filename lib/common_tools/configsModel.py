@@ -180,6 +180,7 @@ class GViewData:
         self.edges: "models.类型_视图结点集模型" = models.类型_视图边集模型(self, 边数据集字典)
         self.meta_helper: "models.类型_视图本身模型" = models.类型_视图本身模型(数据源=self)
         self.数据更新 = self.类_函数库_数据更新(self)
+        self.数据获取 = self.类_函数库_获取数据(self)
 
     def __str__(self):
         return self.__dict__.__str__()
@@ -229,6 +230,7 @@ class GViewData:
     def 获取结点描述(self, 编号, 全部内容=False):
         from . import funcs
         return funcs.GviewOperation.获取视图结点描述(self, 编号, 全部内容)
+
 
     # def 更新配置(self):
 
@@ -292,6 +294,14 @@ class GViewData:
     def 保存(self):
         from . import funcs
         funcs.GviewOperation.save(self)
+
+    class 类_函数库_获取数据:
+        def __init__(self, 上级: "GViewData"):
+            self.上级: "GViewData" = 上级
+
+        def 获取对应边(self,node_id)->list[str]:
+            return [edge.__str__() for edge in self.上级.edges if node_id in edge]
+
 
     class 类_函数库_数据更新:
         def __init__(self, 上级: "GViewData"):

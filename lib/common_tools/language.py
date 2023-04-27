@@ -330,6 +330,10 @@ The final result is sorted by default in descending order of the calculated weig
     加载全部文外链接卡片 = 翻译("全部","all")
     加载文外链接卡片 = 翻译("加载文外链接卡片","load out-link cards")
     无角色 = 翻译("无角色","no role")
+    预览可见 = 翻译("预览可见","visible in card previewer")
+    说明_预览可见 = 翻译("如果关闭本开关,则本卡片在本视图中的链接信息不会在卡片预览器中显示","If this switch is turned off, the link information of this card in this view will not be displayed in the card previewer.")
+    结构结点 = 翻译("结构结点","structural node")
+    说明_结构结点=翻译("如果一个结点是结构结点,代表这个结点承担结构表示的职能","If a node is a structural node, it means that the node assumes the function of representing the structure.")
     漫游起点 = 翻译("漫游起点","roaming start")
     说明_漫游起点 = 翻译("当你的漫游路线生成模式为图遍历排序模式, 而且视图配置中'roamingStart'项选择了自动模式时, 本程序会自动在结点集合中寻找首个'漫游起点'属性开启的结点作为图遍历的起点. 更多信息请查看视图配置中'roamingStart'项的解释.","When your roaming route generation mode is graph traversal sorting mode and automatic mode is selected for 'roamingStart' in the view configuration, the program will automatically find the first node in the node set with the 'roamingStart' attribute turned on as the starting point of the graph traversal. For more information, please see the explanation of 'roamingStart' item in the view configuration.")
     必须复习 = 翻译("必须复习","must review")
@@ -623,7 +627,8 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     重建群组复习数据库:str=rosetta("重建群组复习数据库")
     配置表操作:str=rosetta("配置表操作")
     重置配置表:str=翻译("重置配置表","reset configuration")
-    创建为视图:str=rosetta("创建为视图")
+    创建为视图:str=翻译("创建为视图","save as new view")
+
 
     视图命名规则:str=rosetta("视图名不能有空白字符,不能有连续4个':',即'::::'非法")
     视图名必须是JSON合法的字符串:str=rosetta("视图名必须是JSON合法的字符串")
@@ -727,6 +732,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     添加卡片:str = rosetta("添加卡片")
     添加视图:str = rosetta("添加视图")
     新建:str = rosetta("新建")
+    在此新建结点:str = 翻译("在此新建结点","create new node at here")
     结点角色名= 翻译("结点角色名","node role name")
     说明_结点角色名=翻译(f"结点角色名无法在结点属性中修改,如果想更改角色名, 请到视图的配置表中修改{枚举.视图配置.结点角色表}",f"The node role name cannot be changed in the node properties, if you want to change the role name, please go to the configuration table of the view. {枚举.视图配置.结点角色表}")
     说明_新增卡片指定存放牌组=翻译("当你在视图中新增卡片时,在此处指定默认要存放的牌组,如果为空则根据anki默认的指定方式","When you add a card in this view, specify the default deck to be stored here, or if it is empty, specify it according to the anki default")
