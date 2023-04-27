@@ -236,6 +236,7 @@ class Grapher(QMainWindow):
             pair = pair_li[索引]
             card_id: "str" = pair if type(pair) == str else pair.card_id if isinstance(pair, LinkDataPair) else pair.uuid
             if card_id in self.data.gviewdata.nodes:
+                last_item = self.data.node_dict[card_id].item
                 continue
             else:
                 self.data.node_dict[card_id] = self.data.Node(card_id)
