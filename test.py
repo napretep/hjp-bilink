@@ -27,7 +27,7 @@ def start_local():
 
 if __name__ == "__main__":
     if is_win:
+        # start_local()
         start_dev()
-        # start_dev()
         os.system("anki")
     pass

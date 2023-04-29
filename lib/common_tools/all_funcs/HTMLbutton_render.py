@@ -17,7 +17,7 @@ class FieldHTMLData:
 
 
 # anchor中的全局backlink maker
-class 全局双链按钮生成(FieldHTMLData):
+class 全局和文内链接反链按钮生成(FieldHTMLData):
     """用来制作按钮
     div.container_L0
         div.header_L1
@@ -34,20 +34,15 @@ class 全局双链按钮生成(FieldHTMLData):
 
     def build(self):
         """直接的出口, 返回HTML的string"""
-        # from .objs import LinkDataPair
-        LinkDataPair = G.objs.LinkDataPair
-        # from ..bilink import linkdata_admin
-        # data = LinkDataReader(self.card_id).read()
-        linkdata_admin = G.safe.linkdata_admin
         # self.data = data
         self.data = imports.link.GlobalLinkDataOperation.read_from_db(self.card_id)
-        # self.data = linkdata_admin.read_card_link_info(self.card_id)
         if not self.data.root and not self.data.backlink:
-            # funcs.Utils.print(f"self.data.root = {self.data.root.__str__()}", need_timestamp=True)
             return self.html_root.__str__()
-        self.cascadeDIV_create()  # 这个名字其实取得不好,就是反链的设计
+        if self.data.root:
+            self.多级DIV制作()  # 这个名字其实取得不好,就是反链的设计
         # funcs.Utils.print("next backlink_create", need_timestamp=True)
-        self.backlink_create()  # 这个是文内链接的设计,顺便放着的,因为用的元素基本一样.
+        if self.data.backlink:
+            self.backlink_create()
         return self.html_root
 
     def button_make(self, card_id):
@@ -59,8 +54,8 @@ class 全局双链按钮生成(FieldHTMLData):
         return b
 
     # 创建 anchor中的backlink专区
-    def cascadeDIV_create(self):
-        details, div = G.safe.funcs.HTML_左上角容器_detail元素_制作(self.html_root, "card global backlink", attr={"open": "", "class": "backlink"})
+    def 多级DIV制作(self):
+        details, div = G.safe.funcs.HTML_左上角容器_detail元素_制作(self.html_root, "global backlink", attr={"open": "", "class": "backlink"})
         self.anchor_body_L1.append(details)
         for item in self.data.root:
             if item.card_id != "":
@@ -86,7 +81,6 @@ class 全局双链按钮生成(FieldHTMLData):
             div.append(L2)
         return details
 
-    # 反链的铺垫
     def backlink_create(self):
         linkdata_admin = G.safe.linkdata_admin
         h = self.html_root
@@ -96,14 +90,13 @@ class 全局双链按钮生成(FieldHTMLData):
         details, div = G.safe.funcs.HTML_左上角容器_detail元素_制作(self.html_root, "referenced_in_text",
                                                            attr={"open": "", "class": "referenced_in_text"})
         for card_id in self.data.backlink:
-            data: "G.objs.LinkDataJSONInfo" = linkdata_admin.read_card_link_info(card_id)
+
             L2 = h.new_tag("button", attrs={"card_id": card_id, "class": "hjp-bilink anchor button",
                                             "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
             L2.string = "→" + G.safe.funcs.CardOperation.desc_extract(card_id)
             div.append(L2)
 
         self.anchor_body_L1.append(details)
-
     pass
 
 
@@ -152,7 +145,7 @@ class InTextButtonMaker(FieldHTMLData):
 
 
 # 创建视图的反向链接
-class 视图双链按钮生成(FieldHTMLData):
+class 视图链接反链按钮生成(FieldHTMLData):
     def build(self, view_li: "set[G.safe.funcs.GViewData]" = None):
         # if not view_li: view_li = G.safe.funcs.GviewOperation.find_by_card([G.objs.LinkDataPair(self.card_id)])
         self.cascadeDIV_create(view_li)
@@ -228,17 +221,17 @@ def HTMLbutton_make(htmltext, card:"Card"):
     左上角下拉菜单 = BeautifulSoup("", "html.parser")
 
     # 以下ButtonMaker是用来生成左上角按钮的
-    有全局反链 = len(全局双链数据.link_list) > 0 or len(全局双链数据.backlink) > 0
-    if 有全局反链:
+    有全局反链或文内反链 = len(全局双链数据.link_list) > 0 or len(全局双链数据.backlink) > 0
+    if 有全局反链或文内反链:
         # funcs.Utils.print(f"{card.id} hasbacklink")
-        左上角下拉菜单 = 全局双链按钮生成(左上角下拉菜单, card_id=card.id).build()
+        左上角下拉菜单 = 全局和文内链接反链按钮生成(左上角下拉菜单, card_id=card.id).build()
     print(左上角下拉菜单)
 
     view_li = G.safe.funcs.GviewOperation.find_by_card([G.objs.LinkDataPair(str(card.id))])
     有视图反链 = len(view_li) > 0
     if 有视图反链:
         # funcs.Utils.print(f"{card.id} len(view_li)>0:")
-        左上角下拉菜单 = 视图双链按钮生成(左上角下拉菜单, card_id=card.id).build(view_li=view_li)
+        左上角下拉菜单 = 视图链接反链按钮生成(左上角下拉菜单, card_id=card.id).build(view_li=view_li)
     print(左上角下拉菜单)
     # 以下内容来替换文本, 替换文本是
     有文内链接 = len(backlink_reader.BackLinkReader(html_str=htmltext).backlink_get()) > 0

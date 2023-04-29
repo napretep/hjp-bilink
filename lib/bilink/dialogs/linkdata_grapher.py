@@ -1229,6 +1229,13 @@ class Grapher(QMainWindow):
 
             gui_hooks.add_cards_did_add_note.append(after_add_note)
 
+            def wrapper(func):
+                def close(*args,**kwargs):
+                    gui_hooks.add_cards_did_add_note.remove(after_add_note)
+                    return func(*args,**kwargs)
+                return close
+
+            addcard.close = wrapper(addcard.close)
 
             did = self.superior.data.gviewdata.config_model.data.default_deck_for_add_card.value
             if did != -1:
