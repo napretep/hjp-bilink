@@ -274,6 +274,7 @@ class CardOperation:
 
     @staticmethod
     def InstructionOfExtractDesc(card_id):
+        """读取规则"""
         models = G.safe.models
 
         cfg = 导入.Configs.Config.get()

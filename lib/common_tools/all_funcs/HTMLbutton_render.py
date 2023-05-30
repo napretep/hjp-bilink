@@ -225,14 +225,14 @@ def HTMLbutton_make(htmltext, card:"Card"):
     if 有全局反链或文内反链:
         # funcs.Utils.print(f"{card.id} hasbacklink")
         左上角下拉菜单 = 全局和文内链接反链按钮生成(左上角下拉菜单, card_id=card.id).build()
-    print(左上角下拉菜单)
+
 
     view_li = G.safe.funcs.GviewOperation.find_by_card([G.objs.LinkDataPair(str(card.id))])
     有视图反链 = len(view_li) > 0
     if 有视图反链:
         # funcs.Utils.print(f"{card.id} len(view_li)>0:")
         左上角下拉菜单 = 视图链接反链按钮生成(左上角下拉菜单, card_id=card.id).build(view_li=view_li)
-    print(左上角下拉菜单)
+
     # 以下内容来替换文本, 替换文本是
     有文内链接 = len(backlink_reader.BackLinkReader(html_str=htmltext).backlink_get()) > 0
     if 有文内链接:

@@ -129,7 +129,7 @@ def make__copy_card_as(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
         pair_li: "list[common_tools.objs.LinkDataPair]" = kwargs[
             "pair_li"] if "pair_li" in kwargs else pairsli_admin.pairs_li
         act_li = [[Translate.文内链接, lambda: common_tools.funcs.copy_intext_links(pair_li)],
-                  [Translate.文内链接 + "(new)", lambda: AnkiLinks.Open.Card.from_htmlbutton(pair_li)],
+                  [Translate.文内链接 + "(html)", lambda: AnkiLinks.Open.Card.from_htmlbutton(pair_li)],
                   [Translate.html链接, lambda: AnkiLinks.Open.Card.from_htmllink(pair_li)],
                   [Translate.markdown链接, lambda: AnkiLinks.Open.Card.from_markdown(pair_li)],
                   [Translate.orgmode链接, lambda: AnkiLinks.Open.Card.from_orgmode(pair_li)]

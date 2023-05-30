@@ -1225,13 +1225,16 @@ class Grapher(QMainWindow):
                 卡片索引 = note.card_ids()[0].__str__()
                 self.superior.load_node([卡片索引],positions={卡片索引:pos} if pos else None)
                 addcard.close()
-                gui_hooks.add_cards_did_add_note.remove(after_add_note)
+                if after_add_note in gui_hooks.add_cards_did_add_note._hooks:
+                    gui_hooks.add_cards_did_add_note.remove(after_add_note)
 
-            gui_hooks.add_cards_did_add_note.append(after_add_note)
+            if after_add_note not in gui_hooks.add_cards_did_add_note._hooks:
+                gui_hooks.add_cards_did_add_note.append(after_add_note)
 
             def wrapper(func):
                 def close(*args,**kwargs):
-                    gui_hooks.add_cards_did_add_note.remove(after_add_note)
+                    if after_add_note in gui_hooks.add_cards_did_add_note._hooks:
+                        gui_hooks.add_cards_did_add_note.remove(after_add_note)
                     return func(*args,**kwargs)
                 return close
 

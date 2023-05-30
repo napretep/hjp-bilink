@@ -448,6 +448,7 @@ class Utils(object):
             return sorted(json.load(open(版本路径, "r", encoding="utf-8")), key=lambda x: x["installed_at"])
 
 class UUID:
+    标准长度 = len(str(uuid.uuid4()))
     @staticmethod
     def by_random(length=8):
         myid = str(uuid.uuid4())[0:length]
@@ -457,6 +458,17 @@ class UUID:
     def by_hash(s):
         return str(uuid.uuid3(uuid.NAMESPACE_URL, s))
 
+    @staticmethod
+    def 任意长度(长度):
+        UUID串 = ""
+        几个UUID = math.ceil(长度/UUID.标准长度)
+        最后一个UUID长度 = 长度 % UUID.标准长度 if  长度 % UUID.标准长度>0 else UUID.标准长度
+        for i in range(几个UUID):
+            if i != 几个UUID-1:
+                UUID串 += UUID.by_random(UUID.标准长度)
+            else:
+                UUID串 += UUID.by_random(最后一个UUID长度)
+        return UUID串
 
 class HTML:
     @staticmethod
@@ -479,20 +491,24 @@ class HTML:
         # return HTML_txtContent_read(html)
         # from ..bilink.in_text_admin.backlink_reader import BackLinkReader
         BackLinkReader = G.safe.in_text_admin.backlink_reader.BackLinkReader
+
         cfg = G.safe.configsModel.ConfigModel()
         root = BeautifulSoup(html, "html.parser")
         list(map(lambda x: x.extract(), root.select(".hjp_bilink.ankilink.button")))
         text = root.getText()
         if cfg.delete_intext_link_when_extract_desc.value:
-            newtext = text
-            replace_str = ""
-            intextlinks = BackLinkReader(html_str=text).backlink_get()
-            for link in intextlinks:
-                span = link["span"]
-                replace_str += re.sub("(\])|(\[)", lambda x: "\]" if x.group(0) == "]" else "\[",
-                                      text[span[0]:span[1]]) + "|"
-            replace_str = replace_str[0:-1]
-            text = re.sub(replace_str.replace("\\", "\\\\"), "", newtext)
+            待替换的html文本 = text
+            intext列表 = BackLinkReader(html_str=text).backlink_get()
+            待删除的intext列表 = []
+            print(intext列表)
+            for intext链接信息 in intext列表: # 将内链接替换成随机字符, 然后删除
+                print("当前处理的intextlink=",intext链接信息)
+                span = intext链接信息["span"]
+                随机字符 = UUID.任意长度(span[1]-span[0])
+                待删除的intext列表.append(随机字符)
+                待替换的html文本 = 待替换的html文本[0:span[0]]+随机字符+待替换的html文本[span[1]:]
+            if 待删除的intext列表:
+                text = re.sub("|".join(待删除的intext列表), "", 待替换的html文本)
         if not re.search("\S", text):
             a = root.find("img")
             if a is not None:
