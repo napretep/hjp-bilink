@@ -184,18 +184,22 @@ class Utils(object):
                 print(head2, *args, **kwargs)
 
     @staticmethod
-    def 字典默认键值对(默认值, 键名, 对应值字典, 类型对照: "dict" = None):
+    def 字典默认键值对(默认值, 键名, 待选值字典, 值类型字典: "dict" = None):
+        # 类型对照的意思是取出键名对应的值的类型,这种类型的表达通常是字符串,需要再在 字典键名.值类型.字典 中转换成 type()可识别的
         字典键名 = G.safe.baseClass.枚举命名
-        if not 对应值字典 or not 键名 in 对应值字典:
+
+        if not 待选值字典 or not 键名 in 待选值字典:
             return 默认值
         else:
-            if 类型对照:
-                if type(对应值字典[键名]) in 字典键名.值类型.字典[类型对照[键名]]:
-                    return 对应值字典[键名]
+            if 值类型字典:
+                值类型_概括 = 值类型字典[键名]
+                待选值类型 = type(待选值字典[键名]) if 值类型_概括 != 字典键名.值类型.枚举_结点类型 else 待选值字典[键名]
+                if 待选值类型 in 字典键名.值类型.字典[值类型_概括]:
+                    return 待选值字典[键名]
                 else:
                     return 默认值
             else:
-                return 对应值字典[键名]
+                return 待选值字典[键名]
         # if not 对应值 or 键名 not in 对应值:
         #     return 默认值
         # elif 类型对照 and type(对应值) in 字典键名.值类型.字典[类型对照[键名]]:
@@ -500,9 +504,9 @@ class HTML:
             待替换的html文本 = text
             intext列表 = BackLinkReader(html_str=text).backlink_get()
             待删除的intext列表 = []
-            print(intext列表)
+            # print(intext列表)
             for intext链接信息 in intext列表: # 将内链接替换成随机字符, 然后删除
-                print("当前处理的intextlink=",intext链接信息)
+                # print("当前处理的intextlink=",intext链接信息)
                 span = intext链接信息["span"]
                 随机字符 = UUID.任意长度(span[1]-span[0])
                 待删除的intext列表.append(随机字符)

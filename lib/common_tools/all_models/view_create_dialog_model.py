@@ -27,7 +27,7 @@ class 类型_数据源_视图创建参数:
     视图名: str = ""
     上级: "G.safe.linkdata_grapher.Grapher|G.safe.linkdata_grapher.GViewAdmin" = None
     # 状态: "dict" = field(default_factory=lambda: {枚举.视图.名称: "", 枚举.视图.配置: None})
-    配置: Id_name = field(default_factory=lambda: Id_name())
+    配置: baseClass.IdName = field(default_factory=lambda: baseClass.IdName())
 
     def 设置视图名(self, value):
         self.视图名 = value
@@ -66,6 +66,7 @@ class 类型_模型_视图创建参数(基类_模型):
     视图名: 类型_属性项_视图创建参数 = field(default_factory=lambda: 类型_属性项_视图创建参数(
         字段名=枚举.视图.名称,
         展示名=译.视图名,
+        值类型=枚举.值类型.文本,
         从上级读数据=1,
         保存到上级=1,
         可展示=1,
@@ -88,6 +89,7 @@ class 类型_模型_视图创建参数(基类_模型):
         自定义组件=lambda 组件生成器: 函数库_UI生成.自定义().属性项组件.视图配置选择(组件生成器),
         _读取函数=lambda 项: 项.上级.数据源.配置,
         _保存值的函数=lambda 项, 值: 项.上级.数据源.设置配置(值),
+        值类型=枚举.值类型.ID_name,
     ))
 
     def 创建UI(self, 父类组件: "QWidget" = None, 布局: "QLayout" = None):

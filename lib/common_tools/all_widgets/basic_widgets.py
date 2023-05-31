@@ -67,7 +67,7 @@ class SelectorProtoType(QDialog):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_all_data_items(self) -> "list[G.safe.models.Id_name]":
+    def get_all_data_items(self) -> "list[G.safe.baseClass.IdName]":
         raise NotImplementedError()
 
     @abstractmethod
@@ -116,7 +116,7 @@ class SelectorProtoType(QDialog):
         self.view.expandAll()
 
     def build_as_list(self):
-        data_li: "list[G.safe.models.Id_name]" = self.get_all_data_items()
+        data_li: "list[G.safe.baseClass.IdName]" = self.get_all_data_items()
         for i in data_li:
             item = self.Item(i.name)
             item.data_id = i.ID
@@ -124,7 +124,7 @@ class SelectorProtoType(QDialog):
         pass
 
     def build_as_tree(self):
-        item_li: "list[G.safe.models.Id_name]" = self.get_all_data_items()
+        item_li: "list[G.safe.baseClass.IdName]" = self.get_all_data_items()
         data_dict = G.objs.Struct.TreeNode(self.model_rootNode, {})
         for i in item_li:
             data_name_li = i.name.split(self.separator)
@@ -184,7 +184,7 @@ class SelectorProtoType(QDialog):
             self.setFlags(self.flags() & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsDropEnabled)
         @property
         def Id_name(self):
-            return G.safe.models.Id_name(self.item_name,self.data_id)
+            return G.safe.baseClass.IdName(self.item_name,self.data_id)
         @property
         def item_name(self):
             return self.text()
@@ -202,7 +202,7 @@ class SelectorProtoType(QDialog):
 
 class multi_select_prototype(QDialog):
     """TODO item要使用 id_name的格式"""
-    def __init__(self, preset: "iter[str|G.safe.models.Id_name]" = None, separater="::", dialog_title="", new_item="new_tag"):
+    def __init__(self, preset: "iter[str|G.safe.baseClass.IdName]" = None, separater="::", dialog_title="", new_item="new_tag"):
         super().__init__()
         self.分隔符 = separater
         self.标题栏名字 = dialog_title

@@ -1,0 +1,72 @@
+20230531182408|\hjp-bilink\__init__.py:23:<module>
+>>\hjp-bilink\lib\common_tools\connectors.py:48:run:
+ hjp-bilink is debug
+20230531182434|\hjp-bilink\lib\common_tools\all_widgets\config_widgets.py:538:__init__
+>>\hjp-bilink\lib\common_tools\all_widgets\config_widgets.py:547:初始化默认行:
+ ['牌组', '卡片模板', '字段', '标签', '正则表达式', '字符长度', '内容同步']
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1664282091058 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1678868704570 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1678868704570 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1678868704570 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1678868704570 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1678868704570 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1678868704570 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1604544025399 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1678868704570 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1678868704570 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1678868704570 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1604544025399 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1604544025399 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1604544025399 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1604544025399 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1604544025399 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1604544025399 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1604544025399 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1604544025399 rule model id= -1
+20230531182434|\hjp-bilink\lib\common_tools\all_funcs\card.py:251:desc_extract
+>>\hjp-bilink\lib\common_tools\all_funcs\card.py:300:InstructionOfExtractDesc:
+ card model id= 1604544025399 rule model id= -1
+20230531182437|\hjp-bilink\lib\common_tools\all_widgets\config_widgets.py:619:__init__
+>>\hjp-bilink\lib\common_tools\all_widgets\config_widgets.py:547:初始化默认行:
+ ['牌组', '卡片模板', '字段', '标签', '正则表达式', '字符长度', '内容同步']
+20230531182439|\hjp-bilink\lib\common_tools\all_widgets\config_widgets.py:619:__init__
+>>\hjp-bilink\lib\common_tools\all_widgets\config_widgets.py:547:初始化默认行:
+ ['牌组', '卡片模板', '字段', '标签', '正则表达式', '字符长度', '内容同步']

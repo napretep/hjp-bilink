@@ -200,7 +200,7 @@ class Grapher(QMainWindow):
             nodes=自身数据.nodes.data.copy(),
             edges=自身数据.edges.data.copy(),
             meta =自身数据.meta.copy(),
-            config=config)
+            config_id=config)
         if 视图:
             视图.保存()
     # node
@@ -1255,7 +1255,7 @@ class Grapher(QMainWindow):
             config_id = self.superior.data.gviewdata.config_model.data.default_config_for_add_view.value
             if funcs.GviewConfigOperation.存在(config_id):
                 config = config_id
-            视图 = common_tools.funcs.GviewOperation.create(config=config,need_open=False)
+            视图 = common_tools.funcs.GviewOperation.create(config_id=config, need_open=False)
             if 视图:
                 视图.保存()
                 self.superior.load_node([视图.uuid], 参数_视图结点类型=枚举_视图结点类型.视图,positions={视图.uuid:pos} if pos else None)
@@ -1630,9 +1630,10 @@ class GViewAdmin(QDialog):
         item: "GViewAdmin.Item" = self.get_item() if not it else it
         if not item: return
         data: "GViewData" = item.data(Qt.UserRole)
-        newname, submitted = funcs.GviewOperation.get_correct_view_name_input(data.name)
-        if not submitted: return
-        data.name = newname
+        结果 = funcs.GviewOperation.打开视图名称验证与配置选择窗口(视图数据=data)
+        if not 结果: return
+        data.name = 结果.视图名.值
+        data.config = 结果.视图配置选择.值.ID
         self.wait_for_update.add(data)
         self.rebuild()
         pass

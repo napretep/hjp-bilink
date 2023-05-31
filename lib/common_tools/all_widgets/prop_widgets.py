@@ -140,7 +140,7 @@ class 属性项组件:
             return 导入.selector_widgets.view_config_chooser()
 
         def get_name(self, value):
-            value:G.safe.models.Id_name = value
+            value:G.safe.baseClass.IdName = value
             return G.safe.funcs.逻辑.缺省值(value, lambda x:x.name if x else None,
                                              f"<img src='{G.src.ImgDir.config}' width=16 height=16> new config").__str__()
 

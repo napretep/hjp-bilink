@@ -20,6 +20,12 @@ if TYPE_CHECKING:
 布局, 组件, 子代 = 0, 1, 2
 
 
+@dataclass
+class IdName:
+    name: "str" = ""
+    ID: "int|str|None" = None
+
+
 class 视图结点类型:
     卡片 = "card"
     视图 = "view"
@@ -120,20 +126,24 @@ class 枚举命名:
         editable_label = 14
 
     class 值类型:
+        整数 = "int"
         数值 = "number"
         时间戳 = "timestamp"
         布尔 = "bool"
         枚举 = "enum:"
         文本 = "text"
         列表 = "list"
-        枚举_结点类型 = "enum_node_type"
+        枚举_结点类型 = "enum_node_type",
+        ID_name = "ID_name"
         字典 = {
-                数值     : (int, float),
-                时间戳    : (int, float),
+                整数:     [int],
+                数值     : [int, float],
+                时间戳    : [int, float],
                 布尔     : [bool],
                 文本     : [str],
                 列表     : [list],
-                枚举_结点类型: ["card", "view"]
+                枚举_结点类型: ["card", "view"],
+                ID_name:[IdName]
         }
 
     class 砖:

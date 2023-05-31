@@ -368,6 +368,7 @@ class 基类_属性项:
     展示名: "str"
     从上级读数据: "int"
     保存到上级: "int"
+    值类型: "str"
     说明: "str" = 译.该项解释工作未完成
     可展示: "int" = 0  # 需要对应的展示组件,
     可展示中编辑: "int" = 0  # 需要对应的可展示中编辑组件, 与可展示联合判断
@@ -384,7 +385,6 @@ class 基类_属性项:
     自定义组件: "Optional[Callable[[函数库_UI生成.组件],safe.widgets.自定义.基类_项组件基础]]" = None
     上级: "Optional[基类_模型]" = None
     默认值: "Any|list|str|int|float" = None
-    值类型: "str" = None
     值解释: "str" = None
     属性项排序位置: "int" = 0  # 用于对属性项顺序有要求的环境.
     可批量编辑: "int" = 0 # 在视图中可多个选中同时编辑
@@ -431,7 +431,4 @@ class 基类_属性项:
     #     return self
 
 
-@dataclass
-class Id_name:
-    name: "str" = ""
-    ID: "int|str|None" = None
+

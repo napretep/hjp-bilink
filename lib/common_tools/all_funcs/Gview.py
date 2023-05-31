@@ -10,13 +10,11 @@ class GviewOperation:
         DB.go(DB.table_Gview)
         return DB.select(DB.EQ(uuid=uuid)).return_all().zip_up()[0]["config"]
 
-
     @staticmethod
     def 设为默认视图(uuid):
         cfg = 导入.Configs.Config.get()
         cfg.set_default_view.value = uuid
         cfg.save_to_file(G.src.path.userconfig)
-
 
     @staticmethod
     def 打开默认视图():
@@ -25,7 +23,6 @@ class GviewOperation:
             导入.Dialogs.open_view(gviewdata=GviewOperation.load(uuid=cfg.set_default_view.value))
         else:
             showInfo(译.请先设定默认视图)
-
 
     @staticmethod
     def 打开默认漫游复习():
@@ -38,7 +35,6 @@ class GviewOperation:
         else:
             showInfo(译.请先设定默认视图)
 
-
     @staticmethod
     def 判断视图已经打开(视图编号):
         """判断且直接返回"""
@@ -50,7 +46,6 @@ class GviewOperation:
         else:
             return None
 
-
     @staticmethod
     def 更新卡片到期时间(卡片编号):
         视图数据集 = GviewOperation.找到结点所属视图(卡片编号)
@@ -61,18 +56,15 @@ class GviewOperation:
 
         pass
 
-
     @staticmethod
     def 重命名(视图数据: G.safe.configsModel.GViewData, 新名字):
         视图数据.name = 新名字
         GviewOperation.save(视图数据)
         # tooltip("改名成功".format(view_name=视图数据.name, name=新名字))
 
-
     @staticmethod
     def 获取主要结点编号(视图数据: G.safe.configsModel.GViewData):
         return [结点 for 结点 in 视图数据.nodes if 视图数据.nodes[结点].主要结点.值 == True]
-
 
     @staticmethod
     def 判断结点已到期(视图数据: G.safe.configsModel.GViewData, 结点编号: str):
@@ -89,9 +81,8 @@ class GviewOperation:
         else:
             raise NotImplementedError()
 
-
     @staticmethod
-    def 结点上次复习时间(视图数据:G.safe.configsModel.GViewData, 结点编号: str):
+    def 结点上次复习时间(视图数据: G.safe.configsModel.GViewData, 结点编号: str):
         """如果是卡片, 则调用 CardOperation.上次复习时间(结点编号)
         否则另外解决
         """
@@ -105,16 +96,13 @@ class GviewOperation:
         else:
             raise NotImplementedError()
 
-
     @staticmethod
     def 获取结点出度(视图数据: G.safe.configsModel.GViewData, 结点编号: str):
         return len([1 for 边 in 视图数据.edges.keys() if 边.startswith(结点编号)])
 
-
     @staticmethod
     def 获取结点入度(视图数据: G.safe.configsModel.GViewData, 结点编号: str):
         return len([1 for 边 in 视图数据.edges.keys() if 边.endswith(结点编号)])
-
 
     @staticmethod
     def 设定视图结点描述(视图数据: G.safe.configsModel.GViewData, 结点编号, 设定内容):
@@ -132,7 +120,6 @@ class GviewOperation:
         if GviewOperation.判断视图已经打开(视图数据.uuid):
             视图数据.nodes.data[结点编号][字典键名.结点.描述] = 设定内容
 
-
     @staticmethod
     def 获取视图结点描述(视图数据: G.safe.configsModel.GViewData, 结点编号, 全部内容=False):
         视图类型 = 视图数据.nodes[结点编号].数据类型.值
@@ -145,7 +132,6 @@ class GviewOperation:
 
         pass
 
-
     @staticmethod
     def 获取视图名字(视图编号):
         if not GviewOperation.exists(uuid=视图编号):
@@ -154,13 +140,11 @@ class GviewOperation:
         DB = G.DB
         return DB.go(DB.table_Gview).select(DB.EQ(uuid=视图编号)).return_all().zip_up()[0]["name"]
 
-
     @staticmethod
     def 列出已打开的视图():
-        Grapher =G.safe.linkdata_grapher.Grapher
+        Grapher = G.safe.linkdata_grapher.Grapher
         结果: List[str] = [键 for 键 in G.mw_gview.keys() if isinstance(G.mw_gview[键], Grapher)]
         return 结果
-
 
     @staticmethod
     def 更新缓存(视图: "str|G.safe.configsModel.GViewData" = None):
@@ -180,7 +164,7 @@ class GviewOperation:
                 数据 = 视图
                 编号 = 视图.uuid
             缓存内容 = "\n".join(
-                GviewOperation.获取视图结点描述(数据, 索引, 全部内容=True) for 索引 in 数据.nodes.keys())
+                    GviewOperation.获取视图结点描述(数据, 索引, 全部内容=True) for 索引 in 数据.nodes.keys())
             DB.go(DB.table_Gview)
 
             DB.update(values=Logic.LET(**{字典键名.视图.视图卡片内容缓存: 缓存内容}),
@@ -206,7 +190,7 @@ class GviewOperation:
                         描述 = "debug"
                     else:
                         描述 = G.safe.funcs.CardOperation.获取卡片内容与标题(结点索引) if 数据.nodes[结点索引][
-                                                                                 字典键名.结点.数据类型] == 枚举_视图结点类型.卡片 \
+                                                                               字典键名.结点.数据类型] == 枚举_视图结点类型.卡片 \
                             else 视图数据表[结点索引].name
 
                     视图缓存字典[-1][1] += 描述 + "\n"
@@ -215,15 +199,13 @@ class GviewOperation:
 
         Utils.tooltip("gview cache rebuild end")
 
-
     @staticmethod
     def 刷新所有已打开视图的配置():
-        Grapher =G.safe.linkdata_grapher.Grapher
+        Grapher = G.safe.linkdata_grapher.Grapher
         for 视图编号 in GviewOperation.列出已打开的视图():
             视图窗口: Grapher = G.mw_gview[视图编号]
             视图窗口.data.gviewdata.数据更新.刷新配置模型()
             # 视图窗口.data.gviewdata.config_model = GviewConfigOperation.从数据库读(视图窗口.data.gviewdata.config)
-
 
     @staticmethod
     def fuzzy_search(search_string: str):
@@ -241,7 +223,6 @@ class GviewOperation:
 
         return 匹配的视图集
         pass
-
 
     @staticmethod
     def save(data: G.safe.configsModel.GViewData = None, data_li: "Iterable[G.safe.configsModel.GViewData]" = None, exclude: "list[str]" = None):
@@ -272,7 +253,6 @@ class GviewOperation:
                     DB.insert(**prepare_data).commit()
             return
 
-
     @staticmethod
     def exists(data: G.safe.configsModel.GViewData = None, name=None, uuid=None):
         DB = G.DB
@@ -285,7 +265,6 @@ class GviewOperation:
         elif uuid:
             exists = DB.exists(DB.EQ(uuid=uuid))
         return exists
-
 
     @staticmethod
     def load(uuid=None, gviewdata: G.safe.configsModel.GViewData = None):
@@ -308,7 +287,6 @@ class GviewOperation:
             raise ValueError(f"未知的uuid={uuid},或gviewdata={gviewdata}")
         return data
 
-
     @staticmethod
     def load_all() -> 'List[G.safe.configsModel.GViewData]':
         DB = G.DB
@@ -317,9 +295,8 @@ class GviewOperation:
         records = [记录.to_GviewData() for 记录 in DB.return_all().zip_up().to_gview_record()]
         return records
 
-
     @staticmethod
-    def load_all_as_dict() -> Dict[str,G.safe.configsModel.GViewData]:
+    def load_all_as_dict() -> Dict[str, G.safe.configsModel.GViewData]:
         DB = G.DB
         DB.go(DB.table_Gview)
         DB.excute_queue.append(DB.sqlstr_RECORD_SELECT_ALL.format(tablename=DB.tab_name))
@@ -328,14 +305,12 @@ class GviewOperation:
         [结果.__setitem__(记录.uuid, 记录.to_GviewData()) for 记录 in 记录表]
         return 结果
 
-
     @staticmethod
     def 读取全部id():
         DB = G.DB
         DB.go(DB.table_Gview)
         DB.excute_queue.append(DB.sqlstr_RECORD_SELECT_ALL.format(tablename=DB.tab_name))
         return [记录.uuid for 记录 in DB.return_all().zip_up().to_gview_record()]
-
 
     @staticmethod
     def 找到结点所属视图(结点编号):
@@ -344,9 +319,8 @@ class GviewOperation:
         视图记录集 = DB.go(DB.table_Gview).select(DB.LIKE("nodes", 结点编号)).return_all().zip_up().to_gview_record()
         return [视图记录.to_GviewData() for 视图记录 in 视图记录集]
 
-
     @staticmethod
-    def find_by_card(pairli: "List[G.safe.objs.LinkDataPair|str]") ->"Set[G.safe.configsModel.GViewData]":
+    def find_by_card(pairli: "List[G.safe.objs.LinkDataPair|str]") -> "Set[G.safe.configsModel.GViewData]":
         """找到卡片所属的gview记录,还要去掉重复的, 比如两张卡在同一个视图中, 只取一次 """
         DB = G.DB
         DB.go(DB.table_Gview)
@@ -362,11 +336,10 @@ class GviewOperation:
 
         return final_givew
 
-
     @staticmethod
     def delete(uuid: str = None, uuid_li: "Iterable[str]" = None):
         """"""
-        Grapher =G.safe.linkdata_grapher.Grapher
+        Grapher = G.safe.linkdata_grapher.Grapher
         DB = G.DB
 
         def 彻底删除(视图标识):
@@ -389,10 +362,10 @@ class GviewOperation:
                 彻底删除(uuid)
         return
 
-
     @staticmethod
-    def get_correct_view_name_input(placeholder="", config:"str"=None):
-        def view_name_check(name: str, placeholder="") -> bool:
+    def 打开视图名称验证与配置选择窗口(视图预定名称: "str" = "", 配置编号: "Optional[str]" = None, 视图编号: "Optional[str]" = None, 视图数据: "G.safe.funcs.GViewData|None" = None):
+
+        def 通过视图名称检查(name: str, placeholder="") -> bool:
             if name == "" or re.search(r"\s", name) or re.search("::::", name) \
                     or re.search("\s", "".join(name.split("::"))) or "".join(name.split("::")) == "":
                 tooltip(译.视图命名规则)
@@ -401,52 +374,58 @@ class GviewOperation:
                 tooltip(译.视图名已存在)
                 return False
             return True
+
         models = G.safe.models
 
-        # Utils.print("数据源=",数据源)
+        if 视图编号:
+            视图数据:"G.safe.funcs.GViewData" = GviewOperation.load(uuid=视图编号)
+
+
         while True:
             数据源 = models.类型_数据源_视图创建参数()
-            if config:
-                configmodel = imports.Configs.GviewConfigOperation.从数据库读(config)
-                数据源.配置 = models.Id_name(configmodel.name, configmodel.uuid)
+            if 配置编号:
+                configmodel = imports.Configs.GviewConfigOperation.从数据库读(配置编号)
+                数据源.配置 = G.safe.baseClass.IdName(configmodel.name, configmodel.uuid)
+            elif 视图数据:
+                configmodel = 视图数据.config_model
+                数据源.视图名 = 视图数据.name
+                数据源.配置 = G.safe.baseClass.IdName(configmodel.name, configmodel.uuid)
             模型 = models.类型_模型_视图创建参数(数据源)
             模型.创建UI().exec()
             # viewName, submitted = QInputDialog.getText(None, "input", 译.视图名, QLineEdit.Normal, placeholder)
             if not 模型.完成选择:
                 break
-            if 模型.数据源.视图名 == placeholder:
+            if 模型.数据源.视图名 == 视图预定名称:
                 模型.完成选择 = False
                 break
-            if view_name_check(模型.数据源.视图名, placeholder):
+            if 通过视图名称检查(模型.数据源.视图名, 视图预定名称):
                 break
         return 模型
 
-
     @staticmethod
-    def create(nodes=None, edges=None,meta=None, name="", need_save=True, need_open=True, config:"str"=None):
+    def create(nodes=None, edges=None, meta=None, name="", need_save=True, need_open=True, config_id: "str" = None):
         """需要进行一个兼容处理, 既要满足过去的使用方式, 又要拓展到未来.
         2023年3月9日02:43:30 新版处理对象: 视图名, 是否使用已有配置
+
         """
         if not name:
-            结果 = GviewOperation.get_correct_view_name_input(config=config)
+            结果 = GviewOperation.打开视图名称验证与配置选择窗口(配置编号=config_id)
             if not 结果.完成选择:
                 return None
             else:
                 name = 结果.视图名.值
-                config = 结果.数据源.配置.ID
+                config_id = 结果.数据源.配置.ID
         uuid = UUID.by_random()
-        data = G.safe.configsModel.GViewData(uuid=uuid, name=name, nodes=nodes if nodes else {}, edges=edges if edges else {}, config=config,meta=meta)
+        data = G.safe.configsModel.GViewData(uuid=uuid, name=name, nodes=nodes if nodes else {}, edges=edges if edges else {}, config=config_id, meta=meta)
         # 去检查一下scene变大时,item的scene坐标是否会改变
         if need_save:
             GviewOperation.save(data)
         if need_open:
             imports.Dialogs.open_view(gviewdata=data)
         if G.GViewAdmin_window:
-
             win: G.safe.linkdata_grapher.GViewAdmin = G.GViewAdmin_window
             win.init_data()
         return data
-
 
     @staticmethod
     def create_from_pair(cid_li: 'list[str|G.safe.objs.LinkDataPair]', name=""):
@@ -456,7 +435,6 @@ class GviewOperation:
                 cid = cid.card_id
             nodes[cid] = GviewOperation.依参数确定视图结点数据类型模板(编号=cid)
         GviewOperation.create(nodes=nodes, edges={}, name=name)
-
 
     @staticmethod
     def choose_insert(pairs_li: 'list[G.objs.LinkDataPair]' = None):
@@ -470,7 +448,6 @@ class GviewOperation:
         imports.Dialogs.open_grapher(pair_li=pairs_li, gviewdata=check[viewname], mode=G.safe.configsModel.GraphMode.view_mode)
         return check[viewname]
 
-
     @staticmethod
     def getDueCount(gview):
         """用于统计未复习数量"""
@@ -481,27 +458,24 @@ class GviewOperation:
                                                lambda x: G.safe.funcs.CardOperation.getLastNextRev(x)),
                                         lambda due: due[1] <= now))
 
-
     @staticmethod
     def 默认元信息模板(数据=None):
         字典键名 = G.safe.baseClass.枚举命名
         默认值 = {
-            字典键名.视图.创建时间: int(time.time()),
-            字典键名.视图.上次访问: int(time.time()),
-            字典键名.视图.上次编辑: int(time.time()),
-            字典键名.视图.上次复习: int(time.time()),
-            字典键名.视图.访问次数: 0
+                字典键名.视图.创建时间: int(time.time()),
+                字典键名.视图.上次访问: int(time.time()),
+                字典键名.视图.上次编辑: int(time.time()),
+                字典键名.视图.上次复习: int(time.time()),
+                字典键名.视图.访问次数: 0
         }
         return Utils.字典缺省值填充器(默认值, 数据)
-
 
     @staticmethod
     def 默认视图边数据模板(数据=None):
         默认值 = {
-            G.safe.baseClass.枚举命名.边.名称: ""
+                G.safe.baseClass.枚举命名.边.名称: ""
         }
         return Utils.字典缺省值填充器(默认值, 数据)
-
 
     @staticmethod
     def 依参数确定视图结点数据类型模板(结点类型=G.safe.baseClass.视图结点类型.卡片, 数据=None, 编号=None):
@@ -520,7 +494,7 @@ class GviewOperation:
         新值 = Utils.字典缺省值填充器(默认值模板, 数据, 类型对照)
         if 编号:
             新值[_.结点.描述] = G.safe.funcs.CardOperation.desc_extract(
-                编号) if 结点类型 == G.safe.baseClass.视图结点类型.卡片 else GviewOperation.获取视图名字(编号)
+                    编号) if 结点类型 == G.safe.baseClass.视图结点类型.卡片 else GviewOperation.获取视图名字(编号)
         新值[_.结点.数据类型] = 结点类型
         # 新值[_.结点.描述] = GviewOperation.获取视图结点描述()
         return 新值
@@ -540,7 +514,7 @@ class GrapherOperation:
     @staticmethod
     def refresh():
         # from ..bilink.dialogs.linkdata_grapher import Grapher
-        Grapher =G.safe.linkdata_grapher.Grapher
+        Grapher = G.safe.linkdata_grapher.Grapher
         if isinstance(G.mw_grapher, Grapher):
             G.mw_grapher.on_card_updated.emit(None)
         for gviewName in G.mw_gview.keys():
@@ -562,4 +536,3 @@ class GrapherOperation:
                     G.mw_gview[gviewName].data.updateNodeDue(card_id)
 
         # return sum(filter(g.data.node_dict.keys()))
-
