@@ -27,7 +27,16 @@ class  安全导入:
     def selector_widgets(self):
         from . import selector_widgets
         return selector_widgets
+
+    @property
+    def funcs(self):
+        from .. import funcs
+        return funcs
+
+
 imports = 导入 = 安全导入()
+
+
 class SelectorProtoType(QDialog):
     """大部分待选表的一个原型"""
 
@@ -607,3 +616,15 @@ line-height: 1.6;
     pass
 
 
+class 视图模型_标准数据_项(QStandardItem):
+    def __init__(self,上级,展示值=None,列名=None,实际值=None):
+        super().__init__()
+        self.setText(展示值)
+        self.setData({"列名":列名,"实际值":实际值,"展示值":展示值},role=Qt.ItemDataRole.UserRole)
+    pass
+
+class 视图模型_表格_项(视图模型_标准数据_项):
+    pass
+
+class 视图模型_列表_项(视图模型_标准数据_项):
+    pass

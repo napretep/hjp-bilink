@@ -309,7 +309,89 @@ descending, ascending are two variables
 This means that the largest of the following three results is used as the weight value: 1 the number of seconds between the last visit and the last review of the node compared to the last day, 2 the negative number of the node's role in the role list, 3 the sum of the node's out-degree and in-degree.
 The final result is sorted by default in descending order of the calculated weights
     """)
+    视图管理器与视图 = 翻译("视图","view & manager")
+    卡片元信息 = 翻译("卡片元信息", "Card Metadata")
+    备份 = 翻译("备份", "Backup")
+    PDF链接 = 翻译("PDF链接", "PDF Link")
+    说明_卡片元信息_链接菜单样式文本 = 翻译("在这里写入LinkMenu的样式代码,读取的先后顺序为 文本,文件,预设, 参考文件请查看 插件目录/lib/resource/data/anchor_example.html",
+                           "Here, write in the style code of LinkMenu, the order of reading is Text, File, Preset. For reference files, please check the ThisAddonPath/lib/resource/data/anchor_example.html")
 
+    说明_卡片元信息_链接菜单样式文件 = 翻译("提供在这里写入LinkMenu的样式文件路径,读取的先后顺序为 文本,文件,预设CSS文件, 参考文件请查看 插件目录/lib/resource/data/anchor_example.html",
+                           "Here, provide the style file path of LinkMenu, the order of reading is Text, File, Preset CSS File. For reference files, please check the ThisAddonPath/lib/resource/data/anchor_example.html")
+
+    说明_卡片元信息_链接菜单样式预设 = 翻译("选择一种LinkMenu的样式预设", "Choose a style preset of LinkMenu")
+
+    说明_备份_开启自动备份 = 翻译("自动备份开启后,默认保存路径为 插件目录/user_files/", "After auto backup is turned on, the default save path is ThisAddonPath/user_files/")
+
+    说明_备份_自动备份间隔 = 翻译("自动备份的间隔单位是小时", "The interval unit of automatic backup is hour")
+
+    说明_备份_自动备份路径 = 翻译("在此处修改保存路径", "Modify the save path here")
+
+    说明_备份_上次备份时间 = 翻译("上次备份的时间", "The time of the last backup")
+
+    说明_PDF链接_样式 = 翻译("可以指定pdf链接的样式", "You can specify the style of pdf link")
+
+    说明_PDF链接_命令 = 翻译("当你点击PDF链接时可以指定调用什么命令", "You can specify what command to call when you click on the PDF link")
+
+    说明_PDF链接_页码显示开启 = 翻译("是否在PDF链接中显示页码", "Whether to display the page number in the PDF link")
+    说明_PDF链接_页码显示样式 = 翻译("当在PDF连接中显示页码时,指定其显示的文本", "When the page number is displayed in the PDF link, specify its display text")
+
+    说明_PDF链接_预设pdf = 翻译("这是一个表格, 当你复制的PDF路径在这个表格中可以找到时, 会立即将这个表格中对应行的信息填入到PDF链接制作窗口,以减少重复操作 ",
+                        "This is a table, when the PDF path you copied can be found in this table, the information of the corresponding row in this table will be immediately filled into the PDF link creation window to reduce repeated operations")
+
+    卡片元信息_链接菜单样式文本 = 翻译("链接菜单样式文本", "Link Menu Style Text")
+    卡片元信息_链接菜单样式文件 = 翻译("链接菜单样式文件", "Link Menu Style File")
+    卡片元信息_链接菜单样式预设 = 翻译("链接菜单样式预设", "Link Menu Style Preset")
+    备份_开启自动备份 = 翻译("开启自动备份", "Enable Auto Backup")
+    备份_自动备份间隔 = 翻译("自动备份间隔", "Auto Backup Interval")
+    备份_自动备份路径 = 翻译("自动备份路径", "Auto Backup Path")
+    备份_上次备份时间 = 翻译("上次备份时间", "Last Backup Time")
+    PDF链接_样式 = 翻译("样式", "Style")
+    PDF链接_命令 = 翻译("命令", "Command")
+    PDF链接_页码显示开启 = 翻译("页码显示开启", "Page Number Display Enabled")
+    PDF链接_页码显示样式 = 翻译("页码显示样式", "Page Number Display Style")
+    PDF链接_预设pdf = 翻译("预设pdf", "Preset PDF")
+    PDF链接_预设pdf表单行列名_pdf路径= 翻译("pdf路径","PDFpath")
+    PDF链接_预设pdf表单行列名_展示名= 翻译("展示名","PDFname")
+    PDF链接_预设pdf表单行列名_样式= 翻译("样式","PDFstyle")
+    PDF链接_预设pdf表单行列名_显示页码 = 翻译("显示页码","showPage")
+    全局双链 = 翻译("全局双链","global bilink")
+    全局双链_默认解绑模式 = 翻译("默认解绑模式", "Default Unbinding Mode")
+    全局双链_默认插入模式 = 翻译("默认插入模式", "Default Insertion Mode")
+    全局双链_默认复制模式 = 翻译("默认复制模式", "Default Copy Mode")
+    全局双链_链接快捷键 = 翻译("链接快捷键", "Link Shortcut Key")
+    全局双链_解绑快捷键 = 翻译("解绑快捷键", "Unbind Shortcut Key")
+    全局双链_收集快捷键 = 翻译("收集快捷键", "Collection Shortcut Key")
+    全局双链_复制链接快捷键 = 翻译("复制链接快捷键", "Copy Link Shortcut Key")
+    全局双链_收集器快捷键 = 翻译("收集器快捷键", "Collector Shortcut Key")
+    全局双链_默认双链模式 = 翻译("默认双链模式","default bilink mode")
+    全局双链_链接后打开浏览器 = 翻译("链接后打开浏览器","open browser after bilink")
+
+    说明_全局双链_默认解绑模式 = 翻译("同样用于快捷操作,解绑模式有按路径解绑,按结点解绑两种", "Also used for shortcut operations, the unbinding mode includes unbinding by path and unbinding by node")
+    说明_全局双链_默认插入模式 = 翻译("用于快捷操作,将不同卡片插入到临时收集器中集中处理,插入的模式有直接插入,编组插入,清空后插入",
+                        "Used for shortcut operations, inserting different cards into a temporary collector for centralized processing. The insertion modes include direct insertion, grouped insertion, and insertion after clearing")
+    说明_全局双链_默认复制模式 = 翻译("用于快捷操作,将选中的卡片复制为链接,复制的模式有文内链接,文内链接(html),html链接,orgmode链接,markdown链接",
+                        "Used for shortcut operations, copying the selected card as a link. The copy modes include in-text link, in-text link (html), html link, orgmode link, and markdown link")
+
+    说明_全局双链_默认双链模式= 翻译("本功能用于快捷操作,通常是快捷键操作双链绑定,模式有两种,完全图模式和多部图模式","This feature is used for quick operations, typically for shortcut key operations to bind dual links. There are two modes: Full Graph Mode and n-partite graph Mode.")
+    # 说明_全局双链_链接后打开浏览器
+    全局双链_加标签=翻译("加标签","add tag")
+    说明_全局双链_加标签 = 翻译("开启后,当你进行了全局双链操作,则自动打上一个时间戳作为本次双链操作的标志","Once activated, when you perform a global bidirectional link operation, a timestamp will be automatically added as a marker for this bidirectional link operation.")
+    描述提取_新卡片默认同步描述=翻译("新卡片同步描述","new cards sync desc")
+    说明_描述提取_新卡片默认同步描述=翻译("开启后, 新卡片默认会同步描述,关闭后,新卡片不会同步描述,在第一次提取描述后,就会将描述保存到数据库, 此后都从数据库中提取, 如果你想恢复同步可以手工操指定张卡片的元信息内容来恢复同步","When enabled, new cards will sync desc by default. When disabled, new cards will not sync desc. After the first description extraction, the description will be saved to the database. Subsequently, all extractions will be from the database. If you want to restore sync, you can manually operate the metadata of specific cards to restore sync.")
+    描述提取_移除文内链接 = 翻译("忽略文内链接","Ignore intext links")
+    说明_描述提取_移除文内链接 = 翻译("开启后,提取描述时会忽略文内链接","When enabled, intext links will be ignored when extracting descriptions.")
+    描述提取_规则表 = 翻译("规则表","extraction rules")
+    说明_描述提取_规则表 = 翻译("在这个表中,你可以详细地制定如何从卡片中提取描述的规则, 比如你可以指定从某个牌组或某个卡片模板中提取描述,还可以指定提取的字段位置,甚至能写正则表达式","In this table, you can specify in detail the rules for extracting descriptions from cards. For example, you can specify to extract descriptions from a certain card deck or card template, you can also specify the location of the fields to extract, and you can even write regular expressions.")
+    描述提取_同步描述 = 翻译("同步描述","Real-time extraction")
+    说明_描述提取_同步描述  =  翻译("开启后,不会保存修改过的描述,每次提取描述都直接从卡片本身内容提取,关闭后则会优先搜索保存下的描述返回, 如果没有保存的描述则会从卡片中提取新的描述并保存下来以供下次使用","When enabled, the modified description will not be saved. Each time the description is extracted, it will be directly extracted from the card content. When disabled, the saved description will be searched first. If there is no saved description, a new description will be extracted from the card and saved for next use.")
+    描述提取_长度限制 = 翻译("提取描述时的长度限制","Limit description length")
+    说明_描述提取_长度限制 = 翻译("对于不满足提取规则表的文字进行的长度限制,0表示不限制","Impose length limit for text that does not meet the extraction rule set.0 means no limit.")
+
+    视图管理器与视图_默认视图 = 翻译("默认视图","default view")
+    说明_视图管理器与视图_默认视图 = 翻译("默认视图用于在anki主界面快速打开指定视图","The default view is used to quickly open a specified view in the main anki window")
+    视图管理器与视图_默认的排版方式 = 翻译("视图管理器_默认的排版方式","View Manager Default Layout")
+    说明_视图管理器与视图_默认的排版方式=翻译("切换视图管理器默认显示列表结构或者树结构","Switch the view manager to show the list structure or tree structure by default.")
     可用变量与函数 = 翻译("可用变量,函数与模块","Available Variables, Functions and Modules")
     角色待选列表 = 翻译("角色待选列表","Role to be selected list")
     所有time开头的变量都是时间戳=翻译("所有以'time'开头的变量都是时间戳","All variables that start with 'time' are timestamps")
@@ -567,7 +649,8 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
 """
                          )
     视图编号 = 翻译("视图编号","view id")
-
+    树形 = 翻译("树形","tree")
+    列表形 = 翻译("列表形", "list")
     视图名 = 翻译(zh="视图名",en="view name")
     说明_创建时间 = 翻译("结点的创建时间是不可修改的, 除非你删除这个结点, 并再次导入它","The creation time of a node cannot be modified unless you delete the node and import it again")
     创建时间 = 翻译(zh="创建时间", en="created time")
@@ -597,9 +680,8 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     打开链接池:str=翻译("打开双链分组器","open bilink grouper")
     清空链接池:str=翻译("清空双链分组器","clear bilink grouper")
 
-    完全图绑定:str=翻译("完全图绑定","complete graph binding")
-
-    组到组绑定:str=翻译("完全多部图绑定","complete n-partite graph binding")
+    完全图绑定:str=翻译("完全图绑定","complete graph ")
+    组到组绑定:str=翻译("完全多部图绑定","n-partite graph ")
     按结点解绑:str=rosetta("按结点解绑")
     按路径解绑:str=rosetta("按路径解绑")
     选中直接操作:str=rosetta("选中直接操作")
@@ -743,6 +825,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     设为默认视图 = 翻译("设为默认视图","set as default view")
     说明_漫游复习侧边栏收起 = 翻译("是否默认收起漫游复习的侧边栏","Whether to tuck away the sidebar for roaming review by default")
     双链分组器=翻译("双链分组器","bilink grouper")
+    描述提取 = 翻译("描述提取","description extracting")
     描述提取规则_标签=翻译("标签","tags")
     描述提取规则_牌组=翻译("牌组","deck")
     描述提取规则_正则=翻译("正则表达式","regex")

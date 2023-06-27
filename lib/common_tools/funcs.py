@@ -17,7 +17,7 @@ from anki.notes import Note
 
 from .language import rosetta
 from .all_funcs.Gview import GviewOperation,GrapherOperation
-from .all_funcs.Config import Config,GviewConfigOperation
+from .all_funcs.Config import Config,GviewConfigOperation,全局配置操作
 from .all_funcs.Dialogs import Dialogs
 from .all_funcs.card import CardOperation
 from .all_funcs.browser import BrowserOperation

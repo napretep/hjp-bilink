@@ -40,6 +40,10 @@ class 通用:
             组件.resize(*组件长宽)
             组件.move(*组件坐标)
 
+    @staticmethod
+    def 类的属性_转_列表(类: "{}")->list:
+        return list(类().__dict__.values() if type(类)==type else 类.__dict__.values())
+
 class Map:
     @staticmethod
     def do(li: "iter", func: "callable"):
@@ -192,9 +196,9 @@ class Utils(object):
             return 默认值
         else:
             if 值类型字典:
-                值类型_概括 = 值类型字典[键名]
-                待选值类型 = type(待选值字典[键名]) if 值类型_概括 != 字典键名.值类型.枚举_结点类型 else 待选值字典[键名]
-                if 待选值类型 in 字典键名.值类型.字典[值类型_概括]:
+                值类型_非py基础类型 = 值类型字典[键名]
+                待选值类型 = type(待选值字典[键名]) if 值类型_非py基础类型 != 字典键名.值类型.枚举_结点类型 else 待选值字典[键名]
+                if 待选值类型 in 字典键名.值类型.字典[值类型_非py基础类型]:
                     return 待选值字典[键名]
                 else:
                     return 默认值
@@ -636,3 +640,5 @@ class HTML:
                                        "onclick": f"""javascript:pycmd('hjp-bilink-cid:{card_id}');"""})
         b.string = desc
         return b.__str__()
+
+

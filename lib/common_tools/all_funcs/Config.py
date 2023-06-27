@@ -1,5 +1,40 @@
 from .basic_funcs import *
 
+class 全局配置操作:
+    @staticmethod
+    def 表格行数据装载(行数据模型:"G.safe.models.基类_模型_所有的表格行模型",数据来源:"dict"):
+        for 键,值 in 行数据模型.属性字典.items():
+            if 键 in 数据来源:
+                行数据模型.属性字典[键].设值(数据来源[键])
+
+    @staticmethod
+    def 表格型属性项设值(表格属性项:"G.safe.models.基类_属性项",行数据模型:"G.safe.models.基类_模型_所有的表格行模型",数据来源:"list[dict]|dict"):
+        """
+            用于给表格属性项设值
+            执行的思路: 当你要添加值的时候, 你要判断添加的是一行值还是一个新的列表, 分别处理
+            需要对行数据模型做个打包的模型
+            先完成格式检查
+        """
+        if type(数据来源)==list:
+            全局配置操作.表格行数据装载()
+
+
+        pass
+
+    @staticmethod
+    def 装饰器_属性项_赋值检查(设值函数):
+        def 内包函数(self:"G.safe.models.基类_属性项",value):
+            预定类型 = G.safe.baseClass.枚举命名.值类型.具备默认校验函数的类型
+            可赋值 = True
+            if self.有校验:
+                可赋值 = 可赋值 and self.函数_赋值校验(self,value)
+            elif self.值类型 in 预定类型:
+                pass
+            else:
+                raise ValueError("")
+            设值函数(self,value)
+            pass
+
 
 class BaseConfig(metaclass=abc.ABCMeta):
     """一切配置表的基类

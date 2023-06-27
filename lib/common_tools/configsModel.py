@@ -799,7 +799,7 @@ class ConfigModel(BaseConfigModel):
         value=0,
         component=ConfigModel.Widget.combo,
         tab_at=Translate.快捷键,
-        limit=[ComboItem(Translate.文内链接, 0), ComboItem(Translate.文内链接 + "(new)", 1),
+        limit=[ComboItem(Translate.文内链接, 0), ComboItem(Translate.文内链接 + "(html)", 1),
                ComboItem(Translate.html链接, 2), ComboItem(Translate.markdown链接, 3),
                ComboItem(Translate.orgmode链接, 4)],
     ))

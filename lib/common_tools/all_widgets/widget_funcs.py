@@ -1,5 +1,26 @@
 from .basic_widgets import *
 class 组件定制:
+    # TODO 设计一个表格行编辑组件
+
+
+    class 表格_单行行编辑组件:
+        def __init__(self,单行组件:QWidget):
+            self.表单=单行组件
+            self.确认按钮被点击=False
+            self.确认按钮 = 组件定制.按钮_确认(触发函数=self.当_确认按钮被点击)
+            self.窗口=QDialog()
+            self.布局={
+                    布局:QVBoxLayout(),
+                    子代:[
+                            {组件:self.表单,占据:1},
+                            {组件:self.确认按钮,占据:0}
+                    ]
+            }
+            组件定制.组件组合(self.布局,self.窗口)
+
+        def 当_确认按钮被点击(self):
+            self.确认按钮被点击=True
+            self.窗口.close()
 
     @staticmethod
     def 组件组合(组件树数据: "dict", 容器: "QWidget" = None) -> "QWidget|QDialog":
@@ -31,17 +52,22 @@ class 组件定制:
     def 表格(单行选中=True, 不可修改=True):
         组件 = QTableView()
         if 单行选中:
-            组件.setSelectionMode(QAbstractItemView.SingleSelection)
-            组件.setSelectionBehavior(QAbstractItemView.SelectRows)
+            组件.setSelectionMode(QAbstractItemViewSelectMode.SingleSelection)
+            组件.setSelectionBehavior(QAbstractItemViewSelectionBehavior.SelectRows)
         if 不可修改:
             组件.setEditTriggers(QAbstractItemView.NoEditTriggers)
         组件.horizontalHeader().setStretchLastSection(True)
+        组件.verticalHeader().setHidden(True)
+        组件.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        组件.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+
         return 组件
 
     @staticmethod
     def 模型(行标签: "list[str]" = None):
         组件 = QStandardItemModel()
         if 行标签:
+
             组件.setHorizontalHeaderLabels(行标签)
         return 组件
 
@@ -85,7 +111,7 @@ class 组件定制:
         if 文本:
             组件.setText(文本)
         if 触发函数:
-            组件.clicked.connect(触发函数)
+            组件.clicked.connect(lambda:触发函数())
         return 组件
 
     @staticmethod

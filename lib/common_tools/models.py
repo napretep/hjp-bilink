@@ -20,5 +20,5 @@ from .all_models.view_self_models import *
 from .all_models.view_edge_models import *
 from .all_models.view_batch_node_models import *
 from .all_models.view_create_dialog_model import *
-from .all_models.global_config_desc_extract_models import *
+from .all_models.global_config_tableitem_model import *
 

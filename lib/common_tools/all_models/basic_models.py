@@ -35,16 +35,21 @@ class 安全导入:
         from .. import funcs
         return funcs
 
+    @property
+    def global_config_tableitem_model(self):
+        from . import global_config_tableitem_model
+        return global_config_tableitem_model
+
 
 safe = 安全导入()
 
 译 = language.Translate
 枚举 = baseClass.枚举命名
+id_name = baseClass.IdName
 砖 = 枚举.砖
 类型_结点编号 = 类型_属性名 = str
 类型_视图数据 = configsModel.GViewData
-类型_数据源_提取规则 = NewType("类型_数据源_提取规则", dict)
-
+最大正整数 = 2147483646
 
 class 函数库_UI生成:
     """UI有不同的类型,每种类型都要定制地写一个函数, 最后把它们组合进一个字典, 到时候根据组件类型作为键访问字典的值并调用即可获得组件"""
@@ -90,8 +95,8 @@ class 函数库_UI生成:
                 self.核心组件 = 拖动条
                 数值显示 = QLabel(self.数据源.组件显示值)
                 拖动条.setValue(self.数据源.值)
-                if self.数据源.有限制:
-                    拖动条.setRange(self.数据源.限制[0], self.数据源.限制[1])
+                if self.数据源.有组件限制:
+                    拖动条.setRange(self.数据源.组件限制[0], self.数据源.组件限制[1])
                 组件 = funcs.组件定制.组件组合(
                     {砖.布局: QHBoxLayout(), 砖.子代: [{砖.组件: 数值显示}, {砖.组件: 拖动条}]})
 
@@ -175,7 +180,7 @@ class 函数库_UI生成:
                     if len(结果) > 0:
                         组件.setText(结果[0])
                         self.数据源.设值(结果[0])
-                        if self.数据源.有校验 and not self.数据源.校验函数(self.数据源, 结果[0]):
+                        if self.数据源.有校验 and not self.数据源.函数_赋值校验(self.数据源, 结果[0]):
                             tooltip("illegal value")
                     pass
 
@@ -187,17 +192,31 @@ class 函数库_UI生成:
                 self.核心组件 = 组件
                 按钮2.clicked.connect(on_edit)
                 self.给UI赋值 = lambda value: setValue(value)
+            elif self.数据源.组件类型 == 枚举.组件类型.combo:
+                组件 = QComboBox()
+                for 数据记录 in self.数据源.组件限制:
+                    组件.addItem(数据记录.name,userData=数据记录.ID)
+                组件.setCurrentIndex(组件.findData(self.数据源.值))
+                if self.数据源.可展示中编辑==1:
+                    组件.currentIndexChanged[int].connect(lambda x:self.数据源.设值(组件.itemData(x,role=Qt.ItemDataRole.UserRole)))
+                else:
+                    组件.setDisabled(True)
+                self.核心组件 = 组件
+                pass
             elif self.数据源.组件类型 == 枚举.组件类型.spin:
                 组件 = QSpinBox()
                 self.核心组件 = 组件
                 组件.setValue(self.数据源.值)
-
+                if self.数据源.有组件限制:
+                    限制= self.数据源.组件限制
+                    组件.setRange(限制[0],限制[1])
                 def setValue(value):
                     self.数据源.设值(value)
                     self.当完成赋值(组件, value)
 
                 组件.valueChanged.connect(lambda x: setValue(int(组件.value())))
                 self.给UI赋值 = lambda value: setValue(value)
+
             else:
                 raise NotImplementedError()
             左 = 组件
@@ -291,7 +310,7 @@ class 基类_模型:
 
         对话框.setLayout(表单布局)
         self.UI创建完成 = 1
-        对话框.closeEvent = lambda x: self.__dict__.__setitem__("UI创建完成", 0)
+        # 对话框.closeEvent = lambda x: self.__dict__.__setitem__("UI创建完成", 0)
         return 对话框
 
     def 获取可访变量(self, 指定变量类型=None) -> "Dict":
@@ -364,32 +383,41 @@ class 基类_模型:
 class 基类_属性项:
     """
     """
+    # 基础
     字段名: "str"
-    展示名: "str"
+    展示名: "str" # 重要 展示名 是指字段名的文本展示所用名称,而非属性值的展示名称,关于值的展示名请看 函数_传值到组件| 组件显示值
     从上级读数据: "int"
     保存到上级: "int"
     值类型: "str"
+    默认值: "Any|list|str|int|float" = None
+    值解释: "str" = None
     说明: "str" = 译.该项解释工作未完成
-    可展示: "int" = 0  # 需要对应的展示组件,
-    可展示中编辑: "int" = 0  # 需要对应的可展示中编辑组件, 与可展示联合判断
-    用户可访: "int" = 0
-    组件类型: "int" = None
     有校验: "int" = 0
-    有限制: "int" = 0
-    限制: "list" = field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT])
-    组件传值方式: "Optional[Callable[[基类_属性项],Any]]" = None
+    函数_赋值校验: "Optional[Callable[[基类_属性项,Any],bool]]" = None
     _读取函数: "Optional[Callable[[基类_属性项],Any]]" = None
     _保存值的函数: "Optional[Callable[[基类_属性项, Any], None]]" = None
     _保存后执行: "Optional[Callable[[基类_属性项],Any]]" = None
-    校验函数: "Optional[Callable[[基类_属性项,Any],bool]]" = None
-    自定义组件: "Optional[Callable[[函数库_UI生成.组件],safe.widgets.自定义.基类_项组件基础]]" = None
     上级: "Optional[基类_模型]" = None
-    默认值: "Any|list|str|int|float" = None
-    值解释: "str" = None
+
+    # 组件展示配置选项
+    可展示: "int" = 0  # 需要对应的展示组件,
+    可展示中编辑: "int" = 0  # 需要对应的可展示中编辑组件, 与可展示联合判断
+    用户可访: "int" = 0 # 可访问的,不一定可编辑, 可编辑的一定可访问.
+    组件类型: "int" = None # 几种常规的和可自定义的
+    组件分页:"str|None" = None # tab的名称
+    自定义组件: "Optional[Callable[[函数库_UI生成.组件],safe.widgets.自定义.基类_项组件基础]]" = None
+    函数_传值到组件: "Optional[Callable[[基类_属性项],Any]]" = None # 规定如何传值, 就是值的组件表示和值的存储表示的区别
+    有组件限制: "int" = 0 # 取值范围限制
+    组件限制: "list" = field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]) # 限制函数
     属性项排序位置: "int" = 0  # 用于对属性项顺序有要求的环境.
+    需要选中激活=False
+
+    # 视图中图元的配置
     可批量编辑: "int" = 0 # 在视图中可多个选中同时编辑
-    在视图中显示: "int" = 1
+    在视图中显示: "int" = 1 # 视图专属配置
     版本: int = 1
+
+
 
     @property
     def 值(self) -> Any:
@@ -412,7 +440,7 @@ class 基类_属性项:
 
     @property
     def 组件显示值(self):
-        return self.值.__str__() if not self.组件传值方式 else self.组件传值方式(self)
+        return self.值.__str__() if not self.函数_传值到组件 else self.函数_传值到组件(self)
 
     def 变量使用的解释(self):
         return f"mean:{self.展示名},type:{self.值类型},example:{self.值解释}"

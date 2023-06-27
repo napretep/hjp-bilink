@@ -31,6 +31,8 @@ class 视图结点类型:
     视图 = "view"
 
 
+
+
 class 枚举命名:
     class 结点:
         # 结点推算所得信息
@@ -133,8 +135,11 @@ class 枚举命名:
         枚举 = "enum:"
         文本 = "text"
         列表 = "list"
+        表格 = "table" # 当你的数据结构是表格时, 必须遵循如下的结构: list[dict[列名,值]]
         枚举_结点类型 = "enum_node_type",
         ID_name = "ID_name"
+        路径 = "directory"
+        文件 = "filepath"
         字典 = {
                 整数:     [int],
                 数值     : [int, float],
@@ -143,8 +148,13 @@ class 枚举命名:
                 文本     : [str],
                 列表     : [list],
                 枚举_结点类型: ["card", "view"],
-                ID_name:[IdName]
+                表格: [dict,list],
+                ID_name:[IdName],
+                路径 :[str],
+                文件:[str]
+
         }
+        具备默认校验函数的类型=[整数,数值,时间戳,布尔,路径,文件,]
 
     class 砖:
         布局, 组件, 子代 = 0, 1, 2
@@ -177,6 +187,121 @@ class 枚举命名:
                         枚举命名.全局配置.描述提取规则.长度: 0,
                         枚举命名.全局配置.描述提取规则.同步: True,
                 }
+
+            @staticmethod
+            def 规则校验(待校验规则):
+                if type(待校验规则)!=dict:
+                    return False
+                默认规则 = 枚举命名.全局配置.描述提取规则.默认规则()
+                for 键,值 in 默认规则.items():
+                    if 键 not in 待校验规则:
+                        return False
+                    if type(待校验规则[键]) != type(默认规则[键]):
+                        return False
+                return True
+
+
+
+        class 视图管理器与视图:
+            默认的排版方式="gview_admin_default_display"
+            默认视图 =  "set_default_view"
+
+            @dataclass
+            class 排版方式:
+                树形:IdName = field(default_factory=lambda: IdName(ID=0,name=译.树形))
+                列表形:IdName = field(default_factory=lambda: IdName(ID=1, name=译.列表形))
+
+        class 描述提取:
+            长度限制="length_of_desc"
+            同步描述="desc_sync"
+            规则表 = "descExtractTable"
+            移除文内链接 = "delete_intext_link_when_extract_desc"
+            新卡片默认同步描述 = "new_card_default_desc_sync"
+
+        class 全局双链:
+            加标签 = "add_link_tag"
+            链接后打开浏览器 = "open_browser_after_link"
+            默认双链模式 = "default_link_mode"
+            默认解绑模式 = "default_unlink_mode"
+            默认插入模式 = "default_insert_mode"
+            默认复制模式 = "default_copylink_mode"
+            链接快捷键 = "shortcut_for_link"
+            解绑快捷键 = "shortcut_for_unlink"
+            收集快捷键 = "shortcut_for_insert"
+            复制链接快捷键 = "shortcut_for_copylink"
+            收集器快捷键 = "shortcut_for_openlinkpool"
+
+            @dataclass
+            class 双链模式:
+                完全图:IdName = field(default_factory=lambda: IdName(ID=0,name=译.完全图绑定))
+                组到组:IdName = field(default_factory=lambda:IdName(ID=1,name=译.组到组绑定))
+
+            @dataclass
+            class 解绑模式:
+                按结点:IdName = field(default_factory=lambda: IdName(ID=0, name=译.按结点解绑))
+                按路径:IdName = field(default_factory=lambda: IdName(ID=1, name=译.按路径解绑))
+
+            @dataclass
+            class 插入模式:
+                清空后插入:IdName = field(default_factory=lambda: IdName(ID=0, name=译.清空后插入))
+                直接插入:IdName = field(default_factory=lambda:IdName(ID=1,name=译.直接插入))
+                编组插入:IdName = field(default_factory=lambda:IdName(ID=2,name=译.编组插入))
+
+            @dataclass
+            class 复制模式:
+                文内链接:IdName = field(default_factory=lambda:IdName(ID=0,name=译.文内链接))
+                文内链接_html:IdName = field(default_factory=lambda:IdName(ID=1, name=译.文内链接+"(html)"))
+                html链接:IdName = field(default_factory=lambda:IdName(ID=2, name=译.html链接))
+                orgmode链接:IdName = field(default_factory=lambda:IdName(ID=3, name=译.orgmode链接))
+                markdown链接:IdName = field(default_factory=lambda:IdName(ID=4, name=译.markdown链接))
+
+
+
+
+        class 卡片元信息:
+            链接菜单样式文本 = "LinkMenu_style_text"
+            链接菜单样式文件 = "LinkMenu_style_file"
+            链接菜单样式预设 = "LinkMenu_style_preset"
+            @dataclass
+            class 链接菜单样式预设模式:
+                手风琴式:IdName=field(default_factory=lambda :IdName(ID=0,name=译.手风琴式))
+                直铺式:IdName=field(default_factory=lambda :IdName(ID=1,name=译.直铺式))
+
+
+        class 备份:
+            开启自动备份 = "auto_backup"
+            自动备份间隔 = "auto_backup_interval"
+            自动备份路径 = "auto_backup_path"
+            上次备份时间 = "last_backup_time"
+        class PDF链接:
+            样式 = "PDFLink_style"
+            命令 = "PDFLink_cmd"
+            页码显示开启 = "PDFLink_show_pagenum"
+            页码显示样式 = "PDFLink_pagenum_str"
+            预设pdf  = "PDFLink_presets"
+
+            @dataclass
+            class PDFLink:
+                url: "str" = "pdfurl"
+                path: "str" = "pdfpath"
+                page: "str" = "pagenum"
+
+
+            class 预设pdf表_单行信息:
+                # [["PDFpath", "name", "style", "showPage"]...]
+                路径="path"
+                显示名 = "name"
+                样式 = "style"
+                是否显示页码="showPage"
+                @staticmethod
+                def 默认数据():
+                    return {
+                            枚举命名.全局配置.PDF链接.预设pdf表_单行信息.路径:"",
+                            枚举命名.全局配置.PDF链接.预设pdf表_单行信息.显示名:"",
+                            枚举命名.全局配置.PDF链接.预设pdf表_单行信息.样式:"",
+                            枚举命名.全局配置.PDF链接.预设pdf表_单行信息.是否显示页码:True
+                    }
+
     范围 = "range"
     组件 = "widget"
     值 = "value"

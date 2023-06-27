@@ -286,6 +286,7 @@ class Grapher(QMainWindow):
         edge.item.hide()
         self.scene.removeItem(edge.item)
         self.data.remove_from_edge_data(a, b)
+
         pass
 
     # bilink
@@ -300,6 +301,7 @@ class Grapher(QMainWindow):
             self.scene.removeItem(edge.item)
         self.scene.removeItem(item)
         self.data.remove_from_node_data(item.索引)
+
 
     def remove_many_nodes(self, items: "list[Grapher.ItemRect]"):
         for item in items:
@@ -1049,6 +1051,7 @@ class Grapher(QMainWindow):
                 self.setSelected(True)
                 self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, True)
                 self.contextMenuOpened = False
+                self.superior.data.node_edge_packup()
 
             menu.closeEvent = lambda x: menuCloseEvent()
             self.contextMenuOpened = True
@@ -1098,7 +1101,7 @@ class Grapher(QMainWindow):
             if not self.contextMenuOpened:
                 super().mouseReleaseEvent(event)
                 self.setFlag(common_tools.compatible_import.QGraphicsRectItemFlags.ItemIsMovable, True)
-
+                self.superior.data.node_edge_packup()
         # def drawRedDot(self):
 
         @property
@@ -1322,6 +1325,7 @@ class Grapher(QMainWindow):
                     if len(lineItem) > 0:
                         for item in lineItem:
                             self.deleteEdgeItem(item)
+            self.superior.data.node_edge_packup()
             # item = self.superior.scene.selectedItems()[0]
             # if isinstance(item, Grapher.ItemRect):
             #     self.deleteRectItem(item)

@@ -375,22 +375,22 @@ class GviewOperation:
                 return False
             return True
 
-        models = G.safe.models
+        模型 = G.safe.models
 
         if 视图编号:
             视图数据:"G.safe.funcs.GViewData" = GviewOperation.load(uuid=视图编号)
 
 
         while True:
-            数据源 = models.类型_数据源_视图创建参数()
+            数据源 = 模型.类型_数据源_视图创建参数()
             if 配置编号:
-                configmodel = imports.Configs.GviewConfigOperation.从数据库读(配置编号)
-                数据源.配置 = G.safe.baseClass.IdName(configmodel.name, configmodel.uuid)
+                配置模型 = imports.Configs.GviewConfigOperation.从数据库读(配置编号)
+                数据源.配置 = G.safe.baseClass.IdName(配置模型.name, 配置模型.uuid)
             elif 视图数据:
-                configmodel = 视图数据.config_model
+                配置模型 = 视图数据.config_model
                 数据源.视图名 = 视图数据.name
-                数据源.配置 = G.safe.baseClass.IdName(configmodel.name, configmodel.uuid)
-            模型 = models.类型_模型_视图创建参数(数据源)
+                数据源.配置 = G.safe.baseClass.IdName(配置模型.name, 配置模型.uuid)
+            模型 = 模型.类型_模型_视图创建参数(数据源)
             模型.创建UI().exec()
             # viewName, submitted = QInputDialog.getText(None, "input", 译.视图名, QLineEdit.Normal, placeholder)
             if not 模型.完成选择:
@@ -479,15 +479,15 @@ class GviewOperation:
 
     @staticmethod
     def 依参数确定视图结点数据类型模板(结点类型=G.safe.baseClass.视图结点类型.卡片, 数据=None, 编号=None):
-        models = G.safe.models
+        模型集 = G.safe.models
 
         _ = G.safe.baseClass.枚举命名
-        模型 = models.类型_视图结点模型()
+        模型 = 模型集.类型_视图结点模型()
         默认值模板 = {}
         类型对照 = {}
         for 名字 in 模型.__dict__:
-            if isinstance(模型.__dict__[名字], models.类型_视图结点属性项):
-                属性: models.类型_视图结点属性项 = 模型.__dict__[名字]
+            if isinstance(模型.__dict__[名字], 模型集.类型_视图结点属性项):
+                属性: 模型集.类型_视图结点属性项 = 模型.__dict__[名字]
                 if 属性.从上级读数据:
                     默认值模板[属性.字段名] = 属性.默认值
                     类型对照[属性.字段名] = 属性.值类型

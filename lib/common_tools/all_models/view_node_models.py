@@ -83,7 +83,7 @@ class 类型_视图结点模型(基类_模型):
             可展示中编辑=0,  # 需要对应的可展示中编辑组件, 与可展示联合判断
             用户可访=0,  # 指的是用户自定义python语句是否可访问
             组件类型=枚举.组件类型.label,
-            默认值=[],
+            默认值=[0,0],
             值类型=枚举.值类型.列表,
             值解释="[0,0] or [1.1,0.5]",
 
@@ -154,7 +154,7 @@ class 类型_视图结点模型(基类_模型):
             默认值=False,
             值类型=枚举.值类型.布尔,
             值解释="True or False",
-            # 组件传值方式=None,
+            # 函数_传值到组件=None,
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
             # 自定义组件=None,
@@ -204,10 +204,10 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.time,  # 展示用的组件
-            # 组件传值方式=lambda 值: funcs.Utils.时间戳转日期(值).__str__(),
+            # 函数_传值到组件=lambda 值: funcs.Utils.时间戳转日期(值).__str__(),
             # 保存值的函数=None,
-            有限制=0,
-            限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
+            有组件限制=0,
+            组件限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
             默认值=int(time.time()),
             值类型=枚举.值类型.时间戳,
             值解释="1676747497 or 1676661096",
@@ -224,7 +224,7 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.time,  # 展示用的组件
-            # 组件传值方式=lambda 项: funcs.Utils.时间戳转日期(项.值).__str__(),
+            # 函数_传值到组件=lambda 项: funcs.Utils.时间戳转日期(项.值).__str__(),
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
@@ -244,7 +244,7 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.time,  # 展示用的组件
-            # 组件传值方式=lambda 项: funcs.Utils.时间戳转日期(项.值).__str__(),
+            # 函数_传值到组件=lambda 项: funcs.Utils.时间戳转日期(项.值).__str__(),
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
@@ -264,7 +264,7 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             _读取函数=None,
             组件类型=枚举.组件类型.label,  # 展示用的组件
-            # 组件传值方式=None,
+            # 函数_传值到组件=None,
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
@@ -285,10 +285,10 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.slider,  # 展示用的组件
-            # 组件传值方式=None,
+            # 函数_传值到组件=None,
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
-            有限制=1,
-            限制=[-100, 100],
+            有组件限制=1,
+            组件限制=[-100, 100],
             默认值=0,
             值类型=枚举.值类型.数值,
             值解释="-100 or 100",
@@ -313,7 +313,7 @@ class 类型_视图结点模型(基类_模型):
             默认值="",
             值类型=枚举.值类型.文本,
             值解释="'abc' or 'hello'"
-            # 组件传值方式=None,
+            # 函数_传值到组件=None,
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
             # 自定义组件=None,
@@ -371,7 +371,7 @@ class 类型_视图结点模型(基类_模型):
             值类型=枚举.值类型.布尔,
             值解释="True or False",
             可批量编辑=1,
-            # 组件传值方式=None,
+            # 函数_传值到组件=None,
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
@@ -390,7 +390,7 @@ class 类型_视图结点模型(基类_模型):
             可批量编辑=1,
             # 读取函数=None,
             组件类型=枚举.组件类型.checkbox,  # 展示用的组件
-            # 组件传值方式=None,
+            # 函数_传值到组件=None,
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
@@ -411,7 +411,7 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.checkbox,  # 展示用的组件
-            # 组件传值方式=None,
+            # 函数_传值到组件=None,
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
@@ -433,7 +433,7 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.checkbox,  # 展示用的组件
-            # 组件传值方式=None,
+            # 函数_传值到组件=None,
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
@@ -455,7 +455,7 @@ class 类型_视图结点模型(基类_模型):
             用户可访=1,  # 用户可以用自定义的python语句访问到这个变量的值
             # 读取函数=None,
             组件类型=枚举.组件类型.checkbox,  # 展示用的组件
-            # 组件传值方式=None,
+            # 函数_传值到组件=None,
             # 保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
             # 有限制=0,
             # 限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
@@ -478,7 +478,7 @@ class 类型_视图结点模型(基类_模型):
     #     用户可访=0, # 用户可以用自定义的python语句访问到这个变量的值
     #     读取函数=None,
     #     组件类型=枚举.组件类型, #展示用的组件
-    #     组件传值方式=None,
+    #     函数_传值到组件=None,
     #     保存值的函数=None, # 当不能直接保存到视图中时, 采用这个函数保存
     #     有限制=0,
     #     限制=field(default_factory=lambda: [0, funcs.G.src_admin.MAXINT]),
