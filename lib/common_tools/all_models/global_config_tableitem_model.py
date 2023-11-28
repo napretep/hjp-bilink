@@ -22,10 +22,10 @@ from .basic_models import *
 
 @dataclass
 class 基类_属性项_所有的表格行的列项(基类_属性项):
-    从上级读数据:int = 1,
-    保存到上级:int = 1,
-    可展示:int = 1,
-    可展示中编辑:int = 1,
+    从上级读数据:int = 1
+    保存到上级:int = 1
+    可展示:int = 1
+    可展示中编辑:int = 1
 
     @property
     def 值(self):

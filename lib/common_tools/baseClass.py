@@ -140,6 +140,7 @@ class 枚举命名:
         ID_name = "ID_name"
         路径 = "directory"
         文件 = "filepath"
+        未知 = "unknown"
         字典 = {
                 整数:     [int],
                 数值     : [int, float],
@@ -151,7 +152,8 @@ class 枚举命名:
                 表格: [dict,list],
                 ID_name:[IdName],
                 路径 :[str],
-                文件:[str]
+                文件:[str],
+                未知:[],
 
         }
         具备默认校验函数的类型=[整数,数值,时间戳,布尔,路径,文件,]

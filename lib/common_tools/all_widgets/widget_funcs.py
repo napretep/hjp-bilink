@@ -141,6 +141,10 @@ class 组件定制:
         图标地址 = 图标地址 if 图标地址 else G.src.ImgDir.info
         return 组件定制.按钮(图标地址, 文字, 触发函数)
 
+    # @staticmethod
+    # def 按钮_修改行():
+    #     return 组件定制.按钮_修改()
+
     @staticmethod
     def 按钮_确认(文字="", 图标地址=None, 触发函数=None):
         图标地址 = 图标地址 if 图标地址 else G.src.ImgDir.correct

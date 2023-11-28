@@ -14,7 +14,7 @@ localMetaJson = os.path.join(LOCAL_FOLDER,"meta.json")
 excludeFile = ["clipper2", "clipper3", "__pycache__"]
 linux_addon_path = "/home/napretep/.local/share/Anki2/addons21/"
 linux_addon_repository = "/home/napretep/addons"
-windows_addon_repository = r"D:\备份盘\个人创作成果\代码\hjp-bilink历代版本"
+windows_addon_repository = r"D:\hjp_linkmaster历代版本"
 addon_name = json.load(open("manifest.json", "r", encoding="utf-8"))["name"]
 is_win = sys.platform.startswith("win32")
 

@@ -237,8 +237,8 @@ class CardOperation:
             step1_desc = HTML.TextContentRead(StrReadyToExtract)
             # Utils.print(step1_desc)
             step2_desc = step1_desc if ins.长度.值 == 0 else step1_desc[0:int(ins.长度.值)]
-            if ins.正则 != "":
-                search = re.search(ins.正则, step2_desc)
+            if ins.正则.值 != "":
+                search = re.search(ins.正则.值, step2_desc)
                 if search is None:
                     tooltip("根据设置中预留的正则表达式, 没有找到描述")
                 else:

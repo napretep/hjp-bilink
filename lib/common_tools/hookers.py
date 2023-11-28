@@ -27,7 +27,7 @@ class 钩子之母(list):
     # def remove(self,func):
     #     self.remove(func)
 
-class 当ReviewButtonForCardPreviewer完成复习(钩子之母):
+class 当_ReviewButtonForCardPreviewer_完成复习(钩子之母):
 
     def append(self, fun: "Callable[[类型_卡片编号,类型_难度,类型_平台],None]") -> None:
         super().append(fun)

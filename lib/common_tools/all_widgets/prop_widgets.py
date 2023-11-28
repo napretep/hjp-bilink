@@ -1,8 +1,6 @@
 from .basic_widgets import *
 
-枚举 = G.safe.baseClass.枚举命名
-基 = G.objs.Bricks
-布局, 组件, 子代, 占据 = 基.四元组
+
 
 # class 新建视图(QDialog):
 #     def __init__(self):
@@ -27,7 +25,7 @@ class 属性项组件:
         def __init__(self, 上级):
             super().__init__(上级)
             self.ui组件 = G.safe.funcs.组件定制.文本框(开启自动换行=True)
-            self.修改按钮 = G.safe.funcs.组件定制.按钮_修改行()
+            self.修改按钮 = G.safe.funcs.组件定制.按钮_修改()
             self.修改按钮.clicked.connect(lambda: self.当修改按钮_被点击())  # 槽函数不支持中文
             G.safe.funcs.组件定制.组件组合({框: QHBoxLayout(), 子: [
                     {件: self.ui组件, 占: 1}, {件: self.修改按钮, 占: 0}]},
@@ -159,7 +157,7 @@ class 属性项组件:
             super().__init__(上级)
             self.整体布局 = QVBoxLayout(上级)
             self.表格组件 = imports.funcs.组件定制.表格(单行选中=True,不可修改=True)
-            self.表格模型 = imports.funcs.组件定制.模型(self.表格列名)
+            self.表格模型 = imports.funcs.组件定制.模型(self.表格列名())
             self.按钮_添加行 = QPushButton("+")
             self.按钮_删除行 = QPushButton("-")
             self.按钮_修改行 = QPushButton(QIcon(G.src.ImgDir.edit), "")
@@ -183,18 +181,21 @@ class 属性项组件:
             """
             self.表格组件.setModel(self.表格模型)
             self.表格模型.clear()
-            self.表格模型.setHorizontalHeaderLabels(self.表格列名)
+            self.表格模型.setHorizontalHeaderLabels(self.表格列名())
+            枚举 = G.safe.baseClass.枚举命名
+            基 = G.objs.Bricks
+            布局, 组件, 子代, 占据 = 基.四元组
             if self.上级.数据源.值类型 == 枚举.值类型.表格:
                 for 行 in self.上级.数据源.值:
                     行数据 = []
-                    for 列名 in self.表格列名:
+                    for 列名 in self.表格列名():
                         项 = 视图模型_表格_项(self.表格组件,展示值=行[列名].__str__(),列名=列名,实际值=行[列名])
                         行数据.append(项)
 
                     self.表格模型.appendRow(行数据)
 
             elif self.上级.数据源.值类型 == 枚举.值类型.列表:
-                列名 = self.表格列名[0]
+                列名 = self.表格列名()[0]
                 for 行 in self.上级.数据源.值:
                     项 = 视图模型_表格_项(self.表格组件,展示值=行.__str__(),实际值=行,列名=列名)
                     self.表格模型.appendRow(项)
@@ -230,12 +231,10 @@ class 属性项组件:
         #抽象区
 
         @abstractmethod
-        @property
         def 表格列名(self)->"list[str]":
             raise NotImplementedError()
 
         @abstractmethod
-        @property
         def 单行模型(self) -> "G.safe.models.基类_模型":
             raise NotImplementedError()
 
@@ -246,7 +245,7 @@ class 属性项组件:
             新行数据 = self.生成_行编辑器()
             if 新行数据:
                 新行 = []
-                for 列名 in self.表格列名:
+                for 列名 in self.表格列名():
                     项 = 视图模型_表格_项(self.表格组件, 展示值=新行数据[列名]["展示值"],
                                   列名=列名,
                                   实际值=新行数据[列名]["实际值"])
@@ -269,7 +268,7 @@ class 属性项组件:
                 tooltip("no selected row")
                 return
             选中行号 = self.表格组件.selectedIndexes()[0].row()
-            修改项 = [self.表格模型.item(选中行号,列号) for 列号 in range(len(self.表格列名))]
+            修改项 = [self.表格模型.item(选中行号,列号) for 列号 in range(len(self.表格列名()))]
             待修改行数据 = {}
             for 项 in 修改项:
                 列数据 = 项.data(role=Qt.ItemDataRole.UserRole)
@@ -287,9 +286,11 @@ class 属性项组件:
             self.设值到源(新数据)
 
         def 数据_从表格生成(self):
-
+            枚举 = G.safe.baseClass.枚举命名
+            基 = G.objs.Bricks
+            布局, 组件, 子代, 占据 = 基.四元组
             表格 = []
-            表格列名 = self.表格列名
+            表格列名 = self.表格列名()
             if self.上级.数据源.值类型 == 枚举.值类型.表格:
                 for 行号 in range(self.表格模型.rowCount()):
                     行数据 = {}
@@ -316,7 +317,7 @@ class 属性项组件:
             """
             预加载数据: {列名:{列名:str.展示值:str,实际值:str}
             """
-            单行模型 = self.单行模型
+            单行模型 = self.单行模型()
             if 预加载数据:
                 for 属性 in 单行模型.属性字典.values():
                     属性.设值(预加载数据[属性.展示名]["实际值"])
@@ -339,10 +340,10 @@ class 属性项组件:
 
     class 表格_提取规则(基本表格类):
 
-        @property
         def 单行模型(self):
             return G.safe.models.类型_模型_描述提取规则()
-        @property
+
+
         def 表格列名(self):
             属性项列表:"list[G.safe.models.类型_属性项_描述提取规则]" = list(self.单行.属性字典.values())
             属性项列表.sort(key=lambda x:x.属性项排序位置)

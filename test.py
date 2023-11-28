@@ -18,16 +18,19 @@ def modify_meta(path,disabled=False):
     data["disabled"] = disabled
     json.dump(data, open(path, "w", encoding="utf-8"))
 
+
 def start_dev():
     modify_meta(dev_metaJson)
+    modify_meta(local_metaJson,True)
 
 def start_local():
     modify_meta(dev_metaJson,True)
+    modify_meta(local_metaJson)
 
 
 if __name__ == "__main__":
     if is_win:
         # start_local()
         start_dev()
-        os.system("anki")
+        os.system(r"anki")
     pass

@@ -280,7 +280,7 @@ class ReviewButtonForCardPreviewer:
         self.ease_button: "dict[int,QPushButton]" = {}
         self.review_buttons = self._create_review_buttons()
         self.due_info = self._create_due_info_widget()
-        self.当完成复习 = hookers.当ReviewButtonForCardPreviewer完成复习()
+        self.当完成复习 = hookers.当_ReviewButtonForCardPreviewer_完成复习()
         layout.addWidget(self.due_info, 0, 0, 1, 1)
         self.initEvent()
 
