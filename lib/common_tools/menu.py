@@ -62,7 +62,6 @@ def get_mainWin_menu():
     addon_name = G.src.addon_name + "_v" + G.src.ADDON_VERSION
     if addon_name not in mw.__dict__:
         M: "QMenu" = QMenu(addon_name)
-        showInfo(addon_name)
         mw.__dict__[addon_name] = M
         mw.menuBar().addMenu(M)
         return M
