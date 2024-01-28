@@ -1317,8 +1317,8 @@ class Grapher(QMainWindow):
             rectItem: "list[Grapher.ItemRect]" = [item for item in self.superior.scene.selectedItems() if isinstance(item, Grapher.ItemRect)]
             lineItem: "list[Grapher.ItemEdge]" = [item for item in self.superior.scene.selectedItems() if isinstance(item, Grapher.ItemEdge)]
             if rectItem or lineItem:
-                code = QMessageBox.information(self, 译.你将删除这些结点, 译.你将删除这些结点, QMessageBox.Yes | QMessageBox.No)
-                if code == QMessageBox.Yes:
+                code = QMessageBox.information(self, 译.你将删除这些结点, 译.你将删除这些结点, QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                if code == QMessageBox.StandardButton.Yes:
                     if len(rectItem) > 0:
                         for item in rectItem:
                             self.deleteRectItem(item)
@@ -1422,10 +1422,11 @@ class Grapher(QMainWindow):
             pass
 
         def resetConfig(self):
-            code = QMessageBox.information(self, 译.你将重置本视图的配置, 译.你将重置本视图的配置, QMessageBox.Yes | QMessageBox.No)
-            if code == QMessageBox.Yes:
+            code = QMessageBox.information(self, 译.你将重置本视图的配置, 译.你将重置本视图的配置, QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if code == QMessageBox.StandardButton.Yes:
+                funcs.GviewOperation.save(self.superior.data.gviewdata)
                 funcs.GviewConfigOperation.指定视图配置(self.superior.data.gviewdata)
-                self.superior.data.gviewdata.config_model = funcs.GviewConfigOperation.从数据库读(self.superior.data.gviewdata.config)
+                self.superior.data.gviewdata = funcs.GviewOperation.load(self.superior.data.gviewdata.uuid)
                 tooltip("reset configuration ok")
             pass
 
@@ -1562,17 +1563,17 @@ class GViewAdmin(QDialog):
         if item.column() != 0:
             item = self.model.item(item.row(), 0)
         if item:
-            data = item.data(Qt.UserRole)
+            data = item.data(Qt.ItemDataRole.UserRole)
             if data is None:
                 funcs.Utils.tooltip(Translate.不存在)
                 return
-            funcs.Dialogs.open_grapher(gviewdata=funcs.GviewOperation.load(gviewdata=item.data(Qt.UserRole)), mode=GraphMode.view_mode)
+            funcs.Dialogs.open_grapher(gviewdata=funcs.GviewOperation.load(gviewdata=item.data(Qt.ItemDataRole.UserRole)), mode=GraphMode.view_mode)
 
     def on_horizontal_header_clicked_handle(self):
         print("horizontalHeader clicked")
 
     def on_model_item_changed_handle(self, item: "GViewAdmin.Item"):
-        data: "GViewData" = item.data(Qt.UserRole)
+        data: "GViewData" = item.data(Qt.ItemDataRole.UserRole)
         if not re.match(r"\S", item.text()):
             item.setText(data.name)
             funcs.Utils.tooltip(Translate.视图命名规则)
@@ -1609,7 +1610,7 @@ class GViewAdmin(QDialog):
     def on_open(self):
         item = self.get_item()
         if not item: return
-        data: "GViewData" = item.data(Qt.UserRole)
+        data: "GViewData" = item.data(Qt.ItemDataRole.UserRole)
         funcs.Dialogs.open_grapher(gviewdata=data, mode=GraphMode.view_mode)
         pass
 
@@ -1633,7 +1634,7 @@ class GViewAdmin(QDialog):
         """由于有两个不同的display所以需要弹出窗口让同学修改"""
         item: "GViewAdmin.Item" = self.get_item() if not it else it
         if not item: return
-        data: "GViewData" = item.data(Qt.UserRole)
+        data: "GViewData" = item.data(Qt.ItemDataRole.UserRole)
         结果 = funcs.GviewOperation.打开视图名称验证与配置选择窗口(视图数据=data)
         if not 结果: return
         data.name = 结果.视图名.值
@@ -1645,14 +1646,14 @@ class GViewAdmin(QDialog):
     def on_set_as_default_view(self, item=None):
         item: "GViewAdmin.Item" = self.get_item() if not item else item
         if not item: return
-        data: "GViewData" = item.data(Qt.UserRole)
+        data: "GViewData" = item.data(Qt.ItemDataRole.UserRole)
         funcs.GviewOperation.设为默认视图(data.uuid)
         tooltip("ok")
 
     def on_link(self):
         item = self.get_item()
         if not item: return
-        data: "GViewData" = item.data(Qt.UserRole)
+        data: "GViewData" = item.data(Qt.ItemDataRole.UserRole)
         m = QMenu()
         funcs.MenuMaker.gview_ankilink(m, data)
         l_b = self.bottom.link_button
@@ -1664,7 +1665,7 @@ class GViewAdmin(QDialog):
     def on_delete(self, it=None):
         item = self.get_item() if not it else it
         if not item: return
-        data: "GViewData" = item.data(Qt.UserRole)
+        data: "GViewData" = item.data(Qt.ItemDataRole.UserRole)
         self.wait_for_delete.add(data.uuid)
         self.data[data.uuid] = None
         self.rebuild()
@@ -2167,8 +2168,8 @@ class GrapherRoamingPreviewer(QMainWindow):
             self.setAlternatingRowColors(True)
             self.setMaximumWidth(300)
             self.setSelectionMode(common_tools.compatible_import.QAbstractItemViewSelectMode.ExtendedSelection)
-            self.setSelectionBehavior(common_tools.compatible_import.QAbstractItemView.SelectRows)
-            self.setEditTriggers(common_tools.compatible_import.QAbstractItemView.NoEditTriggers)
+            self.setSelectionBehavior(common_tools.compatible_import.QAbstractItemView.SelectionBehavior.SelectRows)
+            self.setEditTriggers(common_tools.compatible_import.QAbstractItemView.EditTrigger.NoEditTriggers)
             # self.setCurrentIndex(self.tempModel.index(1,0))
             # self.selectRow(2)
 
@@ -2197,7 +2198,7 @@ class GrapherRoamingPreviewer(QMainWindow):
 
             self.setCurrentIndex(row)
             self.selectionModel().clearSelection()
-            self.selectionModel().select(self.currentIndex(), QItemSelectionModel.Select)
+            self.selectionModel().select(self.currentIndex(), QItemSelectionModel.SelectionFlag.Select)
 
         def getCurrCardId(self):
             item = self.tempModel.itemFromIndex(self.currentIndex())

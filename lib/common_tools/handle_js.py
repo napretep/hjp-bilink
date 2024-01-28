@@ -103,8 +103,8 @@ def on_js_message(handled, url: str, context):
         else:
             matches = re.search("file:/{2,3}(?P<path>.*)$", url).group("path")
             if is_win:
-                result = QMessageBox.information(None,译.你想打开链接吗, matches,QMessageBox.Yes | QMessageBox.No)
-                if result == QMessageBox.Yes:
+                result = QMessageBox.information(None,译.你想打开链接吗, matches,QMessageBox_StandardButton.Yes | QMessageBox_StandardButton.No)
+                if result == QMessageBox_StandardButton.Yes:
                     os.system(matches)
 
     return handled

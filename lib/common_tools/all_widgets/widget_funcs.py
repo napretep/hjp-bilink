@@ -55,7 +55,7 @@ class 组件定制:
             组件.setSelectionMode(QAbstractItemViewSelectMode.SingleSelection)
             组件.setSelectionBehavior(QAbstractItemViewSelectionBehavior.SelectRows)
         if 不可修改:
-            组件.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            组件.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         组件.horizontalHeader().setStretchLastSection(True)
         组件.verticalHeader().setHidden(True)
         组件.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
@@ -153,7 +153,7 @@ class 组件定制:
         def __init__(self, itemIsmovable=False, editable=False, itemIsselectable=False, title_name=""):
             super().__init__()
             if not editable:
-                self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+                self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
             self.horizontalHeader().setStretchLastSection(True)
 

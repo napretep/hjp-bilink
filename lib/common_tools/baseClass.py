@@ -688,7 +688,7 @@ class Standard:
         def __init__(self, itemIsmovable=False, editable=False, itemIsselectable=False, title_name=""):
             super().__init__()
             if not editable:
-                self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+                self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
             self.horizontalHeader().setStretchLastSection(True)
 

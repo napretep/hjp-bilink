@@ -3,6 +3,8 @@ from datetime import date, datetime
 import time
 from typing import Optional
 
+from anki.notes import NoteId, Note
+
 from ..imports import *
 
 from anki.lang import _
@@ -13,6 +15,7 @@ from anki.cards import Card
 import unicodedata
 from anki.lang import _
 from anki.collection import Config
+from anki.utils import point_version
 from typing import Union
 
 from ..imports import common_tools
@@ -73,13 +76,86 @@ if not ISLOCAL:
                 print("uncaught cmd", cmd)
 
 
+    class NewNoteEditorDialog(QMainWindow):
+        """ for version 23.10+"""
+        def __init__(self,superior, mw: aqt.AnkiQt,note:"Note") -> None:
+            super().__init__(None, Qt.WindowType.Window)
+            self.superior = superior
+            self.mw = mw
+            self.form = aqt.forms.editcurrent.Ui_Dialog()
+            self.form.setupUi(self)
+            self.setWindowTitle(tr.editing_edit_current())
+            self.setMinimumHeight(400)
+            self.setMinimumWidth(250)
+            self.editor = aqt.editor.Editor(
+                    self.mw,
+                    self.form.fieldsArea,
+                    self,
+                    editor_mode=aqt.editor.EditorMode.EDIT_CURRENT,
+            )
+            self.editor.card = self.mw.col.get_card(note.card_ids()[0])
+            self.editor.set_note(note, focusTo=0)
+            restoreGeom(self, "editcurrent")
+            close_button = self.form.buttonBox.button(QDialogButtonBox.StandardButton.Close)
+            close_button.setShortcut(QKeySequence("Ctrl+Return"))
+            # qt5.14+ doesn't handle numpad enter on Windows
+            self.compat_add_shorcut = QShortcut(QKeySequence("Ctrl+Enter"), self)
+            qconnect(self.compat_add_shorcut.activated, close_button.click)
+            # gui_hooks.operation_did_execute.append(self.on_operation_did_execute)
+            self.show()
+
+        # def on_operation_did_execute(
+        #         self, changes: OpChanges, handler: Optional[object]
+        # ) -> None:
+        #     if changes.note_text and handler is not self.editor:
+        #         # reload note
+        #         note = self.editor.note
+        #         try:
+        #             note.load()
+        #         except NotFoundError:
+        #             # note's been deleted
+        #             self.cleanup()
+        #             self.close()
+        #             return
+        #
+        #         self.editor.set_note(note)
+
+        def cleanup(self) -> None:
+            # gui_hooks.operation_did_execute.remove(self.on_operation_did_execute)
+            self.editor.cleanup()
+            saveGeom(self, "editcurrent")
+            # aqt.dialogs.markClosed("EditCurrent")
+
+        def reopen(self, mw: aqt.AnkiQt) -> None:
+            if card := self.mw.reviewer.card:
+                self.editor.set_note(card.note())
+
+        def closeEvent(self, evt: QCloseEvent) -> None:
+            self.editor.call_after_note_saved(self.cleanup)
+
+        def _saveAndClose(self) -> None:
+            self.cleanup()
+            self.mw.deferred_delete_and_garbage_collect(self)
+            self.close()
+
+        def closeWithCallback(self, onsuccess: Callable[[], None]) -> None:
+            def callback() -> None:
+                self._saveAndClose()
+                onsuccess()
+
+            self.editor.call_after_note_saved(callback)
+
+        # onReset = on_operation_did_execute
+
+
     class NoteEditorDialog(QDialog):
         """
         TODO: note更新后要同步到对应的previewer
+        this is for 2.1.66 ,not available in 23.10+
         """
 
         def __init__(self, superior, mw, note:"common_tools.compatible_import.Anki.notes.Note"):
-            QDialog.__init__(self, None, Qt.Window)
+            QDialog.__init__(self, None, Qt.WindowType.Window)
             mw.setupDialogGC(self)
             self.superior=superior
             self.mw = mw
@@ -253,7 +329,11 @@ if not ISLOCAL:
             browser.onSearchActivated()
 
         def _on_edit_button(self):
-            self.editor = NoteEditorDialog(self,aqt.mw, self.mw.col.getNote(self.card().nid))
+            note = self.mw.col.getNote(self.card().nid)
+            if point_version()<=66:
+                self.editor = NoteEditorDialog(self,aqt.mw, note)
+            else:
+                self.editor =NewNoteEditorDialog(self,aqt.mw, note)
             self.editor.show()
             # aqt.QDialog.reject(self)
             # common_tools.funcs.PDFprev_close(self.card().id, all=True)

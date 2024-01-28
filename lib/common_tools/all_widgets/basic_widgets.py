@@ -107,7 +107,7 @@ class SelectorProtoType(QDialog):
     def init_model(self):
         self.view.setModel(self.model)
         self.model.setHorizontalHeaderLabels([self.model_header_name])
-        self.view.header().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.view.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.init_data()
         self.view.setColumnWidth(1, 30)
 
@@ -190,7 +190,7 @@ class SelectorProtoType(QDialog):
             super().__init__(data_name)
             self.data_id: "Optional[int]" = data_id
             self.level: "Optional[int]" = None
-            self.setFlags(self.flags() & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsDropEnabled)
+            self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsDragEnabled & ~Qt.ItemFlag.ItemIsDropEnabled)
         @property
         def Id_name(self):
             return G.safe.baseClass.IdName(self.item_name,self.data_id)
@@ -219,7 +219,7 @@ class multi_select_prototype(QDialog):
         self.新项目名字 = new_item
         self.view_left = self.View(self)
         self.view_right = self.View(self)
-        self.view_left.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.view_left.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.model_left = QStandardItemModel(self)
         self.model_right = QStandardItemModel(self)
         self.model_right_rootNode: "Optional[QStandardItemModel.invisibleRootItem]" = None
@@ -274,8 +274,8 @@ class multi_select_prototype(QDialog):
     def init_model(self):
         self.view_left.setModel(self.model_left)
         self.view_right.setModel(self.model_right)
-        self.view_left.header().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.view_right.header().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.view_left.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.view_right.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.init_data_left(init=True)
         self.init_data_right()
 
@@ -421,7 +421,7 @@ class multi_select_prototype(QDialog):
             if item_name:
                 new_item = item_name
             else:
-                new_item = f"""{self.superior.新项目名字}_{datetime.now().strftime("%Y%m%d%H%M%S")}"""
+                new_item = f"""{self.superior.新项目名字}_{datetime.datetime.now().strftime("%Y%m%d%H%M%S")}"""
             if from_posi:
                 item_parent = from_posi
                 new_full_item = new_item
@@ -507,7 +507,7 @@ class multi_select_prototype(QDialog):
             self.item_id: "Optional[int]" = item_ID
             self.level: "Optional[int]" = None
             if total_item:
-                self.setFlags(self.flags() & ~Qt.ItemIsDragEnabled & ~Qt.ItemIsDropEnabled & ~Qt.ItemIsEditable)
+                self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsDragEnabled & ~Qt.ItemFlag.ItemIsDropEnabled & ~Qt.ItemFlag.ItemIsEditable)
             self.last: "Optional[str]" = item_name
             self._item_name: "Optional[str]" = None
 

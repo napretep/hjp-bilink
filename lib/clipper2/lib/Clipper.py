@@ -26,7 +26,7 @@ class Clipper(QDialog):
         self.E = Entity()
         # self.E.pagepicker.browser.worker=FrameLoadWorker(self.E)
         self.imgDir = objs.SrcAdmin.call().imgDir
-        self.setAttribute(Qt.WA_DeleteOnClose, on=True)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
         self.signals = self.E.signals
         from .LittleWidgets import ClipperStateBoard
         self.E.state.board = ClipperStateBoard(self, self)
@@ -912,17 +912,17 @@ class Clipper(QDialog):
                 self.view.setModel(self.model)
                 self.view.header().setDefaultSectionSize(180)
                 self.view.header().setSectionsMovable(False)
-                self.view.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-                self.view.header().setSectionResizeMode(0, QHeaderView.Interactive)
-                self.view.header().setSectionResizeMode(1, QHeaderView.Stretch)
+                self.view.header().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+                self.view.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
+                self.view.header().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
                 self.view.setColumnWidth(1, 10)
 
             class PDFItem(QStandardItem):
                 def __init__(self, PDFName, selfData: "Clipper.PageItem"):
                     super().__init__(PDFName)
-                    self.setFlags(self.flags() & ~ Qt.ItemIsEditable & ~ Qt.ItemIsDragEnabled)
+                    self.setFlags(self.flags() & ~ Qt.ItemFlag.ItemIsEditable & ~ Qt.ItemFlag.ItemIsDragEnabled)
                     self.pageitem: "Clipper.PageItem" = selfData
-                    self.setData(selfData, Qt.UserRole)
+                    self.setData(selfData, Qt.ItemDataRole.UserRole)
                     self.setToolTip(selfData.pageinfo.pdf_path)
 
                 def update_data(self, caller, pageitem: "Clipper.PageItem"):
@@ -934,9 +934,9 @@ class Clipper(QDialog):
             class PageNumItem(QStandardItem):
                 def __init__(self, selfData: "Clipper.PageItem"):
                     super().__init__(str(selfData.pageinfo.pagenum))
-                    self.setFlags(self.flags() & ~ Qt.ItemIsEditable & ~ Qt.ItemIsDragEnabled)
+                    self.setFlags(self.flags() & ~ Qt.ItemFlag.ItemIsEditable & ~ Qt.ItemFlag.ItemIsDragEnabled)
                     self.pageitem: "Clipper.PageItem" = selfData
-                    self.setData(selfData, Qt.UserRole)
+                    self.setData(selfData, Qt.ItemDataRole.UserRole)
 
                 def update_data(self, caller, pageitem: "Clipper.PageItem"):
                     funcs.caller_check(Clipper.RightSideBar.changepage, caller, Clipper.RightSideBar)

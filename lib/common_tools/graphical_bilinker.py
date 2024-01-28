@@ -1054,8 +1054,8 @@ class VisualBilinker(QMainWindow):
             rectItem: "list[VisualBilinker.ItemRect]" = list(filter(lambda item: isinstance(item, VisualBilinker.ItemRect), self.superior.scene.selectedItems()))
             lineItem: "list[VisualBilinker.ItemEdge]" = list(filter(lambda item: isinstance(item, VisualBilinker.ItemEdge), self.superior.scene.selectedItems()))
 
-            code = QMessageBox.information(self, 译.你将删除这些结点, 译.你将删除这些结点, QMessageBox.Yes | QMessageBox.No)
-            if code == QMessageBox.Yes:
+            code = QMessageBox.information(self, 译.你将删除这些结点, 译.你将删除这些结点, QMessageBox_StandardButton.Yes | QMessageBox_StandardButton.No)
+            if code == QMessageBox_StandardButton.Yes:
                 if len(rectItem) > 0:
                     for item in rectItem:
                         self.deleteRectItem(item)

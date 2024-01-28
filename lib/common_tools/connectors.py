@@ -6,7 +6,8 @@ aqt = Anki.aqt
 if Anki.isQt6:
     from PyQt6.QtCore import pyqtSignal
     from PyQt6.QtGui import QKeySequence
-    from PyQt6.QtWidgets import QShortcut
+    # from PyQt6.QtWidgets import QShortcut
+    from PyQt6.QtGui import QShortcut
 else:
     from PyQt5.QtCore import pyqtSignal
     from PyQt5.QtGui import QKeySequence

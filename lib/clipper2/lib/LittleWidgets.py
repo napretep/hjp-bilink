@@ -93,7 +93,7 @@ class ClipboxInfo(QDialog):
                 box = QCheckBox(desc.text())
                 item = QListWidgetItem()
                 item.setToolTip(card_id.text())
-                item.setData(Qt.UserRole, desc)
+                item.setData(Qt.ItemDataRole.UserRole, desc)
                 self.card_list.addItem(item)
                 self.card_list.setItemWidget(item, box)
 

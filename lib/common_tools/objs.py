@@ -1271,7 +1271,7 @@ class Record(QObject):
             if not 新视图:
                 self.一致性检查()
             # print(f"initilizing gview config={self} ")
-            if self.静态_存在于数据库中(self.uuid):
+            if not self.静态_存在于数据库中(self.uuid):
                 self.saveModelToDB()
             # self.确定保存到数据库=True
 
@@ -1307,9 +1307,7 @@ class Record(QObject):
             return d
 
         def saveModelToDB(self):
-
             if self.data.元信息.确定保存到数据库:
-                # self.一致性检查()
                 from . import G, funcs
                 # funcs.Utils.print(self.data.get_dict())
                 G.DB.go(G.DB.table_GviewConfig)
@@ -1321,14 +1319,40 @@ class Record(QObject):
                     G.DB.insert(**self.getDict()).commit()
 
         def 指定视图配置(self, 视图编号):
+            """本函数将移除旧配置，添加新配置"""
+            gviewdata:"safe.funcs.GViewData" = None
             if type(视图编号) == str:
-                if 视图编号 not in self.data.appliedGview.value:
-                    self.data.appliedGview.value.append(视图编号)
+                gviewdata = safe.funcs.GviewOperation.load(uuid=视图编号)
             elif isinstance(视图编号, safe.funcs.GViewData):
-                视图编号.config = self.uuid
-                视图编号.config_model = self
-                if 视图编号.uuid not in self.data.appliedGview.value:
-                    self.data.appliedGview.value.append(视图编号.uuid)
+                gviewdata = 视图编号
+            if gviewdata is None:
+                raise ValueError(f"{type(视图编号)}-非法视图标识")
+            else:
+
+                # 移除旧的
+                gview_list:list =gviewdata.config_model.data.appliedGview.value
+                if gviewdata.uuid in gview_list:
+                    gview_list.remove(gviewdata.uuid)
+                if len(gview_list)>0:
+                    gviewdata.config_model.saveModelToDB()
+                else:
+                    gviewdata.config_model.从数据库中删除()
+                # 插入新的
+                gviewdata.config = self.uuid
+                if gviewdata.uuid not in self.data.appliedGview.value:
+                    self.data.appliedGview.value.append(gviewdata.uuid)
+                self.saveModelToDB()
+                # 保存gviewdata
+                safe.funcs.GviewOperation.save(gviewdata)
+            # if type(视图编号) == str:
+            #     if 视图编号 not in self.data.appliedGview.value:
+            #         self.data.appliedGview.value.append(视图编号)
+            #     data = safe.funcs.GviewOperation.load(uuid=视图编号)
+            # elif isinstance(视图编号, safe.funcs.GViewData):
+            #     视图编号.config = self.uuid
+            #     视图编号.config_model = self
+            #     if 视图编号.uuid not in self.data.appliedGview.value:
+            #         self.data.appliedGview.value.append(视图编号.uuid)
             # self.data.appliedGview.setValue(视图编号)
 
         def 删除一个支配视图(self, 编号):
@@ -1360,6 +1384,7 @@ class Record(QObject):
             result: "Record.GviewConfig" = \
             DB.select(Logic.EQ(uuid=uuid)).return_all().zip_up().to_givenformat_data(Record.GviewConfig,
                                                                                      multiArgs=True)[0]
+
 
             return result
 

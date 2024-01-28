@@ -277,7 +277,7 @@ class PDFPrevDialog(QDialog):
             self.h_layout.addWidget(self.view)
             self.setLayout(self.h_layout)
             self.init_data()
-            self.view.header().setSectionResizeMode(QHeaderView.ResizeToContents)
+            self.view.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
             self.view.resizeColumnToContents(0)
             self.view.resizeColumnToContents(1)
             self.model.setHorizontalHeaderLabels(["card_id", "desc"])
@@ -325,9 +325,9 @@ class PDFPrevDialog(QDialog):
 
             def __init__(self, superior: "PDFPrevDialog.RightSideBakclink", role, s):
                 super().__init__(s)
-                self.setData(role, role=Qt.UserRole)
+                self.setData(role, role=Qt.ItemDataRole.UserRole)
                 self.superior = superior
-                self.setFlags(self.flags() & ~Qt.ItemIsEditable)
+                self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsEditable)
 
         class Delegate(QStyledItemDelegate):
             myRole = 999
@@ -341,23 +341,23 @@ class PDFPrevDialog(QDialog):
                 painter.save()
                 DB = tools.objs.SrcAdmin.DB
 
-                if index.data(Qt.UserRole) == item.type.pdfuuid:
-                    pdfuuid = index.data(Qt.DisplayRole)
+                if index.data(Qt.ItemDataRole.UserRole) == item.type.pdfuuid:
+                    pdfuuid = index.data(Qt.ItemDataRole.DisplayRole)
                     pdfinfo = DB.go(DB.table_pdfinfo).select(uuid=pdfuuid).return_all().zip_up().to_pdfinfo_data()[0]
 
                     pdfname = tools.funcs.str_shorten(os.path.basename(pdfinfo.pdf_path))
-                    painter.drawText(option.rect, Qt.AlignLeft, pdfname)
+                    painter.drawText(option.rect, Qt.AlignmentFlag.AlignLeft, pdfname)
                     pass
-                elif index.data(Qt.UserRole) == item.type.pagenum:
-                    pdfuuid = index.parent().data(Qt.DisplayRole)
+                elif index.data(Qt.ItemDataRole.UserRole) == item.type.pagenum:
+                    pdfuuid = index.parent().data(Qt.ItemDataRole.DisplayRole)
                     pdfinfo = DB.go(DB.table_pdfinfo).select(uuid=pdfuuid).return_all().zip_up().to_pdfinfo_data()[0]
-                    pagenum = int(index.data(Qt.DisplayRole))
+                    pagenum = int(index.data(Qt.ItemDataRole.DisplayRole))
                     final_text = f"""PDF page at:{pagenum}  book page at:{pagenum - pdfinfo.offset + 1}  """
-                    painter.drawText(option.rect, Qt.AlignLeft, final_text)
+                    painter.drawText(option.rect, Qt.AlignmentFlag.AlignLeft, final_text)
                     pass
-                elif index.data(Qt.UserRole) == item.type.clipuuid:
+                elif index.data(Qt.ItemDataRole.UserRole) == item.type.clipuuid:
 
-                    clipuuid = index.data(Qt.DisplayRole)
+                    clipuuid = index.data(Qt.ItemDataRole.DisplayRole)
                     clip = DB.go(DB.table_clipbox).select(uuid=clipuuid).return_all().zip_up().to_clipbox_data()[0]
                     pdfinfo = DB.go(DB.table_pdfinfo).select(uuid=clip.pdfuuid).return_all().zip_up().to_pdfinfo_data()[
                         0]
@@ -377,7 +377,7 @@ class PDFPrevDialog(QDialog):
 
             def sizeHint(self, option: 'QStyleOptionViewItem', index: QtCore.QModelIndex) -> QtCore.QSize:
                 item = self.superior.Item
-                if index.data(Qt.UserRole) == item.type.clipuuid:
+                if index.data(Qt.ItemDataRole.UserRole) == item.type.clipuuid:
                     if index.data(self.myRole):
                         t = self.superior.view.indentation()
                         w, h = index.data(self.myRole)
@@ -1643,13 +1643,13 @@ class PDFPrevDialog(QDialog):
             clipboxlist_temp = []
             for i in range(self.table.api.mymodel.rowCount()):
                 clipbox_dict: "dict" = self.table.api.mymodel.item(i, self.table.pixmap).data(
-                    role=Qt.UserRole).self_info_get()
+                    role=Qt.ItemDataRole.UserRole).self_info_get()
                 clipbox_dict["card_desc"] = self.table.api.mymodel.item(i, self.table.card_desc).data(
-                    role=Qt.DisplayRole)
-                clipbox_dict["QA"] = int(self.table.api.mymodel.item(i, self.table.to_field).data(role=Qt.DisplayRole))
+                    role=Qt.ItemDataRole.DisplayRole)
+                clipbox_dict["QA"] = int(self.table.api.mymodel.item(i, self.table.to_field).data(role=Qt.ItemDataRole.DisplayRole))
                 clipbox_dict["commentQA"] = int(
-                    self.table.api.mymodel.item(i, self.table.comment_to_field).data(role=Qt.DisplayRole))
-                clipbox_dict["comment"] = self.table.api.mymodel.item(i, self.table.comment).data(role=Qt.DisplayRole)
+                    self.table.api.mymodel.item(i, self.table.comment_to_field).data(role=Qt.ItemDataRole.DisplayRole))
+                clipbox_dict["comment"] = self.table.api.mymodel.item(i, self.table.comment).data(role=Qt.ItemDataRole.DisplayRole)
                 clipboxlist_temp.append(clipbox_dict)
                 clipbox_dict["pdfuuid"] = self.pdfprevdialog.pdfuuid
             # print(clipboxlist_temp)
@@ -1764,8 +1764,8 @@ class PDFPrevDialog(QDialog):
                 self.init_UI()
 
             def init_UI(self):
-                data = self.index.data(role=Qt.UserRole)
-                text = self.index.data(role=Qt.DisplayRole)
+                data = self.index.data(role=Qt.ItemDataRole.UserRole)
+                text = self.index.data(role=Qt.ItemDataRole.DisplayRole)
                 for i in data:
                     self.addItem(i)
                 idx = self.findText(text)
@@ -1787,15 +1787,15 @@ class PDFPrevDialog(QDialog):
                 self.table = table
 
             def paint(self, painter: "QPainter", option: "QStyleOptionViewItem", index: "QModelIndex"):
-                value = index.model().data(index, Qt.DisplayRole)
+                value = index.model().data(index, Qt.ItemDataRole.DisplayRole)
                 if index.column() == self.pixmap:
 
                     # v = min(option.rect.height(), option.rect.height())/
                     pixmap = QPixmap(value).scaledToHeight(option.rect.height())
                     middle = int(option.rect.width() / 2 - pixmap.width() / 2)
-                    option.displayAlignment = Qt.AlignRight | Qt.AlignVCenter
+                    option.displayAlignment = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
                     painter.drawPixmap(QRect(middle, option.rect.top(), pixmap.width(), pixmap.height()), pixmap)
-                    index.model().setData(index, [pixmap.size().width(), pixmap.size().height()], Qt.SizeHintRole)
+                    index.model().setData(index, [pixmap.size().width(), pixmap.size().height()], Qt.ItemDataRole.SizeHintRole)
                 else:
                     super().paint(painter, option, index)
 
@@ -1817,7 +1817,7 @@ class PDFPrevDialog(QDialog):
             def setEditorData(self, editor, index: QtCore.QModelIndex) -> None:
                 if index.column() == self.comment:
                     e: QTextEdit = editor
-                    text = index.data(role=Qt.DisplayRole)
+                    text = index.data(role=Qt.ItemDataRole.DisplayRole)
                     e.setPlainText(text)
                 else:
                     super().setEditorData(editor, index)
@@ -1826,7 +1826,7 @@ class PDFPrevDialog(QDialog):
                              index: QtCore.QModelIndex) -> None:
                 if index.column() == self.comment:
                     e: QTextEdit = editor
-                    model.setData(index, e.toPlainText(), role=Qt.DisplayRole)
+                    model.setData(index, e.toPlainText(), role=Qt.ItemDataRole.DisplayRole)
 
                 else:
                     super().setModelData(editor, model, index)
@@ -1888,7 +1888,7 @@ class PDFPrevDialog(QDialog):
             def on_doubleClicked_handle(self, index: "QModelIndex"):
                 # print(index)
                 if index.column() == self.pixmap:
-                    img = index.data(role=Qt.DisplayRole)
+                    img = index.data(role=Qt.ItemDataRole.DisplayRole)
                     pixmap = QPixmap(img)
                     dialog = QDialog(self.parent())
                     label = QLabel(dialog)
@@ -1897,7 +1897,7 @@ class PDFPrevDialog(QDialog):
                     v_layout.addWidget(label)
                     dialog.setLayout(v_layout)
                     dialog.resize(pixmap.size())
-                    dialog.setWindowModality(Qt.NonModal)
+                    dialog.setWindowModality(Qt.WindowModality.NonModal)
                     dialog.setModal(False)
                     dialog.show()
                     self.imgli.append(dialog)
@@ -1905,9 +1905,9 @@ class PDFPrevDialog(QDialog):
             def on_combox_addItem_handle(self):
                 for i in range(self.mymodel.rowCount()):
                     item = self.mymodel.item(i, self.card_desc)
-                    data: list = item.data(role=Qt.UserRole)
+                    data: list = item.data(role=Qt.ItemDataRole.UserRole)
                     data.append(PDFPrevDialog.CorrectionDialog.Combox.new_card + f"_{len(data)}")
-                    item.setData(data, role=Qt.UserRole)
+                    item.setData(data, role=Qt.ItemDataRole.UserRole)
 
             def init_UI(self):
                 self.mymodel.setHorizontalHeaderLabels(self.headerli)
@@ -1917,7 +1917,7 @@ class PDFPrevDialog(QDialog):
                 h_header.setSectionResizeMode(h_header.Interactive)
                 h_header.setSectionResizeMode(0, h_header.Stretch)
                 h_header.setSectionResizeMode(1, h_header.Stretch)
-                h_header.setSectionResizeMode(self.card_desc, h_header.ResizeToContents)
+                h_header.setSectionResizeMode(self.card_desc, h_header.ResizeMode.ResizeToContents)
                 self.setSelectionMode(self.NoSelection)
                 v_header: "QHeaderView" = self.verticalHeader()
                 v_header.setSectionResizeMode(v_header.Interactive)
@@ -1930,8 +1930,8 @@ class PDFPrevDialog(QDialog):
                     curr_card = PDFPrevDialog.CorrectionDialog.Combox.curr_card
                     row = [QStandardItem(i) for i in
                            [clipbox.api.clip_img_save(), "", str(clipinfo["pagenum"]), curr_card, "0", "0", ""]]
-                    row[self.card_desc].setData([], role=Qt.UserRole)  # 用来保存combox能选择的内容
-                    row[self.pixmap].setData(clipbox, role=Qt.UserRole)  # 用来删除指定的clipbox
+                    row[self.card_desc].setData([], role=Qt.ItemDataRole.UserRole)  # 用来保存combox能选择的内容
+                    row[self.pixmap].setData(clipbox, role=Qt.ItemDataRole.UserRole)  # 用来删除指定的clipbox
                     self.mymodel.appendRow(row)
                 for i in range(self.mymodel.rowCount()):
                     t = PDFPrevDialog.CorrectionDialog.ToolButton(

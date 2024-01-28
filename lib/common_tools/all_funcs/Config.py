@@ -88,7 +88,7 @@ class BaseConfig(metaclass=abc.ABCMeta):
             w = QComboBox(container)
             list(map(lambda x: w.addItem(x.name, x.value), 配置项.limit))
             w.setCurrentIndex(w.findData(value))
-            w.currentIndexChanged.connect(lambda x: 配置项.setValue(w.currentData(role=Qt.UserRole)))
+            w.currentIndexChanged.connect(lambda x: 配置项.setValue(w.currentData(role=Qt.ItemDataRole.UserRole)))
             配置项.设值到组件 = lambda 值: w.setCurrentIndex(w.findData(值))
         elif widgetType == typ.radio:
             w = QRadioButton(container)
@@ -154,7 +154,7 @@ class BaseConfig(metaclass=abc.ABCMeta):
         滚动组件.setContentsMargins(0, 0, 0, 0)
         滚动组件.setMinimumHeight(500)
         滚动组件.setWidgetResizable(True)
-        滚动组件.setAlignment(Qt.AlignCenter)
+        滚动组件.setAlignment(Qt.AlignmentFlag.AlignCenter)
         总布局.addWidget(滚动组件, stretch=1)
         容器.setLayout(总布局)
         # 容器.resize(int(分栏.width() * 1.1), 500)
@@ -476,23 +476,23 @@ class GviewConfigOperation(BaseConfig):
                      新配置记录: "G.objs.Record.GviewConfig|str|None" = None, need_save=True, 视图初始化中=False):
         """如果是从 grapher 中打开的，最好直接读取视图记录本身 而非编号"""
         DB = G.DB
-        def 清空无效配置():
-            空集: List[G.objs.Record.GviewConfig] = DB.go(DB.table_GviewConfig).select(
-                DB.LIKE("data", '"appliedGview": [], "node_role_list"')) \
-                .return_all().zip_up().to_givenformat_data(G.objs.Record.GviewConfig, multiArgs=True)
-            # Utils.print(空集)
-            for 配置 in 空集:
-                配置.从数据库中删除()
-        def 清空视图之前对应的配置(视图数据:G.safe.configsModel.GViewData):
-
-            配置集:List[G.objs.Record.GviewConfig] = DB.go(DB.table_GviewConfig).select(DB.LIKE("data",视图数据.uuid))\
-                .return_all().zip_up().to_givenformat_data(G.objs.Record.GviewConfig, multiArgs=True)
-            for 配置 in 配置集:
-                配置.删除一个支配视图(视图数据.uuid)
-                if 配置.data.appliedGview.value:
-                    配置.saveModelToDB()
-                else:
-                    配置.从数据库中删除()
+        # def 清空无效配置():
+        #     空集: List[G.objs.Record.GviewConfig] = DB.go(DB.table_GviewConfig).select(
+        #         DB.LIKE("data", '"appliedGview": [], "node_role_list"')) \
+        #         .return_all().zip_up().to_givenformat_data(G.objs.Record.GviewConfig, multiArgs=True)
+        #     # Utils.print(空集)
+        #     for 配置 in 空集:
+        #         配置.从数据库中删除()
+        # def 清空视图之前对应的配置(视图数据:G.safe.configsModel.GViewData):
+        #
+        #     配置集:List[G.objs.Record.GviewConfig] = DB.go(DB.table_GviewConfig).select(DB.LIKE("data",视图数据.uuid))\
+        #         .return_all().zip_up().to_givenformat_data(G.objs.Record.GviewConfig, multiArgs=True)
+        #     for 配置 in 配置集:
+        #         配置.删除一个支配视图(视图数据.uuid)
+        #         if 配置.data.appliedGview.value:
+        #             配置.saveModelToDB()
+        #         else:
+        #             配置.从数据库中删除()
 
 
 
@@ -500,16 +500,8 @@ class GviewConfigOperation(BaseConfig):
             新配置记录 = G.objs.Record.GviewConfig()
         elif type(新配置记录) == str:
             新配置记录 = G.objs.Record.GviewConfig.readModelFromDB(新配置记录)
-
-
-        if type(视图记录) == str:
-            视图记录 = 导入.Gview.Gview.load(视图记录)
-
-        清空无效配置()
-        清空视图之前对应的配置(视图记录)
         新配置记录.指定视图配置(视图记录)
-        if need_save:
-            导入.Gview.GviewOperation.save(视图记录)
+
 
         return 新配置记录
 

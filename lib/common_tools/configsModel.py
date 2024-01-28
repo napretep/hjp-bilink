@@ -119,12 +119,20 @@ class GViewData:
 
         if not safe.funcs.GviewConfigOperation.存在(self.config):
             # safe.funcs.GviewConfigOperation.指定视图配置(self,need_save=False)
+            # 视图指定新配置
             self.config_model = safe.objs.Record.GviewConfig()
-            self.config_model.指定视图配置(self)
+            self.config = self.config_model.uuid
+            gview_list:list = self.config_model.data.appliedGview.value
+            gview_list.append(self.uuid)
             self.config_model.saveModelToDB()
+            # self.config_model.saveModelToDB()
         else:
+            # 视图读取旧配置
             self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)
-            self.config_model.指定视图配置(self)
+            # 视图维护旧配置
+            if self.uuid not in self.config_model.data.appliedGview.value:
+                self.config_model.data.appliedGview.value.append(self.uuid)
+                self.config_model.saveModelToDB()
 
         # if safe.funcs.GviewConfigOperation.存在(self.config):
         #     self.config_model = safe.funcs.GviewConfigOperation.从数据库读(self.config)

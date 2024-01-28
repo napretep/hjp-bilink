@@ -187,14 +187,14 @@ class ConfigTable(QDialog):
                 self.layoutHorizontalRowCountWidget.setValue(config.layout_row_per_col)
                 self.layoutVerticalColCountWidget.setValue(config.layout_col_per_row)
                 self.layoutModeWidget.setCurrentIndex(
-                    self.layoutModeWidget.findData(config.layout_mode, role=Qt.UserRole))
+                    self.layoutModeWidget.findData(config.layout_mode, role=Qt.ItemDataRole.UserRole))
                 self.showhide_ColRow_count()
 
             def on_layoutmodewidget_currentIndexChanged_handle(self, index):
                 self.showhide_ColRow_count()
 
             def showhide_ColRow_count(self):
-                layoutmode = self.layoutModeWidget.currentData(Qt.UserRole)
+                layoutmode = self.layoutModeWidget.currentData(Qt.ItemDataRole.UserRole)
                 if layoutmode == self.viewlayoutName.Vertical:
                     self.layoutHorizontalRowCountWidget.setEnabled(False)
                     self.layoutVerticalColCountWidget.setEnabled(True)
@@ -209,7 +209,7 @@ class ConfigTable(QDialog):
             def return_data(self):
                 data_map = {
                     "mainview.layout_col_per_row": self.layoutVerticalColCountWidget.value(),
-                    "mainview.layout_mode": self.layoutModeWidget.currentData(Qt.UserRole),
+                    "mainview.layout_mode": self.layoutModeWidget.currentData(Qt.ItemDataRole.UserRole),
                     "mainview.layout_row_per_col": self.layoutHorizontalRowCountWidget.value()
                 }
                 return data_map
@@ -309,7 +309,7 @@ class ConfigTable(QDialog):
 
             def load_data(self):
                 config = self.root.E.config.output
-                index = self.needRatioFixWidget.findData(config.needRatioFix, role=Qt.UserRole)
+                index = self.needRatioFixWidget.findData(config.needRatioFix, role=Qt.ItemDataRole.UserRole)
                 self.needRatioFixWidget.setCurrentIndex(index)
                 self.RatioFixWidget.setValue(config.RatioFix)
                 self.widget_clipbox_close_after_insert.setChecked(config.close_clipbox_after_insert)
@@ -327,7 +327,7 @@ class ConfigTable(QDialog):
                     self.widget_clipbox_close_after_insert.setEnabled(True)
 
             def spinbox_enable_switch(self, index):
-                if self.needRatioFixWidget.itemData(index, Qt.UserRole) == self.schema.needratiofix_mode.no:
+                if self.needRatioFixWidget.itemData(index, Qt.ItemDataRole.UserRole) == self.schema.needratiofix_mode.no:
                     self.RatioFixWidget.setDisabled(True)
                 else:
                     self.RatioFixWidget.setDisabled(False)
@@ -335,7 +335,7 @@ class ConfigTable(QDialog):
             def return_data(self):
                 data_map = {
                     "output.RatioFix": self.RatioFixWidget.value(),
-                    "output.needRatioFix": self.needRatioFixWidget.currentData(Qt.UserRole),
+                    "output.needRatioFix": self.needRatioFixWidget.currentData(Qt.ItemDataRole.UserRole),
                     "output.closeClipper": self.widget_clipper_close_after_insert.isChecked(),
                     "output.closeClipbox": self.widget_clipbox_close_after_insert.isChecked()
                 }
@@ -407,7 +407,7 @@ class ConfigTable(QDialog):
                 for item in modeldata:
                     self.newcard_model_id_widget.addItem(item["name"], userData=item["id"])
                 curr_data = config.newcard_model_id
-                idx = self.newcard_model_id_widget.findData(curr_data, role=Qt.UserRole)
+                idx = self.newcard_model_id_widget.findData(curr_data, role=Qt.ItemDataRole.UserRole)
                 if curr_data != 0 and idx > -1:
                     self.newcard_model_id_widget.setCurrentIndex(idx)
                 else:
@@ -419,7 +419,7 @@ class ConfigTable(QDialog):
                 for item in deckdata:
                     self.newcard_deck_id_widget.addItem(item["name"], userData=item["id"])
                 curr_data = config.newcard_deck_id
-                idx = self.newcard_deck_id_widget.findData(curr_data, role=Qt.UserRole)
+                idx = self.newcard_deck_id_widget.findData(curr_data, role=Qt.ItemDataRole.UserRole)
                 if curr_data != 0 and idx > -1:
                     self.newcard_deck_id_widget.setCurrentIndex(idx)
                 else:
@@ -428,8 +428,8 @@ class ConfigTable(QDialog):
             def return_data(self):
                 data_map = {
                     "clipbox.macro": self.macro_widget.return_data(),
-                    "clipbox.newcard_model_id": self.newcard_model_id_widget.currentData(Qt.UserRole),
-                    "clipbox.newcard_deck_id": self.newcard_deck_id_widget.currentData(Qt.UserRole),
+                    "clipbox.newcard_model_id": self.newcard_model_id_widget.currentData(Qt.ItemDataRole.UserRole),
+                    "clipbox.newcard_deck_id": self.newcard_deck_id_widget.currentData(Qt.ItemDataRole.UserRole),
                     "clipbox.Q_map_Field": self.Q_widget.value(),
                     "clipbox.A_map_Field": self.A_widget.value(),
                     "clipbox.comment_A_map_Field": self.comment_A_widget.value(),

@@ -48,7 +48,7 @@ class VersionDialog(QMainWindow):
 
     def init_UI(self):
         """UI初始化"""
-        self.setAttribute(Qt.WA_DeleteOnClose, on=True)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
         self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.info))
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.viewList_HTMLFilename.setObjectName("versionlist")

@@ -735,7 +735,7 @@ class MonkeyPatch:
             if isWin:
                 # on windows we can raise the window by minimizing and restoring
                 self.showMinimized()
-                self.setWindowState(Qt.WindowActive)
+                self.setWindowState(Qt.WindowState.WindowActive)
                 self.showNormal()
             else:
                 # on osx we can raise the window. on unity the icon in the tray will just flash.

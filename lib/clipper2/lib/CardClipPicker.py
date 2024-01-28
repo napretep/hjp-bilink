@@ -107,8 +107,8 @@ class CardClipboxPicker(QDialog):
         self.close()
 
     def on_center_tree_view_doubleClicked_handle(self, index: "QModelIndex"):
-        if index.data(Qt.UserRole) == self.center_tree.Item.API.clip:
-            clipuuid = index.data(Qt.DisplayRole)
+        if index.data(Qt.ItemDataRole.UserRole) == self.center_tree.Item.API.clip:
+            clipuuid = index.data(Qt.ItemDataRole.DisplayRole)
             if clipuuid in self.root.E.clipbox.container:
                 tooltip("选框已存在,不可重复添加\n clipbox already exists and cannot be added repeatedly")
                 return
@@ -205,25 +205,25 @@ class CardClipboxPicker(QDialog):
                 painter.save()
                 DB = self.superior.superior.DB
 
-                if index.data(Qt.UserRole) == item.API.pdf:
-                    pdfuuid = index.data(Qt.DisplayRole)
+                if index.data(Qt.ItemDataRole.UserRole) == item.API.pdf:
+                    pdfuuid = index.data(Qt.ItemDataRole.DisplayRole)
                     pdfinfo = \
                     DB.go(DB.table_pdfinfo).select(DB.EQ(uuid=pdfuuid)).return_all().zip_up().to_pdfinfo_data()[0]
 
                     pdfname = funcs.str_shorten(os.path.basename(pdfinfo.pdf_path))
-                    painter.drawText(option.rect, Qt.AlignLeft, pdfname)
+                    painter.drawText(option.rect, Qt.AlignmentFlag.AlignLeft, pdfname)
                     pass
-                elif index.data(Qt.UserRole) == item.API.page:
-                    pdfuuid = index.parent().data(Qt.DisplayRole)
+                elif index.data(Qt.ItemDataRole.UserRole) == item.API.page:
+                    pdfuuid = index.parent().data(Qt.ItemDataRole.DisplayRole)
                     pdfinfo = \
                     DB.go(DB.table_pdfinfo).select(DB.EQ(uuid=pdfuuid)).return_all().zip_up().to_pdfinfo_data()[0]
-                    pagenum = int(index.data(Qt.DisplayRole))
+                    pagenum = int(index.data(Qt.ItemDataRole.DisplayRole))
                     final_text = f"""PDF page at:{pagenum}  book page at:{pagenum - pdfinfo.offset + 1}  """
-                    painter.drawText(option.rect, Qt.AlignLeft, final_text)
+                    painter.drawText(option.rect, Qt.AlignmentFlag.AlignLeft, final_text)
                     pass
-                elif index.data(Qt.UserRole) == item.API.clip:
+                elif index.data(Qt.ItemDataRole.UserRole) == item.API.clip:
 
-                    clipuuid = index.data(Qt.DisplayRole)
+                    clipuuid = index.data(Qt.ItemDataRole.DisplayRole)
                     clip = DB.go(DB.table_clipbox).select(DB.EQ(uuid=clipuuid)).return_all().zip_up().to_clipbox_data()[
                         0]
                     pdfinfo = \
@@ -235,7 +235,7 @@ class CardClipboxPicker(QDialog):
                     if option.state & QStyle.State_Selected:
                         painter.setPen(QPen(QColor("#e3e3e5")))
                         painter.setBrush(QColor("#e3e3e5"))
-                        painter.drawText(rect, Qt.AlignLeft, "✅")
+                        painter.drawText(rect, Qt.AlignmentFlag.AlignLeft, "✅")
                     index.model().setData(index, [pixmap.size().width(), pixmap.size().height()], role=self.myRole)
                     pass
                 else:
@@ -257,11 +257,11 @@ class CardClipboxPicker(QDialog):
             def __init__(self, superior: "CardClipboxPicker.CenterTree", character, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 self.superior = superior
-                self.setData(character, role=Qt.UserRole)
+                self.setData(character, role=Qt.ItemDataRole.UserRole)
                 self.api = self.API(self)
-                self.setFlags(self.flags() & ~ Qt.ItemIsEditable)
+                self.setFlags(self.flags() & ~ Qt.ItemFlag.ItemIsEditable)
                 if character != self.api.clip:
-                    self.setFlags(self.flags() & ~Qt.ItemIsSelectable)
+                    self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsSelectable)
 
             class API:
                 pdf, page, clip = 0, 1, 2

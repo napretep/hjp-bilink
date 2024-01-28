@@ -136,7 +136,7 @@ class ConfigTableView(CustomConfigItemView, metaclass=abc.ABCMeta):
 
         self.viewTable.setCurrentIndex(row)
         self.viewTable.selectionModel().clearSelection()
-        self.viewTable.selectionModel().select(self.viewTable.currentIndex(), QItemSelectionModel.Select)
+        self.viewTable.selectionModel().select(self.viewTable.currentIndex(), QItemSelectionModel.SelectionFlag.Select)
 
     def RemoveRow(self):
         idx = self.viewTable.selectedIndexes()

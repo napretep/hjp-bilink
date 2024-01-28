@@ -57,7 +57,7 @@ class Utils:
 try:
     import aqt
     ISLOCAL = False
-except:
+except: # ISLOCAL的意思是从pycharm打开而非ANKI打开
     ISLOCAL = True
 
 class Anki:

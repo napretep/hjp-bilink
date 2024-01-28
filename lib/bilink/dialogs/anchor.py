@@ -353,15 +353,15 @@ class AnchorDialog(QDialog):
         self.attr.card_dict[card_id] = item
 
     def init_UI(self):
-        self.setAttribute(Qt.WA_DeleteOnClose, on=True)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
         self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.anchor))
         self.setWindowTitle(f"""anchor of [desc={self.attr.linkdata.self_data.desc},card_id={self.card_id}]""")
         self.setAcceptDrops(True)
         self.view.setSelectionMode(common_tools.compatible_import.QAbstractItemViewSelectMode.ExtendedSelection)
         self.view.setDragDropMode(common_tools.compatible_import.DragDropMode.DragDrop)
         self.view.setIndentation(8)
-        self.view.header().setSectionResizeMode(QHeaderView.ResizeToContents)
-        self.view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.view.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        self.view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.setContentsMargins(0,0,0,0)
         func_wrapper = common_tools.wrappers.func_wrapper
         self.view.expandAll = func_wrapper(after=[lambda: self.state.__setattr__("view_is_expanded", True)])(
@@ -415,8 +415,8 @@ class AnchorDialog(QDialog):
             self.character = character
             self.level = level
             self.primData = primData
-            if character in {self.card_id, self.empty}: self.setFlags(self.flags() & ~Qt.ItemIsEditable)
-            if character in {self.desc, self.empty}: self.setFlags(self.flags() & ~Qt.ItemIsDropEnabled)
+            if character in {self.card_id, self.empty}: self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            if character in {self.desc, self.empty}: self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
 
         def __repr__(self):
             return f"""<{self.text()},{self.chara[self.character]},level={self.level}>"""

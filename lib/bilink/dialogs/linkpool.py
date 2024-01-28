@@ -267,14 +267,14 @@ class LinkPoolDialog(QDialog):
 
     def init_UI(self):
 
-        self.setAttribute(Qt.WA_DeleteOnClose, on=True)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, on=True)
         self.setWindowTitle(common_tools.funcs.译.双链分组器)
         self.setWindowIcon(QIcon(common_tools.G.src.ImgDir.input))
         self.setAcceptDrops(True)
         self.view.setSelectionMode(common_tools.compatible_import.QAbstractItemViewSelectMode.ExtendedSelection)
         self.view.setDragDropMode(common_tools.compatible_import.DragDropMode.DragDrop)
         self.view.setIndentation(8)
-        self.view.header().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.view.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.view.setContextMenuPolicy(Qt.CustomContextMenu)
         V = QVBoxLayout(self)
         V.addWidget(self.view)
@@ -361,10 +361,10 @@ class LinkPoolDialog(QDialog):
             self.level = level
             self.primData = primData
 
-            if character in {self.card_id, self.empty, self.group}: self.setFlags(self.flags() & ~Qt.ItemIsEditable)
-            if character in {self.desc, self.empty}: self.setFlags(self.flags() & ~Qt.ItemIsDropEnabled)
-            if character in {self.group, self.empty, self.desc}: self.setFlags(self.flags() & ~Qt.ItemIsDragEnabled)
-            if character in {self.group, self.empty}: self.setFlags(self.flags() & ~Qt.ItemIsSelectable)
+            if character in {self.card_id, self.empty, self.group}: self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            if character in {self.desc, self.empty}: self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
+            if character in {self.group, self.empty, self.desc}: self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsDragEnabled)
+            if character in {self.group, self.empty}: self.setFlags(self.flags() & ~Qt.ItemFlag.ItemIsSelectable)
 
         def __repr__(self):
             return f"""<{self.text()},{self.chara[self.character]},level={self.level}>"""
