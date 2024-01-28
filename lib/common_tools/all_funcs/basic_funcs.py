@@ -1,4 +1,5 @@
 import abc, dataclasses
+import os
 
 from .. import G, language
 from ..compatible_import import *
@@ -389,7 +390,11 @@ class Utils(object):
             if not os.path.exists(网络版地址):
                 return False
             else:
-                return json.load(open(os.path.join(网络版地址, "meta.json")))["disabled"] == False
+                meta_path = os.path.join(网络版地址, "meta.json")
+                if not os.path.exists(meta_path):
+                    return False
+                else:
+                    return json.load(open(meta_path))["disabled"] == False
             pass
 
         @staticmethod
@@ -398,7 +403,11 @@ class Utils(object):
             if not os.path.exists(本地版地址):
                 return False
             else:
-                return json.load(open(os.path.join(本地版地址, "meta.json")))["disabled"] == False
+                meta_path = os.path.join(本地版地址, "meta.json")
+                if not os.path.exists(meta_path):
+                    return False
+                else:
+                    return json.load(open(meta_path))["disabled"] == False
             pass
             pass
 
