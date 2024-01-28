@@ -12,7 +12,6 @@
 from .lib.common_tools import connectors
 from .lib.common_tools import compatible_import
 
-#
 
 
 connectors.funcs.G.src.ADDON_VERSION="dev"

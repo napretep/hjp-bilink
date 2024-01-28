@@ -366,10 +366,12 @@ class Utils(object):
 
         @staticmethod
         def 版本冲突():
+            # 返回是否版本有冲突
             本地版地址 = G.src.path.local_version
             网络版地址 = G.src.path.web_version
             开发版地址 = G.src.path.dev_version
             当前插件地址 = G.src.path.root
+
             if 当前插件地址 == 开发版地址:
                 tooltip("dev mode")
                 return False

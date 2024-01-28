@@ -54,7 +54,7 @@ class SrcAdmin:
         addons21:"str" = os.path.split(root)[0]
         web_version: "str" = os.path.join(addons21, "1420819673")
         local_version:"str" = os.path.join(addons21,"hjp_linkmaster")
-        dev_version:"str" = os.path.join(addons21,"hjp-bilink")
+        dev_version:"str" = os.path.join(addons21,"hjp_linkmaster_dev")
         user: "str" = os.path.join(root, "user_files")
         resource: "str" = os.path.join(lib, "resource")
         resource_data: "str" = os.path.join(resource, "data")

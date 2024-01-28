@@ -59,13 +59,15 @@ def get_browser_menu(browser: "Browser"):
 
 
 def get_mainWin_menu():
-    if not isinstance(mw.__dict__[G.src.dialog_name], QMenu):
-        M: "QMenu" = QMenu(G.src.addon_name + "_v" + G.src.ADDON_VERSION)
-        mw.__dict__[G.src.dialog_name] = M
+    addon_name = G.src.addon_name + "_v" + G.src.ADDON_VERSION
+    if addon_name not in mw.__dict__:
+        M: "QMenu" = QMenu(addon_name)
+        showInfo(addon_name)
+        mw.__dict__[addon_name] = M
         mw.menuBar().addMenu(M)
         return M
     else:
-        return mw.__dict__[G.src.dialog_name]
+        return mw.__dict__[addon_name]
 
 
 def func_actionMenuConnector(menu, action_name, action, **kwargs):
