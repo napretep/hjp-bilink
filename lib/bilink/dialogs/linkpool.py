@@ -53,6 +53,7 @@ class LinkPoolDialog(QDialog):
                                                               "Edit the tag that to be inserted during the link operation, "
                                                               "and add a timestamp by default if it is empty",
                                                       widget=QLineEdit())
+        self.help = common_tools.funcs.组件定制.按钮_提示(触发函数=lambda :common_tools.funcs.组件定制.大文本提示框(common_tools.funcs.译.说明_双链分组器))
         self.state = self.State()
         self.init_UI()
         self.init_model()
@@ -275,10 +276,11 @@ class LinkPoolDialog(QDialog):
         self.view.setDragDropMode(common_tools.compatible_import.DragDropMode.DragDrop)
         self.view.setIndentation(8)
         self.view.header().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         V = QVBoxLayout(self)
         V.addWidget(self.view)
         V.addWidget(self.tag)
+        V.addWidget(self.help)
         self.setLayout(V)
         func_wrapper = common_tools.wrappers.func_wrapper
         self.view.expandAll = func_wrapper(after=[lambda: self.state.__setattr__("view_is_expanded", True)])(

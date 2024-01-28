@@ -311,10 +311,14 @@ class ReviewButtonForCardPreviewer:
 
         button_num = sched.answerButtons(self.card())
         for i in range(button_num):
-            ease = enum[i + 1] + ":" + sched.nextIvlStr(self.card(), i + 1)
-            self.ease_button[i + 1] = QPushButton(ease)
+            ease = sched.nextIvlStr(self.card(), i + 1)+"\n"+enum[i + 1]
             answer = lambda j: lambda: self._answerCard(j + 1)
-            self.ease_button[i + 1].clicked.connect(answer(i))
+            self.ease_button[i + 1] = funcs.组件定制.按钮(文本=ease,触发函数=answer(i),ToolOrPush="",最紧凑布局=True)
+            # self.ease_button[i + 1] = QPushButton(ease)
+            # self.ease_button[i + 1].setContentsMargins(0,0,0,0)
+            # self.ease_button[i + 1].setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+
+            # self.ease_button[i + 1].clicked.connect(answer(i))
             layout.addWidget(self.ease_button[i + 1])
         widget.setLayout(layout)
         return widget

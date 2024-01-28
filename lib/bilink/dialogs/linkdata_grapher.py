@@ -1432,21 +1432,7 @@ class Grapher(QMainWindow):
 
         def helpFunction(self):
             """一个默认弹窗即可"""
-            zh = """
-如何选中卡片: 左键点击卡片,
-如何选中边:  左键点击边,
-如何移动卡片: 拖放选中的卡片即可,
-如何移动画布: 先点击画布以取消物品选中, 此时即可用左键来拖动画布
-如何多选卡片: 先点击画布以取消物品选中, 用右键在画布上拖动, 会出现矩形, 矩形覆盖到的卡片都会被选中.
-如何链接卡片: 先选中卡片, 保持左键并按下ctrl不动, 再拖动鼠标, 就可拖出一条跟着鼠标走的线, 将其拖动到另一张卡片上, 最后松开左键, 就能建立两张卡片的链接.
-How to select a card: Left click on the card,
-How to select an edge: Left click on the edge,
-How to move a card: Drag and drop the selected card,
-How to move the canvas: First click on the canvas to unselect the items, then you can drag the canvas with the left button
-How to select more cards: First click on the canvas to unselect the items, then drag the right click on the canvas, a rectangle will appear and all the cards covered by the rectangle will be selected.
-How to link cards: First select a card, hold the left button and press ctrl, then drag the mouse to create a line that follows the mouse, drag it to another card, and finally release the left button to create a link between the two cards.
-            """
-            funcs.Utils.大文本提示框(zh, 取消模态=True)
+            funcs.Utils.大文本提示框(funcs.Translate.说明_视图, 取消模态=True)
             # showInfo(zh)
             pass
 
@@ -1860,13 +1846,14 @@ class GrapherRoamingPreviewer(QMainWindow):
         self.当前编码 = ""
         self.导航按钮组 = self.导航组件(self)
 
-        self.listView = self.List(self)
+
 
         self.layoutH = QHBoxLayout()  # QMainWindow的布局
         self._cardView: load.SingleCardPreviewer = None
 
         self.复习_视图结点展示组件 = self.复习对象_视图结点(self)
         self.container = QWidget()
+        self.listView = self.List(self)
         self.initUI()
         # self.initEvent()
         if self.listView.tempModel.rowCount() == 0:
@@ -1879,6 +1866,8 @@ class GrapherRoamingPreviewer(QMainWindow):
         if self.superior.data.gviewdata.config_model.data.split_screen_when_roaming.value:
             funcs.通用.窗口.半开(self.superior,"右")
             funcs.通用.窗口.半开(self)
+
+
 
     def 初始化快捷键(self):
 
@@ -1932,7 +1921,7 @@ class GrapherRoamingPreviewer(QMainWindow):
             self._cardView = SingleCardPreviewer(initCard, superior=self, parent=self, mw=mw, on_close=lambda: None)
             self.initEvent()
             # self._cardView.open()
-            self.layoutH.addWidget(self.cardView, stretch=1)
+            self.layoutH.addWidget(self._cardView, stretch=1)
             self._cardView.revWidget.当完成复习.append(lambda 卡片编号, 难度, 平台: self.更新结点复习(卡片编号))
             self._cardView.revWidget.当完成复习.append(lambda 卡片编号, 难度, 平台,: self.item_finish())
             self._cardView.activateAsSubWidget()
@@ -2036,9 +2025,11 @@ class GrapherRoamingPreviewer(QMainWindow):
             super().__init__()
             self.当前侧边栏收起展开状态 = GrapherRoamingPreviewer.导航组件.展开  # 0
             self.上级 = 上级
-            self.按钮_下一个 = QPushButton(QIcon(funcs.G.src.ImgDir.bottom_direction), "")
-            self.按钮_上一个 = QPushButton(QIcon(funcs.G.src.ImgDir.top_direction), "")
-            self.按钮_收起展开 = QPushButton(QIcon(self.获取收起展开的图标()), "")
+
+            self.按钮_下一个 = funcs.组件定制.按钮(funcs.G.src.ImgDir.bottom_direction,ToolOrPush="Tool",最紧凑布局=True)
+            self.按钮_上一个 = funcs.组件定制.按钮(funcs.G.src.ImgDir.top_direction, ToolOrPush="Tool", 最紧凑布局=True)
+            self.按钮_收起展开 = funcs.组件定制.按钮(self.获取收起展开的图标(), ToolOrPush="Tool", 最紧凑布局=True)
+
             self.按钮组 = [self.按钮_上一个, self.按钮_下一个, self.按钮_收起展开]
             提示 = ["last", "next", "sidebar hide/show"]
             响应函数 = [self.上级.last_item, self.上级.next_item, self.上级.switch_sidebar_show_hide]

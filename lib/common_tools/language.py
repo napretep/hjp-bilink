@@ -417,6 +417,21 @@ The final result is sorted by default in descending order of the calculated weig
     结构结点 = 翻译("结构结点","structural node")
     说明_结构结点=翻译("如果一个结点是结构结点,代表这个结点承担结构表示的职能","If a node is a structural node, it means that the node assumes the function of representing the structure.")
     漫游起点 = 翻译("漫游起点","roaming start")
+    说明_视图 = 翻译("""
+    如何选中卡片: 左键点击卡片,
+如何选中边:  左键点击边,
+如何移动卡片: 拖动选中的卡片即可,
+如何移动画布: 先点击画布以取消物品选中, 此时即可用左键来拖动画布
+如何多选卡片: 先点击画布以取消物品选中, 用右键在画布上拖动, 会出现矩形, 矩形覆盖到的卡片都会被选中.
+如何链接卡片: 先选中卡片, 再按下ctrl不动, 再拖动鼠标, 就可拖出一条跟着鼠标走的线, 将其拖动到另一张卡片上, 最后松开左键, 就能建立两张卡片的链接.
+""","""
+How to select a card: Left click on the card,
+How to select an edge: Left click on the edge,
+How to move a card: Drag and drop the selected card,
+How to move the canvas: First click on the canvas to unselect the items, then you can drag the canvas with the left button
+How to select more cards: First click on the canvas to unselect the items, then drag the right click on the canvas, a rectangle will appear and all the cards covered by the rectangle will be selected.
+How to link cards: First select a card, hold the left button and press ctrl, then drag the mouse to create a line that follows the mouse, drag it to another card, and finally release the left button to create a link between the two cards.
+""")
     说明_漫游起点 = 翻译("当你的漫游路线生成模式为图遍历排序模式, 而且视图配置中'roamingStart'项选择了自动模式时, 本程序会自动在结点集合中寻找首个'漫游起点'属性开启的结点作为图遍历的起点. 更多信息请查看视图配置中'roamingStart'项的解释.","When your roaming route generation mode is graph traversal sorting mode and automatic mode is selected for 'roamingStart' in the view configuration, the program will automatically find the first node in the node set with the 'roamingStart' attribute turned on as the starting point of the graph traversal. For more information, please see the explanation of 'roamingStart' item in the view configuration.")
     必须复习 = 翻译("必须复习","must review")
     说明_必须复习 = 翻译("当一个结点的'必须复习'属性被开启, 则无论是否满足漫游复习的过滤规则, 都会被选中复习","When the 'must review' attribute of a node is turned on, it will be selected for review regardless of whether the roaming review filter rule is satisfied")
@@ -720,7 +735,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     隐藏边:str=rosetta("隐藏边")
     Anki搜索:str=rosetta("Anki搜索")
     本视图已被删除_确定退出么:str=rosetta("本视图已被删除_确定退出么")
-    视图名已存在:str=rosetta("视图名已存在")
+    视图名已存在:str=翻译("视图名已存在","view name already exists")
     视图名不能为空:str=rosetta("视图名不能为空")
     Anki视图:str=rosetta("Anki视图")
     打开视图管理器:str=rosetta("打开视图管理器")
@@ -787,7 +802,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     另存视图:str=翻译("复制视图","copy view")
     描述已修改但是___ :str=rosetta("描述已修改,但是你不会看到修改结果,因为这张卡保持着描述与字段同步")
     打开复习队列:str = rosetta("打开复习队列")
-    双面展示:str=rosetta("双面展示")
+    双面展示:str=翻译("双面\n展示","both\nside")
     开始漫游复习:str=rosetta("开始漫游复习")
     全部卡片:str=rosetta("全部卡片")
     到期卡片:str=翻译("到期卡片","node that is due")
@@ -808,6 +823,8 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     输入关键词并点击查询:str = rosetta("输入关键词并点击查询")
     搜索并选择配置:str = rosetta("搜索并选择配置")
     说明_同时搜索配置与视图的配置:str = rosetta("你输入的关键词会同时匹配视图名与配置名, 若你选择的是配置则直接加载这个配置, 若你选择的是视图则会加载这个视图对应的配置. 若你没有做出选择, 点击确认不会有反应")
+    说明_图形化双链器 = 翻译("本窗口为图形化双链器，他用于可视化地给不同的卡片加上全局链接，图形化双链器和视图看起来很像，但图形化双链器仅仅是一个用于可视化地给卡片之间加上全局双链的工具，图形化双链器是全局唯一的，而视图不是唯一的，视图可以打开多个，而且不同的视图有自己不同的名字，有自己内部的视图链接","This window is a visual bilinker, which is used to visually add global bilinks to different cards. The visual bilinker looks similar to a viewer, but it is solely a tool for visually creating global bilinks between cards. The visual bilinker is globally unique, while viewers are not; multiple viewers can be opened, and each viewer has its own distinct name and internal view links.")
+    说明_anchor = 翻译("本窗口的上部分用于编辑全局链接的描述，下部分用于编辑卡片自身的描述，本窗口有时被称作anchor，有时被称作metainfo","The upper part of this window is used for editing the description of global links, while the lower part is for editing the description of the card itself. This window is sometimes referred to as the 'anchor' and other times as 'metainfo'")
     插件数据主动备份 =翻译("插件数据主动备份","addon data backup")
     新建配置:str = 翻译("新建配置","create new config")
     配置:str = rosetta("配置")
@@ -833,6 +850,7 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     描述提取规则_同步=翻译("内容同步","content sync")
     描述提取规则_模板=翻译("卡片模板","card template")
     描述提取规则_长度=翻译("字符长度","text length")
+    使用指南 = 翻译("使用指南","User Guide")
     不选等于全选 = 翻译("你没有选择任何一项, 程序默认你选择了全部项","You have not selected any item, the program defaults to your selection of all items")
     不选角色等于不选 = 翻译("你没有选择任何一项, 程序默认你一项都不选","If you do not select any of them, the program defaults you to none of them")
     双击以选中项 = 翻译("双击以完成选中","double-click to select item")
@@ -860,5 +878,6 @@ Default filter rule:  {baseClass.漫游预设.默认过滤规则}
     说明_视图添加卡片_默认模板 = 翻译("本项设定当添加卡片类型的结点时，默认要选择的模板","This item sets the template to be selected by default when adding card type nodes")
     说明_视图添加视图_默认配置 = 翻译("本项设定当添加视图类型的结点时，默认要选择的配置",
                                       "This item sets the configuration to be selected by default when adding nodes of view type")
+    说明_双链分组器 = 翻译("这个窗口叫做双链分组器，他是一个过时的功能，通常推荐使用可视化双链器，他的主要作用是临时暂存你的卡片，然后等所有需要绑定双向链接的卡片都插入到这里之后，再对这些卡片进行全局的双向链接处理，他的一个优势是可以将卡片分成多个组，在不同组内的卡片可以彼此建立链接,tag栏用于输入链接时附带的标签名.你可以通过拖拽卡片来实现分组和取消分组 翻译成英文","This window is called a bilink grouper, which is an outdated feature; it is generally recommended to use the visual bilinker instead. The main purpose of the bilink grouper is to temporarily store your cards and then, once all the cards that need to be bound with bidirectional links are inserted here, to process these cards for global bidirectional linking. One advantage of this tool is that it allows you to divide cards into multiple groups, and cards within different groups can establish links with each other. The tag bar is used to enter the name of the tag that accompanies the link when linking.You can group and ungroup cards by dragging and dropping them.")
 if __name__ == "__main__":
     print(Translate.打开配置表)

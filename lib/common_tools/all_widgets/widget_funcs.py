@@ -2,6 +2,22 @@ from .basic_widgets import *
 class 组件定制:
     # TODO 设计一个表格行编辑组件
 
+    @staticmethod
+    def 大文本提示框(文本, 取消模态=False, 尺寸=(600, 400)):
+        字典键名 = G.safe.baseClass.枚举命名
+
+        _ = 字典键名.砖
+
+        组合 = {_.框: QHBoxLayout(), _.子: [{_.件: QTextBrowser()}]}
+        组合[_.子][0][_.件].setHtml(G.safe.funcs.Utils.html默认格式(文本))
+        # noinspection PyArgumentList
+        对话框: QDialog = 组件定制.组件组合(组合, QDialog())
+        if 取消模态:
+            对话框.setModal(False)
+            对话框.setWindowModality(Qt.WindowModality.NonModal)
+        对话框.resize(*尺寸)
+        对话框.exec()
+        pass
 
     class 表格_单行行编辑组件:
         def __init__(self,单行组件:QWidget):
@@ -104,14 +120,17 @@ class 组件定制:
         return 组件
 
     @staticmethod
-    def 按钮(图标地址=None, 文本=None, 触发函数=None):
-        组件 = QPushButton()
+    def 按钮(图标地址=None, 文本=None, 触发函数=None, ToolOrPush = "Push",最紧凑布局=False):
+        组件 = QPushButton() if ToolOrPush == "Push" else QToolButton()
         if 图标地址:
             组件.setIcon(QIcon(图标地址))
         if 文本:
             组件.setText(文本)
         if 触发函数:
             组件.clicked.connect(lambda:触发函数())
+        if 最紧凑布局:
+            组件.setContentsMargins(0,0,0,0)
+            组件.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
         return 组件
 
     @staticmethod

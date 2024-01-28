@@ -311,7 +311,10 @@ def make__open_default_view(atype, pairsli_admin: "PairsLiAdmin", *args, **kwarg
         M = get_browser_menu(args[0]) if atype == T.browser else get_mainWin_menu()
         M.addAction(Translate.打开默认视图).triggered.connect(common_tools.funcs.GviewOperation.打开默认视图)
         M.addAction(Translate.打开默认漫游复习).triggered.connect(common_tools.funcs.GviewOperation.打开默认漫游复习)
-
+def make__open_userGuide(atype, pairsli_admin: "PairsLiAdmin", *args, **kwargs):
+    if atype in {T.browser, T.mainwin}:
+        M = get_browser_menu(args[0]) if atype == T.browser else get_mainWin_menu()
+        M.addAction(Translate.使用指南).triggered.connect(common_tools.funcs.Utils.打开使用手册)
 
 
 make_list = [globals()[name] for name in globals() if name.startswith("make__")]

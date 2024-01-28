@@ -1077,21 +1077,7 @@ class VisualBilinker(QMainWindow):
 
         def helpFunction(self):
             """一个默认弹窗即可"""
-            zh = """
-如何选中卡片: 左键点击卡片,
-如何选中边:  左键点击边,
-如何移动卡片: 拖放选中的卡片即可,
-如何移动画布: 先点击画布以取消物品选中, 此时即可用左键来拖动画布
-如何多选卡片: 先点击画布以取消物品选中, 用右键在画布上拖动, 会出现矩形, 矩形覆盖到的卡片都会被选中.
-如何链接卡片: 先选中卡片, 保持左键并按下ctrl不动, 再拖动鼠标, 就可拖出一条跟着鼠标走的线, 将其拖动到另一张卡片上, 最后松开左键, 就能建立两张卡片的链接.
-How to select a card: Left click on the card,
-How to select an edge: Left click on the edge,
-How to move a card: Drag and drop the selected card,
-How to move the canvas: First click on the canvas to unselect the items, then you can drag the canvas with the left button
-How to select more cards: First click on the canvas to unselect the items, then drag the right click on the canvas, a rectangle will appear and all the cards covered by the rectangle will be selected.
-How to link cards: First select a card, hold the left button and press ctrl, then drag the mouse to create a line that follows the mouse, drag it to another card, and finally release the left button to create a link between the two cards.
-            """
-            showInfo(zh)
+            funcs.组件定制.大文本提示框(funcs.Translate.说明_图形化双链器+"\n"+funcs.Translate.说明_视图)
             pass
 
         @property

@@ -385,6 +385,7 @@ class AnchorDialog(QDialog):
             super().__init__()
             self.line = QLineEdit(self)
             self.cbox = QRadioButton(common_tools.funcs.Translate.自动更新描述)
+            self.help = common_tools.funcs.组件定制.按钮_提示(触发函数=lambda : common_tools.funcs.组件定制.大文本提示框(common_tools.funcs.Translate.说明_anchor))
             self.setContentsMargins(0,0,0,0)
             self.cbox.setContentsMargins(0,0,0,0)
             self.line.setContentsMargins(0,0,0,0)
@@ -392,6 +393,7 @@ class AnchorDialog(QDialog):
             h_layout.setContentsMargins(0,0,0,0)
             h_layout.addWidget(self.line,stretch=29)
             h_layout.addWidget(self.cbox,stretch=1)
+            h_layout.addWidget(self.help,stretch=1)
             self.setLayout(h_layout)
 
     class Attr:

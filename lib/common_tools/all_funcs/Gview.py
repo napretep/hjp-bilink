@@ -375,14 +375,14 @@ class GviewOperation:
                 return False
             return True
 
-        模型 = G.safe.models
+        模型库 = G.safe.models
 
         if 视图编号:
             视图数据:"G.safe.funcs.GViewData" = GviewOperation.load(uuid=视图编号)
 
 
         while True:
-            数据源 = 模型.类型_数据源_视图创建参数()
+            数据源 = 模型库.类型_数据源_视图创建参数()
             if 配置编号:
                 配置模型 = imports.Configs.GviewConfigOperation.从数据库读(配置编号)
                 数据源.配置 = G.safe.baseClass.IdName(配置模型.name, 配置模型.uuid)
@@ -390,7 +390,7 @@ class GviewOperation:
                 配置模型 = 视图数据.config_model
                 数据源.视图名 = 视图数据.name
                 数据源.配置 = G.safe.baseClass.IdName(配置模型.name, 配置模型.uuid)
-            模型 = 模型.类型_模型_视图创建参数(数据源)
+            模型 = 模型库.类型_模型_视图创建参数(数据源)
             模型.创建UI().exec()
             # viewName, submitted = QInputDialog.getText(None, "input", 译.视图名, QLineEdit.Normal, placeholder)
             if not 模型.完成选择:

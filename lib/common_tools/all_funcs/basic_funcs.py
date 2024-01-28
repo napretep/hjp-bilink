@@ -232,20 +232,28 @@ class Utils(object):
 
     @staticmethod
     def 大文本提示框(文本, 取消模态=False, 尺寸=(600, 400)):
-        字典键名 = G.safe.baseClass.枚举命名
-
-        _ = 字典键名.砖
-
-        组合 = {_.框: QHBoxLayout(), _.子: [{_.件: QTextBrowser()}]}
-        组合[_.子][0][_.件].setHtml(Utils.html默认格式(文本))
-        # noinspection PyArgumentList
-        对话框: QDialog = G.safe.widgets.组件定制.组件组合(组合, QDialog())
-        if 取消模态:
-            对话框.setModal(False)
-            对话框.setWindowModality(Qt.WindowModality.NonModal)
-        对话框.resize(*尺寸)
-        对话框.exec()
+        G.safe.funcs.组件定制.大文本提示框(文本, 取消模态, 尺寸)
+        # 字典键名 = G.safe.baseClass.枚举命名
+        #
+        # _ = 字典键名.砖
+        #
+        # 组合 = {_.框: QHBoxLayout(), _.子: [{_.件: QTextBrowser()}]}
+        # 组合[_.子][0][_.件].setHtml(Utils.html默认格式(文本))
+        # # noinspection PyArgumentList
+        # 对话框: QDialog = G.safe.widgets.组件定制.组件组合(组合, QDialog())
+        # if 取消模态:
+        #     对话框.setModal(False)
+        #     对话框.setWindowModality(Qt.WindowModality.NonModal)
+        # 对话框.resize(*尺寸)
+        # 对话框.exec()
         pass
+
+    @staticmethod
+    def 打开使用手册():
+        # 将字符串 URL 转换为 QUrl 对象
+        url = QUrl('https://vu2emlw0ia.feishu.cn/wiki/wikcnZcvoqg7x7R2eeQM4IxsNXd')
+        # 使用默认浏览器打开 URL
+        QDesktopServices.openUrl(url)
 
     @staticmethod
     def html默认格式(内容):
