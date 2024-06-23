@@ -1645,7 +1645,7 @@ class GViewAdmin(QDialog):
         l_b = self.bottom.link_button
         # pos=l_b.mapToGlobal(l_b.pos())
         m.move(QCursor.pos())
-        m.exec_()
+        m.exec()
         pass
 
     def on_delete(self, it=None):

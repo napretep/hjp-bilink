@@ -358,6 +358,7 @@ class LinkDataJSONInfo:
             self.root = [LinkDataNode(**link) for link in d["root"]]
         self.link_list = [LinkDataPair(**link) for link in d["link_list"] if
                           funcs.CardOperation.exists(link["card_id"])]
+
         self.self_data = LinkDataPair(**d["self_data"])
         self.link_dict = {}
         for pair in self.link_list:

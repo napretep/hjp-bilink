@@ -144,7 +144,7 @@ class UniversalProgresser(QDialog):
 
     def init_UI(self):
         self.setMinimumWidth(400)
-        self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
+        self.setWindowFlags(self.windowFlags())# | Qt.FramelessWindowHint)
         glayout = QGridLayout(self)
         glayout.addWidget(self.progressbar, 0, 0, 1, 4)
         glayout.addWidget(self.intro, 1, 0, 1, 1)

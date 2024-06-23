@@ -103,7 +103,10 @@ def status_check():
 #
 #     pass
 
-
+def rename_metaJson(json_path,name="hjp_linkmaster"):
+    data = json.load(open(json_path, "r", encoding="utf-8"))
+    data["name"] = name
+    json.dump(data, open(json_path, "w", encoding="utf-8"))
 def ankiaddon_make(version):
     status_check()
     addon_repository_fold =windows_addon_repository  if  is_win else linux_addon_repository
@@ -112,6 +115,7 @@ def ankiaddon_make(version):
     if not os.path.exists(repository):
         os.mkdir(repository)
     zip_name = os.path.join(repository, "hjp_linkmaster.zip")
+    rename_metaJson(metaJson)
     f = zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED)
     # root 是 当前文件夹的路径, dirs 是当前文件夹的直接子文件夹, files是当前文件夹下的文件
     for root, dirs, files in os.walk(THIS_FOLDER, onerror=lambda x: print("wrong direction")):
@@ -130,7 +134,7 @@ def ankiaddon_make(version):
         os.remove(filename)
     os.rename(zip_name, filename)
     print(f"{version}构建完成!")
-
+    rename_metaJson(metaJson,name="hjp_linkmaster-dev")
     return filename
     pass
 

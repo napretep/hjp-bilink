@@ -24,7 +24,7 @@ from .all_funcs.browser import BrowserOperation
 from .all_funcs.link import GlobalLinkDataOperation
 from .all_widgets.widget_funcs import *
 from .all_funcs.basic_funcs import *
-
+import html as htmlLib
 
 译 = Translate
 from .objs import LinkDataPair, LinkDataJSONInfo
@@ -85,17 +85,18 @@ class MenuMaker:
     @staticmethod
     def gview_ankilink(menu, data):
         act = [Translate.文内链接, Translate.html链接, Translate.markdown链接, Translate.orgmode链接]
-        # f = [lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.inAnki, data),
-        #      lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.html, data),
-        #      lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.markdown, data),
-        #      lambda: AnkiLinks.copy_gview_as(AnkiLinks.Type.orgmode, data), ]
         f = [
                 lambda: AnkiLinksCopy2.Open.Gview.from_htmlbutton(data),
                 lambda: AnkiLinksCopy2.Open.Gview.from_htmllink(data),
                 lambda: AnkiLinksCopy2.Open.Gview.from_md(data),
                 lambda: AnkiLinksCopy2.Open.Gview.from_orgmode(data)
         ]
-        list(map(lambda x: menu.addAction(act[x]).triggered.connect(f[x]), range(len(f))))
+
+        for x in range(len(f)):
+            action = menu.addAction(act[x])
+            action.triggered.connect(f[x])
+        # list(map(lambda idx: menu.addAction(act[idx]).triggered.connect(f[idx]), range(len(f))))
+        # list(map(lambda idx: menu.addAction(act[idx]).triggered.connect((lambda: f[idx])()), range(len(f))))
         return menu
 
 
@@ -1187,13 +1188,14 @@ class AnkiLinksCopy2:
                         A.LinkType.markdown  : lambda: f"[{Translate.Anki搜索}:{data.name}]({href})",
                         A.LinkType.htmlbutton: lambda: f"""<div >|<button class="hjp_bilink ankilink button" onclick="javascript:pycmd('{href}');">{Translate.Anki视图}:{data.name}</button>|</div>"""
                 }
+                html = func_dict[mode]()
                 if mode == A.LinkType.htmllink:
                     mmdata.setText(href)
-                    mmdata.setHtml(func_dict[mode]())
+                    mmdata.setHtml(html)
                     clipboard.setMimeData(mmdata)
                 else:
-                    clipboard.setText(func_dict[mode]())
-                tooltip(href)
+                    clipboard.setText(html)
+                tooltip(htmlLib.escape(html))
 
     class LinkType:
         inAnki = 0

@@ -11,7 +11,8 @@
 
 from .lib.common_tools import connectors
 from .lib.common_tools import compatible_import
-
+import warnings
+warnings.filterwarnings('ignore')
 
 
 connectors.funcs.G.src.ADDON_VERSION="dev"
